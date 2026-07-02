@@ -1,118 +1,198 @@
 
 <style>
-  .notes-root { font-family: var(--font-sans); max-width: 680px; padding: 1.5rem 0; }
-  .lecture-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--border-strong); }
-  .lecture-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-accent); margin: 0 0 6px; }
-  .lecture-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
-  .lecture-subtitle { font-size: 14px; color: var(--text-muted); margin: 0; }
-  .section { margin-bottom: 2rem; }
-  .section-label { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
-  .section-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .section-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin: 0; }
-  .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-  .concept-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; }
-  .concept-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
-  .concept-name i { font-size: 15px; color: var(--text-accent); }
-  .concept-desc { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
-  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-0); color: var(--text-accent); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; }
-  .tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius); background: var(--bg-warning); color: var(--text-warning); margin-top: 6px; }
-  .tag.green { background: var(--bg-success); color: var(--text-success); }
-  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
-  .full-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
-  .full-card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
-  .full-card-body { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+* { box-sizing: border-box; }
+.root { font-family: var(--font-sans); padding: 1.5rem 0; max-width: 680px; }
+.sec-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+.sec-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.sec-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin: 0; }
+.section { margin-bottom: 2.5rem; }
+.card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+.card-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.card-icon { font-size: 18px; color: var(--text-accent); flex-shrink: 0; margin-top: 1px; }
+.card-name { font-size: 14px; font-weight: 500; color: var(--text-primary); margin: 0 0 2px; }
+.card-sub { font-size: 12px; color: var(--text-muted); margin: 0; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.pill { border-radius: var(--radius); padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+.pill.analogy { background: var(--bg-warning); color: #633806; }
+.pill.usecase { background: var(--bg-success); color: #27500A; }
+.pill-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.7; display: block; margin-bottom: 3px; }
+.pill.code { background: var(--surface-0); border: 0.5px solid var(--border); color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; line-height: 1.6; margin-top: 8px; display: block; }
+.warn { background: var(--bg-danger); border-radius: var(--radius); padding: 6px 10px; font-size: 12px; color: #791F1F; margin-top: 8px; }
+.warn i { margin-right: 4px; }
+.tip { background: var(--bg-accent); border-radius: var(--radius); padding: 6px 10px; font-size: 12px; color: #0C447C; margin-top: 8px; }
+.tip i { margin-right: 4px; }
+code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-0); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text-accent); }
+hr { border: none; border-top: 0.5px solid var(--border); margin: 1.75rem 0; }
+.timeline { display: flex; gap: 0; margin-bottom: 10px; overflow: hidden; border-radius: var(--radius); border: 0.5px solid var(--border); }
+.tl-item { flex: 1; padding: 10px 12px; border-right: 0.5px solid var(--border); }
+.tl-item:last-child { border-right: none; }
+.tl-era { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin: 0 0 3px; }
+.tl-name { font-size: 12px; font-weight: 500; color: var(--text-primary); margin: 0 0 3px; }
+.tl-desc { font-size: 11px; color: var(--text-secondary); margin: 0; line-height: 1.4; }
+.tl-item.active { background: var(--bg-success); }
+.tl-item.active .tl-name { color: #27500A; }
+.tl-item.active .tl-desc { color: #3B6D11; }
+.tl-item.active .tl-era { color: #3B6D11; }
 </style>
 
-<div class="notes-root">
-  <h2 class="sr-only">Lecture notes for W2_L2: JavaScript Collections — Iterations and Destructuring</h2>
+<div class="root">
+<h2 class="sr-only">W2_L3 JavaScript modularity and object orientation — analogies and real-world examples</h2>
 
-  <div class="lecture-header">
-    <p class="lecture-eyebrow">IIT Madras · AppDev2 · W2_L2</p>
-    <h1 class="lecture-title">JavaScript Collections</h1>
-    <p class="lecture-subtitle">Iterations and Destructuring</p>
+<div class="section">
+  <div class="sec-header">
+    <div class="sec-num">1</div>
+    <p class="sec-title">Modularity in JavaScript</p>
   </div>
 
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">1</div>
-      <h2 class="section-title">Iteration techniques</h2>
+  <div class="timeline">
+    <div class="tl-item">
+      <p class="tl-era">Early JS</p>
+      <p class="tl-name">No modules</p>
+      <p class="tl-desc">All scripts dumped into one page. Like one giant kitchen with no departments.</p>
     </div>
-    <div class="concept-grid">
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-repeat" aria-hidden="true"></i>For loop</p>
-        <p class="concept-desc">Classic C-style. Explicit index control via <code>let i</code>. Full control over increment and range.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-key" aria-hidden="true"></i>For...in</p>
-        <p class="concept-desc">Iterates over <strong style="font-weight:500">keys</strong> (indices for arrays, property names for objects). Skips empty/undefined slots.</p>
-        <span class="tag">Caution: skips holes</span>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-list" aria-hidden="true"></i>For...of</p>
-        <p class="concept-desc">Iterates over <strong style="font-weight:500">values</strong> of any iterable. Does not skip <code>undefined</code> entries.</p>
-        <span class="tag green">Preferred for arrays</span>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-braces" aria-hidden="true"></i>Object iteration</p>
-        <p class="concept-desc">Objects are not iterable directly. Use <code>Object.entries(obj)</code> to get <code>[key, value]</code> pairs, then destructure.</p>
-      </div>
+    <div class="tl-item">
+      <p class="tl-era">Node.js era</p>
+      <p class="tl-name">CommonJS</p>
+      <p class="tl-desc">Sync loading — fine for servers, blocks browsers.</p>
+    </div>
+    <div class="tl-item">
+      <p class="tl-era">Browser fix</p>
+      <p class="tl-name">AMD</p>
+      <p class="tl-desc">Async loading for browsers. Solved blocking, but ugly syntax.</p>
+    </div>
+    <div class="tl-item active">
+      <p class="tl-era">Modern standard</p>
+      <p class="tl-name">ES6 modules</p>
+      <p class="tl-desc">Async, clean, works everywhere. Use this.</p>
     </div>
   </div>
 
-  <hr class="divider">
-
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">2</div>
-      <h2 class="section-title">Array methods for data processing</h2>
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-package card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Modules — the "kitchen department" model</p>
+        <p class="card-sub">Bundle related code into files; share only what's needed</p>
+      </div>
     </div>
-    <div class="concept-grid">
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-search" aria-hidden="true"></i>find</p>
-        <p class="concept-desc">Returns the <strong style="font-weight:500">first element</strong> that satisfies the test function. Returns <code>undefined</code> if none match.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-filter" aria-hidden="true"></i>filter</p>
-        <p class="concept-desc">Returns a <strong style="font-weight:500">new array</strong> of all elements passing the test. Non-destructive.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-transform" aria-hidden="true"></i>map</p>
-        <p class="concept-desc">Creates a <strong style="font-weight:500">new array</strong> by transforming every element. 1-to-1 mapping.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-stack" aria-hidden="true"></i>reduce</p>
-        <p class="concept-desc">Collapses array into a <strong style="font-weight:500">single value</strong>. Takes a callback and an initial accumulator.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-arrows-sort" aria-hidden="true"></i>sort</p>
-        <p class="concept-desc">Sorts <strong style="font-weight:500">in place</strong>. Default is lexical (string). For numbers use <code>(a, b) =&gt; a - b</code>.</p>
-        <span class="tag">Mutates original</span>
-      </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>A restaurant kitchen has separate departments: pastry, grill, salad. Each does its job independently. The head chef (main file) calls each station. No station messes with another's tools directly.</div>
+      <div class="pill usecase"><span class="pill-label">Real use — RMS</span>Separate modules: <code>students.js</code> (data), <code>assessments.js</code> (logic), <code>dashboard.js</code> (UI). Each imports only what it needs. Changing assessment logic doesn't break the UI file.</div>
     </div>
   </div>
 
-  <hr class="divider">
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-arrow-up-right card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Export / import — the public counter</p>
+        <p class="card-sub">Only what you export is visible outside the file</p>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>A pharmacy keeps most medicines in the back (private). Only approved items go on the public counter (exported). The customer (importing file) can only access what's on the counter.</div>
+      <div class="pill usecase"><span class="pill-label">Real use — Cubedekho</span>Export <code>calculateDiscount()</code> from <code>pricing.js</code>. The cart page imports just that function — it can't accidentally read or modify the raw price table sitting inside that file.</div>
+    </div>
+    <div class="pill code">export const calculateDiscount = (price, pct) => price - (price * pct / 100);<br>import { calculateDiscount } from './pricing.js';</div>
+  </div>
 
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">3</div>
-      <h2 class="section-title">Advanced syntax and destructuring</h2>
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-star card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Default export — the signature product</p>
+        <p class="card-sub">One primary thing per module; importers can name it anything</p>
+      </div>
     </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-brackets" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array construction</p>
-      <p class="full-card-body"><code>new Array(n)</code> creates an array of size <em>n</em> with empty slots (holes), not <code>undefined</code>. Fill individually or use <code>.fill()</code>.</p>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>A bakery's "default" is the one cake they're known for. You walk in and ask for "the special" — you don't need to know its full official name. The importer picks the nickname.</div>
+      <div class="pill usecase"><span class="pill-label">Real use — DM</span>A lead-capture form component exported as default. Every page that imports it can call it whatever variable name makes sense locally.</div>
     </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-dots" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Spread operator <code>...</code></p>
-      <p class="full-card-body">Expands an iterable inline — useful for merging arrays, copying data, or passing elements as arguments. E.g. <code>[...a, ...b]</code> merges two arrays.</p>
+    <div class="pill code">export default function LeadForm() { ... }<br>import MyForm from './LeadForm.js'; &nbsp;// named anything</div>
+    <div class="tip"><i class="ti ti-info-circle" aria-hidden="true"></i>Imported variables are read-only. To change a module's value, call a function that the module itself exports — don't try to reassign the import directly.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-box card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">NPM + bundlers — the supply chain</p>
+        <p class="card-sub">NPM = warehouse; Webpack/Rollup = delivery truck</p>
+      </div>
     </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-box-multiple" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array destructuring</p>
-      <p class="full-card-body">Unpack array values into variables by position: <code>const [a, b] = x</code>. Clean, concise alternative to index access.</p>
-    </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-braces" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Object destructuring</p>
-      <p class="full-card-body">Extract properties into variables. <strong style="font-weight:500">Rename:</strong> <code>const { first_name: fn } = person</code> &nbsp;·&nbsp; <strong style="font-weight:500">Rest:</strong> <code>const { first_name, ...rem } = person</code> captures all remaining properties.</p>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>NPM is the Amazon warehouse — millions of packages. Your project orders what it needs. Webpack/Rollup is the delivery truck that bundles everything into one parcel the browser can open.</div>
+      <div class="pill usecase"><span class="pill-label">Real use</span>Cubedekho uses a WordPress/PHP stack now, but if you ever build a standalone JS frontend, Vite (modern bundler) would be your delivery truck — fast, zero-config.</div>
     </div>
   </div>
+</div>
+
+<hr>
+
+<div class="section">
+  <div class="sec-header">
+    <div class="sec-num">2</div>
+    <p class="sec-title">Object orientation in JavaScript</p>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-id-badge card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Object literals — the student profile card</p>
+        <p class="card-sub">Key-value pairs bundled into one named thing</p>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>An RMS student's ID card: name, age, batch, score — all bundled into one physical card. The card is the object. Each field is a property.</div>
+      <div class="pill usecase"><span class="pill-label">Real use — RMS</span>Store each student as an object with methods. <code>student.getGrade()</code> calculates and returns the grade — the logic lives inside the object, not scattered across your codebase.</div>
+    </div>
+    <div class="pill code">const student = { name: 'Arjun', score: 88, getGrade() { return this.score >= 75 ? 'A' : 'B'; } };</div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-pointer card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">The <code>this</code> keyword — "current object" pronoun</p>
+        <p class="card-sub">Refers to whichever object is calling the method</p>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>In a group of students, saying "I scored 88" means something different depending on who says it. <code>this</code> is that "I" — it refers to whoever is currently running the method.</div>
+      <div class="pill usecase"><span class="pill-label">Real use</span>In an RMS batch object, <code>this.students</code> inside a method refers to that batch's own student list — not some other batch's list. Without <code>this</code>, JavaScript doesn't know which object's data to read.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-affiliate card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Prototypical inheritance — DNA chain</p>
+        <p class="card-sub">Objects inherit behaviour from a parent object, not a class blueprint</p>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy</span>You inherit traits from your father who inherited them from your grandfather. There's no "human blueprint document" — the traits live on the actual person and pass down the chain. JS objects work the same way: one object is set as the prototype of another.</div>
+      <div class="pill usecase"><span class="pill-label">Real use — RMS</span>A <code>PremiumStudent</code> object's prototype is <code>Student</code>. It automatically has all base student methods (like <code>getGrade()</code>), and adds its own (<code>getCoachingSlot()</code>). No need to rewrite shared logic.</div>
+    </div>
+    <div class="tip"><i class="ti ti-info-circle" aria-hidden="true"></i>The <code>class</code> keyword is just cleaner syntax on top of this prototype system — it doesn't change how JS actually works underneath.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-top">
+      <i class="ti ti-copy card-icon" aria-hidden="true"></i>
+      <div>
+        <p class="card-name">Object copying — the "copy trap"</p>
+        <p class="card-sub">Assignment shares a pointer; spread makes a shallow copy</p>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="pill analogy"><span class="pill-label">Analogy — reference</span>Giving a colleague your Google Doc link. You both see the same document. If they edit it, your version changes too. That's <code>y = x</code> — one object, two names pointing at it.</div>
+      <div class="pill analogy"><span class="pill-label">Analogy — shallow copy</span>Printing a photocopy of the document. Top-level text is independent. But if the doc has a link to another file, that link still points to the same place. That's spread: <code>{ ...x }</code>.</div>
+    </div>
+    <div class="warn"><i class="ti ti-alert-triangle" aria-hidden="true"></i>Shallow copy danger: if an object has nested objects (e.g. a student object with an <code>address</code> sub-object), spread still shares that nested reference. Changing <code>copy.address.city</code> also changes the original. Use a deep-copy utility for nested structures.</div>
+    <div class="pill code">const original = { name: 'Arjun', scores: [88, 92] };<br>const copy = { ...original }; &nbsp;// scores array still shared!<br>copy.name = 'Priya'; &nbsp;// safe — top-level<br>copy.scores.push(100); &nbsp;// MUTATES original.scores too</div>
+  </div>
+</div>
 </div>
