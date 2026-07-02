@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contributor Guide - IITM Notes Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <link rel="stylesheet" href="assets/css/guide.css">
+</head>
+<body data-theme="light">
+  <div class="progress-bar" id="progressBar"></div>
+
+  <header class="topbar">
+    <a href="#" class="topbar-logo" onclick="window.scrollTo({top:0,behavior:'smooth'}); return false;">
+      <i class="ph ph-books"></i>
+      <span>Contributor Guide</span>
+    </a>
+    <div class="topbar-right">
+      <div class="search-box">
+        <i class="ph ph-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Search..." autocomplete="off">
+        <div class="search-dropdown" id="searchDropdown"></div>
+      </div>
+      <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode"><i class="ph ph-moon" id="themeIcon"></i></button>
+      <button class="icon-btn" id="mobileToggle" aria-label="Open menu"><i class="ph ph-list"></i></button>
+    </div>
+  </header>
+
+  <div class="overlay" id="overlay"></div>
+
+  <div class="doc-layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">On this page</div>
+      <nav id="sidebarNav">
+        <div class="sidebar-group">
+          <a href="#welcome" class="sidebar-link active">Welcome</a>
+        </div>
+        <div class="sidebar-group">
+          <a href="#workflow" class="sidebar-link">Contribution Workflow</a>
+          <a href="#step1" class="sidebar-link sub">Step 1 - Open Lecture Video</a>
+          <a href="#step2" class="sidebar-link sub">Step 2 - Generate Raw Notes</a>
+          <a href="#step3" class="sidebar-link sub">Step 3 - Convert to HTML</a>
+          <a href="#step4" class="sidebar-link sub">Step 4 - Open VS Code</a>
+          <a href="#step5" class="sidebar-link sub">Step 5 - Paste HTML</a>
+          <a href="#step6" class="sidebar-link sub">Step 6 - Add New Files</a>
+        </div>
+        <div class="sidebar-group">
+          <a href="#git-commands" class="sidebar-link">Git Commands</a>
+          <a href="#folder-structure" class="sidebar-link">Folder Structure</a>
+          <a href="#images" class="sidebar-link">Images</a>
+          <a href="#best-practices" class="sidebar-link">Best Practices</a>
+          <a href="#common-mistakes" class="sidebar-link">Common Mistakes</a>
+          <a href="#checklist" class="sidebar-link">Checklist</a>
+          <a href="#faq" class="sidebar-link">FAQ</a>
+          <a href="#resources" class="sidebar-link">Resources</a>
+        </div>
+      </nav>
+    </aside>
+
+    <main class="main-content" id="mainContent">
+      <section class="hero" id="welcome">
+        <h1>Contributor Guide</h1>
+      </section>
+
+      <section class="section" id="workflow">
+        <h2>Contribution Workflow</h2>
+        <p>Follow this 6-step timeline to contribute a new lecture note.</p>
+        <div class="timeline">
+
+          <div class="timeline-item" id="step1">
+            <div class="timeline-title">Step 1 &mdash; Open Lecture Video</div>
+            <div class="timeline-content">
+              <p>Open the lecture playlist and choose the lecture you want to convert into notes.</p>
+              <img src="assets/img/youtube_ask_button.png" alt="Open Playlist" class="screenshot-img">
+              <p>Navigate to the course playlist and pick the lecture that is missing or needs updating.</p>
+            </div>
+          </div>
+
+          <div class="timeline-item" id="step2">
+            <div class="timeline-title">Step 2 &mdash; Generate Raw Notes using Gemini</div>
+            <div class="timeline-content">
+              <p><strong>Go to Gemini</strong> and upload the lecture. Use this prompt:</p>
+              <div class="code-block"><pre><code>Create lecture notes without timestamps. Include all key concepts, definitions, and examples.</code></pre></div>
+              <p>Follow these steps:
+              </p><ol>
+                <li>Upload the lecture video or audio to Gemini.</li>
+                <li>Paste the prompt above.</li>
+                <li>Wait for the response to complete.</li>
+                <li>Copy the generated lecture notes.</li>
+              </ol>
+              <img src="assets/img/enter prompt to ask gemeni.png" alt="Gemini Prompt" class="screenshot-img">
+              <img src="assets/img/copy prompt from gemini.png" alt="Gemini Output" class="screenshot-img">
+            </div>
+          </div>
+
+          <div class="timeline-item" id="step3">
+            <div class="timeline-title">Step 3 &mdash; Convert into Beautiful HTML using Claude</div>
+            <div class="timeline-content">
+              <p><strong>Open Claude</strong> and paste the copied lecture notes. Use this prompt:</p>
+              <div class="code-block"><pre><code>I will send you lecture notes. Convert them into a beautiful HTML artifact using:
+- Box-card layout
+- Analogies &amp; real-life examples
+- Annotated code &amp; visual hierarchy
+- Tables &amp; callout boxes
+- Diagrams using pure HTML/CSS
+- Mobile responsive design</code></pre></div>
+              <div class="screenshot">Screenshot: assets/img/ &mdash; Claude Prompt</div>
+              <p>Claude will generate an Artifact. Copy the HTML or download it.</p>
+              <img src="assets/img/artifact output.png" alt="Claude Artifact" class="screenshot-img">
+            </div>
+          </div>
+
+          <div class="timeline-item" id="step4">
+            <div class="timeline-title">Step 4 &mdash; Open VS Code</div>
+            <div class="timeline-content">
+              <p>Open the repository in VS Code and run:</p>
+              <div class="code-block"><pre><code>git pull</code></pre></div>
+              <div class="callout warning"><i class="ph ph-warning"></i><p><strong>Always pull first!</strong> This avoids merge conflicts.</p></div>
+              <div class="screenshot">Screenshot: assets/img/ &mdash; VS Code</div>
+            </div>
+          </div>
+
+          <div class="timeline-item" id="step5">
+            <div class="timeline-title">Step 5 &mdash; Paste HTML</div>
+            <div class="timeline-content">
+              <p>Navigate to the correct folder:</p>
+              <div class="folder-tree">
+<span class="comment">Notes/</span>
+  <span class="comment">Subject/</span>
+    <span class="comment">Week 1/</span>
+      <span class="file">lecture-01.html</span>
+</div>
+              <p>Paste the generated HTML. If the file exists, replace its contents.</p>
+              <img src="assets/img/vs_code_html_file_open.png" alt="VS Code HTML File" class="screenshot-img">
+            </div>
+          </div>
+
+          <div class="timeline-item" id="step6">
+            <div class="timeline-title">Step 6 &mdash; Add New Files (Optional)</div>
+            <div class="timeline-content">
+              <p>Add extra pages like Prerequisite Topics, PYQs, Formula Sheets, Cheat Sheets, Common Mistakes, Revision Notes, Interview Questions, Assignments, Practice Problems.</p>
+              <p>Place them in the appropriate <code>Subject/Week/</code> folder.</p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="section" id="git-commands">
+        <h2>Git Commands</h2>
+        <p>Every command you need, ready to copy:</p>
+
+        <h3>Pull</h3>
+        <div class="code-block"><pre><code>git pull</code></pre></div>
+
+        <h3>Check Status</h3>
+        <div class="code-block"><pre><code>git status</code></pre></div>
+
+        <h3>Add Files</h3>
+        <div class="code-block"><pre><code>git add .</code></pre></div>
+
+        <h3>Commit</h3>
+        <div class="code-block"><pre><code>git commit -m "Added Week 2 Lecture 5 notes"</code></pre></div>
+
+        <h3>Push</h3>
+        <div class="code-block"><pre><code>git push</code></pre></div>
+
+        <h3>Clone Repository</h3>
+        <div class="code-block"><pre><code>git clone &lt;repository-url&gt;</code></pre></div>
+      </section>
+
+      <section class="section" id="folder-structure">
+        <h2>Folder Structure</h2>
+        <div class="folder-tree">
+<span class="folder">Notes/</span>
+  <span class="folder">assets/</span>
+    <span class="folder">img/</span>
+  <span class="folder">MAD1/</span>
+    <span class="folder">Week 1/</span>
+      <span class="file">lecture-01.html</span>
+      <span class="file">lecture-02.html</span>
+    <span class="folder">Week 2/</span>
+  <span class="folder">MLT/</span>
+  <span class="folder">DBMS/</span>
+  <span class="folder">Python/</span>
+  <span class="file">...</span>
+        </div>
+      </section>
+
+      <section class="section" id="images">
+        <h2>Images</h2>
+        <p>All screenshots should be loaded from <code>assets/img/</code>. Use placeholders so images can easily be replaced later.</p>
+        <div class="card-grid">
+          <div class="card"><div class="card-icon blue"><i class="ph ph-play-circle"></i></div><h4>Open Playlist</h4><p>Navigate to the platform and select a lecture.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-robot"></i></div><h4>Gemini Prompt</h4><p>Ask Gemini for raw notes.</p></div>
+          <div class="card"><div class="card-icon orange"><i class="ph ph-text-t"></i></div><h4>Gemini Output</h4><p>Copy the generated raw notes.</p></div>
+          <div class="card"><div class="card-icon purple"><i class="ph ph-sparkle"></i></div><h4>Claude Prompt</h4><p>Paste prompt for HTML artifact.</p></div>
+          <div class="card"><div class="card-icon blue"><i class="ph ph-article"></i></div><h4>Claude Artifact</h4><p>Copy the generated HTML.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-git-pull-request"></i></div><h4>Git Push</h4><p>Add, commit, push.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="best-practices">
+        <h2>Best Practices</h2>
+        <div class="card-grid">
+          <div class="card"><div class="card-icon blue"><i class="ph ph-arrow-counter-clockwise"></i></div><h4>Pull Before Changes</h4><p>Always run <code>git pull</code> first.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-text-align-left"></i></div><h4>Keep Formatting Consistent</h4><p>Follow existing HTML patterns.</p></div>
+          <div class="card"><div class="card-icon orange"><i class="ph ph-folder-notch"></i></div><h4>Don't Rename Folders</h4><p>Breaks links for others.</p></div>
+          <div class="card"><div class="card-icon purple"><i class="ph ph-link"></i></div><h4>Check Links</h4><p>Verify all internal links work.</p></div>
+          <div class="card"><div class="card-icon blue"><i class="ph ph-text-aa"></i></div><h4>Consistent Filenames</h4><p>Use <code>lecture-XX.html</code> format.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-git-commit"></i></div><h4>Meaningful Commit Messages</h4><p>Describe what you added.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="common-mistakes">
+        <h2>Common Mistakes</h2>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Forgetting git pull</strong> &mdash; Always pull first to avoid conflicts.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Wrong folder</strong> &mdash; Double-check subject and week.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Incorrect filename</strong> &mdash; Use <code>lecture-01.html</code> consistently.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Broken HTML</strong> &mdash; Preview in browser before committing.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Forgetting git push</strong> &mdash; Commit is not enough; push changes.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Accidentally deleting files</strong> &mdash; Be careful when cleaning up.</p></div>
+      </section>
+
+      <section class="section" id="checklist">
+        <h2>Contribution Checklist</h2>
+        <p>Tick each item as you complete it:</p>
+        <ul class="checklist">
+          <li><input type="checkbox"> Lecture selected</li>
+          <li><input type="checkbox"> Gemini notes generated</li>
+          <li><input type="checkbox"> Claude artifact created</li>
+          <li><input type="checkbox"> HTML copied</li>
+          <li><input type="checkbox"> Correct folder used</li>
+          <li><input type="checkbox"> Tested locally</li>
+          <li><input type="checkbox"> Git pull completed</li>
+          <li><input type="checkbox"> Git add completed</li>
+          <li><input type="checkbox"> Commit completed</li>
+          <li><input type="checkbox"> Push completed</li>
+        </ul>
+      </section>
+
+      <section class="section" id="faq">
+        <h2>FAQ</h2>
+        <div class="faq-item">
+          <button class="faq-question">Can I add missing lectures? <i class="ph ph-caret-down"></i></button>
+          <div class="faq-answer"><div class="faq-answer-inner">Yes! Missing lectures are exactly what we need. Follow the contribution workflow above.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Can I add prerequisite topics? <i class="ph ph-caret-down"></i></button>
+          <div class="faq-answer"><div class="faq-answer-inner">Yes, place them in the appropriate Subject/Week folder as described in Step 6.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Can I improve existing notes? <i class="ph ph-caret-down"></i></button>
+          <div class="faq-answer"><div class="faq-answer-inner">Absolutely. Updates, fixes, and improvements are always welcome.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Can I fix grammar? <i class="ph ph-caret-down"></i></button>
+          <div class="faq-answer"><div class="faq-answer-inner">Yes, even small grammar fixes make a difference. Go ahead and submit a PR.</div></div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question">Can I improve visuals? <i class="ph ph-caret-down"></i></button>
+          <div class="faq-answer"><div class="faq-answer-inner">Yes! Better styling, diagrams, and layouts are always appreciated.</div></div>
+        </div>
+      </section>
+
+      <section class="section" id="resources">
+        <h2>Resources</h2>
+        <div class="card-grid">
+          <div class="card"><div class="card-icon blue"><i class="ph ph-github-logo"></i></div><h4>Repository</h4><p>Access the full notes collection on GitHub.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-robot"></i></div><h4>Gemini</h4><p>Use Gemini to generate raw notes from lectures.</p></div>
+          <div class="card"><div class="card-icon orange"><i class="ph ph-sparkle"></i></div><h4>Claude</h4><p>Convert raw notes into beautiful HTML using Claude.</p></div>
+          <div class="card"><div class="card-icon purple"><i class="ph ph-code-block"></i></div><h4>VS Code</h4><p>Your editor for managing the repository files.</p></div>
+          <div class="card"><div class="card-icon blue"><i class="ph ph-git-branch"></i></div><h4>Git Documentation</h4><p>Official Git docs for advanced commands.</p></div>
+        </div>
+      </section>
+
+      <footer class="doc-footer">
+        <p>Made with <i class="ph ph-heart" style="color:var(--danger)"></i> for the IITM community. Happy contributing!</p>
+      </footer>
+    </main>
+  </div>
+
+  <button class="scroll-top" id="scrollTop" aria-label="Scroll to top"><i class="ph ph-arrow-up"></i></button>
+
+  <script>
+    // Copy code blocks
+    document.querySelectorAll('.code-block').forEach(function(block) {
+      var btn = document.createElement('button');
+      btn.className = 'copy-btn';
+      btn.innerHTML = '<i class="ph ph-copy-simple"></i>';
+      btn.addEventListener('click', function() {
+        var code = block.querySelector('code');
+        var text = code ? code.textContent : '';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(function() {
+            btn.innerHTML = '<i class="ph ph-check"></i>';
+            btn.classList.add('copied');
+            setTimeout(function() {
+              btn.innerHTML = '<i class="ph ph-copy-simple"></i>';
+              btn.classList.remove('copied');
+            }, 2000);
+          });
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.left = '-9999px';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      });
+      block.appendChild(btn);
+    });
+
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const html = document.body;
+
+    function setTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      themeIcon.className = theme === 'dark' ? 'ph ph-sun' : 'ph ph-moon';
+      localStorage.setItem('theme', theme);
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', function() {
+      const current = html.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // Progress bar
+    const progressBar = document.getElementById('progressBar');
+    window.addEventListener('scroll', function() {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      progressBar.style.width = progress + '%';
+    });
+
+    // Scroll to top
+    const scrollTopBtn = document.getElementById('scrollTop');
+    window.addEventListener('scroll', function() {
+      if (window.scrollY > 300) {
+        scrollTopBtn.classList.add('visible');
+      } else {
+        scrollTopBtn.classList.remove('visible');
+      }
+    });
+    scrollTopBtn.addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Mobile sidebar toggle
+    const mobileToggle = document.getElementById('mobileToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('overlay');
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('active');
+    }
+
+    mobileToggle.addEventListener('click', function() {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('active');
+    });
+
+    overlay.addEventListener('click', closeSidebar);
+
+    // Sidebar links close menu on mobile
+    document.querySelectorAll('.sidebar-link').forEach(function(link) {
+      link.addEventListener('click', function() {
+        if (window.innerWidth <= 1024) {
+          closeSidebar();
+        }
+      });
+    });
+
+    // Scrollspy
+    const sections = document.querySelectorAll('.section, .hero');
+    const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+    window.addEventListener('scroll', function() {
+      let current = '';
+      sections.forEach(function(section) {
+        const top = section.offsetTop - 120;
+        if (window.scrollY >= top) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      sidebarLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + current) {
+          link.classList.add('active');
+        }
+      });
+    });
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    const searchDropdown = document.getElementById('searchDropdown');
+
+    const searchData = [];
+    document.querySelectorAll('.sidebar-link').forEach(function(link) {
+      searchData.push({
+        text: link.textContent.trim(),
+        href: link.getAttribute('href'),
+        section: link.closest('.sidebar-group') ? link.closest('.sidebar-group').querySelector('.sidebar-header')?.textContent || '' : ''
+      });
+    });
+
+    searchInput.addEventListener('input', function() {
+      const query = this.value.toLowerCase().trim();
+      if (!query) {
+        searchDropdown.classList.remove('active');
+        return;
+      }
+
+      const results = searchData.filter(function(item) {
+        return item.text.toLowerCase().includes(query);
+      });
+
+      if (results.length > 0) {
+        searchDropdown.innerHTML = results.map(function(item) {
+          return '<div class="search-item" data-href="' + item.href + '">' + item.text + '<small>' + item.section + '</small></div>';
+        }).join('');
+        searchDropdown.classList.add('active');
+      } else {
+        searchDropdown.innerHTML = '<div class="search-item" style="cursor:default;color:var(--text-muted)">No results found</div>';
+        searchDropdown.classList.add('active');
+      }
+    });
+
+    searchDropdown.addEventListener('click', function(e) {
+      const item = e.target.closest('.search-item');
+      if (item && item.dataset.href) {
+        const target = document.querySelector(item.dataset.href);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+        searchDropdown.classList.remove('active');
+        searchInput.value = '';
+      }
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.search-box')) {
+        searchDropdown.classList.remove('active');
+      }
+    });
+
+    // FAQ accordion
+    document.querySelectorAll('.faq-question').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const answer = this.nextElementSibling;
+        const isOpen = answer.style.maxHeight;
+        document.querySelectorAll('.faq-answer').forEach(function(a) {
+          a.style.maxHeight = null;
+        });
+        document.querySelectorAll('.faq-question').forEach(function(q) {
+          q.classList.remove('open');
+        });
+        if (!isOpen || isOpen === '0px') {
+          answer.style.maxHeight = answer.scrollHeight + 'px';
+          this.classList.add('open');
+        }
+      });
+    });
+
+    // Checklist
+    document.querySelectorAll('.checklist input[type="checkbox"]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        this.closest('li').classList.toggle('checked', this.checked);
+      });
+    });
+  </script>
+</body>
+</html>

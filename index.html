@@ -31,6 +31,7 @@
         <button class="icon-btn" id="searchToggle" aria-label="Search">
           <i class="ph ph-magnifying-glass"></i>
         </button>
+        <a href="contributionguide.html" class="nav-link local-only" id="contribLink">Contributor Guide</a>
         <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
           <i class="ph ph-moon" id="themeIcon"></i>
         </button>
@@ -44,6 +45,7 @@
       <div class="hero-content">
         <h1>IIT Madras Notes Portal</h1>
         <p class="hero-subtitle">Access all course materials, lecture notes, and resources in one place.</p>
+        <a href="contributionguide.html" class="btn hero-btn">Contributor Guide <i class="ph ph-arrow-right"></i></a>
       </div>
     </section>
 
@@ -105,5 +107,13 @@
   </button>
 
   <script src="assets/js/script.js"></script>
+  <script>
+    (function() {
+      var link = document.getElementById('contribLink');
+      if (link) {
+        link.style.display = window.location.protocol === 'file:' ? '' : 'none';
+      }
+    })();
+  </script>
 </body>
 </html>

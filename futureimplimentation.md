@@ -24,7 +24,7 @@ Notes/
     MAD2 (...)
     MLT (...)
 
-scan the Notes folder automatically.
+scan the Notes and each week/ folder automatically.
 
 Example:
 

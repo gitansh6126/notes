@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vue.js Components — Study Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --bg:#0A0D14;
+    --panel:#12161F;
+    --panel-2:#161B26;
+    --line:#232A38;
+    --text:#E7EAF2;
+    --muted:#8A93A8;
+    --accent:#4ADE94;      /* vue-adjacent green, HQ template color */
+    --accent-dim:#234436;
+    --amber:#F0B450;       /* RMS / franchise warmth, props-down color */
+    --amber-dim:#3E3320;
+    --violet:#8B93FF;      /* events-up color */
+    --violet-dim:#26264A;
+    --code-bg:#0D1118;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(139,147,255,0.06), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Sora',sans-serif;
+    padding:36px 20px 80px;
+    line-height:1.5;
+  }
+
+  .wrap{max-width:900px;margin:0 auto;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:30px 32px;
+    background:linear-gradient(160deg, var(--panel-2), var(--panel));
+    margin-bottom:30px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; top:-40%; right:-10%;
+    width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--accent); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+  }
+  .eyebrow::before{content:"●"; font-size:10px;}
+  h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+  .hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+
+  /* ---------- FRANCHISE BLUEPRINT (signature diagram) ---------- */
+  .blueprint{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--panel); padding:26px; margin-bottom:34px;
+    position:relative;
+  }
+  .blueprint-label{
+    font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--muted);
+    text-transform:uppercase; letter-spacing:.1em; margin-bottom:14px;
+  }
+  svg{width:100%; height:auto; display:block;}
+  .hq-box rect{fill:var(--accent-dim); stroke:var(--accent); stroke-width:1.5;}
+  .center-box rect{fill:var(--panel-2); stroke:var(--line); stroke-width:1.5;}
+  .center-box.active rect{stroke:var(--amber);}
+  .lbl{fill:var(--text); font-family:'Sora',sans-serif; font-size:13px; font-weight:600;}
+  .sub{fill:var(--muted); font-family:'JetBrains Mono',monospace; font-size:10px;}
+  .prop-arrow{stroke:var(--amber); stroke-width:2; marker-end:url(#arrowAmber);}
+  .event-arrow{stroke:var(--violet); stroke-width:2; marker-end:url(#arrowViolet);}
+  .flow-tag{font-family:'JetBrains Mono',monospace; font-size:10px;}
+
+  /* ---------- SECTION CARDS ---------- */
+  .section-tag{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+    margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+  }
+  .section-tag .n{
+    width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+    border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+    color:var(--accent); font-weight:700; font-size:11px;
+  }
+
+  .card{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--panel); padding:24px 26px; margin-bottom:18px;
+  }
+  .card h2{font-size:19px; margin:0 0 6px; font-weight:700;}
+  .card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+  .def b{color:var(--accent);}
+
+  .analogy{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+    border-radius:10px; padding:14px 16px; margin-bottom:14px;
+  }
+  .analogy .ico{font-size:18px; line-height:1;}
+  .analogy .txt{font-size:13.5px; color:#E9D9B8;}
+  .analogy .txt b{color:var(--amber);}
+
+  .real-use{
+    display:flex; gap:12px; align-items:flex-start;
+    background:var(--accent-dim); border:1px solid rgba(74,222,148,0.25);
+    border-radius:10px; padding:14px 16px; margin-bottom:16px;
+  }
+  .real-use .ico{font-size:18px; line-height:1;}
+  .real-use .txt{font-size:13.5px; color:#C9F2DC;}
+  .real-use .txt b{color:var(--accent);}
+
+  pre{
+    background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; overflow-x:auto; margin:0;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+  }
+  code{font-family:inherit;}
+  .cmt{color:#6B7688;}
+  .kw{color:#8B93FF;}
+  .fn{color:#4ADE94;}
+  .str{color:#F0B450;}
+  .prop{color:#7DD3FC;}
+
+  /* ---------- WORKFLOW STRIP ---------- */
+  .workflow{
+    display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center;
+    gap:10px; margin-top:20px;
+  }
+  .wf-step{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:10px;
+    padding:14px; text-align:center;
+  }
+  .wf-step .t{font-weight:700; font-size:13.5px; margin-bottom:4px;}
+  .wf-step .d{font-size:11.5px; color:var(--muted);}
+  .wf-arrow{color:var(--muted); font-size:18px;}
+  @media (max-width:640px){
+    .workflow{grid-template-columns:1fr; }
+    .wf-arrow{display:none;}
+  }
+
+  .footer-note{
+    margin-top:30px; text-align:center; font-size:12px; color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">AppDev2 · Vue.js</div>
+    <h1>Components in Vue.js</h1>
+    <p>Refactoring a monolithic app into small, self-contained, reusable pieces — each with its own data, customized from outside via <b style="color:var(--amber)">props</b>, and talking back via <b style="color:var(--violet)">events</b>.</p>
+  </div>
+
+  <!-- SIGNATURE DIAGRAM -->
+  <div class="blueprint">
+    <div class="blueprint-label">The mental model — one HQ, many independent centers</div>
+    <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="var(--amber)"/>
+        </marker>
+        <marker id="arrowViolet" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="var(--violet)"/>
+        </marker>
+      </defs>
+
+      <!-- HQ = Parent Vue instance -->
+      <g class="hq-box">
+        <rect x="330" y="10" width="160" height="56" rx="10"/>
+        <text x="410" y="34" text-anchor="middle" class="lbl">RMS Head Office</text>
+        <text x="410" y="50" text-anchor="middle" class="sub">new Vue({ ... })</text>
+      </g>
+
+      <!-- three center instances -->
+      <g class="center-box active">
+        <rect x="60" y="200" width="180" height="70" rx="10"/>
+        <text x="150" y="228" text-anchor="middle" class="lbl">Center: Sirsa</text>
+        <text x="150" y="246" text-anchor="middle" class="sub">data(): { students: 24 }</text>
+      </g>
+      <g class="center-box">
+        <rect x="320" y="200" width="180" height="70" rx="10"/>
+        <text x="410" y="228" text-anchor="middle" class="lbl">Center: Panipat</text>
+        <text x="410" y="246" text-anchor="middle" class="sub">data(): { students: 31 }</text>
+      </g>
+      <g class="center-box">
+        <rect x="580" y="200" width="180" height="70" rx="10"/>
+        <text x="670" y="228" text-anchor="middle" class="lbl">Center: Rohtak</text>
+        <text x="670" y="246" text-anchor="middle" class="sub">data(): { students: 18 }</text>
+      </g>
+
+      <!-- props down (amber) -->
+      <path class="prop-arrow" d="M370,68 C300,120 220,150 150,198" fill="none"/>
+      <path class="prop-arrow" d="M410,68 L410,198" fill="none"/>
+      <path class="prop-arrow" d="M450,68 C520,120 600,150 670,198" fill="none"/>
+      <text x="255" y="130" class="flow-tag" fill="var(--amber)">props ↓ (city name)</text>
+
+      <!-- events up (violet) -->
+      <path class="event-arrow" d="M180,200 C260,160 330,110 385,68" fill="none"/>
+      <path class="event-arrow" d="M440,200 C460,160 460,110 435,68" fill="none"/>
+      <path class="event-arrow" d="M640,200 C560,160 500,110 450,68" fill="none"/>
+      <text x="500" y="150" class="flow-tag" fill="var(--violet)">$emit ↑ (enrollment-added)</text>
+    </svg>
+  </div>
+
+  <!-- 1. COMPONENTIZATION -->
+  <div class="section-tag"><span class="n">1</span> COMPONENTIZATION</div>
+  <div class="card">
+    <h2>Breaking the monolith into pieces</h2>
+    <p class="def">A <b>component</b> is a self-contained, reusable UI block, registered with <b>Vue.component(name, options)</b>. Its <b>data</b> must be a function (not a plain object), and its <b>template</b> needs exactly one root element.</p>
+
+    <div class="analogy">
+      <div class="ico">🏢</div>
+      <div class="txt"><b>Analogy:</b> RMS today runs like one giant classroom script handling every center manually. Componentizing is turning that into a "Center" blueprint — build it once, stamp out as many centers as you open, each running independently.</div>
+    </div>
+
+    <div class="real-use">
+      <div class="ico">🎯</div>
+      <div class="txt"><b>Real use:</b> On Cubedekho, a <span class="prop">ProductCard</span> component is the reusable unit — same layout, different cube data per instance. On RMS's future franchise dashboard, a <span class="prop">CenterCard</span> component would work the same way.</div>
+    </div>
+
+    <pre><code><span class="cmt">// Registering a reusable "Center" component</span>
+<span class="kw">Vue</span>.<span class="fn">component</span>(<span class="str">'rms-center'</span>, {
+  <span class="cmt">// data MUST be a function → every center gets its OWN state,</span>
+  <span class="cmt">// not one shared object mutated by all instances</span>
+  data: <span class="kw">function</span>() {
+    <span class="kw">return</span> {
+      students: <span class="str">0</span>
+    }
+  },
+  <span class="cmt">// exactly ONE root element wraps the template</span>
+  template: <span class="str">`&lt;div class="center-card"&gt;
+              &lt;h3&gt;{{ students }} students&lt;/h3&gt;
+            &lt;/div&gt;`</span>
+})</code></pre>
+  </div>
+
+  <!-- 2. PROPS -->
+  <div class="section-tag"><span class="n">2</span> PROPS — passing data IN</div>
+  <div class="card">
+    <h2>Parent customizes each instance</h2>
+    <p class="def">Props are declared as an array of strings on the component, then bound like a normal HTML attribute in the parent's template — <b>data flows one direction: down.</b></p>
+
+    <div class="analogy">
+      <div class="ico">📦</div>
+      <div class="txt"><b>Analogy:</b> Head Office ships the same curriculum kit to every center, but stamps each box with the city name — <b>Sirsa</b>, <b>Panipat</b>, <b>Rohtak</b>. Same component, different label passed in.</div>
+    </div>
+
+    <div class="real-use">
+      <div class="ico">🎯</div>
+      <div class="txt"><b>Real use:</b> A <span class="prop">rms-center</span> component reused 3 times on one page, each customized only by the <span class="prop">city</span> prop — no copy-pasted markup.</div>
+    </div>
+
+    <pre><code><span class="cmt">// Component declares which props it accepts</span>
+<span class="kw">Vue</span>.<span class="fn">component</span>(<span class="str">'rms-center'</span>, {
+  props: [<span class="str">'city'</span>],  <span class="cmt">// ← whitelist of allowed inputs</span>
+  data: <span class="kw">function</span>() { <span class="kw">return</span> { students: <span class="str">0</span> } },
+  template: <span class="str">`&lt;div&gt;{{ city }} — {{ students }} students&lt;/div&gt;`</span>
+})</code></pre>
+    <pre style="margin-top:10px"><code><span class="cmt">&lt;!-- Parent template: same component, 3 different props --&gt;</span>
+&lt;rms-center <span class="prop">city</span>=<span class="str">"Sirsa"</span>&gt;&lt;/rms-center&gt;
+&lt;rms-center <span class="prop">city</span>=<span class="str">"Panipat"</span>&gt;&lt;/rms-center&gt;
+&lt;rms-center <span class="prop">city</span>=<span class="str">"Rohtak"</span>&gt;&lt;/rms-center&gt;</code></pre>
+  </div>
+
+  <!-- 3. EVENTS -->
+  <div class="section-tag"><span class="n">3</span> EVENTS — communicating OUT</div>
+  <div class="card">
+    <h2>Child reports back to parent</h2>
+    <p class="def">A component fires <b>this.$emit('event-name')</b>, and the parent listens with <b>v-on</b> / <b>@</b> — this is how a local action (inside one center) can update global state (Head Office's total count).</p>
+
+    <div class="analogy">
+      <div class="ico">📞</div>
+      <div class="txt"><b>Analogy:</b> When Sirsa center enrolls a new student, it doesn't edit Head Office's records directly — it "calls in" the update. HQ is listening for that call and updates the master dashboard.</div>
+    </div>
+
+    <div class="real-use">
+      <div class="ico">🎯</div>
+      <div class="txt"><b>Real use:</b> A future RMS parent-engagement dashboard where each center component emits <span class="prop">enrollment-added</span>, and HQ's total-students counter increments live — no page reload, no manual sync.</div>
+    </div>
+
+    <pre><code><span class="cmt">// Inside the child component's method</span>
+methods: {
+  enrollStudent: <span class="kw">function</span>() {
+    <span class="kw">this</span>.students++
+    <span class="cmt">// tell the parent something happened — don't touch parent state directly</span>
+    <span class="kw">this</span>.$<span class="fn">emit</span>(<span class="str">'enrollment-added'</span>)
+  }
+}</code></pre>
+    <pre style="margin-top:10px"><code><span class="cmt">&lt;!-- Parent listens with v-on (or @ shorthand) --&gt;</span>
+&lt;rms-center
+  <span class="prop">city</span>=<span class="str">"Sirsa"</span>
+  <span class="kw">@enrollment-added</span>=<span class="str">"totalStudents++"</span>&gt;
+&lt;/rms-center&gt;</code></pre>
+  </div>
+
+  <!-- WORKFLOW SUMMARY -->
+  <div class="section-tag"><span class="n">4</span> WORKFLOW SUMMARY</div>
+  <div class="card">
+    <h2>Refactor → Modularize → Synchronize</h2>
+    <div class="workflow">
+      <div class="wf-step">
+        <div class="t">Refactor</div>
+        <div class="d">Move logic/UI out of the main Vue instance into a <span class="prop">Vue.component</span></div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="t">Modularize</div>
+        <div class="d">Use <b style="color:var(--amber)">props</b> to customize each instance</div>
+      </div>
+      <div class="wf-arrow">→</div>
+      <div class="wf-step">
+        <div class="t">Synchronize</div>
+        <div class="d">Use <b style="color:var(--violet)">events</b> to keep parent state in sync</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">AppDev2 · Vue.js Components — study card</div>
+</div>
+</body>
+</html>
