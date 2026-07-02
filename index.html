@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IITM Notes Portal</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#" class="logo">
+        <i class="ph ph-books"></i>
+        <span>IITM Notes Portal</span>
+      </a>
+      
+      <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle navigation">
+        <i class="ph ph-list"></i>
+      </button>
+
+      <div class="nav-links" id="navLinks">
+        <a href="#home" class="nav-link active">Home</a>
+        <a href="Notes/MAD2%20(Modern%20Application%20Development%20II)/index.html" class="nav-link">MAD2</a>
+        <a href="Notes/MLT%20(Machine%20Learning%20Techniques)/index.html" class="nav-link">MLT</a>
+        <button class="icon-btn" id="searchToggle" aria-label="Search">
+          <i class="ph ph-magnifying-glass"></i>
+        </button>
+        <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode">
+          <i class="ph ph-moon" id="themeIcon"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero / Main -->
+  <main id="home">
+    <section class="hero">
+      <div class="hero-content">
+        <h1>IIT Madras Notes Portal</h1>
+        <p class="hero-subtitle">Access all course materials, lecture notes, and resources in one place.</p>
+      </div>
+    </section>
+
+    <!-- Course Cards -->
+    <section class="courses-section">
+      <div class="container">
+        <div class="cards-grid">
+          <!-- MAD2 Card -->
+          <article class="course-card">
+            <div class="card-icon mad2">
+              <i class="ph ph-laptop"></i>
+            </div>
+            <div class="card-body">
+              <h2>Modern Application Development II</h2>
+              <p class="course-code">MAD2</p>
+              <p class="card-description">
+                Explore advanced web development, full-stack architecture, and scalable application design using modern frameworks and cloud tools.
+              </p>
+              <a href="Notes/MAD2%20(Modern%20Application%20Development%20II)/index.html" class="btn">
+                Open MAD2
+                <i class="ph ph-arrow-right"></i>
+              </a>
+            </div>
+          </article>
+
+          <!-- MLT Card -->
+          <article class="course-card">
+            <div class="card-icon mlt">
+              <i class="ph ph-brain"></i>
+            </div>
+            <div class="card-body">
+              <h2>Machine Learning Techniques</h2>
+              <p class="course-code">MLT</p>
+              <p class="card-description">
+                Dive into supervised and unsupervised learning, model evaluation, neural networks, and practical ML implementation strategies.
+              </p>
+              <a href="Notes/MLT%20(Machine%20Learning%20Techniques)/index.html" class="btn">
+                Open MLT
+                <i class="ph ph-arrow-right"></i>
+              </a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p class="footer-brand">IIT Madras Notes Portal</p>
+      <p class="footer-copy"> IIT Madras. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Scroll to top -->
+  <button class="scroll-top" id="scrollTop" aria-label="Scroll to top">
+    <i class="ph ph-arrow-up"></i>
+  </button>
+
+  <script src="assets/js/script.js"></script>
+</body>
+</html>

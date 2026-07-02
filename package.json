@@ -1,0 +1,13 @@
+{
+  "name": "iitm-notes-portal",
+  "version": "1.0.0",
+  "description": "IIT Madras Notes Portal with SPAs",
+  "main": "index.html",
+  "scripts": {
+    "build-config": "node scripts/generate-config.js",
+    "watch": "node scripts/generate-config.js --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

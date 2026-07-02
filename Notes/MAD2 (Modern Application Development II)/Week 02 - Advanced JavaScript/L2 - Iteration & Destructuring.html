@@ -1,0 +1,118 @@
+
+<style>
+  .notes-root { font-family: var(--font-sans); max-width: 680px; padding: 1.5rem 0; }
+  .lecture-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--border-strong); }
+  .lecture-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-accent); margin: 0 0 6px; }
+  .lecture-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
+  .lecture-subtitle { font-size: 14px; color: var(--text-muted); margin: 0; }
+  .section { margin-bottom: 2rem; }
+  .section-label { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
+  .section-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin: 0; }
+  .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
+  .concept-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .concept-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
+  .concept-name i { font-size: 15px; color: var(--text-accent); }
+  .concept-desc { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-0); color: var(--text-accent); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+  .tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius); background: var(--bg-warning); color: var(--text-warning); margin-top: 6px; }
+  .tag.green { background: var(--bg-success); color: var(--text-success); }
+  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
+  .full-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
+  .full-card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
+  .full-card-body { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+</style>
+
+<div class="notes-root">
+  <h2 class="sr-only">Lecture notes for W2_L2: JavaScript Collections — Iterations and Destructuring</h2>
+
+  <div class="lecture-header">
+    <p class="lecture-eyebrow">IIT Madras · AppDev2 · W2_L2</p>
+    <h1 class="lecture-title">JavaScript Collections</h1>
+    <p class="lecture-subtitle">Iterations and Destructuring</p>
+  </div>
+
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">1</div>
+      <h2 class="section-title">Iteration techniques</h2>
+    </div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-repeat" aria-hidden="true"></i>For loop</p>
+        <p class="concept-desc">Classic C-style. Explicit index control via <code>let i</code>. Full control over increment and range.</p>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-key" aria-hidden="true"></i>For...in</p>
+        <p class="concept-desc">Iterates over <strong style="font-weight:500">keys</strong> (indices for arrays, property names for objects). Skips empty/undefined slots.</p>
+        <span class="tag">Caution: skips holes</span>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-list" aria-hidden="true"></i>For...of</p>
+        <p class="concept-desc">Iterates over <strong style="font-weight:500">values</strong> of any iterable. Does not skip <code>undefined</code> entries.</p>
+        <span class="tag green">Preferred for arrays</span>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-braces" aria-hidden="true"></i>Object iteration</p>
+        <p class="concept-desc">Objects are not iterable directly. Use <code>Object.entries(obj)</code> to get <code>[key, value]</code> pairs, then destructure.</p>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">2</div>
+      <h2 class="section-title">Array methods for data processing</h2>
+    </div>
+    <div class="concept-grid">
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-search" aria-hidden="true"></i>find</p>
+        <p class="concept-desc">Returns the <strong style="font-weight:500">first element</strong> that satisfies the test function. Returns <code>undefined</code> if none match.</p>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-filter" aria-hidden="true"></i>filter</p>
+        <p class="concept-desc">Returns a <strong style="font-weight:500">new array</strong> of all elements passing the test. Non-destructive.</p>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-transform" aria-hidden="true"></i>map</p>
+        <p class="concept-desc">Creates a <strong style="font-weight:500">new array</strong> by transforming every element. 1-to-1 mapping.</p>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-stack" aria-hidden="true"></i>reduce</p>
+        <p class="concept-desc">Collapses array into a <strong style="font-weight:500">single value</strong>. Takes a callback and an initial accumulator.</p>
+      </div>
+      <div class="concept-card">
+        <p class="concept-name"><i class="ti ti-arrows-sort" aria-hidden="true"></i>sort</p>
+        <p class="concept-desc">Sorts <strong style="font-weight:500">in place</strong>. Default is lexical (string). For numbers use <code>(a, b) =&gt; a - b</code>.</p>
+        <span class="tag">Mutates original</span>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">3</div>
+      <h2 class="section-title">Advanced syntax and destructuring</h2>
+    </div>
+    <div class="full-card">
+      <p class="full-card-title"><i class="ti ti-brackets" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array construction</p>
+      <p class="full-card-body"><code>new Array(n)</code> creates an array of size <em>n</em> with empty slots (holes), not <code>undefined</code>. Fill individually or use <code>.fill()</code>.</p>
+    </div>
+    <div class="full-card">
+      <p class="full-card-title"><i class="ti ti-dots" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Spread operator <code>...</code></p>
+      <p class="full-card-body">Expands an iterable inline — useful for merging arrays, copying data, or passing elements as arguments. E.g. <code>[...a, ...b]</code> merges two arrays.</p>
+    </div>
+    <div class="full-card">
+      <p class="full-card-title"><i class="ti ti-box-multiple" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array destructuring</p>
+      <p class="full-card-body">Unpack array values into variables by position: <code>const [a, b] = x</code>. Clean, concise alternative to index access.</p>
+    </div>
+    <div class="full-card">
+      <p class="full-card-title"><i class="ti ti-braces" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Object destructuring</p>
+      <p class="full-card-body">Extract properties into variables. <strong style="font-weight:500">Rename:</strong> <code>const { first_name: fn } = person</code> &nbsp;·&nbsp; <strong style="font-weight:500">Rest:</strong> <code>const { first_name, ...rem } = person</code> captures all remaining properties.</p>
+    </div>
+  </div>
+</div>

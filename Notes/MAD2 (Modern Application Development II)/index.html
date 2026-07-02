@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MAD-II Notes Portal</title>
+  <!-- Global & SPA Stylesheets -->
+  <link rel="stylesheet" href="../../assets/css/style.css" />
+  <link rel="stylesheet" href="../../assets/css/spa.css" />
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- SPA Configuration -->
+  <script>
+    window.COURSE_ID = 'mad2';
+    window.COURSE_NAME = 'MAD-II';
+  </script>
+</head>
+<body class="spa-body">
+  <div class="spa-container">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="spa-sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <a href="../../index.html" class="sidebar-brand-title">
+          <i class="ph ph-books"></i>
+          <span>MAD-II Portal</span>
+        </a>
+        <button class="sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close menu">
+          <i class="ph ph-x"></i>
+        </button>
+      </div>
+      <div class="sidebar-menu" id="sidebarMenu">
+        <!-- Accordion items injected via JavaScript -->
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="spa-main">
+      <!-- Top Action Bar -->
+      <header class="main-header">
+        <div class="header-left">
+          <button class="sidebar-toggle-btn" id="sidebarOpenBtn" aria-label="Open menu">
+            <i class="ph ph-list"></i>
+          </button>
+          <div class="current-lecture-info">
+            <div class="current-week-label" id="currentWeekLabel">Notes Portal</div>
+            <div class="current-lecture-title" id="currentLectureTitle">Select a Lecture</div>
+          </div>
+        </div>
+        
+        <div class="header-right">
+          <button class="icon-btn" id="prevLectureBtn" aria-label="Previous Lecture" title="Previous Lecture">
+            <i class="ph ph-arrow-left"></i>
+          </button>
+          <button class="icon-btn" id="nextLectureBtn" aria-label="Next Lecture" title="Next Lecture">
+            <i class="ph ph-arrow-right"></i>
+          </button>
+          <a href="../../index.html" class="icon-btn" aria-label="Home Portal">
+            <i class="ph ph-house"></i>
+          </a>
+          <button class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+            <i class="ph ph-moon" id="themeIcon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Lecture Notes Viewer -->
+      <div class="viewer-container">
+        <!-- Loader Spinner Overlay -->
+        <div class="viewer-loader" id="viewerLoader">
+          <div class="spinner"></div>
+        </div>
+
+        <!-- Welcome Splash Screen -->
+        <div class="welcome-screen" id="welcomeScreen">
+          <div class="welcome-icon">
+            <i class="ph ph-laptop"></i>
+          </div>
+          <h1 class="welcome-title">Modern Application Development II</h1>
+          <p class="welcome-subtitle">Select any lecture from the sidebar dropdowns to begin studying.</p>
+        </div>
+
+        <!-- IFrame Viewport -->
+        <iframe class="viewer-iframe" id="viewerIframe" title="Lecture Notes Content"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <!-- Script Modules -->
+  <script src="../../assets/js/config.js"></script>
+  <script src="../../assets/js/spa.js"></script>
+</body>
+</html>
