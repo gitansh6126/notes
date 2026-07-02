@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intro to Machine Learning — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --shelf: #3b2a20;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--board);
+  color:var(--chalk);
+  font-family:'Space Mono', monospace;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* chalk dust texture */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px;
+  z-index:1;
+}
+
+.wrap{
+  max-width: 980px;
+  margin:0 auto;
+  padding: 56px 28px 100px;
+  position:relative;
+  z-index:2;
+}
+
+/* ---------- Header ---------- */
+header{
+  text-align:center;
+  margin-bottom:64px;
+  padding-bottom:36px;
+  border-bottom: 2px dashed var(--board-line);
+}
+.eyebrow{
+  font-family:'Space Mono', monospace;
+  font-size:12px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color: var(--chalk-yellow);
+  margin-bottom:18px;
+}
+h1{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  margin:0 0 14px;
+  line-height:1.05;
+  color:var(--chalk);
+  text-shadow: 0 0 18px rgba(244,241,230,0.08);
+}
+.subhead{
+  font-family:'Caveat', cursive;
+  font-size: 1.6rem;
+  color: var(--chalk-blue);
+  max-width:560px;
+  margin: 0 auto;
+}
+
+/* ---------- Section ---------- */
+section{ margin-bottom: 68px; }
+
+.section-head{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+  margin-bottom: 28px;
+}
+.section-head h2{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size: 1.9rem;
+  color: var(--chalk-yellow);
+  margin:0;
+  white-space:nowrap;
+}
+.section-head .rule{
+  flex:1;
+  height:1px;
+  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
+}
+.section-intro{
+  font-family:'Caveat', cursive;
+  font-size:1.3rem;
+  color:var(--chalk-dim);
+  max-width:680px;
+  margin: -14px 0 26px;
+}
+
+/* ---------- Cards ---------- */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.card{
+  background: var(--board-alt);
+  border: 1px solid var(--board-line);
+  border-radius: 6px;
+  padding: 22px 22px 20px;
+  position:relative;
+  transition: transform .25s ease, border-color .25s ease;
+}
+.card:hover{
+  transform: translateY(-3px);
+  border-color: var(--chalk-yellow);
+}
+.card .term{
+  font-family:'Kalam', cursive;
+  font-size: 1.3rem;
+  color: var(--chalk);
+  margin: 0 0 12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card .term::before{
+  content:"✎";
+  color: var(--chalk-yellow);
+  font-size:1rem;
+}
+
+.row{
+  margin-bottom: 12px;
+}
+.row .label{
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--chalk-blue);
+  display:block;
+  margin-bottom: 4px;
+}
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{
+  margin:0;
+  font-size: 13.5px;
+  line-height:1.55;
+  color: var(--chalk-dim);
+}
+
+/* connecting chalk line between the two rows */
+.card .link-line{
+  width: 100%;
+  height: 14px;
+  margin: 2px 0 8px;
+}
+.card .link-line path{
+  fill:none;
+  stroke: var(--chalk-yellow);
+  stroke-width:1.4;
+  stroke-linecap:round;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  transition: stroke-dashoffset .6s ease;
+  opacity:0.7;
+}
+.card:hover .link-line path{
+  stroke-dashoffset: 0;
+}
+
+/* ---------- AI vs ML banner ---------- */
+.banner{
+  background: var(--board-alt);
+  border: 1px dashed var(--board-line);
+  border-radius: 8px;
+  padding: 28px 26px;
+  display:flex;
+  gap:28px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.banner .side{
+  flex:1;
+  min-width:220px;
+}
+.banner .side h3{
+  font-family:'Kalam', cursive;
+  font-size:1.25rem;
+  margin:0 0 6px;
+}
+.banner .side.ai h3{ color: var(--chalk-blue); }
+.banner .side.ml h3{ color: var(--chalk-yellow); }
+.banner .side p{
+  margin:0;
+  font-size:13px;
+  color:var(--chalk-dim);
+  line-height:1.5;
+}
+.banner .arrow{
+  font-family:'Kalam', cursive;
+  font-size:1.6rem;
+  color: var(--chalk-pink);
+}
+
+/* ---------- Not-ML two-panel ---------- */
+.duo{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:20px;
+}
+@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
+.duo .panel{
+  background: var(--board-alt);
+  border-left: 3px solid var(--chalk-pink);
+  border-radius: 4px;
+  padding: 20px;
+}
+.duo .panel h4{
+  font-family:'Kalam', cursive;
+  color: var(--chalk-pink);
+  font-size:1.15rem;
+  margin:0 0 10px;
+}
+.duo .panel p{
+  font-size:13px;
+  color:var(--chalk-dim);
+  line-height:1.55;
+  margin: 0 0 8px;
+}
+.duo .panel p strong{ color: var(--chalk); }
+
+/* ---------- Recap chalkboard ledge ---------- */
+.recap{
+  margin-top: 80px;
+}
+.recap h2{
+  font-family:'Kalam', cursive;
+  color: var(--chalk-yellow);
+  text-align:center;
+  font-size:1.8rem;
+  margin-bottom: 30px;
+}
+.ledge-list{
+  list-style:none;
+  margin:0;
+  padding:0;
+  border-top: 4px solid var(--shelf);
+  padding-top: 24px;
+}
+.ledge-list li{
+  display:grid;
+  grid-template-columns: 200px 1fr;
+  gap: 18px;
+  padding: 10px 4px;
+  border-bottom: 1px dotted var(--board-line);
+  align-items:baseline;
+}
+.ledge-list li:last-child{ border-bottom:none; }
+.ledge-list .k{
+  font-family:'Kalam', cursive;
+  color: var(--chalk-blue);
+  font-size:1rem;
+}
+.ledge-list .v{
+  font-family:'Caveat', cursive;
+  font-size: 1.25rem;
+  color: var(--chalk);
+}
+@media (max-width:560px){
+  .ledge-list li{ grid-template-columns: 1fr; gap:2px; }
+}
+
+footer{
+  text-align:center;
+  margin-top: 60px;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color: var(--board-line);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 01 · Companion Notes</div>
+    <h1>Introduction to<br>Machine Learning</h1>
+    <p class="subhead">— every concept, paired with something you already understand —</p>
+  </header>
+
+  <section>
+    <div class="section-head">
+      <h2>Why Study It?</h2>
+      <div class="rule"></div>
+    </div>
+    <p class="section-intro">ML already runs quietly behind things you touch every day.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Analytics &amp; AI</p>
+        <div class="row"><span class="label">Real Life</span><p>Netflix analyzing billions of viewing hours to decide what to produce next.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A shopkeeper who remembers every customer's past purchases to restock smarter.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Conversational AI</p>
+        <div class="row"><span class="label">Real Life</span><p>Siri or Alexa understanding "set a timer for 10 minutes."</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A new employee who understands your instructions better the longer they work with you.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Autonomous Systems</p>
+        <div class="row"><span class="label">Real Life</span><p>A delivery drone rerouting around a tree it detects mid-flight.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A cyclist swerving around a pothole without being told exactly where every pothole is.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>AI vs. ML</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="banner">
+      <div class="side ai">
+        <h3>Artificial Intelligence</h3>
+        <p>The destination — a machine that thinks and acts like a human.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="side ml">
+        <h3>Machine Learning</h3>
+        <p>The vehicle getting us there — today's fastest, most reliable route.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Application Domains</h2>
+      <div class="rule"></div>
+    </div>
+    <p class="section-intro">ML teaches machines to mimic natural human senses and cognition.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Computer Vision</p>
+        <div class="row"><span class="label">Real Life</span><p>Face ID unlocking your phone.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A club bouncer who recognizes regulars by face, not by checking ID every time.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Speech &amp; NLP</p>
+        <div class="row"><span class="label">Real Life</span><p>Google Translate converting spoken Spanish into English text.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A bilingual friend who translates what you mean, not word-for-word.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Text Processing</p>
+        <div class="row"><span class="label">Real Life</span><p>Gmail sorting millions of emails into Promotions vs. Primary.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A mailroom clerk who's sorted so much mail they know junk from letters at a glance.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Science &amp; Engineering</p>
+        <div class="row"><span class="label">Real Life</span><p>Predicting how a new drug molecule binds to a protein.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A chemist who's mixed thousands of compounds and senses what might work before testing.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Finance &amp; Sports</p>
+        <div class="row"><span class="label">Real Life</span><p>Predicting stock trends or a team's win probability from past stats.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A bookmaker setting odds from years of match history, not gut feeling.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">E-commerce</p>
+        <div class="row"><span class="label">Real Life</span><p>Amazon's "customers who bought this also bought…"</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A bookstore owner who says "if you liked that novel, you'll love this one."</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>What ML Is NOT</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h4>Not Procedural</h4>
+        <p><strong>Real life:</strong> A tax app with an explicit rule for every income bracket.</p>
+        <p><strong>Analogy:</strong> A recipe card — follow the exact steps, get the exact result, every time. ML instead behaves like a chef improvising from years of taste patterns, not a fixed card.</p>
+      </div>
+      <div class="panel">
+        <h4>Not Memorization</h4>
+        <p><strong>Real life:</strong> A spam filter that only blocks emails it has seen word-for-word before misses new spam.</p>
+        <p><strong>Analogy:</strong> A student who memorizes last year's exam answers verbatim — and fails this year's reworded questions.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Core Principles</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Data — the "Secret Sauce"</p>
+        <div class="row"><span class="label">Real Life</span><p>A credit card company scanning millions of transactions to spot fraud.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A detective who's worked hundreds of cases and starts noticing patterns rookies miss.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Generalization</p>
+        <div class="row"><span class="label">Real Life</span><p>A handwriting app reading your messy writing, though trained on other people's.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Learning to ride a bike on one street, then confidently riding a street you've never seen.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Mathematical Basis</p>
+        <div class="row"><span class="label">Real Life</span><p>Weather models using probability and statistics to predict rain.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A sailor reading wind, clouds, and pressure to predict a storm — grounded in physics, not guesswork.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Common Paradigms</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Classification</p>
+        <div class="row"><span class="label">Real Life</span><p>Gmail sorting spam vs. not-spam.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A bouncer sorting people into "let in" or "turn away" based on learned traits.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Prediction / Forecasting</p>
+        <div class="row"><span class="label">Real Life</span><p>Forecasting tomorrow's rainfall, or next quarter's stock prices.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A farmer who's watched the sky for 30 years and says "rain's coming."</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Clustering / Grouping</p>
+        <div class="row"><span class="label">Real Life</span><p>Google Photos grouping pictures of the same person, unlabeled.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Sorting a mixed laundry pile by color and fabric — no labels needed to see what belongs together.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Reinforcement Learning</p>
+        <div class="row"><span class="label">Real Life</span><p>A robot vacuum learning the best path, bumping furniture at first.</p></div>
+        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A toddler learning to walk — falling, adjusting, improving with each attempt.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="recap">
+    <h2>On the Ledge — Quick Recap</h2>
+    <ul class="ledge-list">
+      <li><span class="k">AI vs ML</span><span class="v">AI is the destination, ML is the vehicle</span></li>
+      <li><span class="k">Procedural code</span><span class="v">A recipe card — fixed steps, fixed result</span></li>
+      <li><span class="k">ML learning</span><span class="v">A chef improvising from experience</span></li>
+      <li><span class="k">Memorization</span><span class="v">Cramming exam answers, failing on new questions</span></li>
+      <li><span class="k">Generalization</span><span class="v">Riding a bike on a street you've never seen</span></li>
+      <li><span class="k">Classification</span><span class="v">A bouncer sorting people into categories</span></li>
+      <li><span class="k">Prediction</span><span class="v">A farmer forecasting rain from experience</span></li>
+      <li><span class="k">Clustering</span><span class="v">Sorting laundry by similarity, no labels needed</span></li>
+      <li><span class="k">Reinforcement Learning</span><span class="v">A toddler learning to walk through trial and error</span></li>
+    </ul>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
