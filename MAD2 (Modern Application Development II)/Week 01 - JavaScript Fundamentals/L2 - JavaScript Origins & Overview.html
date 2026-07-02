@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Paradigms of Machine Learning — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-lilac: #b3a4d6;
+  --shelf: #3b2a20;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--board);
+  color:var(--chalk);
+  font-family:'Space Mono', monospace;
+  position:relative;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px;
+  z-index:1;
+}
+
+.wrap{
+  max-width: 1000px;
+  margin:0 auto;
+  padding: 56px 28px 100px;
+  position:relative;
+  z-index:2;
+}
+
+header{
+  text-align:center;
+  margin-bottom:56px;
+  padding-bottom:36px;
+  border-bottom: 2px dashed var(--board-line);
+}
+.eyebrow{
+  font-size:12px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color: var(--chalk-yellow);
+  margin-bottom:18px;
+}
+h1{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  margin:0 0 14px;
+  line-height:1.1;
+}
+.subhead{
+  font-family:'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--chalk-blue);
+  max-width:620px;
+  margin: 0 auto;
+}
+
+/* ---------- Paradigm block header ---------- */
+.paradigm{ margin-bottom: 72px; }
+.paradigm-head{
+  display:flex;
+  align-items:center;
+  gap:18px;
+  margin-bottom: 10px;
+}
+.paradigm-num{
+  font-family:'Kalam', cursive;
+  font-size: 2.2rem;
+  font-weight:700;
+  color: var(--accent, var(--chalk-yellow));
+  line-height:1;
+  min-width:44px;
+}
+.paradigm-head h2{
+  font-family:'Kalam', cursive;
+  font-size: 2rem;
+  margin:0;
+  color: var(--chalk);
+}
+.paradigm-desc{
+  font-family:'Caveat', cursive;
+  font-size:1.3rem;
+  color: var(--chalk-dim);
+  max-width:720px;
+  margin: 0 0 26px 62px;
+}
+@media (max-width:600px){ .paradigm-desc{ margin-left:0; } }
+
+.paradigm.supervised{ --accent: var(--chalk-yellow); }
+.paradigm.unsupervised{ --accent: var(--chalk-blue); }
+.paradigm.sequential{ --accent: var(--chalk-pink); }
+
+/* ---------- Cards ---------- */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+.card{
+  background: var(--board-alt);
+  border: 1px solid var(--board-line);
+  border-top: 3px solid var(--accent, var(--chalk-yellow));
+  border-radius: 6px;
+  padding: 20px 20px 18px;
+  transition: transform .25s ease, border-color .25s ease;
+}
+.card:hover{ transform: translateY(-3px); }
+
+.card .term{
+  font-family:'Kalam', cursive;
+  font-size: 1.25rem;
+  color: var(--chalk);
+  margin: 0 0 12px;
+}
+.card .def{
+  font-size:12.5px;
+  color:var(--chalk-dim);
+  line-height:1.5;
+  margin:0 0 14px;
+  font-style:italic;
+}
+.row{ margin-bottom: 10px; }
+.row .label{
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent, var(--chalk-blue));
+  display:block;
+  margin-bottom: 4px;
+}
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{
+  margin:0;
+  font-size: 13px;
+  line-height:1.55;
+  color: var(--chalk-dim);
+}
+.card .link-line{
+  width: 100%;
+  height: 12px;
+  margin: 0 0 6px;
+}
+.card .link-line path{
+  fill:none;
+  stroke: var(--accent, var(--chalk-yellow));
+  stroke-width:1.4;
+  stroke-linecap:round;
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  transition: stroke-dashoffset .6s ease;
+  opacity:0.7;
+}
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* ---------- Note banner for "not covered" ---------- */
+.note-banner{
+  background: rgba(217,143,160,0.08);
+  border: 1px dashed var(--chalk-pink);
+  border-radius: 6px;
+  padding: 12px 18px;
+  margin-bottom: 22px;
+  font-family:'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--chalk-pink);
+}
+
+/* ---------- Prerequisites ---------- */
+.prereq-grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
+  gap:18px;
+}
+.prereq-card{
+  background: var(--board-alt);
+  border: 1px solid var(--board-line);
+  border-radius: 6px;
+  padding: 20px;
+  text-align:center;
+}
+.prereq-card .icon{
+  font-size:1.8rem;
+  margin-bottom:10px;
+  display:block;
+}
+.prereq-card h4{
+  font-family:'Kalam', cursive;
+  color: var(--chalk-yellow);
+  margin: 0 0 10px;
+  font-size:1.15rem;
+}
+.prereq-card p{
+  font-size:12.5px;
+  color: var(--chalk-dim);
+  line-height:1.55;
+  margin:0 0 8px;
+}
+.prereq-card p.analogy{ color: var(--chalk-blue); font-style:italic; }
+
+/* ---------- Roadmap ---------- */
+.roadmap{
+  display:flex;
+  align-items:center;
+  gap:0;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top: 20px;
+}
+.roadmap .stop{
+  font-family:'Kalam', cursive;
+  font-size:1.1rem;
+  background: var(--board-alt);
+  border:1px solid var(--board-line);
+  border-radius: 20px;
+  padding: 10px 20px;
+  color: var(--chalk);
+}
+.roadmap .stop:nth-child(1){ color: var(--chalk-blue); }
+.roadmap .stop:nth-child(3){ color: var(--chalk-yellow); }
+.roadmap .stop:nth-child(5){ color: var(--chalk-pink); }
+.roadmap .sep{
+  font-family:'Kalam', cursive;
+  font-size:1.4rem;
+  color: var(--board-line);
+  padding: 0 14px;
+}
+
+.section-head{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+  margin-bottom: 24px;
+}
+.section-head h2{
+  font-family:'Kalam', cursive;
+  font-size: 1.9rem;
+  color: var(--chalk-yellow);
+  margin:0;
+  white-space:nowrap;
+}
+.section-head .rule{
+  flex:1;
+  height:1px;
+  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
+}
+
+footer{
+  text-align:center;
+  margin-top: 60px;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color: var(--board-line);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 02 · Companion Notes</div>
+    <h1>Paradigms of<br>Machine Learning</h1>
+    <p class="subhead">— the three frameworks that organize everything else in this course —</p>
+  </header>
+
+  <!-- 1. Supervised -->
+  <div class="paradigm supervised">
+    <div class="paradigm-head">
+      <span class="paradigm-num">01</span>
+      <h2>Supervised Learning</h2>
+    </div>
+    <p class="paradigm-desc">Data arrives with labels from a teacher — the model learns to map inputs to known answers.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Classification</p>
+        <p class="def">Predicts a label from a finite set.</p>
+        <div class="row"><span class="label">Real Life</span><p>An email inbox sorting spam from non-spam.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A teacher marking papers pass/fail using a fixed answer key.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Regression</p>
+        <p class="def">Predicts a continuous numerical value.</p>
+        <div class="row"><span class="label">Real Life</span><p>Forecasting tomorrow's rainfall in millimeters.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A doctor estimating your age from an X-ray — not a category, a number on a sliding scale.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Ranking</p>
+        <p class="def">Orders a set of items by relevance.</p>
+        <div class="row"><span class="label">Real Life</span><p>A search engine ordering web pages by relevance to your query.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A talent-show judge ranking contestants from best to worst, not just picking one winner.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Structure Learning</p>
+        <p class="def">Predicts complex outputs like trees or structures.</p>
+        <div class="row"><span class="label">Real Life</span><p>Predicting a sentence's grammatical parse tree, or a molecule's 3D shape.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>An architect predicting a full blueprint from a client's requirements — not one number, a whole structure.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Unsupervised -->
+  <div class="paradigm unsupervised">
+    <div class="paradigm-head">
+      <span class="paradigm-num">02</span>
+      <h2>Unsupervised Learning</h2>
+    </div>
+    <p class="paradigm-desc">No labels, no teacher — the model has to find the hidden structure on its own.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Clustering</p>
+        <p class="def">Groups objects automatically based on similarity.</p>
+        <div class="row"><span class="label">Real Life</span><p>Your phone grouping photos of the same person, without ever being told their name.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Sorting a mixed basket of fruit by type — no labels needed, similarity does the sorting.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Representation Learning</p>
+        <p class="def">Learns the most efficient way to represent data.</p>
+        <div class="row"><span class="label">Real Life</span><p>Image compression that keeps a photo recognizable at a fraction of the file size.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>An artist's quick sketch that captures the essence of a subject in five lines instead of a full portrait.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Sequential -->
+  <div class="paradigm sequential">
+    <div class="paradigm-head">
+      <span class="paradigm-num">03</span>
+      <h2>Sequential Learning</h2>
+    </div>
+    <p class="paradigm-desc">Learning unfolds over time, through a chain of decisions and feedback.</p>
+    <div class="note-banner">Not covered in this course — included here for context only.</div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Online Learning</p>
+        <p class="def">Learns from feedback across a stream of predictions.</p>
+        <div class="row"><span class="label">Real Life</span><p>A stock-prediction model updating itself after every trading day.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A trader adjusting strategy after every single trade, based on how it played out.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Multi-Armed Bandits</p>
+        <p class="def">Deals with partial feedback — you only learn about the action you took.</p>
+        <div class="row"><span class="label">Real Life</span><p>An app A/B-testing which button color gets more clicks.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Trying restaurants in a new city — you only find out how good tonight's pick was, never the ones you skipped.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Reinforcement Learning</p>
+        <p class="def">An agent learns a policy through interaction with an environment.</p>
+        <div class="row"><span class="label">Real Life</span><p>A robot learning to navigate a room, avoiding obstacles through trial and error.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A dog learning tricks through treats and corrections — no instructions, just consequences.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Prerequisites -->
+  <section>
+    <div class="section-head">
+      <h2>Prerequisites</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="prereq-grid">
+      <div class="prereq-card">
+        <span class="icon">📐</span>
+        <h4>Linear Algebra</h4>
+        <p>Understanding the geometry of data — vectors, matrices, spaces.</p>
+        <p class="analogy">Like reading architectural blueprints: knowing how dimensions and structure relate before you build anything.</p>
+      </div>
+      <div class="prereq-card">
+        <span class="icon">🎲</span>
+        <h4>Probability</h4>
+        <p>The mathematical foundation for handling noise and uncertainty.</p>
+        <p class="analogy">Like a weather forecaster giving a percentage chance of rain instead of a flat yes or no.</p>
+      </div>
+      <div class="prereq-card">
+        <span class="icon">📈</span>
+        <h4>Optimization</h4>
+        <p>Making data-driven decisions by minimizing or maximizing a metric.</p>
+        <p class="analogy">Like a hiker choosing the most efficient trail to the summit, out of dozens of possible paths.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Roadmap -->
+  <section>
+    <div class="section-head">
+      <h2>Course Roadmap</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="roadmap">
+      <span class="stop">Unsupervised &amp; Clustering</span>
+      <span class="sep">→</span>
+      <span class="stop">Supervised Techniques</span>
+      <span class="sep">→</span>
+      <span class="stop">Advanced Topics &amp; Practice</span>
+    </div>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
