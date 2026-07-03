@@ -13,7 +13,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 1,
           "slug": "l1-review-of-mad-i-course-overview",
-          "lastModified": "2026-07-03T05:36:26.492Z",
+          "lastModified": "2026-07-02T07:07:39.549Z",
           "readingTime": 15,
           "tags": [],
           "keywords": []
@@ -26,7 +26,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 2,
           "slug": "l2-javascript-origins-overview",
-          "lastModified": "2026-07-03T05:33:39.138Z",
+          "lastModified": "2026-07-02T07:14:35.786Z",
           "readingTime": 12,
           "tags": [],
           "keywords": []
@@ -39,7 +39,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 3,
           "slug": "l3-javascript-basics",
-          "lastModified": "2026-07-03T05:50:35.294Z",
+          "lastModified": "2026-07-03T06:37:16.433Z",
           "readingTime": 11,
           "tags": [],
           "keywords": []
@@ -52,7 +52,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 4,
           "slug": "l4-identifiers-expressions-variables",
-          "lastModified": "2026-07-03T05:33:39.139Z",
+          "lastModified": "2026-07-02T05:57:16.671Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -65,7 +65,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 5,
           "slug": "l5-control-flow-functions",
-          "lastModified": "2026-07-03T05:33:39.139Z",
+          "lastModified": "2026-07-02T05:57:16.681Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -78,7 +78,7 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 6,
           "slug": "l6-dom-api",
-          "lastModified": "2026-07-03T05:33:39.139Z",
+          "lastModified": "2026-07-02T05:57:16.689Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -96,7 +96,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 1,
           "slug": "l1-collections-arrays",
-          "lastModified": "2026-07-03T05:33:39.141Z",
+          "lastModified": "2026-07-02T05:57:16.698Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -109,7 +109,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 2,
           "slug": "l2-iteration-destructuring",
-          "lastModified": "2026-07-03T05:33:39.144Z",
+          "lastModified": "2026-07-02T13:03:00.530Z",
           "readingTime": 11,
           "tags": [],
           "keywords": []
@@ -122,7 +122,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 3,
           "slug": "l3-modules-npm-oop",
-          "lastModified": "2026-07-03T05:33:39.144Z",
+          "lastModified": "2026-07-02T13:00:15.122Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -135,7 +135,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 4,
           "slug": "l4-prototypes-classes",
-          "lastModified": "2026-07-03T05:33:39.145Z",
+          "lastModified": "2026-07-02T05:57:16.730Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -148,7 +148,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 5,
           "slug": "l5-asynchrony-event-loop",
-          "lastModified": "2026-07-03T05:33:39.145Z",
+          "lastModified": "2026-07-02T05:57:16.734Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -161,7 +161,7 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 6,
           "slug": "l6-json-api",
-          "lastModified": "2026-07-03T05:33:39.146Z",
+          "lastModified": "2026-07-02T05:57:16.747Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -179,7 +179,7 @@
           "week": "Week 03 - Vue.js Basics",
           "order": 1,
           "slug": "demo4-vue-components-notes-light",
-          "lastModified": "2026-07-03T05:33:39.147Z",
+          "lastModified": "2026-07-02T15:52:06.376Z",
           "readingTime": 12,
           "tags": [],
           "keywords": []
@@ -192,7 +192,7 @@
           "week": "Week 03 - Vue.js Basics",
           "order": 2,
           "slug": "screencast-3-1-introduction-to-vuejs",
-          "lastModified": "2026-07-03T05:33:39.146Z",
+          "lastModified": "2026-07-02T15:49:32.950Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -203,14 +203,92 @@
       "weekName": "Week 04 - Vue Components",
       "lectures": [
         {
+          "title": "Part-1-Declarative-Rendering-Reactivity-Basics",
+          "file": "Part-1-Declarative-Rendering-Reactivity-Basics.html",
+          "path": "Week 04 - Vue Components/Part-1-Declarative-Rendering-Reactivity-Basics.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 1,
+          "slug": "part-1-declarative-rendering-reactivity-basics",
+          "lastModified": "2026-07-03T04:58:53.692Z",
+          "readingTime": 17,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-2-Vue-Directives-Conditional-Rendering-Looping",
+          "file": "Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+          "path": "Week 04 - Vue Components/Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 2,
+          "slug": "part-2-vue-directives-conditional-rendering-looping",
+          "lastModified": "2026-07-03T05:00:08.096Z",
+          "readingTime": 25,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-3-ViewModel-Architecture-MVC-MVVM",
+          "file": "Part-3-ViewModel-Architecture-MVC-MVVM.html",
+          "path": "Week 04 - Vue Components/Part-3-ViewModel-Architecture-MVC-MVVM.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 3,
+          "slug": "part-3-viewmodel-architecture-mvc-mvvm",
+          "lastModified": "2026-07-03T05:00:48.901Z",
+          "readingTime": 15,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-4-Computed-Properties-vs-Watchers",
+          "file": "Part-4-Computed-Properties-vs-Watchers.html",
+          "path": "Week 04 - Vue Components/Part-4-Computed-Properties-vs-Watchers.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 4,
+          "slug": "part-4-computed-properties-vs-watchers",
+          "lastModified": "2026-07-03T05:01:39.332Z",
+          "readingTime": 21,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-5-Components-in-VueJS",
+          "file": "Part-5-Components-in-VueJS.html",
+          "path": "Week 04 - Vue Components/Part-5-Components-in-VueJS.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 5,
+          "slug": "part-5-components-in-vuejs",
+          "lastModified": "2026-07-03T05:02:22.196Z",
+          "readingTime": 19,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood",
+          "file": "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
+          "path": "Week 04 - Vue Components/Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 6,
+          "slug": "part-6-deep-dive-how-reactivity-works-under-the-hood",
+          "lastModified": "2026-07-03T05:03:10.887Z",
+          "readingTime": 21,
+          "tags": [],
+          "keywords": []
+        },
+        {
           "title": "Screencast 4.1 - Components in VueJS",
           "file": "Screencast 4.1 - Components in VueJS.html",
           "path": "Week 04 - Vue Components/Screencast 4.1 - Components in VueJS.html",
           "course": "mad2",
           "week": "Week 04 - Vue Components",
-          "order": 1,
+          "order": 7,
           "slug": "screencast-4-1-components-in-vuejs",
-          "lastModified": "2026-07-03T05:33:39.148Z",
+          "lastModified": "2026-07-02T10:57:43.936Z",
           "readingTime": 13,
           "tags": [],
           "keywords": []
@@ -228,7 +306,7 @@
           "week": "Week 05 - Vue Lifecycle & Async",
           "order": 1,
           "slug": "screencast-5-1-lifecycle-hooks",
-          "lastModified": "2026-07-03T05:33:39.150Z",
+          "lastModified": "2026-07-02T05:57:16.782Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -241,7 +319,7 @@
           "week": "Week 05 - Vue Lifecycle & Async",
           "order": 2,
           "slug": "screencast-5-2-async-await",
-          "lastModified": "2026-07-03T05:33:39.151Z",
+          "lastModified": "2026-07-02T05:57:16.793Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -254,7 +332,7 @@
           "week": "Week 05 - Vue Lifecycle & Async",
           "order": 3,
           "slug": "screencast-5-3-fetch-api",
-          "lastModified": "2026-07-03T05:33:39.152Z",
+          "lastModified": "2026-07-02T05:57:16.800Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -267,7 +345,7 @@
           "week": "Week 05 - Vue Lifecycle & Async",
           "order": 4,
           "slug": "screencast-5-4-vue-api-calls",
-          "lastModified": "2026-07-03T05:33:39.152Z",
+          "lastModified": "2026-07-02T05:57:16.808Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -285,7 +363,7 @@
           "week": "Week 06 - Vue Advanced",
           "order": 1,
           "slug": "l1-persistent-storage",
-          "lastModified": "2026-07-03T05:33:39.152Z",
+          "lastModified": "2026-07-02T05:57:16.815Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -298,7 +376,7 @@
           "week": "Week 06 - Vue Advanced",
           "order": 2,
           "slug": "l2-form-validation",
-          "lastModified": "2026-07-03T05:33:39.153Z",
+          "lastModified": "2026-07-02T05:57:16.831Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -311,7 +389,7 @@
           "week": "Week 06 - Vue Advanced",
           "order": 3,
           "slug": "l3-single-file-components",
-          "lastModified": "2026-07-03T05:33:39.153Z",
+          "lastModified": "2026-07-02T05:57:16.848Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -324,7 +402,7 @@
           "week": "Week 06 - Vue Advanced",
           "order": 4,
           "slug": "l4-testing",
-          "lastModified": "2026-07-03T05:33:39.154Z",
+          "lastModified": "2026-07-02T05:57:16.866Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -342,7 +420,7 @@
           "week": "Week 07 - State Management",
           "order": 1,
           "slug": "l1-advanced-state-management",
-          "lastModified": "2026-07-03T05:33:39.155Z",
+          "lastModified": "2026-07-02T05:57:16.879Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -355,7 +433,7 @@
           "week": "Week 07 - State Management",
           "order": 2,
           "slug": "l2-vuex",
-          "lastModified": "2026-07-03T05:33:39.155Z",
+          "lastModified": "2026-07-02T05:57:16.895Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -368,7 +446,7 @@
           "week": "Week 07 - State Management",
           "order": 3,
           "slug": "l3-vue-router",
-          "lastModified": "2026-07-03T05:33:39.155Z",
+          "lastModified": "2026-07-02T05:57:16.902Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -381,7 +459,7 @@
           "week": "Week 07 - State Management",
           "order": 4,
           "slug": "l4-spa-pwa",
-          "lastModified": "2026-07-03T05:33:39.155Z",
+          "lastModified": "2026-07-02T05:57:16.916Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -394,7 +472,7 @@
           "week": "Week 07 - State Management",
           "order": 5,
           "slug": "screencast-7-1-vuex-project",
-          "lastModified": "2026-07-03T05:33:39.155Z",
+          "lastModified": "2026-07-02T05:57:16.929Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -407,7 +485,7 @@
           "week": "Week 07 - State Management",
           "order": 6,
           "slug": "screencast-7-2-vue-cli",
-          "lastModified": "2026-07-03T05:33:39.156Z",
+          "lastModified": "2026-07-02T05:57:16.934Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -425,7 +503,7 @@
           "week": "Week 08 - APIs",
           "order": 1,
           "slug": "l1-rest-apis-part-1",
-          "lastModified": "2026-07-03T05:33:39.156Z",
+          "lastModified": "2026-07-02T05:57:16.947Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -438,7 +516,7 @@
           "week": "Week 08 - APIs",
           "order": 2,
           "slug": "l2-rest-apis-part-2",
-          "lastModified": "2026-07-03T05:33:39.157Z",
+          "lastModified": "2026-07-02T05:57:16.962Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -451,7 +529,7 @@
           "week": "Week 08 - APIs",
           "order": 3,
           "slug": "l3-graphql",
-          "lastModified": "2026-07-03T05:33:39.158Z",
+          "lastModified": "2026-07-02T05:57:16.976Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -464,7 +542,7 @@
           "week": "Week 08 - APIs",
           "order": 4,
           "slug": "l4-markup-alternatives",
-          "lastModified": "2026-07-03T05:33:39.158Z",
+          "lastModified": "2026-07-02T05:57:17.155Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -477,7 +555,7 @@
           "week": "Week 08 - APIs",
           "order": 5,
           "slug": "l5-jam-architecture",
-          "lastModified": "2026-07-03T05:33:39.159Z",
+          "lastModified": "2026-07-02T05:57:17.167Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -490,7 +568,7 @@
           "week": "Week 08 - APIs",
           "order": 6,
           "slug": "screencast-8-1-flask-authentication",
-          "lastModified": "2026-07-03T05:33:39.159Z",
+          "lastModified": "2026-07-02T05:57:17.179Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -503,7 +581,7 @@
           "week": "Week 08 - APIs",
           "order": 7,
           "slug": "screencast-8-2-vue-flask-part-1",
-          "lastModified": "2026-07-03T05:33:39.160Z",
+          "lastModified": "2026-07-02T05:57:17.208Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -516,7 +594,7 @@
           "week": "Week 08 - APIs",
           "order": 8,
           "slug": "screencast-8-3-vue-flask-part-2",
-          "lastModified": "2026-07-03T05:33:39.160Z",
+          "lastModified": "2026-07-02T05:57:17.224Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -534,7 +612,7 @@
           "week": "Week 09 - Async Systems",
           "order": 1,
           "slug": "l1-web-servers",
-          "lastModified": "2026-07-03T05:33:39.160Z",
+          "lastModified": "2026-07-02T05:57:17.268Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -547,7 +625,7 @@
           "week": "Week 09 - Async Systems",
           "order": 2,
           "slug": "l2-message-queues",
-          "lastModified": "2026-07-03T05:33:39.161Z",
+          "lastModified": "2026-07-02T05:57:17.282Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -560,7 +638,7 @@
           "week": "Week 09 - Async Systems",
           "order": 3,
           "slug": "l3-celery",
-          "lastModified": "2026-07-03T05:33:39.162Z",
+          "lastModified": "2026-07-02T05:57:17.296Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -573,7 +651,7 @@
           "week": "Week 09 - Async Systems",
           "order": 4,
           "slug": "l4-celery-in-replit",
-          "lastModified": "2026-07-03T05:33:39.162Z",
+          "lastModified": "2026-07-02T05:57:17.305Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -586,7 +664,7 @@
           "week": "Week 09 - Async Systems",
           "order": 5,
           "slug": "screencast-9-1-redis",
-          "lastModified": "2026-07-03T05:33:39.162Z",
+          "lastModified": "2026-07-02T05:57:17.312Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -599,7 +677,7 @@
           "week": "Week 09 - Async Systems",
           "order": 6,
           "slug": "screencast-9-2-celery-workers",
-          "lastModified": "2026-07-03T05:33:39.163Z",
+          "lastModified": "2026-07-02T05:57:17.336Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -617,7 +695,7 @@
           "week": "Week 10 - Webhooks",
           "order": 1,
           "slug": "l1-inter-service-messaging",
-          "lastModified": "2026-07-03T05:33:39.164Z",
+          "lastModified": "2026-07-02T05:57:17.346Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -630,7 +708,7 @@
           "week": "Week 10 - Webhooks",
           "order": 2,
           "slug": "l2-webhooks",
-          "lastModified": "2026-07-03T05:33:39.164Z",
+          "lastModified": "2026-07-02T05:57:17.359Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -643,7 +721,7 @@
           "week": "Week 10 - Webhooks",
           "order": 3,
           "slug": "l3-advanced-webhooks",
-          "lastModified": "2026-07-03T05:33:39.164Z",
+          "lastModified": "2026-07-02T05:57:17.364Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -656,7 +734,7 @@
           "week": "Week 10 - Webhooks",
           "order": 4,
           "slug": "screencast-10-1-server-sent-events",
-          "lastModified": "2026-07-03T05:33:39.165Z",
+          "lastModified": "2026-07-02T05:57:17.375Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -669,7 +747,7 @@
           "week": "Week 10 - Webhooks",
           "order": 5,
           "slug": "screencast-10-2-using-webhooks",
-          "lastModified": "2026-07-03T05:33:39.165Z",
+          "lastModified": "2026-07-02T05:57:17.379Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -687,7 +765,7 @@
           "week": "Week 11 - Performance",
           "order": 1,
           "slug": "screencast-11-1-performance-caching",
-          "lastModified": "2026-07-03T05:33:39.166Z",
+          "lastModified": "2026-07-02T05:57:17.388Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -705,7 +783,7 @@
           "week": "Week 12 - Security",
           "order": 1,
           "slug": "l1-privacy-vs-security",
-          "lastModified": "2026-07-03T05:33:39.167Z",
+          "lastModified": "2026-07-02T05:57:17.399Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -718,7 +796,7 @@
           "week": "Week 12 - Security",
           "order": 2,
           "slug": "l2-frontend-security",
-          "lastModified": "2026-07-03T05:33:39.167Z",
+          "lastModified": "2026-07-02T05:57:17.411Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -731,7 +809,7 @@
           "week": "Week 12 - Security",
           "order": 3,
           "slug": "l3-backend-security",
-          "lastModified": "2026-07-03T05:33:39.167Z",
+          "lastModified": "2026-07-02T05:57:17.416Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []
@@ -744,7 +822,7 @@
           "week": "Week 12 - Security",
           "order": 4,
           "slug": "screencast-12-1-cors-cookies",
-          "lastModified": "2026-07-03T05:33:39.168Z",
+          "lastModified": "2026-07-02T05:57:17.424Z",
           "readingTime": 1,
           "tags": [],
           "keywords": []

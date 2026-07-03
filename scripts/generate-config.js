@@ -72,13 +72,10 @@ function generateConfig() {
           })
           .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
 
-        if (files.length === 0) continue;
-
         const lectures = files.map((file, order) => {
           const filePath = path.join(weekPath, file);
           const title = file.replace(/\.html$/i, '');
 
-          // Check for optional metadata sidecar file
           let tags = [];
           let keywords = [];
           const metaFilePath = path.join(weekPath, `${path.basename(file, '.html')}.meta.json`);

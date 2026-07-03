@@ -1,5 +1,54 @@
 {
   "courseId": "bdm",
-  "courseName": "BDM",
-  "weeks": []
+  "courseName": "BDM (Business Data Management)",
+  "weeks": [
+    {
+      "weekName": "Week 01 - Introduction to Data Management",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 02 - Data Modeling",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 03 - Database Design",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 04 - SQL Fundamentals",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 05 - Advanced SQL",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 06 - Data Warehousing",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 07 - Data Integration & ETL",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 08 - Data Quality & Governance",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 09 - Big Data Fundamentals",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 10 - Data Visualization",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 11 - Business Intelligence",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 12 - Data Strategy & Ethics",
+      "lectures": []
+    }
+  ]
 }

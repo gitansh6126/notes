@@ -1,7 +1,886 @@
-{
-  "courseId": "mlt",
-  "courseName": "MLT (Machine Learning Techniques)",
-  "weeks": [
+// Static configuration for IITM Notes Portal SPAs
+// Generated automatically. Do not edit manually.
+const COURSE_STRUCTURES = {
+  "bdm": [
+    {
+      "weekName": "Week 01 - Introduction to Data Management",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 02 - Data Modeling",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 03 - Database Design",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 04 - SQL Fundamentals",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 05 - Advanced SQL",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 06 - Data Warehousing",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 07 - Data Integration & ETL",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 08 - Data Quality & Governance",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 09 - Big Data Fundamentals",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 10 - Data Visualization",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 11 - Business Intelligence",
+      "lectures": []
+    },
+    {
+      "weekName": "Week 12 - Data Strategy & Ethics",
+      "lectures": []
+    }
+  ],
+  "mad2": [
+    {
+      "weekName": "Week 01 - JavaScript Fundamentals",
+      "lectures": [
+        {
+          "title": "L1 - Review of MAD-I & Course Overview",
+          "file": "L1 - Review of MAD-I & Course Overview.html",
+          "path": "Week 01 - JavaScript Fundamentals/L1 - Review of MAD-I & Course Overview.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 1,
+          "slug": "l1-review-of-mad-i-course-overview",
+          "lastModified": "2026-07-02T07:07:39.549Z",
+          "readingTime": 15,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - JavaScript Origins & Overview",
+          "file": "L2 - JavaScript Origins & Overview.html",
+          "path": "Week 01 - JavaScript Fundamentals/L2 - JavaScript Origins & Overview.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 2,
+          "slug": "l2-javascript-origins-overview",
+          "lastModified": "2026-07-02T07:14:35.786Z",
+          "readingTime": 12,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - JavaScript Basics",
+          "file": "L3 - JavaScript Basics.html",
+          "path": "Week 01 - JavaScript Fundamentals/L3 - JavaScript Basics.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 3,
+          "slug": "l3-javascript-basics",
+          "lastModified": "2026-07-03T06:37:16.433Z",
+          "readingTime": 11,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - Identifiers Expressions Variables",
+          "file": "L4 - Identifiers Expressions Variables.html",
+          "path": "Week 01 - JavaScript Fundamentals/L4 - Identifiers Expressions Variables.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 4,
+          "slug": "l4-identifiers-expressions-variables",
+          "lastModified": "2026-07-02T05:57:16.671Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L5 - Control Flow & Functions",
+          "file": "L5 - Control Flow & Functions.html",
+          "path": "Week 01 - JavaScript Fundamentals/L5 - Control Flow & Functions.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 5,
+          "slug": "l5-control-flow-functions",
+          "lastModified": "2026-07-02T05:57:16.681Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L6 - DOM API",
+          "file": "L6 - DOM API.html",
+          "path": "Week 01 - JavaScript Fundamentals/L6 - DOM API.html",
+          "course": "mad2",
+          "week": "Week 01 - JavaScript Fundamentals",
+          "order": 6,
+          "slug": "l6-dom-api",
+          "lastModified": "2026-07-02T05:57:16.689Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 02 - Advanced JavaScript",
+      "lectures": [
+        {
+          "title": "L1 - Collections Arrays",
+          "file": "L1 - Collections Arrays.html",
+          "path": "Week 02 - Advanced JavaScript/L1 - Collections Arrays.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 1,
+          "slug": "l1-collections-arrays",
+          "lastModified": "2026-07-02T05:57:16.698Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Iteration & Destructuring",
+          "file": "L2 - Iteration & Destructuring.html",
+          "path": "Week 02 - Advanced JavaScript/L2 - Iteration & Destructuring.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 2,
+          "slug": "l2-iteration-destructuring",
+          "lastModified": "2026-07-02T13:03:00.530Z",
+          "readingTime": 11,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Modules NPM OOP",
+          "file": "L3 - Modules NPM OOP.html",
+          "path": "Week 02 - Advanced JavaScript/L3 - Modules NPM OOP.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 3,
+          "slug": "l3-modules-npm-oop",
+          "lastModified": "2026-07-02T13:00:15.122Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - Prototypes Classes",
+          "file": "L4 - Prototypes Classes.html",
+          "path": "Week 02 - Advanced JavaScript/L4 - Prototypes Classes.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 4,
+          "slug": "l4-prototypes-classes",
+          "lastModified": "2026-07-02T05:57:16.730Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L5 - Asynchrony Event Loop",
+          "file": "L5 - Asynchrony Event Loop.html",
+          "path": "Week 02 - Advanced JavaScript/L5 - Asynchrony Event Loop.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 5,
+          "slug": "l5-asynchrony-event-loop",
+          "lastModified": "2026-07-02T05:57:16.734Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L6 - JSON API",
+          "file": "L6 - JSON API.html",
+          "path": "Week 02 - Advanced JavaScript/L6 - JSON API.html",
+          "course": "mad2",
+          "week": "Week 02 - Advanced JavaScript",
+          "order": 6,
+          "slug": "l6-json-api",
+          "lastModified": "2026-07-02T05:57:16.747Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 03 - Vue.js Basics",
+      "lectures": [
+        {
+          "title": "demo4_vue_components_notes_light",
+          "file": "demo4_vue_components_notes_light.html",
+          "path": "Week 03 - Vue.js Basics/demo4_vue_components_notes_light.html",
+          "course": "mad2",
+          "week": "Week 03 - Vue.js Basics",
+          "order": 1,
+          "slug": "demo4-vue-components-notes-light",
+          "lastModified": "2026-07-02T15:52:06.376Z",
+          "readingTime": 12,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 3.1 - Introduction to VueJS",
+          "file": "Screencast 3.1 - Introduction to VueJS.html",
+          "path": "Week 03 - Vue.js Basics/Screencast 3.1 - Introduction to VueJS.html",
+          "course": "mad2",
+          "week": "Week 03 - Vue.js Basics",
+          "order": 2,
+          "slug": "screencast-3-1-introduction-to-vuejs",
+          "lastModified": "2026-07-02T15:49:32.950Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 04 - Vue Components",
+      "lectures": [
+        {
+          "title": "Part-1-Declarative-Rendering-Reactivity-Basics",
+          "file": "Part-1-Declarative-Rendering-Reactivity-Basics.html",
+          "path": "Week 04 - Vue Components/Part-1-Declarative-Rendering-Reactivity-Basics.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 1,
+          "slug": "part-1-declarative-rendering-reactivity-basics",
+          "lastModified": "2026-07-03T04:58:53.692Z",
+          "readingTime": 17,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-2-Vue-Directives-Conditional-Rendering-Looping",
+          "file": "Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+          "path": "Week 04 - Vue Components/Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 2,
+          "slug": "part-2-vue-directives-conditional-rendering-looping",
+          "lastModified": "2026-07-03T05:00:08.096Z",
+          "readingTime": 25,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-3-ViewModel-Architecture-MVC-MVVM",
+          "file": "Part-3-ViewModel-Architecture-MVC-MVVM.html",
+          "path": "Week 04 - Vue Components/Part-3-ViewModel-Architecture-MVC-MVVM.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 3,
+          "slug": "part-3-viewmodel-architecture-mvc-mvvm",
+          "lastModified": "2026-07-03T05:00:48.901Z",
+          "readingTime": 15,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-4-Computed-Properties-vs-Watchers",
+          "file": "Part-4-Computed-Properties-vs-Watchers.html",
+          "path": "Week 04 - Vue Components/Part-4-Computed-Properties-vs-Watchers.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 4,
+          "slug": "part-4-computed-properties-vs-watchers",
+          "lastModified": "2026-07-03T05:01:39.332Z",
+          "readingTime": 21,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-5-Components-in-VueJS",
+          "file": "Part-5-Components-in-VueJS.html",
+          "path": "Week 04 - Vue Components/Part-5-Components-in-VueJS.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 5,
+          "slug": "part-5-components-in-vuejs",
+          "lastModified": "2026-07-03T05:02:22.196Z",
+          "readingTime": 19,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood",
+          "file": "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
+          "path": "Week 04 - Vue Components/Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 6,
+          "slug": "part-6-deep-dive-how-reactivity-works-under-the-hood",
+          "lastModified": "2026-07-03T05:03:10.887Z",
+          "readingTime": 21,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 4.1 - Components in VueJS",
+          "file": "Screencast 4.1 - Components in VueJS.html",
+          "path": "Week 04 - Vue Components/Screencast 4.1 - Components in VueJS.html",
+          "course": "mad2",
+          "week": "Week 04 - Vue Components",
+          "order": 7,
+          "slug": "screencast-4-1-components-in-vuejs",
+          "lastModified": "2026-07-02T10:57:43.936Z",
+          "readingTime": 13,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 05 - Vue Lifecycle & Async",
+      "lectures": [
+        {
+          "title": "Screencast 5.1 - Lifecycle Hooks",
+          "file": "Screencast 5.1 - Lifecycle Hooks.html",
+          "path": "Week 05 - Vue Lifecycle & Async/Screencast 5.1 - Lifecycle Hooks.html",
+          "course": "mad2",
+          "week": "Week 05 - Vue Lifecycle & Async",
+          "order": 1,
+          "slug": "screencast-5-1-lifecycle-hooks",
+          "lastModified": "2026-07-02T05:57:16.782Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 5.2 - Async Await",
+          "file": "Screencast 5.2 - Async Await.html",
+          "path": "Week 05 - Vue Lifecycle & Async/Screencast 5.2 - Async Await.html",
+          "course": "mad2",
+          "week": "Week 05 - Vue Lifecycle & Async",
+          "order": 2,
+          "slug": "screencast-5-2-async-await",
+          "lastModified": "2026-07-02T05:57:16.793Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 5.3 - Fetch API",
+          "file": "Screencast 5.3 - Fetch API.html",
+          "path": "Week 05 - Vue Lifecycle & Async/Screencast 5.3 - Fetch API.html",
+          "course": "mad2",
+          "week": "Week 05 - Vue Lifecycle & Async",
+          "order": 3,
+          "slug": "screencast-5-3-fetch-api",
+          "lastModified": "2026-07-02T05:57:16.800Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 5.4 - Vue API Calls",
+          "file": "Screencast 5.4 - Vue API Calls.html",
+          "path": "Week 05 - Vue Lifecycle & Async/Screencast 5.4 - Vue API Calls.html",
+          "course": "mad2",
+          "week": "Week 05 - Vue Lifecycle & Async",
+          "order": 4,
+          "slug": "screencast-5-4-vue-api-calls",
+          "lastModified": "2026-07-02T05:57:16.808Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 06 - Vue Advanced",
+      "lectures": [
+        {
+          "title": "L1 - Persistent Storage",
+          "file": "L1 - Persistent Storage.html",
+          "path": "Week 06 - Vue Advanced/L1 - Persistent Storage.html",
+          "course": "mad2",
+          "week": "Week 06 - Vue Advanced",
+          "order": 1,
+          "slug": "l1-persistent-storage",
+          "lastModified": "2026-07-02T05:57:16.815Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Form Validation",
+          "file": "L2 - Form Validation.html",
+          "path": "Week 06 - Vue Advanced/L2 - Form Validation.html",
+          "course": "mad2",
+          "week": "Week 06 - Vue Advanced",
+          "order": 2,
+          "slug": "l2-form-validation",
+          "lastModified": "2026-07-02T05:57:16.831Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Single File Components",
+          "file": "L3 - Single File Components.html",
+          "path": "Week 06 - Vue Advanced/L3 - Single File Components.html",
+          "course": "mad2",
+          "week": "Week 06 - Vue Advanced",
+          "order": 3,
+          "slug": "l3-single-file-components",
+          "lastModified": "2026-07-02T05:57:16.848Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - Testing",
+          "file": "L4 - Testing.html",
+          "path": "Week 06 - Vue Advanced/L4 - Testing.html",
+          "course": "mad2",
+          "week": "Week 06 - Vue Advanced",
+          "order": 4,
+          "slug": "l4-testing",
+          "lastModified": "2026-07-02T05:57:16.866Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 07 - State Management",
+      "lectures": [
+        {
+          "title": "L1 - Advanced State Management",
+          "file": "L1 - Advanced State Management.html",
+          "path": "Week 07 - State Management/L1 - Advanced State Management.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 1,
+          "slug": "l1-advanced-state-management",
+          "lastModified": "2026-07-02T05:57:16.879Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Vuex",
+          "file": "L2 - Vuex.html",
+          "path": "Week 07 - State Management/L2 - Vuex.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 2,
+          "slug": "l2-vuex",
+          "lastModified": "2026-07-02T05:57:16.895Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Vue Router",
+          "file": "L3 - Vue Router.html",
+          "path": "Week 07 - State Management/L3 - Vue Router.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 3,
+          "slug": "l3-vue-router",
+          "lastModified": "2026-07-02T05:57:16.902Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - SPA & PWA",
+          "file": "L4 - SPA & PWA.html",
+          "path": "Week 07 - State Management/L4 - SPA & PWA.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 4,
+          "slug": "l4-spa-pwa",
+          "lastModified": "2026-07-02T05:57:16.916Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 7.1 - Vuex Project",
+          "file": "Screencast 7.1 - Vuex Project.html",
+          "path": "Week 07 - State Management/Screencast 7.1 - Vuex Project.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 5,
+          "slug": "screencast-7-1-vuex-project",
+          "lastModified": "2026-07-02T05:57:16.929Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 7.2 - Vue CLI",
+          "file": "Screencast 7.2 - Vue CLI.html",
+          "path": "Week 07 - State Management/Screencast 7.2 - Vue CLI.html",
+          "course": "mad2",
+          "week": "Week 07 - State Management",
+          "order": 6,
+          "slug": "screencast-7-2-vue-cli",
+          "lastModified": "2026-07-02T05:57:16.934Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 08 - APIs",
+      "lectures": [
+        {
+          "title": "L1 - REST APIs Part 1",
+          "file": "L1 - REST APIs Part 1.html",
+          "path": "Week 08 - APIs/L1 - REST APIs Part 1.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 1,
+          "slug": "l1-rest-apis-part-1",
+          "lastModified": "2026-07-02T05:57:16.947Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - REST APIs Part 2",
+          "file": "L2 - REST APIs Part 2.html",
+          "path": "Week 08 - APIs/L2 - REST APIs Part 2.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 2,
+          "slug": "l2-rest-apis-part-2",
+          "lastModified": "2026-07-02T05:57:16.962Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - GraphQL",
+          "file": "L3 - GraphQL.html",
+          "path": "Week 08 - APIs/L3 - GraphQL.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 3,
+          "slug": "l3-graphql",
+          "lastModified": "2026-07-02T05:57:16.976Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - Markup Alternatives",
+          "file": "L4 - Markup Alternatives.html",
+          "path": "Week 08 - APIs/L4 - Markup Alternatives.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 4,
+          "slug": "l4-markup-alternatives",
+          "lastModified": "2026-07-02T05:57:17.155Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L5 - JAM Architecture",
+          "file": "L5 - JAM Architecture.html",
+          "path": "Week 08 - APIs/L5 - JAM Architecture.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 5,
+          "slug": "l5-jam-architecture",
+          "lastModified": "2026-07-02T05:57:17.167Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 8.1 - Flask Authentication",
+          "file": "Screencast 8.1 - Flask Authentication.html",
+          "path": "Week 08 - APIs/Screencast 8.1 - Flask Authentication.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 6,
+          "slug": "screencast-8-1-flask-authentication",
+          "lastModified": "2026-07-02T05:57:17.179Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 8.2 - Vue + Flask Part 1",
+          "file": "Screencast 8.2 - Vue + Flask Part 1.html",
+          "path": "Week 08 - APIs/Screencast 8.2 - Vue + Flask Part 1.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 7,
+          "slug": "screencast-8-2-vue-flask-part-1",
+          "lastModified": "2026-07-02T05:57:17.208Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 8.3 - Vue + Flask Part 2",
+          "file": "Screencast 8.3 - Vue + Flask Part 2.html",
+          "path": "Week 08 - APIs/Screencast 8.3 - Vue + Flask Part 2.html",
+          "course": "mad2",
+          "week": "Week 08 - APIs",
+          "order": 8,
+          "slug": "screencast-8-3-vue-flask-part-2",
+          "lastModified": "2026-07-02T05:57:17.224Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 09 - Async Systems",
+      "lectures": [
+        {
+          "title": "L1 - Web Servers",
+          "file": "L1 - Web Servers.html",
+          "path": "Week 09 - Async Systems/L1 - Web Servers.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 1,
+          "slug": "l1-web-servers",
+          "lastModified": "2026-07-02T05:57:17.268Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Message Queues",
+          "file": "L2 - Message Queues.html",
+          "path": "Week 09 - Async Systems/L2 - Message Queues.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 2,
+          "slug": "l2-message-queues",
+          "lastModified": "2026-07-02T05:57:17.282Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Celery",
+          "file": "L3 - Celery.html",
+          "path": "Week 09 - Async Systems/L3 - Celery.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 3,
+          "slug": "l3-celery",
+          "lastModified": "2026-07-02T05:57:17.296Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L4 - Celery in Replit",
+          "file": "L4 - Celery in Replit.html",
+          "path": "Week 09 - Async Systems/L4 - Celery in Replit.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 4,
+          "slug": "l4-celery-in-replit",
+          "lastModified": "2026-07-02T05:57:17.305Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 9.1 - Redis",
+          "file": "Screencast 9.1 - Redis.html",
+          "path": "Week 09 - Async Systems/Screencast 9.1 - Redis.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 5,
+          "slug": "screencast-9-1-redis",
+          "lastModified": "2026-07-02T05:57:17.312Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 9.2 - Celery Workers",
+          "file": "Screencast 9.2 - Celery Workers.html",
+          "path": "Week 09 - Async Systems/Screencast 9.2 - Celery Workers.html",
+          "course": "mad2",
+          "week": "Week 09 - Async Systems",
+          "order": 6,
+          "slug": "screencast-9-2-celery-workers",
+          "lastModified": "2026-07-02T05:57:17.336Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 10 - Webhooks",
+      "lectures": [
+        {
+          "title": "L1 - Inter Service Messaging",
+          "file": "L1 - Inter Service Messaging.html",
+          "path": "Week 10 - Webhooks/L1 - Inter Service Messaging.html",
+          "course": "mad2",
+          "week": "Week 10 - Webhooks",
+          "order": 1,
+          "slug": "l1-inter-service-messaging",
+          "lastModified": "2026-07-02T05:57:17.346Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Webhooks",
+          "file": "L2 - Webhooks.html",
+          "path": "Week 10 - Webhooks/L2 - Webhooks.html",
+          "course": "mad2",
+          "week": "Week 10 - Webhooks",
+          "order": 2,
+          "slug": "l2-webhooks",
+          "lastModified": "2026-07-02T05:57:17.359Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Advanced Webhooks",
+          "file": "L3 - Advanced Webhooks.html",
+          "path": "Week 10 - Webhooks/L3 - Advanced Webhooks.html",
+          "course": "mad2",
+          "week": "Week 10 - Webhooks",
+          "order": 3,
+          "slug": "l3-advanced-webhooks",
+          "lastModified": "2026-07-02T05:57:17.364Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 10.1 - Server Sent Events",
+          "file": "Screencast 10.1 - Server Sent Events.html",
+          "path": "Week 10 - Webhooks/Screencast 10.1 - Server Sent Events.html",
+          "course": "mad2",
+          "week": "Week 10 - Webhooks",
+          "order": 4,
+          "slug": "screencast-10-1-server-sent-events",
+          "lastModified": "2026-07-02T05:57:17.375Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 10.2 - Using Webhooks",
+          "file": "Screencast 10.2 - Using Webhooks.html",
+          "path": "Week 10 - Webhooks/Screencast 10.2 - Using Webhooks.html",
+          "course": "mad2",
+          "week": "Week 10 - Webhooks",
+          "order": 5,
+          "slug": "screencast-10-2-using-webhooks",
+          "lastModified": "2026-07-02T05:57:17.379Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 11 - Performance",
+      "lectures": [
+        {
+          "title": "Screencast 11.1 - Performance & Caching",
+          "file": "Screencast 11.1 - Performance & Caching.html",
+          "path": "Week 11 - Performance/Screencast 11.1 - Performance & Caching.html",
+          "course": "mad2",
+          "week": "Week 11 - Performance",
+          "order": 1,
+          "slug": "screencast-11-1-performance-caching",
+          "lastModified": "2026-07-02T05:57:17.388Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
+      "weekName": "Week 12 - Security",
+      "lectures": [
+        {
+          "title": "L1 - Privacy vs Security",
+          "file": "L1 - Privacy vs Security.html",
+          "path": "Week 12 - Security/L1 - Privacy vs Security.html",
+          "course": "mad2",
+          "week": "Week 12 - Security",
+          "order": 1,
+          "slug": "l1-privacy-vs-security",
+          "lastModified": "2026-07-02T05:57:17.399Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L2 - Frontend Security",
+          "file": "L2 - Frontend Security.html",
+          "path": "Week 12 - Security/L2 - Frontend Security.html",
+          "course": "mad2",
+          "week": "Week 12 - Security",
+          "order": 2,
+          "slug": "l2-frontend-security",
+          "lastModified": "2026-07-02T05:57:17.411Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "L3 - Backend Security",
+          "file": "L3 - Backend Security.html",
+          "path": "Week 12 - Security/L3 - Backend Security.html",
+          "course": "mad2",
+          "week": "Week 12 - Security",
+          "order": 3,
+          "slug": "l3-backend-security",
+          "lastModified": "2026-07-02T05:57:17.416Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Screencast 12.1 - CORS Cookies",
+          "file": "Screencast 12.1 - CORS Cookies.html",
+          "path": "Week 12 - Security/Screencast 12.1 - CORS Cookies.html",
+          "course": "mad2",
+          "week": "Week 12 - Security",
+          "order": 4,
+          "slug": "screencast-12-1-cors-cookies",
+          "lastModified": "2026-07-02T05:57:17.424Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    }
+  ],
+  "mlt": [
     {
       "weekName": "Week 01 - Intro Representation PCA",
       "lectures": [
@@ -1038,4 +1917,19 @@
       ]
     }
   ]
-}
+};
+
+const COURSE_META = {
+  "bdm": {
+    "name": "BDM (Business Data Management)"
+  },
+  "mad2": {
+    "name": "MAD2 (Modern Application Development II)"
+  },
+  "mlt": {
+    "name": "MLT (Machine Learning Techniques)"
+  }
+};
+
+window.COURSE_STRUCTURES = COURSE_STRUCTURES;
+window.COURSE_META = COURSE_META;
