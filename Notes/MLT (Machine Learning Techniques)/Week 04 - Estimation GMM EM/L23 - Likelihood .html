@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Likelihood of Gaussian Mixture Models — Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+    --c1: #b5872a; --c2: #2c6b5d; --c3: #a8482a;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      radial-gradient(circle at 10% 110%, rgba(168,72,42,0.16), transparent 50%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px; pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#d9b872; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{
+    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
+    font-size:clamp(32px, 5.2vw, 50px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pill{
+    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
+    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  }
+
+  /* ---------- SCAFFOLD ---------- */
+  main{ padding:54px 0 90px; }
+  section.chapter{ margin-bottom:64px; }
+  section.chapter:last-of-type{ margin-bottom:0; }
+  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
+  .chapter-num{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  }
+  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 24px;
+  }
+  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
+  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+  .param-symbol{
+    font-family:'JetBrains Mono', monospace; font-size:20px; font-weight:600; margin-bottom:10px; display:block;
+  }
+  .card.c1 .param-symbol{ color:var(--c1); }
+  .card.c2 .param-symbol{ color:var(--c2); }
+  .card.c3 .param-symbol{ color:var(--c3); }
+
+  /* ---------- RECAP FLOW (compact) ---------- */
+  .recap-flow{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:20px 22px; display:flex; align-items:center; justify-content:center;
+    gap:14px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  .recap-node{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px;
+    padding:10px 16px; border-radius:9px; background:#f5f6fa; color:var(--ink-soft);
+  }
+  .recap-node.hot{ background:var(--gold-soft); color:var(--gold-deep); font-weight:600; }
+  .recap-arrow{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:13px; }
+
+  /* ---------- MATH CARD ---------- */
+  .math-card{
+    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:26px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
+  }
+  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
+  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:19px; color:#dbe0ef; white-space:nowrap; }
+  .math-card .expr .hi{ color:#d9b872; }
+  .math-card .expr .hi2{ color:#7fc4b0; }
+  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
+  .callout .icon{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
+  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+  .callout.info b{ color:var(--indigo); }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.warn b{ color:var(--rust); }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.good b{ color:var(--teal); }
+
+  /* ---------- SIGNATURE: LOG-SUM COMPARISON ---------- */
+  .compare-wrap{
+    background:linear-gradient(180deg, #1b2030, #12151f);
+    border-radius:18px; padding:30px 26px 28px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .compare-wrap::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 10% 0%, rgba(44,107,93,0.16), transparent 50%),
+                radial-gradient(circle at 95% 100%, rgba(168,72,42,0.18), transparent 50%);
+    pointer-events:none;
+  }
+  .compare-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#8891a8; text-align:center; margin-bottom:20px; position:relative; z-index:1;
+  }
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; position:relative; z-index:1; }
+  .compare-card{
+    background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:20px 18px; text-align:center;
+  }
+  .compare-card .tag-mini{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;
+    padding:3px 9px; border-radius:100px; margin-bottom:14px; display:inline-block;
+  }
+  .compare-card.ok .tag-mini{ background:rgba(44,107,93,0.25); color:#7fc4b0; }
+  .compare-card.blocked .tag-mini{ background:rgba(168,72,42,0.25); color:#e0967a; }
+  .compare-card .expr-line{
+    font-family:'JetBrains Mono', monospace; font-size:14px; color:#dbe0ef; margin:10px 0; min-height:24px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  .compare-card .expr-line.step2{ color:#9aa2ba; font-size:13px; }
+  .compare-card .result{
+    margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    padding:10px; border-radius:8px; opacity:0; transition:opacity 0.3s ease;
+  }
+  .compare-card.ok .result{ background:rgba(44,107,93,0.18); color:#7fc4b0; }
+  .compare-card.blocked .result{ background:rgba(168,72,42,0.18); color:#e0967a; }
+  .compare-card .result.show{ opacity:1; }
+  .compare-card .expr-line.shake{ animation: shake 0.4s ease; }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); }
+    20%{ transform:translateX(-5px); }
+    40%{ transform:translateX(5px); }
+    60%{ transform:translateX(-4px); }
+    80%{ transform:translateX(4px); }
+  }
+  .compare-btn-row{ text-align:center; margin-top:22px; position:relative; z-index:1; }
+  .compare-btn{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    background:#d9b872; color:#1b1607; border:none; border-radius:9px; padding:13px 22px;
+    cursor:pointer; box-shadow:0 2px 0 #8f6a1c; transition:transform 0.08s ease, filter 0.15s ease;
+  }
+  .compare-btn:hover{ filter:brightness(1.05); }
+  .compare-btn:active{ transform:translateY(2px); box-shadow:0 0 0 #8f6a1c; }
+  .compare-btn:disabled{ opacity:0.5; cursor:default; }
+  .compare-reset{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:#8891a8; background:none;
+    border:1px solid #363d54; border-radius:7px; padding:6px 10px; cursor:pointer; margin-left:10px;
+  }
+  .compare-reset:hover{ color:#c2c6d6; border-color:#4a5270; }
+
+  /* ---------- TABLE ---------- */
+  table.spec{
+    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  }
+  table.spec th{
+    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  }
+  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
+
+  /* ---------- CODE BLOCK ---------- */
+  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
+  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
+  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
+  .codeblock .c-comment{ color:#7d859c; }
+  .codeblock .c-kw{ color:#e2a25c; }
+  .codeblock .c-fn{ color:#7fb0e8; }
+  .codeblock .c-err{ color:#e0967a; }
+
+  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+
+  @media (max-width: 720px){
+    .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .hero{ padding:48px 0 40px; }
+    .chapter-head h2{ font-size:22px; }
+    .math-card .expr{ font-size:15px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .expr-line.shake{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+    <h1>Likelihood of GMMs:<br>when the log stops <em>helping</em></h1>
+    <p class="lede">Logs are supposed to turn hard products into easy sums. For a Gaussian Mixture Model, that trick jams — the mixture puts a sum <i>inside</i> the log, and the algebra simply won't come apart.</p>
+    <div class="hero-meta">
+      <span class="pill">§1 Recap</span>
+      <span class="pill">§2 The likelihood</span>
+      <span class="pill">§3 The log-sum bottleneck</span>
+      <span class="pill">§4 Why MLE stalls</span>
+      <span class="pill">§5 What's next</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SECTION 1 -->
+  <section class="chapter" id="s1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>Recap — the three unknowns</h2>
+    </div>
+    <p class="chapter-intro">A GMM assumes every point comes from one of <span class="mono">K</span> Gaussians. Fitting it means estimating three families of parameters, together written <span class="mono">θ</span>.</p>
+
+    <div class="grid-3">
+      <div class="card c1">
+        <span class="param-symbol">μ₁ … μ_K</span>
+        <h3>Means</h3>
+        <p>The center of each component's cluster.</p>
+      </div>
+      <div class="card c2">
+        <span class="param-symbol">σ₁² … σ_K²</span>
+        <h3>Variances</h3>
+        <p>How spread out each cluster is.</p>
+      </div>
+      <div class="card c3">
+        <span class="param-symbol">π₁ … π_K</span>
+        <h3>Mixing proportions</h3>
+        <p>How likely each component is to be picked. <span class="mono">Σ πₖ = 1</span>.</p>
+      </div>
+    </div>
+
+    <div class="recap-flow">
+      <div class="recap-node hot">select component by π</div>
+      <div class="recap-arrow">→</div>
+      <div class="recap-node">sample x from that Gaussian</div>
+      <div class="recap-arrow">→</div>
+      <div class="recap-node">z is never observed</div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="chapter" id="s2">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>The likelihood function</h2>
+    </div>
+    <p class="chapter-intro">For a single point, we don't know which component generated it — so its density is a weighted average over all <span class="mono">K</span> possibilities. That's the <b>marginal density</b>.</p>
+
+    <div class="math-card">
+      <div class="math-label">marginal density of one point</div>
+      <div class="expr">p(x_i | θ) = <span class="hi">Σₖ πₖ</span> · 𝒩(x_i | μₖ, σₖ²)</div>
+      <div class="sub">weighted sum across all K components — this is where the trouble starts</div>
+    </div>
+
+    <div class="math-card">
+      <div class="math-label">full likelihood, over N i.i.d. points</div>
+      <div class="expr">L(θ) = <span class="hi2">∏ᵢ</span> [ <span class="hi">Σₖ πₖ</span> · 𝒩(x_i | μₖ, σₖ²) ]</div>
+      <div class="sub">a product over data points (from i.i.d.) — of sums over components</div>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Same recipe as before</b>
+        <p>Because observations are i.i.d., the joint likelihood is still a clean product across data points — that part hasn't changed since the single-Gaussian case.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="chapter" id="s3">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>The log-sum bottleneck</h2>
+    </div>
+    <p class="chapter-intro">Taking the log usually turns a product of terms into a sum of logs — easy to differentiate. Try it on both cases below and watch what happens to the sum sitting inside each mixture term.</p>
+
+    <div class="compare-wrap">
+      <div class="compare-label">// try to push the log inside</div>
+      <div class="compare-grid">
+
+        <div class="compare-card ok" id="cardSingle">
+          <span class="tag-mini">K = 1 · single Gaussian</span>
+          <div class="expr-line" id="lineSingle1">log ∏ᵢ 𝒩(x_i | μ, σ²)</div>
+          <div class="expr-line step2" id="lineSingle2">&nbsp;</div>
+          <div class="result" id="resultSingle">✓ becomes Σᵢ log 𝒩(x_i|μ,σ²) — clean, solvable</div>
+        </div>
+
+        <div class="compare-card blocked" id="cardMix">
+          <span class="tag-mini">K &gt; 1 · mixture</span>
+          <div class="expr-line" id="lineMix1">log ∏ᵢ [ Σₖ πₖ 𝒩(x_i|μₖ,σₖ²) ]</div>
+          <div class="expr-line step2" id="lineMix2">&nbsp;</div>
+          <div class="result" id="resultMix">✗ stuck at Σᵢ log( Σₖ … ) — log can't enter the inner sum</div>
+        </div>
+
+      </div>
+      <div class="compare-btn-row">
+        <button class="compare-btn" id="tryBtn" onclick="trySimplify()">▶ try to simplify both</button>
+        <button class="compare-reset" onclick="resetCompare()">reset</button>
+      </div>
+    </div>
+
+    <div class="callout warn" style="margin-top:20px;">
+      <div class="icon">!</div>
+      <div class="body">
+        <b>Why this blocks everything downstream</b>
+        <p><span class="mono">log(a + b) ≠ log a + log b</span>. The mixture's inner sum survives the log untouched, so the neat term-by-term derivative that worked for a single Gaussian no longer isolates any single <span class="mono">μₖ</span>, <span class="mono">σₖ²</span>, or <span class="mono">πₖ</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="chapter" id="s4">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Why MLE stalls here</h2>
+    </div>
+    <p class="chapter-intro">Two compounding difficulties keep the GMM log-likelihood from being solved the way we solved a single Gaussian.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>No closed-form solution</h3>
+        <p>Setting <span class="mono">∂ log L / ∂θ = 0</span> no longer isolates a clean formula (like the sample mean). Each parameter's equation stays entangled with every other component through the trapped inner sum.</p>
+      </div>
+      <div class="card">
+        <h3>Constrained optimization</h3>
+        <p>The mixing proportions must satisfy <span class="mono">Σ πₖ = 1</span> and <span class="mono">πₖ ≥ 0</span>. Any optimizer has to respect that constraint on every step, not just find an unconstrained maximum.</p>
+      </div>
+    </div>
+
+    <div class="codeblock" style="margin-top:16px;">
+      <div class="filename">naive_mle_attempt.py — what breaks</div>
+      <pre><span class="c-comment"># works fine for a single Gaussian:</span>
+mu_hat = <span class="c-fn">sum</span>(x) / n   <span class="c-comment"># closed form, done</span>
+
+<span class="c-comment"># for a GMM, the analogous line doesn't exist —</span>
+<span class="c-comment"># d/d(mu_k) of log( sum_k pi_k * N(x_i | mu_k, sigma_k^2) )</span>
+<span class="c-comment"># still has EVERY component's mu, sigma, pi tangled together</span>
+mu_k_hat = <span class="c-err">    # &lt;- no closed form; can't isolate mu_k</span></pre>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="chapter" id="s5">
+    <div class="chapter-head">
+      <span class="chapter-num">05</span>
+      <h2>Where this leaves us</h2>
+    </div>
+    <p class="chapter-intro">Generic optimizers like gradient ascent can grind through this numerically — but they ignore the fact that the model has a clean latent structure (component → sample) sitting right behind the messy formula.</p>
+
+    <div class="callout good">
+      <div class="icon">→</div>
+      <div class="body">
+        <b>Next lecture</b>
+        <p>Instead of attacking <span class="mono">log Σ</span> head-on, we'll use the structure of convex functions to build a tractable lower bound on the likelihood — the first step toward the Expectation-Maximization (EM) algorithm.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>LIKELIHOOD OF GAUSSIAN MIXTURE MODELS · LECTURE NOTES</p>
+</footer>
+
+<script>
+  function trySimplify(){
+    const btn = document.getElementById('tryBtn');
+    btn.disabled = true;
+
+    // single gaussian: log distributes cleanly
+    const l1 = document.getElementById('lineSingle2');
+    l1.textContent = '= Σᵢ log 𝒩(x_i | μ, σ²)';
+    document.getElementById('resultSingle').classList.add('show');
+
+    // mixture: log tries to enter, gets stuck, shakes
+    const l2 = document.getElementById('lineMix2');
+    setTimeout(() => {
+      l2.textContent = '= Σᵢ log( Σₖ πₖ 𝒩(x_i|μₖ,σₖ²) )';
+      l2.classList.add('shake');
+      setTimeout(() => {
+        document.getElementById('resultMix').classList.add('show');
+      }, 250);
+    }, 200);
+
+    setTimeout(() => { btn.disabled = false; }, 600);
+  }
+
+  function resetCompare(){
+    document.getElementById('lineSingle2').textContent = '\u00A0';
+    document.getElementById('lineMix2').textContent = '\u00A0';
+    document.getElementById('lineMix2').classList.remove('shake');
+    document.getElementById('resultSingle').classList.remove('show');
+    document.getElementById('resultMix').classList.remove('show');
+  }
+</script>
+
+</body>
+</html>

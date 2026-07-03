@@ -172,6 +172,7 @@ const COURSE_STRUCTURES = {
     {
       "weekName": "Week 03 - Vue.js Basics",
       "lectures": [
+<<<<<<< HEAD
         {
           "title": "demo4_vue_components_notes_light",
           "file": "demo4_vue_components_notes_light.html",
@@ -198,11 +199,16 @@ const COURSE_STRUCTURES = {
           "tags": [],
           "keywords": []
         }
+=======
+        "demo4_vue_components_notes_light.html",
+        "Screencast 3.1 - Introduction to VueJS.html"
+>>>>>>> c303c36c00b6e68509deb0c638824ee7b7f907cb
       ]
     },
     {
       "weekName": "Week 04 - Vue Components",
       "lectures": [
+<<<<<<< HEAD
         {
           "title": "Screencast 4.1 - Components in VueJS",
           "file": "Screencast 4.1 - Components in VueJS.html",
@@ -216,6 +222,15 @@ const COURSE_STRUCTURES = {
           "tags": [],
           "keywords": []
         }
+=======
+        "Part-1-Declarative-Rendering-Reactivity-Basics.html",
+        "Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+        "Part-3-ViewModel-Architecture-MVC-MVVM.html",
+        "Part-4-Computed-Properties-vs-Watchers.html",
+        "Part-5-Components-in-VueJS.html",
+        "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
+        "Screencast 4.1 - Components in VueJS.html"
+>>>>>>> c303c36c00b6e68509deb0c638824ee7b7f907cb
       ]
     },
     {
@@ -1006,6 +1021,7 @@ const COURSE_STRUCTURES = {
     {
       "weekName": "Week 04 - Estimation GMM EM",
       "lectures": [
+<<<<<<< HEAD
         {
           "title": "L19 - Estimation",
           "file": "L19 - Estimation.html",
@@ -1123,6 +1139,17 @@ const COURSE_STRUCTURES = {
           "tags": [],
           "keywords": []
         }
+=======
+        "L19 - Estimation.html",
+        "L20 - MLE.html",
+        "L21 - Bayesian Estimation.html",
+        "L22 - GMM.html",
+        "L23 - Likelihood .html",
+        "L24 - Jensen Inequality.html",
+        "L25 - Parameter Estimation.html",
+        "L26 - EM Algorithm.html",
+        "my-campus-week4-complte.html"
+>>>>>>> c303c36c00b6e68509deb0c638824ee7b7f907cb
       ]
     },
     {

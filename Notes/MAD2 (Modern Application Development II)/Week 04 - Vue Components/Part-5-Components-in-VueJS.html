@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Components in VueJS — Study Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root{
+    --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+    --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+    --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+    --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+    --code-bg:#0D1118; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 30% 5%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 70% 15%, rgba(139,147,255,0.06), transparent 40%),var(--bg);
+    color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .hero{border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px; background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;}
+  .hero::after{content:""; position:absolute; top:-40%; right:-10%; width:280px;height:280px;border-radius:50%; background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .eyebrow::before{content:"●"; font-size:10px;}
+  h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+  .hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+  .section-tag{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin:38px 0 10px; display:flex; align-items:center; gap:10px;}
+  .section-tag .n{width:22px;height:22px;border-radius:6px;background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--green); font-weight:700; font-size:11px;}
+  .card{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:24px 26px; margin-bottom:18px;}
+  .card h2{font-size:19px; margin:0 0 10px; font-weight:700;}
+  .card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+  .emoji-h{display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;}
+  .emoji-h .e{font-size:20px;}
+  .analogy-box{background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+  .analogy-box .a-text{font-size:13.5px; color:#E9D9B8;} .analogy-box .a-text b{color:var(--amber);}
+  .industry-box{background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+  .industry-box .i-text{font-size:13.5px; color:#D5D8FF;} .industry-box .i-text b{color:var(--violet);}
+  .mistake-box{background:var(--red-dim); border:1px solid rgba(240,80,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+  .mistake-box .m-text{font-size:13.5px; color:#F0B0B0;} .mistake-box .m-text b{color:var(--red);}
+  .tip-box{background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+  .tip-box .t-text{font-size:13.5px; color:#C9E8F8;} .tip-box .t-text b{color:var(--cyan);}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; margin:12px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;}
+  code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;} .fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+
+  .pillar-grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin:16px 0;}
+  .pillar-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:18px; text-align:center;}
+  .pillar-card .p-num{width:28px;height:28px;border-radius:50%;background:var(--green-dim);color:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-weight:700;font-size:13px;}
+  .pillar-card .p-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+  .pillar-card .p-desc{font-size:12px; color:var(--muted);}
+  .pillar-card.props .p-title{color:var(--amber);} .pillar-card.data .p-title{color:var(--cyan);}
+  .pillar-card.template .p-title{color:var(--green);}
+  @media (max-width:640px){.pillar-grid{grid-template-columns:1fr;}}
+
+  .flow-diagram{display:flex; align-items:center; justify-content:center; gap:16px; margin:20px 0; flex-wrap:wrap;}
+  .flow-diagram .f-box{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px 20px; text-align:center; min-width:100px;}
+  .flow-diagram .f-box .f-title{font-weight:700; font-size:13px;}
+  .flow-diagram .f-box .f-sub{font-size:11px; color:var(--muted);}
+  .flow-diagram .f-box.parent{color:var(--amber); border-color:var(--amber-dim);}
+  .flow-diagram .f-box.child{color:var(--violet); border-color:var(--violet-dim);}
+  .flow-diagram .f-arrow{color:var(--muted); font-size:20px;}
+
+  .qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+  .qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+  .qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+
+  .rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+  .rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+  .rev-item b{color:var(--green);}
+  @media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+
+  ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+  li{margin:4px 0; color:var(--text);}
+
+  .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">AppDev2 · Vue.js</div>
+    <h1>Components in VueJS</h1>
+    <p>Building self-contained, reusable UI blocks — following the <b style="color:var(--green)">DRY</b> (Don't Repeat Yourself) principle to refactor large codebases into maintainable pieces.</p>
+  </div>
+
+  <!-- ====== SECTION 1: WHAT & WHY ====== -->
+  <div class="section-tag"><span class="n">1</span> WHAT ARE COMPONENTS?</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def">A <b>component</b> is a self-contained, reusable UI block with its own data, template, and behavior. Components are registered with <code>Vue.component(name, options)</code> or defined as <code>.vue</code> single-file components. They allow you to split the UI into independent, reusable pieces that can be composed together.</p>
+
+    <div class="emoji-h"><span class="e">🧠</span> Why Components?</div>
+    <p style="font-size:14.5px;">When building complex interfaces, UI elements often repeat the exact same layout structures while displaying different data. Components let you:</p>
+    <ul>
+      <li><b>DRY (Don't Repeat Yourself):</b> Define a component once, reuse it many times.</li>
+      <li><b>Encapsulation:</b> Each component manages its own state, template, and styling.</li>
+      <li><b>Composability:</b> Build complex UIs by nesting simple components.</li>
+      <li><b>Maintainability:</b> Change one component, and every instance updates across the app.</li>
+      <li><b>Testability:</b> Isolated components are easier to unit test.</li>
+    </ul>
+  </div>
+
+  <!-- ====== SECTION 2: COMPONENT STRUCTURE ====== -->
+  <div class="section-tag"><span class="n">2</span> COMPONENT STRUCTURE</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🏛</span> Three Core Pillars</div>
+    <div class="pillar-grid">
+      <div class="pillar-card props">
+        <div class="p-num">1</div>
+        <div class="p-title">Props</div>
+        <div class="p-desc">Custom options passed down from parent to child. Flow downward, read-only for the child.</div>
+      </div>
+      <div class="pillar-card data">
+        <div class="p-num">2</div>
+        <div class="p-title">Data</div>
+        <div class="p-desc">Isolated local state managed within the component instance. Must be a function.</div>
+      </div>
+      <div class="pillar-card template">
+        <div class="p-num">3</div>
+        <div class="p-title">Template</div>
+        <div class="p-desc">HTML structure with <code>{{ }}</code> text interpolation. One root element required.</div>
+      </div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💻</span> Code Example</div>
+    <pre><code><span class="cmt">// Register a global component</span>
+<span class="kw">Vue</span>.<span class="fn">component</span>(<span class="str">'product-card'</span>, {
+  <span class="cmt">// 1. Props: data passed IN from parent</span>
+  props: [<span class="str">'product'</span>, <span class="str">'currency'</span>],
+
+  <span class="cmt">// 2. Data: local state (MUST be a function for isolation)</span>
+  data() {
+    <span class="kw">return</span> {
+      isFavorite: <span class="kw">false</span>,
+      quantity: 1
+    }
+  },
+
+  <span class="cmt">// 3. Template: exactly ONE root element</span>
+  template: <span class="str">`
+    &lt;div class="product-card"&gt;
+      &lt;img :src="product.image" :alt="product.name"&gt;
+      &lt;h3&gt;{{ product.name }}&lt;/h3&gt;
+      &lt;p&gt;{{ currency }}{{ product.price }}&lt;/p&gt;
+      &lt;button @click="isFavorite = !isFavorite"&gt;
+        {{ isFavorite ? '❤️' : '🤍' }}
+      &lt;/button&gt;
+    &lt;/div&gt;
+  `</span>
+});
+
+<span class="cmt">&lt;!-- Usage in parent template --&gt;</span>
+&lt;product-card
+  <span class="prop">:product</span>=<span class="str">"laptop"</span>
+  <span class="prop">currency</span>=<span class="str">"$"</span>&gt;
+&lt;/product-card&gt;</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📩</span> Props — Parent to Child</div>
+    <p class="def"><b>Props</b> are custom attributes registered on a component that allow the parent to pass data down to the child. Props flow <b>one direction: downward</b>. The child should never mutate a prop directly.</p>
+
+    <div class="flow-diagram">
+      <div class="f-box parent">
+        <div class="f-title">Parent</div>
+        <div class="f-sub">Owns the data</div>
+      </div>
+      <div class="f-arrow">⬇ props</div>
+      <div class="f-box child">
+        <div class="f-title">Child</div>
+        <div class="f-sub">Receives &amp; displays</div>
+      </div>
+      <div class="f-arrow">⬆ events</div>
+      <div class="f-box parent">
+        <div class="f-title">Parent</div>
+        <div class="f-sub">Handles the event</div>
+      </div>
+    </div>
+
+    <pre><code><span class="cmt">// Component declares props</span>
+<span class="kw">Vue</span>.<span class="fn">component</span>(<span class="str">'user-profile'</span>, {
+  props: {
+    name: { type: <span class="kw">String</span>, required: <span class="kw">true</span> },
+    age:  { type: <span class="kw">Number</span>, <span class="kw">default</span>: <span class="str">0</span> },
+    role: { type: <span class="kw">String</span>, <span class="kw">default</span>: <span class="str">'viewer'</span> }
+  },
+  template: <span class="str">'&lt;div&gt;{{ name }} ({{ role }})&lt;/div&gt;'</span>
+});
+
+<span class="cmt">// Parent passes data via attributes</span>
+&lt;user-profile
+  <span class="prop">:name</span>=<span class="str">"currentUser.name"</span>
+  <span class="prop">:age</span>=<span class="str">"currentUser.age"</span>
+  role=<span class="str">"admin"</span>&gt;   <span class="cmt">// static string (no colon)</span>
+&lt;/user-profile&gt;</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📤</span> Events — Child to Parent</div>
+    <p class="def">A child component fires a custom event with <code>this.$emit('event-name', payload)</code>, and the parent listens with <code>@event-name="handler"</code>. This is how a local action (inside a child) can communicate back up to the parent.</p>
+
+    <pre><code><span class="cmt">// Inside child component</span>
+methods: {
+  addToCart() {
+    <span class="kw">this</span>.$<span class="fn">emit</span>(<span class="str">'add-to-cart'</span>, <span class="kw">this</span>.product.id);
+  }
+}
+
+<span class="cmt">// Parent listens</span>
+&lt;product-card
+  <span class="prop">:product</span>=<span class="str">"item"</span>
+  <span class="kw">@add-to-cart</span>=<span class="str">"handleAddToCart"</span>&gt;
+&lt;/product-card&gt;</code></pre>
+
+    <div class="tip-box">
+      <div class="t-label">Best Practice</div>
+      <div class="t-text">Use <b>kebab-case</b> for event names in templates (<code>@add-to-cart</code>) and <b>camelCase</b> or kebab-case inside <code>$emit</code>. Vue normalizes them automatically.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎭</span> Slots — Content Distribution</div>
+    <p class="def"><b>Slots</b> provide a flexible content distribution mechanism that allows components to act as structural templates. Instead of passing simple data via props, the parent can pass complex markup inside the child's tags.</p>
+
+    <pre><code><span class="cmt">&lt;!-- Child template with slots --&gt;</span>
+&lt;div class=<span class="str">"modal"</span>&gt;
+  &lt;div class=<span class="str">"modal-header"</span>&gt;
+    &lt;slot name=<span class="str">"header"</span>&gt;Default Title&lt;/slot&gt;
+  &lt;/div&gt;
+  &lt;div class=<span class="str">"modal-body"</span>&gt;
+    &lt;slot /&gt;  <span class="cmt">&lt;!-- default unnamed slot --&gt;</span>
+  &lt;/div&gt;
+  &lt;div class=<span class="str">"modal-footer"</span>&gt;
+    &lt;slot name=<span class="str">"footer"</span>&gt;&lt;/slot&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+<span class="cmt">&lt;!-- Parent uses the component with slot content --&gt;</span>
+&lt;modal&gt;
+  &lt;template <span class="prop">v-slot:header</span>&gt;
+    &lt;h2&gt;Confirm Delete&lt;/h2&gt;
+  &lt;/template&gt;
+  &lt;p&gt;Are you sure you want to delete this item?&lt;/p&gt;
+  &lt;template <span class="prop">v-slot:footer</span>&gt;
+    &lt;button @click=<span class="str">"confirm"</span>&gt;Yes&lt;/button&gt;
+    &lt;button @click=<span class="str">"cancel"</span>&gt;No&lt;/button&gt;
+  &lt;/template&gt;
+&lt;/modal&gt;</code></pre>
+  </div>
+
+  <!-- ====== SECTION 3: ANALOGY & INDUSTRY EXAMPLE ====== -->
+  <div class="section-tag"><span class="n">3</span> REAL-WORLD CONTEXT</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy — Restaurant Kitchen</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Restaurant</div>
+      <div class="a-text"><b>Component = Kitchen prep station.</b> Each station (salad, grill, dessert) is a self-contained unit with its own ingredients (data), tools (methods), and output (template). The head chef (parent component) sends orders (props) to each station. The stations send back completed dishes (events). If you need a new menu item, you don't rebuild the kitchen — you just add a new station (component).</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💼</span> Industry Example — Amazon Product Card</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example — Amazon</div>
+      <div class="i-text"><b>Amazon.com</b> displays thousands of products daily. Each product card is a component with:<br><br>
+      • <b>Props:</b> <code>product.name</code>, <code>product.price</code>, <code>product.image</code>, <code>product.rating</code><br>
+      • <b>Data:</b> <code>isInCart</code>, <code>isWishlisted</code>, <code>quantity</code><br>
+      • <b>Events:</b> <code>@add-to-cart</code>, <code>@add-to-wishlist</code><br>
+      • <b>Slots:</b> Badge content (e.g., "Best Seller", "Amazon's Choice") can be slotted in dynamically<br><br>
+      Amazon engineers never write 1000 product card HTML blocks. They write one <code>&lt;product-card&gt;</code> component and reuse it 1000 times with different product data passed via props. When they update the card design (e.g., adding a "Climate Pledge Friendly" badge), every instance updates instantly.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 4: COMPONENT LIFECYCLE ====== -->
+  <div class="section-tag"><span class="n">4</span> COMPONENT LIFECYCLE (BRIEF)</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Key Lifecycle Hooks</div>
+    <p class="def">Every Vue component goes through a series of lifecycle stages from creation to destruction:</p>
+    <table>
+      <tr><th>Hook</th><th>When It Fires</th><th>Use Case</th></tr>
+      <tr><td><code>created</code></td><td>Component instance created, data reactive</td><td>Fetch initial data, set up defaults</td></tr>
+      <tr><td><code>mounted</code></td><td>DOM inserted into the page</td><td>Access DOM, integrate third-party libs</td></tr>
+      <tr><td><code>updated</code></td><td>Reactive data changed, DOM re-rendered</td><td>React to data changes (rarely used)</td></tr>
+      <tr><td><code>destroyed</code></td><td>Component torn down</td><td>Cleanup timers, listeners, subscriptions</td></tr>
+    </table>
+  </div>
+
+  <!-- ====== SECTION 5: COMMON MISTAKES ====== -->
+  <div class="section-tag"><span class="n">5</span> COMMON MISTAKES &amp; BEST PRACTICES</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Mutating props directly.</b> Props are read-only. If a child modifies a prop, Vue warns you. Use the prop as initial value for local <code>data</code> or emit an event to let the parent change it.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using a plain object for data instead of a function.</b> In components, <code>data</code> must be a function that returns an object. Otherwise, all instances share the same data object.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Forgetting the single root element.</b> A component's template must have exactly one root element (one outermost tag). Use a <code>&lt;div&gt;</code> wrapper or a fragment in Vue 3.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💡</span> Best Practices</div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 1</div>
+      <div class="t-text"><b>Validate props with types and requirements.</b> Always specify <code>type</code>, <code>required</code>, and <code>default</code> for props. Catches bugs early and documents the component's API.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 2</div>
+      <div class="t-text"><b>Keep components small and focused.</b> Each component should do one thing well. If a component grows too large, break it into smaller sub-components.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 3</div>
+      <div class="t-text"><b>Use kebab-case for components in templates.</b> <code>&lt;my-component&gt;</code> not <code>&lt;MyComponent&gt;</code> (though Vue supports both, kebab-case is HTML-standard).</div>
+    </div>
+  </div>
+
+  <!-- ====== REVISION ====== -->
+  <div class="section-tag"><span class="n">6</span> REVISION CHEAT SHEET</div>
+  <div class="card">
+    <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
+    <ul>
+      <li><b>Component</b> = reusable self-contained UI block with props, data, and template.</li>
+      <li><b>Props</b> flow down (parent → child). <b>Events</b> flow up (child → parent via <code>$emit</code>).</li>
+      <li><b>Data</b> in components must be a function (returns new object per instance).</li>
+      <li><b>Slots</b> allow content distribution — pass markup instead of just data.</li>
+      <li><b>Single root element</b> required in Vue 2 templates.</li>
+      <li><b>DRY principle:</b> Build once, reuse everywhere.</li>
+      <li>Lifecycle hooks: <code>created</code> (fetch data), <code>mounted</code> (DOM ready), <code>destroyed</code> (cleanup).</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">❓</span> Interview Questions</div>
+    <div class="qa-box">
+      <div class="q">Q: What is the difference between props and data in a Vue component?</div>
+      <div class="a"><b>A:</b> Props are data passed <b>into</b> a component from its parent — they are read-only and should not be mutated by the child. Data is the component's <b>own local state</b> — it is private to the component and can be mutated freely. Props are declared in the <code>props</code> array/object, data is declared in the <code>data()</code> function (which must return an object).</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: Why must component data be a function?</div>
+      <div class="a"><b>A:</b> If data were a plain object, all instances of the same component would share the <b>same</b> data object — mutating one instance would affect all others. By using a function, each instance gets its <b>own</b> fresh copy of the data object, ensuring proper isolation between component instances.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: How do you pass data from a child component to a parent?</div>
+      <div class="a"><b>A:</b> The child calls <code>this.$emit('event-name', payload)</code> and the parent listens with <code>@event-name="handler"</code> on the child's tag in the parent template. Events are the standard mechanism for child-to-parent communication in Vue.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">AppDev2 · Vue.js Components — study card</div>
+</div>
+</body>
+</html>
