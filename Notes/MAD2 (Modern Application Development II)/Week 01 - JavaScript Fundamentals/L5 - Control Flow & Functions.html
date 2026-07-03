@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JavaScript Fundamentals — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--board); color:var(--chalk);
+  font-family:'Space Mono', monospace; position:relative; overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:40px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.4rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:600px; margin: 0 auto; }
+
+.unit-banner{
+  display:flex; align-items:center; gap:12px; justify-content:center;
+  font-family:'Caveat', cursive; font-size: 1.25rem; color: var(--chalk-green);
+  background: rgba(159,208,167,0.08); border: 1px dashed var(--chalk-green);
+  border-radius: 6px; padding: 10px 18px; margin-bottom: 50px;
+}
+.unit-banner .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:60px; }
+
+/* Code snippet chips */
+.code{
+  display:inline-block; font-family:'Space Mono', monospace; font-size: 12px;
+  background: rgba(0,0,0,0.25); color: var(--chalk-green);
+  padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line);
+}
+
+/* Cards */
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Versus panel (let vs const, null vs undefined, == vs ===) */
+.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
+.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
+.duo .panel.a{ --accent: var(--chalk-blue); }
+.duo .panel.b{ --accent: var(--chalk-pink); }
+.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.15rem; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
+.duo .panel p strong{ color: var(--chalk); }
+
+/* Loop track illustration */
+.track-box{ background: var(--board-alt); border-radius: 8px; padding: 26px; }
+.track-box svg{ max-width:100%; height:auto; display:block; margin:0 auto; }
+.track-box .caption{ text-align:center; font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:10px; }
+
+/* Function style row */
+.func-list{ display:flex; flex-direction:column; gap:14px; }
+.func-row{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius:6px; padding: 16px 20px; display:grid; grid-template-columns: 200px 1fr; gap:18px; align-items:center; }
+@media (max-width:640px){ .func-row{ grid-template-columns:1fr; } }
+.func-row .fname{ font-family:'Kalam', cursive; font-size:1.1rem; color: var(--chalk-yellow); }
+.func-row .fname .code{ display:block; margin-top:6px; }
+.func-row .fdesc{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; }
+.func-row .fdesc .a{ color: var(--chalk-pink); font-style:italic; display:block; margin-top:6px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.55rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 05 · Companion Notes</div>
+    <h1>JavaScript Fundamentals<br>Control Flow &amp; Functions</h1>
+    <p class="subhead">— the small decisions in every JS file, made obvious —</p>
+  </header>
+
+  <div class="unit-banner"><span class="tag">New Unit</span> Switching tracks from ML theory to Web Development — same chalkboard, new subject.</div>
+
+  <!-- Data Types & Variables -->
+  <section>
+    <div class="section-head"><h2>Data Types &amp; Variables</h2><div class="rule"></div></div>
+
+    <div class="grid" style="margin-bottom:20px;">
+      <div class="card">
+        <p class="term">Strings &amp; UTF-16</p>
+        <p class="def">JS strings are UTF-16 — some characters (like emoji) take up two "code units," not one.</p>
+        <div class="row"><span class="label">Real Life</span><p>Mailing a letter where most stamps cover one page, but a few thick, glossy pages secretly need two stamps to send.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>If you count "stamps" instead of "pages," a letter with a few glossy inserts looks longer than it visually is — exactly how <span class="code">"😀".length</span> returns 2, not 1.</p></div>
+      </div>
+    </div>
+
+    <div class="duo" style="margin-bottom:20px;">
+      <div class="panel a">
+        <h4><span class="code">undefined</span> vs <span class="code">null</span></h4>
+        <p><strong>undefined:</strong> a survey question the person simply skipped — never answered.</p>
+        <p><strong>null:</strong> a survey question they answered with "Prefer not to say" — deliberately marked as empty.</p>
+      </div>
+      <div class="panel b">
+        <h4><span class="code">let</span> vs <span class="code">const</span></h4>
+        <p><strong>let:</strong> a whiteboard — write a number, erase it, write a new one. Perfect for a loop counter.</p>
+        <p><strong>const:</strong> a labeled moving box. The label ("myBox") never changes hands — but you can still open the box and rearrange what's inside if it's an object.</p>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <p class="term"><span class="code">===</span> Strict Equality</p>
+        <p class="def">Compares both value and type — no silent conversions.</p>
+        <div class="row"><span class="label">Real Life</span><p>A strict border officer who checks that your passport number <em>and</em> document type both match exactly — a driver's license with the right number doesn't count.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Loose equality (<span class="code">==</span>) is the lenient officer who just glances at the number and waves you through, even if the document type doesn't match — how <span class="code">"5" == 5</span> sneaks past but <span class="code">"5" === 5</span> doesn't.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Control Flow -->
+  <section>
+    <div class="section-head"><h2>Control Flow</h2><div class="rule"></div></div>
+
+    <div class="grid" style="margin-bottom:22px;">
+      <div class="card">
+        <p class="term">if / else</p>
+        <div class="row"><span class="label">Real Life</span><p>A fork in a hiking trail with a sign: "If raining, take the covered path. Otherwise, take the scenic route."</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>One condition, one branch taken — exactly how a hiker (or the program) commits to a single path based on a check.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">switch</p>
+        <div class="row"><span class="label">Real Life</span><p>A restaurant's fixed combo menu: "Combo 1," "Combo 2," "Combo 3" — pick a number, get a whole pre-set meal.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Cleaner than a long chain of "if you want this, or this, or this" — one clear menu of named cases instead of nested forks.</p></div>
+      </div>
+    </div>
+
+    <div class="track-box">
+      <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
+        <!-- mailbox row analogy for for/for-in/for-of -->
+        <g font-family="Space Mono, monospace" font-size="10" fill="#c9d1c3">
+          <rect x="30" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <rect x="110" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <rect x="190" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <rect x="270" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="60" y="53" text-anchor="middle" fill="#e8c468">0</text>
+          <text x="140" y="53" text-anchor="middle" fill="#e8c468">1</text>
+          <text x="220" y="53" text-anchor="middle" fill="#e8c468">2</text>
+          <text x="300" y="53" text-anchor="middle" fill="#e8c468">3</text>
+          <text x="60" y="68" text-anchor="middle" fill="#f4f1e6">"pen"</text>
+          <text x="140" y="68" text-anchor="middle" fill="#f4f1e6">"cup"</text>
+          <text x="220" y="68" text-anchor="middle" fill="#f4f1e6">"map"</text>
+          <text x="300" y="68" text-anchor="middle" fill="#f4f1e6">"key"</text>
+          <text x="60" y="100" text-anchor="middle" fill="#8fb8c9">for-in →</text>
+          <text x="60" y="115" text-anchor="middle" fill="#8fb8c9">reads box #</text>
+          <text x="300" y="100" text-anchor="middle" fill="#d98fa0">← for-of</text>
+          <text x="300" y="115" text-anchor="middle" fill="#d98fa0">reads contents</text>
+        </g>
+      </svg>
+      <p class="caption"><span class="code">for...in</span> reads the mailbox numbers (indices/keys). <span class="code">for...of</span> opens each mailbox and reads what's inside (the values).</p>
+    </div>
+
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">for (classic)</p>
+        <div class="row"><span class="label">Real Life</span><p>An assembly line moving down a numbered row of stations, one at a time, until the last one.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>You control exactly where to start, when to stop, and how far to step — just like setting the loop's start, condition, and increment.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Functions -->
+  <section>
+    <div class="section-head"><h2>Functions</h2><div class="rule"></div></div>
+    <p class="section-intro">Functions are just recipes — the differences are in how they're written down and handed out.</p>
+
+    <div class="func-list">
+      <div class="func-row">
+        <div class="fname">Standard Declaration<span class="code">function add(){}</span></div>
+        <div class="fdesc">A recipe published in a cookbook under its own name — anyone can look it up by title and use it.<span class="a">Real life: a named recipe everyone in the kitchen can reference by calling out its name.</span></div>
+      </div>
+      <div class="func-row">
+        <div class="fname">Anonymous Function<span class="code">let add = function(){}</span></div>
+        <div class="fdesc">A recipe card with no title, handed directly to one specific person (a variable) to hold onto.<span class="a">Real life: an unlabeled index card passed privately, rather than filed in the public cookbook.</span></div>
+      </div>
+      <div class="func-row">
+        <div class="fname">Arrow Function<span class="code">(x, y) => x + y</span></div>
+        <div class="fdesc">A quick sticky note instead of a full recipe card — best for short, simple steps.<span class="a">Real life: scribbling "add butter + sugar" on a Post-it instead of writing a formal recipe card for something that simple.</span></div>
+      </div>
+      <div class="func-row">
+        <div class="fname">IIFE<span class="code">(function(){...})()</span></div>
+        <div class="fdesc">A recipe written and cooked in the very same breath — used once, immediately, then gone.<span class="a">Real life: a firework — built and set off in a single action, never reused. Handy once, but modern kitchens (modules) rarely need this trick anymore.</span></div>
+      </div>
+      <div class="func-row">
+        <div class="fname">Function Objects<span class="code">add.helpText = "..."</span></div>
+        <div class="fdesc">Sticking extra Post-it notes directly onto a kitchen tool itself, rather than writing them in the recipe book.<span class="a">Real life: taping a note onto your whisk instead of writing it in the cookbook — technically works, but clutters the tool and confuses the next cook.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Every JS keyword here is really just a labeling choice — how strict, how permanent, how public you want each piece of data or logic to be.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
