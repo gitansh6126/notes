@@ -1,0 +1,124 @@
+<style>
+.sec-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted);margin:0 0 10px}
+.card{background:var(--surface-2);border:0.5px solid var(--border);border-radius:12px;padding:1rem 1.25rem;margin-bottom:12px}
+.mini-card{background:var(--surface-1);border:0.5px solid var(--border);border-radius:8px;padding:10px 12px}
+.row2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+.pill{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:20px;margin-right:4px;margin-bottom:4px}
+.pill-purple{background:#EEEDFE;color:#3C3489}
+.pill-teal{background:#E1F5EE;color:#085041}
+.pill-coral{background:#FAECE7;color:#712B13}
+.pill-amber{background:#FAEEDA;color:#633806}
+.formula{font-family:var(--font-mono);font-size:12px;background:var(--surface-1);border:0.5px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text-secondary);display:block;margin:6px 0}
+.step-num{min-width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.info-bar{border-left:3px solid #1D9E75;padding:8px 12px;background:#E1F5EE;border-radius:0}
+.warn-bar{border-left:3px solid #D85A30;padding:8px 12px;background:#FAECE7;border-radius:0}
+h3{font-size:15px;font-weight:500;color:var(--text-primary);margin:0 0 8px}
+p{font-size:13px;color:var(--text-secondary);margin:0 0 6px;line-height:1.6}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.arrow-cycle{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}
+</style>
+
+<h2 class="sr-only">Estimation in ML: MLE, Bayesian estimation, Gaussian Mixture Models, and the EM algorithm.</h2>
+
+<div style="padding:1rem 0 0">
+
+<p class="sec-label">Estimation · GMM · EM Algorithm</p>
+
+<div class="card">
+  <h3>1. What is "estimation"?</h3>
+  <p>Infer unknown distribution parameters from observed data, assuming points are <strong style="color:var(--text-primary)">IID</strong> (Independent and Identically Distributed). Goal: characterize the data-generating distribution well enough to explain it — or generate new samples from it.</p>
+</div>
+
+<div class="row2">
+  <div class="card" style="margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h3 style="margin:0">2. MLE</h3>
+      <span class="pill pill-amber">frequentist</span>
+    </div>
+    <p>Pick parameters that make the <strong style="color:var(--text-primary)">observed data most probable</strong> under the model. No prior beliefs involved — purely data-driven.</p>
+    <span class="formula">θ̂ = argmax_θ  P(data | θ)</span>
+    <div class="mini-card" style="margin-top:8px">
+      <p style="margin:0"><strong style="color:var(--text-primary)">Bernoulli(p):</strong> MLE p̂ = sample mean</p>
+      <p style="margin:0"><strong style="color:var(--text-primary)">Gaussian(μ,σ²):</strong> MLE μ̂, σ̂² = sample mean, sample variance</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <h3 style="margin:0">3. Bayesian estimation</h3>
+      <span class="pill pill-purple">prior-aware</span>
+    </div>
+    <p>Combines prior belief with observed evidence to get a full posterior <em>distribution</em> over parameters — not just a point estimate.</p>
+    <span class="formula">Posterior ∝ Prior × Likelihood</span>
+    <div class="info-bar" style="margin-top:8px">
+      <p style="color:#085041">Beta prior + Bernoulli likelihood → Beta posterior (conjugacy keeps the math closed-form).</p>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="margin-top:12px">
+  <h3>4. Gaussian Mixture Models (GMM)</h3>
+  <p>Model complex, multi-modal data as a weighted sum of K Gaussians. Each component = one soft cluster.</p>
+  <span class="formula">P(x) = Σₖ πₖ · N(x | μₖ, σₖ²)      where Σₖ πₖ = 1</span>
+  <div class="row2" style="margin-top:8px">
+    <div>
+      <svg viewBox="0 0 270 140" width="100%" xmlns="http://www.w3.org/2000/svg">
+        <rect x="2" y="2" width="266" height="136" rx="6" fill="var(--surface-1)" stroke="var(--border)" stroke-width="0.5"/>
+        <path d="M20,110 Q60,20 100,110" fill="none" stroke="#7F77DD" stroke-width="2" opacity="0.8"/>
+        <path d="M90,110 Q140,30 190,110" fill="none" stroke="#1D9E75" stroke-width="2" opacity="0.8"/>
+        <path d="M170,110 Q215,50 250,110" fill="none" stroke="#EF9F27" stroke-width="2" opacity="0.8"/>
+        <path d="M20,110 Q40,75 60,55 Q80,30 100,55 Q120,80 140,90 Q160,60 190,40 Q220,70 250,110" fill="none" stroke="var(--text-primary)" stroke-width="2.5"/>
+        <text x="135" y="128" text-anchor="middle" font-size="9" fill="var(--text-muted)">Mixture = weighted sum of components</text>
+      </svg>
+    </div>
+    <div>
+      <p style="font-weight:500;color:var(--text-primary);margin-bottom:6px">vs K-means</p>
+      <p><strong style="color:var(--text-primary)">K-means:</strong> hard assignment — each point belongs to exactly one cluster.</p>
+      <p><strong style="color:var(--text-primary)">GMM:</strong> soft assignment — each point gets a probability of belonging to each cluster (responsibility).</p>
+      <div class="tag-row"><span class="pill pill-teal">probabilistic clustering</span><span class="pill pill-coral">generalizes K-means</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>5. EM Algorithm</h3>
+  <p>GMM's log-likelihood has a <strong style="color:var(--text-primary)">sum inside a log</strong> — not directly optimizable via calculus. EM sidesteps this by alternating two steps.</p>
+  <span class="formula">log P(X|θ) = Σᵢ log( Σₖ πₖ N(xᵢ|μₖ,σₖ²) )   ← hard to maximize directly</span>
+
+  <div class="row2" style="margin-top:10px">
+    <div class="mini-card" style="border-left:3px solid #7F77DD">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="step-num" style="background:#EEEDFE;color:#3C3489">E</div>
+        <p style="font-weight:500;color:var(--text-primary);margin:0">E-step (Expectation)</p>
+      </div>
+      <p>Fix current θ = (μ,σ²,π). Compute responsibility λ_ik = P(point i is from cluster k | current params), using Jensen's inequality to form a tractable lower bound on the log-likelihood.</p>
+    </div>
+    <div class="mini-card" style="border-left:3px solid #1D9E75">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="step-num" style="background:#E1F5EE;color:#085041">M</div>
+        <p style="font-weight:500;color:var(--text-primary);margin:0">M-step (Maximization)</p>
+      </div>
+      <p>Fix the responsibilities λ_ik from E-step. Re-estimate μₖ, σₖ², πₖ by maximizing the (now tractable) expected log-likelihood.</p>
+    </div>
+  </div>
+
+  <div class="arrow-cycle">
+    <span class="pill pill-purple">E-step</span>
+    <svg width="40" height="14"><line x1="0" y1="7" x2="34" y2="7" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#a1)"/><defs><marker id="a1" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--text-muted)"/></marker></defs></svg>
+    <span class="pill pill-teal">M-step</span>
+    <svg width="40" height="14"><line x1="0" y1="7" x2="34" y2="7" stroke="var(--text-muted)" stroke-width="1.5" marker-end="url(#a2)"/><defs><marker id="a2" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--text-muted)"/></marker></defs></svg>
+    <span style="font-size:11px;color:var(--text-muted)">repeat until Δθ &lt; tolerance</span>
+  </div>
+
+  <div class="warn-bar" style="margin-top:6px">
+    <p style="color:#712B13">EM is naturally <strong>soft clustering</strong>. For hard clustering, just take argmax_k λ_ik per point — same trick as turning GMM into K-means-style output.</p>
+  </div>
+</div>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+  <button onclick="sendPrompt('Show the full derivation of the E-step using Jensens inequality for GMM log-likelihood ↗')">Jensen's inequality derivation ↗</button>
+  <button onclick="sendPrompt('Derive the M-step update equations for μ, σ², and π in GMM ↗')">M-step derivation ↗</button>
+  <button onclick="sendPrompt('Compare GMM with K-means as a special/limiting case ↗')">GMM → K-means limit ↗</button>
+</div>
+
+</div>

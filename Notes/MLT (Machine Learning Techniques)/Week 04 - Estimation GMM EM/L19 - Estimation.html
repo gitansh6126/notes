@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estimation in Unsupervised Learning — Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --bg-deep: #e4e8f0;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+
+  .wrap{ max-width:900px; margin:0 auto; padding:0 24px; }
+
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8;
+    padding:64px 0 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px;
+    pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#d9b872;
+    margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing:auto;
+    font-weight:600;
+    font-size:clamp(34px, 5.6vw, 56px);
+    line-height:1.06;
+    margin:0 0 20px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{
+    font-size:17px;
+    color:#c2c6d6;
+    max-width:56ch;
+    margin:0 0 34px;
+  }
+  .hero-meta{
+    display:flex; flex-wrap:wrap; gap:10px;
+  }
+  .pill{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    padding:7px 13px;
+    border-radius:100px;
+    border:1px solid rgba(255,255,255,0.16);
+    color:#c2c6d6;
+    background:rgba(255,255,255,0.04);
+  }
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  main{ padding:54px 0 90px; }
+  section.chapter{ margin-bottom:64px; }
+  section.chapter:last-of-type{ margin-bottom:0; }
+
+  .chapter-head{
+    display:flex; align-items:baseline; gap:16px;
+    margin-bottom:22px;
+  }
+  .chapter-num{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px; font-weight:600;
+    color:var(--gold-deep);
+    background:var(--gold-soft);
+    border-radius:7px;
+    padding:4px 9px;
+    flex-shrink:0;
+  }
+  .chapter-head h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  .chapter-intro{
+    color:var(--ink-soft);
+    font-size:15.5px;
+    max-width:66ch;
+    margin:0 0 24px;
+  }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:26px 28px;
+  }
+  .card + .card{ margin-top:16px; }
+  .card h3{
+    font-family:'Fraunces', serif;
+    font-size:18px; font-weight:600;
+    margin:0 0 8px;
+  }
+  .card p{ margin:0; color:var(--ink-soft); font-size:15px; }
+
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+
+  .tag{
+    display:inline-block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:3px 9px; border-radius:100px;
+    margin-bottom:12px;
+  }
+  .tag.deterministic{ background:var(--indigo-soft); color:var(--indigo); }
+  .tag.probabilistic{ background:var(--gold-soft); color:var(--gold-deep); }
+
+  /* ---------- PARADIGM SHIFT DIAGRAM ---------- */
+  .shift-diagram{
+    display:flex; align-items:center; justify-content:center;
+    gap:18px; flex-wrap:wrap;
+    padding:28px 20px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    margin-bottom:16px;
+  }
+  .shift-box{
+    text-align:center;
+    padding:16px 20px;
+    border-radius:10px;
+    min-width:150px;
+  }
+  .shift-box.old{ background:var(--indigo-soft); }
+  .shift-box.new{ background:var(--gold-soft); }
+  .shift-box .label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.75; }
+  .shift-box .value{ font-family:'Fraunces', serif; font-size:19px; font-weight:600; margin-top:4px; }
+  .shift-box.old .value{ color:var(--indigo); }
+  .shift-box.new .value{ color:var(--gold-deep); }
+  .shift-arrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px; color:var(--ink-faint);
+    display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  .shift-arrow .line{ width:52px; height:2px; background:linear-gradient(90deg, var(--indigo), var(--gold)); position:relative; }
+  .shift-arrow .line::after{
+    content:""; position:absolute; right:-1px; top:-4px;
+    border-left:7px solid var(--gold); border-top:5px solid transparent; border-bottom:5px solid transparent;
+  }
+
+  /* ---------- FLOW DIAGRAM: params -> data ---------- */
+  .flow-diagram{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    padding:32px 24px;
+    margin-bottom:16px;
+  }
+  .flow-row{
+    display:flex; align-items:center; justify-content:center;
+    gap:14px; flex-wrap:wrap;
+  }
+  .flow-node{
+    padding:18px 22px;
+    border-radius:12px;
+    text-align:center;
+    min-width:150px;
+  }
+  .flow-node.theta{ background:var(--ink); color:#fff; }
+  .flow-node.theta .flow-label{ color:#a9b0c4; }
+  .flow-node.theta .flow-value{ font-family:'Fraunces', serif; font-size:22px; }
+  .flow-node.data{ background:var(--gold-soft); border:1px dashed var(--gold); }
+  .flow-label{ font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; }
+  .flow-value{ font-family:'Fraunces', serif; font-weight:600; font-size:16px; margin-top:4px; color:var(--gold-deep); }
+  .flow-arrows{ display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .flow-arrows .fwd, .flow-arrows .bwd{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .flow-arrows .fwd{ color:var(--ink-faint); }
+  .flow-arrows .bwd{ color:var(--gold-deep); font-weight:600; }
+  .flow-arrows .seg{ width:44px; height:2px; background:var(--line); }
+  .flow-arrows .bwd .seg{ background:var(--gold); }
+  .flow-caption{
+    text-align:center; margin-top:22px;
+    font-size:13.5px; color:var(--ink-soft);
+  }
+  .flow-caption b{ color:var(--ink); }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{
+    border-radius:12px;
+    padding:18px 20px;
+    margin:16px 0;
+    display:flex; gap:14px;
+    border:1px solid transparent;
+  }
+  .callout .icon{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700; font-size:13px;
+    width:26px; height:26px; border-radius:7px;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
+  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+  .callout.info b{ color:var(--indigo); }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.warn b{ color:var(--rust); }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.good b{ color:var(--teal); }
+
+  /* ---------- BLACK BOX (signature interactive element) ---------- */
+  .blackbox-wrap{
+    background:linear-gradient(180deg, #1b2030, #12151f);
+    border-radius:18px;
+    padding:34px 26px 28px;
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+  }
+  .blackbox-wrap::before{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 20% 0%, rgba(181,135,42,0.14), transparent 50%);
+    pointer-events:none;
+  }
+  .bb-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#8891a8; text-align:center; margin-bottom:18px;
+  }
+  .bb-core{
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    flex-wrap:wrap; position:relative; z-index:1;
+  }
+  .bb-box{
+    width:150px; height:120px;
+    background:linear-gradient(160deg, #262c40, #171b28);
+    border:1px solid #363d54;
+    border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    box-shadow: inset 0 0 24px rgba(0,0,0,0.4);
+  }
+  .bb-box .p-mark{
+    font-family:'Fraunces', serif; font-size:34px; color:#d9b872; font-weight:600;
+  }
+  .bb-box .p-sub{ font-family:'JetBrains Mono', monospace; font-size:10px; color:#7d859c; margin-top:4px; }
+
+  .bb-btn{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px; font-weight:600;
+    background:#d9b872; color:#1b1607;
+    border:none; border-radius:9px;
+    padding:13px 20px;
+    cursor:pointer;
+    transition:transform 0.08s ease, box-shadow 0.15s ease;
+    box-shadow:0 2px 0 #8f6a1c;
+  }
+  .bb-btn:hover{ filter:brightness(1.05); }
+  .bb-btn:active{ transform:translateY(2px); box-shadow:0 0 0 #8f6a1c; }
+
+  .bb-readout{
+    background:#0d0f17;
+    border:1px solid #2a3046;
+    border-radius:10px;
+    padding:14px 18px;
+    min-width:170px;
+  }
+  .bb-readout .row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .bb-readout .row:last-child{ margin-bottom:0; }
+  .bb-readout .k{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; }
+  .bb-readout .v{ font-family:'JetBrains Mono', monospace; font-size:15px; color:#d9b872; font-weight:600; }
+
+  .bb-sequence{
+    margin-top:22px;
+    display:flex; flex-wrap:wrap; gap:7px;
+    min-height:34px;
+    justify-content:center;
+    position:relative; z-index:1;
+  }
+  .bb-coin{
+    width:28px; height:28px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700;
+    animation: flip-in 0.35s ease;
+  }
+  .bb-coin.H{ background:#d9b872; color:#1b1607; }
+  .bb-coin.T{ background:#3a4160; color:#c2c6d6; }
+  @keyframes flip-in{
+    from{ transform:scale(0.2) rotateY(180deg); opacity:0; }
+    to{ transform:scale(1) rotateY(0deg); opacity:1; }
+  }
+  .bb-hint{
+    text-align:center; margin-top:16px;
+    font-size:12.5px; color:#7d859c;
+    position:relative; z-index:1;
+  }
+  .bb-reset{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:#8891a8;
+    background:none; border:1px solid #363d54; border-radius:7px;
+    padding:6px 10px; cursor:pointer; margin-left:8px;
+  }
+  .bb-reset:hover{ color:#c2c6d6; border-color:#4a5270; }
+
+  /* ---------- TABLE ---------- */
+  table.spec{
+    width:100%; border-collapse:collapse;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    font-size:14.5px;
+  }
+  table.spec th{
+    text-align:left;
+    background:#f5f6fa;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--ink-soft);
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+  }
+  table.spec td{
+    padding:13px 16px;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+    color:var(--ink);
+  }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13.5px; color:var(--indigo); white-space:nowrap; }
+
+  /* ---------- CODE BLOCK ---------- */
+  .codeblock{
+    background:#171b28;
+    border-radius:var(--radius);
+    padding:20px 22px;
+    box-shadow:var(--shadow);
+    overflow-x:auto;
+  }
+  .codeblock .filename{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; color:#7d859c;
+    margin-bottom:12px; letter-spacing:0.04em;
+  }
+  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
+  .codeblock .c-comment{ color:#7d859c; }
+  .codeblock .c-kw{ color:#e2a25c; }
+  .codeblock .c-fn{ color:#7fb0e8; }
+  .codeblock .c-num{ color:#d9b872; }
+  .codeblock .c-str{ color:#9bc99b; }
+
+  /* ---------- FOOTER ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:26px 0 40px;
+    text-align:center;
+  }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 720px){
+    .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .hero{ padding:48px 0 40px; }
+    .chapter-head h2{ font-size:22px; }
+    .card{ padding:20px; }
+    .shift-diagram{ padding:22px 14px; }
+    .bb-core{ gap:16px; }
+    .bb-box{ width:130px; height:105px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .bb-coin{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+    <h1>Estimation:<br>from <em>data</em> to the machine that made it</h1>
+    <p class="lede">Every dataset we've clustered or projected so far was treated as a fixed object. This lecture asks a different question: what if the data was <em>generated</em> — and what if we could work backward to the mechanism, and its unknown parameters, that produced it?</p>
+    <div class="hero-meta">
+      <span class="pill">§1 Paradigm shift</span>
+      <span class="pill">§2 Probabilistic model</span>
+      <span class="pill">§3 The biased coin</span>
+      <span class="pill">§4 i.i.d. assumptions</span>
+      <span class="pill">§5 What's next</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SECTION 1 -->
+  <section class="chapter" id="s1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>A paradigm shift</h2>
+    </div>
+    <p class="chapter-intro">Unsupervised learning has historically leaned on two <b>deterministic</b> paradigms. Estimation introduces something new: a <b>probabilistic</b> lens on the same problem — data without labels.</p>
+
+    <div class="grid-3">
+      <div class="card">
+        <span class="tag deterministic">Deterministic</span>
+        <h3>Representation Learning</h3>
+        <p>PCA and Kernel PCA uncover linear or non-linear structure in data — compressing it into a lower-dimensional shape.</p>
+      </div>
+      <div class="card">
+        <span class="tag deterministic">Deterministic</span>
+        <h3>Clustering</h3>
+        <p>K-Means and Lloyd's algorithm group points by proximity, with no notion of "how sure" a grouping is.</p>
+      </div>
+      <div class="card" style="border-color:#e3cf9b; background:linear-gradient(180deg, #fffdf8, #ffffff);">
+        <span class="tag probabilistic">Probabilistic — new</span>
+        <h3>Estimation</h3>
+        <p>Assumes a hidden mechanism generated the data, and asks: what parameters, most plausibly, produced what we observed?</p>
+      </div>
+    </div>
+
+    <div class="shift-diagram" style="margin-top:16px;">
+      <div class="shift-box old">
+        <div class="label">Old lens</div>
+        <div class="value">Fixed points</div>
+      </div>
+      <div class="shift-arrow"><span>reframed as</span><div class="line"></div></div>
+      <div class="shift-box new">
+        <div class="label">New lens</div>
+        <div class="value">Random outcomes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="chapter" id="s2">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>The probabilistic model</h2>
+    </div>
+    <p class="chapter-intro">Instead of treating a dataset as static, we imagine a probabilistic mechanism — governed by some unknown parameter(s) <span class="mono">θ</span> — that generated every observation. Estimation runs the arrow backward: from data to parameter.</p>
+
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-node theta">
+          <div class="flow-label">Unknown</div>
+          <div class="flow-value">θ</div>
+        </div>
+        <div class="flow-arrows">
+          <div class="fwd"><span>generates</span><span class="seg"></span>→</div>
+          <div class="bwd">←<span class="seg"></span><span>estimate</span></div>
+        </div>
+        <div class="flow-node data">
+          <div class="flow-label">Observed</div>
+          <div class="flow-value">x₁, x₂, … xₙ</div>
+        </div>
+      </div>
+      <p class="flow-caption">Once <b>θ</b> is estimated, it becomes a <b>compressed summary</b> of the whole dataset — enough to explain the mechanism, and even generate new, similar data.</p>
+    </div>
+
+    <div class="callout info">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Why this matters</b>
+        <p>A dataset of a million coin flips can be summarized by a single number, <span class="mono">p</span>. That's the appeal of estimation: enormous compression, with an explanation attached.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="chapter" id="s3">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>Conceptual example — the biased coin</h2>
+    </div>
+    <p class="chapter-intro">Picture a black box holding a coin with unknown bias <span class="mono">p</span> — the probability of landing heads. Press the button, and it flips the coin. The only thing you ever see is the outcome. Try it below — this box is biased toward heads, but you're not told the exact value of <span class="mono">p</span> until you've estimated it yourself.</p>
+
+    <div class="blackbox-wrap">
+      <div class="bb-label">// black box generator</div>
+      <div class="bb-core">
+        <div class="bb-box">
+          <div class="p-mark">?</div>
+          <div class="p-sub">bias p unknown</div>
+        </div>
+        <button class="bb-btn" id="flipBtn" onclick="flipCoin()">▶ press to flip</button>
+        <div class="bb-readout">
+          <div class="row"><span class="k">flips</span><span class="v" id="statFlips">0</span></div>
+          <div class="row"><span class="k">heads</span><span class="v" id="statHeads">0</span></div>
+          <div class="row"><span class="k">estimate p̂</span><span class="v" id="statP">—</span></div>
+        </div>
+      </div>
+      <div class="bb-sequence" id="sequence"></div>
+      <div class="bb-hint">Each token is one observation — heads (gold) or tails (slate).<button class="bb-reset" onclick="resetCoin()">reset</button></div>
+    </div>
+
+    <div class="callout good" style="margin-top:20px;">
+      <div class="icon">✓</div>
+      <div class="body">
+        <b>What we can say</b>
+        <p>After 9 heads out of 12 flips, a natural estimate is <span class="mono">p̂ = 9/12 = 0.75</span>. We can also rule out impossible values — <span class="mono">p = 0</span> or <span class="mono">p = 1</span> — the moment we've seen both outcomes.</p>
+      </div>
+    </div>
+    <div class="callout warn">
+      <div class="icon">!</div>
+      <div class="body">
+        <b>What we can't say</b>
+        <p>We can never be 100% certain of the true <span class="mono">p</span>. Estimation gives us the most <i>plausible</i> value, and a way to compare candidates — not certainty.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="chapter" id="s4">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Foundational assumptions — i.i.d.</h2>
+    </div>
+    <p class="chapter-intro">To formalize estimation over observations <span class="mono">x₁, x₂, … xₙ</span>, we lean on two assumptions — together known as <b>i.i.d.</b>: independent and identically distributed.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <span class="tag deterministic">Independence</span>
+        <h3>One toss tells you nothing about the next</h3>
+        <p>Formally, <span class="mono">P(xᵢ | xⱼ) = P(xᵢ)</span> for all <span class="mono">i ≠ j</span>. If toss three is heads, toss four's probability of heads is unchanged.</p>
+      </div>
+      <div class="card">
+        <span class="tag probabilistic">Identically distributed</span>
+        <h3>Every toss comes from the same box</h3>
+        <p>Every observation shares the same underlying process: <span class="mono">P(xᵢ=1) = P(xⱼ=1) = p</span> for all <span class="mono">i, j</span>.</p>
+      </div>
+    </div>
+
+    <table class="spec" style="margin-top:16px;">
+      <thead>
+        <tr><th>Assumption</th><th>Everyday analogy</th><th>Formal statement</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Independence</b></td>
+          <td>A coin has no memory — it doesn't "owe" you a tails after three heads in a row.</td>
+          <td class="formula">P(xᵢ | xⱼ) = P(xᵢ)</td>
+        </tr>
+        <tr>
+          <td><b>Identically distributed</b></td>
+          <td>You're always drawing from the <i>same</i> vending machine, never a swapped-out one.</td>
+          <td class="formula">P(xᵢ=1) = P(xⱼ=1) = p</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout info" style="margin-top:16px;">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Why both, together</b>
+        <p>Independence alone would allow the coin's bias to drift between flips. Identical distribution alone would allow flips to be correlated. Estimation needs both to treat every observation as an equally weighted, unbiased clue about the same <span class="mono">θ</span>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="chapter" id="s5">
+    <div class="chapter-head">
+      <span class="chapter-num">05</span>
+      <h2>Where this leaves us</h2>
+    </div>
+    <p class="chapter-intro">The intuitive estimator — just take the fraction of heads — already gives a reasonable answer. But "reasonable" isn't a proof.</p>
+
+    <div class="codeblock">
+      <div class="filename">naive_estimator.py — the intuitive (but unjustified) approach</div>
+      <pre><span class="c-comment"># count heads as 1, tails as 0</span>
+<span class="c-kw">def</span> <span class="c-fn">estimate_bias</span>(flips):
+    <span class="c-comment"># flips = [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1]</span>
+    heads = <span class="c-fn">sum</span>(flips)
+    n = <span class="c-fn">len</span>(flips)
+    <span class="c-kw">return</span> heads / n  <span class="c-comment"># p̂ = 9/12 = 0.75</span>
+
+<span class="c-comment"># works, but: why is this THE right estimator,</span>
+<span class="c-comment"># and not some other function of the data?</span></pre>
+    </div>
+
+    <div class="callout good" style="margin-top:18px;">
+      <div class="icon">→</div>
+      <div class="body">
+        <b>Next lecture</b>
+        <p>We'll build a principled framework for choosing estimators — and a way to rigorously argue why one estimator is better than another, rather than just "it seems right."</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>ESTIMATION IN UNSUPERVISED LEARNING · LECTURE NOTES</p>
+</footer>
+
+<script>
+  const trueP = 0.75;
+  let heads = 0, flips = 0;
+  const seqEl = document.getElementById('sequence');
+  const statFlips = document.getElementById('statFlips');
+  const statHeads = document.getElementById('statHeads');
+  const statP = document.getElementById('statP');
+
+  function flipCoin(){
+    flips++;
+    const isHead = Math.random() < trueP;
+    if(isHead) heads++;
+
+    const coin = document.createElement('div');
+    coin.className = 'bb-coin ' + (isHead ? 'H' : 'T');
+    coin.textContent = isHead ? 'H' : 'T';
+    seqEl.appendChild(coin);
+
+    statFlips.textContent = flips;
+    statHeads.textContent = heads;
+    statP.textContent = (heads / flips).toFixed(2);
+
+    if(flips > 40){
+      seqEl.removeChild(seqEl.firstChild);
+    }
+  }
+
+  function resetCoin(){
+    heads = 0; flips = 0;
+    seqEl.innerHTML = '';
+    statFlips.textContent = '0';
+    statHeads.textContent = '0';
+    statP.textContent = '—';
+  }
+</script>
+
+</body>
+</html>
