@@ -19,6 +19,7 @@
   --accent-hover: #2563eb;
   --mad2: #8b5cf6;
   --mlt: #10b981;
+  --bdm: #f59e0b;
   --sidebar-bg: #ffffff;
   --sidebar-w: 280px;
   --header-blur: blur(12px);
@@ -40,6 +41,7 @@
   --accent-hover: #3b82f6;
   --mad2: #a78bfa;
   --mlt: #34d399;
+  --bdm: #fbbf24;
 }
 
 /* Global resets */
@@ -241,6 +243,7 @@ a {
 
 .card-icon.mad2 { background: var(--mad2); }
 .card-icon.mlt { background: var(--mlt); }
+.card-icon.bdm { background: var(--bdm); }
 
 .card-body h2 {
   font-size: 1.25rem;
@@ -399,6 +402,11 @@ a {
   .nav-links.open {
     display: flex;
     animation: slideDown 0.25s ease-out;
+  }
+
+  @keyframes searchSlideIn {
+    from { opacity: 0; transform: translateY(-20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   @keyframes slideDown {

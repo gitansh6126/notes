@@ -7,6 +7,9 @@
     "build-config": "node scripts/generate-config.js",
     "watch": "node scripts/generate-config.js --watch"
   },
+  "dependencies": {
+    "chokidar": "^4.0.3"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC"

@@ -5,34 +5,52 @@
 // Global variables
 let flatLecturesList = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (!window.COURSE_ID || !COURSE_STRUCTURES[window.COURSE_ID]) {
+// Course accent color mapping
+const COURSE_ACCENTS = {
+  mad2: { color: '#a78bfa', bg: 'rgba(167, 139, 250, 0.15)' },
+  mlt: { color: '#34d399', bg: 'rgba(52, 211, 153, 0.15)' },
+  bdm: { color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.15)' },
+};
+function getCourseAccent() {
+  return COURSE_ACCENTS[window.COURSE_ID] || COURSE_ACCENTS.mlt;
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Wait for config to load (per-course JSON or fallback master config)
+  if (window.__configReady) {
+    try {
+      await window.__configReady;
+    } catch (e) {
+      console.warn('Config loading failed:', e);
+    }
+  }
+
+  if (!window.COURSE_ID || !window.COURSE_STRUCTURES || !COURSE_STRUCTURES[window.COURSE_ID]) {
     console.error('Invalid or missing COURSE_ID configuration.');
     return;
   }
 
-  // Flatten structures to index notes for prev/next buttons
   rebuildFlatLectures();
-
-  // Load and apply theme
   initSPATheme();
-
-  // Render Sidebar
   renderSidebar();
-
-  // Setup Mobile Nav Controls
   initMobileControls();
-
-  // Setup Prev/Next Navigation Controls
   initPrevNextControls();
 
-  // Handle URL Routing
   window.addEventListener('hashchange', handleHashChange);
-  
-  // Load initial view
   handleHashChange();
 
-  // Setup iframe onload listener to hide loader spinner and sync theme
+  initSearch();
+
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
+  });
+
   const iframe = document.getElementById('viewerIframe');
   const loader = document.getElementById('viewerLoader');
   if (iframe) {
@@ -53,7 +71,7 @@ function rebuildFlatLectures() {
     week.lectures.forEach(lecture => {
       flatLecturesList.push({
         weekName: week.weekName,
-        lectureFileName: lecture
+        lectureFileName: lecture.file
       });
     });
   });
@@ -196,8 +214,7 @@ function syncIframeTheme() {
     // If it's a dynamic srcdoc snippet, force variable updates
     const root = doc.documentElement;
     if (root && root.style) {
-      const accentColor = window.COURSE_ID === 'mad2' ? '#a78bfa' : '#34d399';
-      const bgAccent = window.COURSE_ID === 'mad2' ? 'rgba(167, 139, 250, 0.15)' : 'rgba(52, 211, 153, 0.15)';
+      const accent = getCourseAccent();
       
       root.style.setProperty('--border-strong', isDark ? '#475569' : '#cbd5e1');
       root.style.setProperty('--border', isDark ? '#334155' : '#e2e8f0');
@@ -206,8 +223,8 @@ function syncIframeTheme() {
       root.style.setProperty('--text-muted', isDark ? '#64748b' : '#94a3b8');
       root.style.setProperty('--surface-1', isDark ? '#1e293b' : '#ffffff');
       root.style.setProperty('--surface-0', isDark ? '#0f172a' : '#f8fafc');
-      root.style.setProperty('--text-accent', accentColor);
-      root.style.setProperty('--bg-accent', bgAccent);
+      root.style.setProperty('--text-accent', accent.color);
+      root.style.setProperty('--bg-accent', accent.bg);
     }
   } catch (e) {
     console.warn("Could not sync theme with iframe: ", e);
@@ -239,20 +256,18 @@ function renderSidebar() {
     const list = document.createElement('div');
     list.className = 'week-lectures';
 
-    week.lectures.forEach(lectureFileName => {
-      const cleanName = lectureFileName.replace(/\.html$/i, '');
+    week.lectures.forEach(lecture => {
       const item = document.createElement('div');
       item.className = 'lecture-item';
       item.dataset.week = week.weekName;
-      item.dataset.lecture = lectureFileName;
+      item.dataset.lecture = lecture.file;
       item.innerHTML = `
         <i class="ph ph-file-text"></i>
-        <span>${cleanName}</span>
+        <span>${lecture.title}</span>
       `;
 
       item.addEventListener('click', () => {
-        // Change URL Hash to trigger route
-        window.location.hash = `${encodeURIComponent(week.weekName)}/${encodeURIComponent(lectureFileName)}`;
+        window.location.hash = `${encodeURIComponent(week.weekName)}/${encodeURIComponent(lecture.file)}`;
         closeMobileSidebar();
       });
 
@@ -330,22 +345,31 @@ function showWelcomeScreen() {
   document.querySelectorAll('.lecture-item').forEach(item => item.classList.remove('active'));
 }
 
+function findLectureMeta(weekName, lectureFileName) {
+  const structure = COURSE_STRUCTURES[window.COURSE_ID];
+  if (!structure) return null;
+  const week = structure.find(w => w.weekName === weekName);
+  if (!week) return null;
+  return week.lectures.find(l => l.file === lectureFileName) || null;
+}
+
 function loadLecture(weekName, lectureFileName) {
   const iframe = document.getElementById('viewerIframe');
   const loader = document.getElementById('viewerLoader');
   const welcomeScreen = document.getElementById('welcomeScreen');
 
-  // Update header text
-  const cleanName = lectureFileName.replace(/\.html$/i, '');
-  document.getElementById('currentLectureTitle').textContent = cleanName;
+  const meta = findLectureMeta(weekName, lectureFileName);
+  const displayTitle = meta ? meta.title : lectureFileName.replace(/\.html$/i, '');
+  document.getElementById('currentLectureTitle').textContent = displayTitle;
   document.getElementById('currentWeekLabel').textContent = weekName;
 
   // Show loader and hide welcome screen
   loader.classList.add('visible');
   welcomeScreen.style.display = 'none';
 
-  // Construct space-safe path
-  const relativePath = `${weekName}/${lectureFileName}`;
+  // Construct space-safe path (prepend COURSE_FOLDER if universal page)
+  const folderPrefix = window.COURSE_FOLDER ? `${window.COURSE_FOLDER}/` : '';
+  const relativePath = `${folderPrefix}${weekName}/${lectureFileName}`;
   const encodedPath = encodeURI(relativePath);
 
   // Fetch the note contents to see if it's a full document or a snippet
@@ -364,8 +388,7 @@ function loadLecture(weekName, lectureFileName) {
       } else {
         // Fragment/Snippet -> wrap inside a complete HTML page with theme styles and set srcdoc
         const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-        const accentColor = window.COURSE_ID === 'mad2' ? '#a78bfa' : '#34d399';
-        const bgAccent = window.COURSE_ID === 'mad2' ? 'rgba(167, 139, 250, 0.15)' : 'rgba(52, 211, 153, 0.15)';
+        const accent = getCourseAccent();
 
         const finalHtml = `<!DOCTYPE html>
 <html lang="en" data-theme="${isDark ? 'dark' : 'light'}">
@@ -381,11 +404,11 @@ function loadLecture(weekName, lectureFileName) {
       --font-mono: monospace;
       --border-strong: ${isDark ? '#475569' : '#cbd5e1'};
       --border: ${isDark ? '#334155' : '#e2e8f0'};
-      --text-accent: ${accentColor};
+      --text-accent: ${accent.color};
       --text-primary: ${isDark ? '#f1f5f9' : '#0f172a'};
       --text-secondary: ${isDark ? '#94a3b8' : '#475569'};
       --text-muted: ${isDark ? '#64748b' : '#94a3b8'};
-      --bg-accent: ${bgAccent};
+      --bg-accent: ${accent.bg};
       --surface-1: ${isDark ? '#1e293b' : '#ffffff'};
       --surface-0: ${isDark ? '#0f172a' : '#f8fafc'};
       --bg-success: rgba(16, 185, 129, 0.1);
@@ -456,4 +479,151 @@ function closeMobileSidebar() {
   const overlay = document.getElementById('sidebarOverlay');
   if (sidebar) sidebar.classList.remove('open');
   if (overlay) overlay.classList.remove('visible');
+}
+
+/* ---------- Search Functionality ---------- */
+let searchActiveIndex = -1;
+
+function initSearch() {
+  const searchToggle = document.getElementById('searchToggle');
+  const searchOverlay = document.getElementById('searchOverlay');
+  const searchClose = document.getElementById('searchCloseBtn');
+  const searchInput = document.getElementById('searchInput');
+  const searchResults = document.getElementById('searchResults');
+
+  if (!searchToggle || !searchOverlay) return;
+
+  searchToggle.addEventListener('click', openSearch);
+
+  if (searchClose) {
+    searchClose.addEventListener('click', closeSearch);
+  }
+
+  searchOverlay.addEventListener('click', (e) => {
+    if (e.target === searchOverlay) closeSearch();
+  });
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      searchActiveIndex = -1;
+      performSearch(searchInput.value);
+    });
+
+    searchInput.addEventListener('keydown', (e) => {
+      const items = searchResults.querySelectorAll('.search-result-item');
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+        highlightSearchItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+        highlightSearchItem(items);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+          items[searchActiveIndex].click();
+        }
+      }
+    });
+  }
+}
+
+function openSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  const input = document.getElementById('searchInput');
+  const results = document.getElementById('searchResults');
+  if (!overlay) return;
+
+  overlay.classList.add('open');
+  searchActiveIndex = -1;
+
+  if (results) {
+    results.innerHTML = '<div class="search-empty">Type to search across all lectures...</div>';
+  }
+
+  setTimeout(() => {
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }, 100);
+}
+
+function closeSearch() {
+  const overlay = document.getElementById('searchOverlay');
+  if (overlay) overlay.classList.remove('open');
+}
+
+function performSearch(query) {
+  const results = document.getElementById('searchResults');
+  if (!results) return;
+
+  const trimmed = query.trim().toLowerCase();
+  if (!trimmed) {
+    results.innerHTML = '<div class="search-empty">Type to search across all lectures...</div>';
+    return;
+  }
+
+  const structure = COURSE_STRUCTURES[window.COURSE_ID];
+  if (!structure) return;
+
+  const matches = [];
+
+  structure.forEach(week => {
+    week.lectures.forEach(lecture => {
+      const searchText = `${lecture.title} ${lecture.slug} ${week.weekName}`.toLowerCase();
+      if (searchText.includes(trimmed)) {
+        matches.push({ lecture, week: week.weekName });
+      }
+    });
+  });
+
+  if (matches.length === 0) {
+    results.innerHTML = '<div class="search-empty">No lectures found matching your search.</div>';
+    return;
+  }
+
+  results.innerHTML = matches.map((m, i) => {
+    const highlightedTitle = highlightMatch(m.lecture.title, trimmed);
+    return `
+      <div class="search-result-item" data-index="${i}" data-week="${encodeURIComponent(m.week)}" data-lecture="${encodeURIComponent(m.lecture.file)}">
+        <i class="ph ph-file-text search-result-icon"></i>
+        <div class="search-result-info">
+          <div class="search-result-title">${highlightedTitle}</div>
+          <div class="search-result-week">${m.week}</div>
+        </div>
+        <div class="search-result-meta">
+          <span>${m.lecture.readingTime} min read</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  results.querySelectorAll('.search-result-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const week = decodeURIComponent(item.dataset.week);
+      const lecture = decodeURIComponent(item.dataset.lecture);
+      closeSearch();
+      window.location.hash = `${encodeURIComponent(week)}/${encodeURIComponent(lecture)}`;
+    });
+  });
+}
+
+function highlightMatch(text, query) {
+  const idx = text.toLowerCase().indexOf(query);
+  if (idx === -1) return text;
+  const before = text.slice(0, idx);
+  const match = text.slice(idx, idx + query.length);
+  const after = text.slice(idx + query.length);
+  return `${before}<mark>${match}</mark>${after}`;
+}
+
+function highlightSearchItem(items) {
+  items.forEach((item, i) => {
+    item.classList.toggle('active', i === searchActiveIndex);
+  });
+  if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+    items[searchActiveIndex].scrollIntoView({ block: 'nearest' });
+  }
 }

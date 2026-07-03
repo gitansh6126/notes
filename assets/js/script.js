@@ -86,22 +86,98 @@ function initScrollTop() {
   });
 }
 
-/* ---------- Search Toggle (UI only) ---------- */
+/* ---------- Course Search (filters course cards) ---------- */
 function initSearch() {
   const searchToggle = document.getElementById('searchToggle');
 
   searchToggle.addEventListener('click', () => {
-    // Placeholder for future search functionality
-    const toast = document.createElement('div');
-    toast.textContent = 'Search feature coming soon!';
-    toast.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--surface);color:var(--text-primary);padding:12px 24px;border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);border:1px solid var(--border);z-index:9999;font-weight:500;';
-    document.body.appendChild(toast);
+    const cards = document.querySelectorAll('.course-card');
+    if (cards.length === 0) return;
 
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    const overlay = document.createElement('div');
+    overlay.className = 'search-overlay';
+    overlay.id = 'homeSearchOverlay';
+    overlay.style.cssText = 'display:flex;position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);z-index:9999;align-items:flex-start;justify-content:center;padding-top:12vh;';
+
+    overlay.innerHTML = `
+      <div class="search-modal" style="width:min(500px,90vw);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;animation:searchSlideIn 0.2s ease-out;">
+        <div class="search-input-wrapper" style="display:flex;align-items:center;gap:0.75rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);">
+          <i class="ph ph-magnifying-glass" style="font-size:1.25rem;color:var(--text-muted);"></i>
+          <input type="text" class="search-input" id="homeSearchInput" placeholder="Search courses..." autocomplete="off" style="flex:1;border:none;background:transparent;font-size:1rem;font-family:inherit;color:var(--text-primary);outline:none;">
+          <button class="search-close-btn" id="homeSearchClose" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:none;background:transparent;color:var(--text-secondary);cursor:pointer;font-size:1.1rem;">
+            <i class="ph ph-x"></i>
+          </button>
+        </div>
+        <div class="search-results" id="homeSearchResults" style="max-height:50vh;overflow-y:auto;padding:0.5rem;">
+          <div class="search-empty" style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.9rem;">Type to search courses...</div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const input = document.getElementById('homeSearchInput');
+    const results = document.getElementById('homeSearchResults');
+
+    const closeOverlay = () => {
+      overlay.remove();
+    };
+
+    document.getElementById('homeSearchClose').addEventListener('click', closeOverlay);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeOverlay();
+    });
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim().toLowerCase();
+      if (!q) {
+        results.innerHTML = '<div class="search-empty" style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.9rem;">Type to search courses...</div>';
+        return;
+      }
+
+      const items = [];
+      cards.forEach(card => {
+        const title = card.querySelector('h2')?.textContent || '';
+        const desc = card.querySelector('.card-description')?.textContent || '';
+        const code = card.querySelector('.course-code')?.textContent || '';
+        const text = `${title} ${desc} ${code}`.toLowerCase();
+
+        if (text.includes(q)) {
+          items.push({ title, desc, card });
+        }
+      });
+
+      if (items.length === 0) {
+        results.innerHTML = '<div class="search-empty" style="padding:2rem;text-align:center;color:var(--text-muted);font-size:0.9rem;">No courses found.</div>';
+        return;
+      }
+
+      results.innerHTML = items.map(item => `
+        <div class="search-result-item" style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1rem;border-radius:var(--radius-sm);cursor:pointer;transition:all 0.3s ease;">
+          <i class="ph ph-book-open" style="font-size:1rem;color:var(--accent);"></i>
+          <div class="search-result-info" style="flex:1;min-width:0;">
+            <div class="search-result-title" style="font-size:0.9rem;font-weight:600;color:var(--text-primary);">${item.title}</div>
+            <div class="search-result-week" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">${item.desc}</div>
+          </div>
+        </div>
+      `).join('');
+
+      results.querySelectorAll('.search-result-item').forEach((el, i) => {
+        el.addEventListener('click', () => {
+          closeOverlay();
+          items[i].card.querySelector('.btn')?.click();
+        });
+        el.addEventListener('mouseenter', () => {
+          results.querySelectorAll('.search-result-item').forEach(e => e.style.background = '');
+          el.style.background = 'var(--bg)';
+        });
+        el.addEventListener('mouseleave', () => {
+          el.style.background = '';
+        });
+      });
+    });
+
+    setTimeout(() => input.focus(), 100);
   });
 }
 
