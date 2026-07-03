@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>DOM Manipulation — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--board); color:var(--chalk);
+  font-family:'Space Mono', monospace; position:relative; overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.4rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:600px; margin: 0 auto; }
+
+.thread{
+  display:flex; align-items:center; gap:10px; justify-content:center;
+  font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green);
+  background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green);
+  border-radius: 6px; padding: 10px 18px; margin-bottom: 50px;
+}
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:60px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Pipeline strip: select -> modify -> listen -> respond */
+.pipeline{
+  display:flex; align-items:center; flex-wrap:wrap; justify-content:center; gap:0;
+  background: var(--board-alt); border-radius:8px; padding: 26px 20px; margin-bottom: 10px;
+}
+.pipeline .stop{
+  font-family:'Kalam', cursive; font-size:1rem; text-align:center;
+  border:1px solid var(--board-line); border-radius: 10px; padding: 14px 18px; min-width:130px;
+}
+.pipeline .stop .n{ display:block; font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; color: var(--chalk-yellow); margin-bottom:6px; }
+.pipeline .sep{ font-family:'Kalam', cursive; font-size:1.4rem; color: var(--board-line); padding: 0 12px; }
+.pipeline .stop:nth-child(1){ color: var(--chalk-blue); }
+.pipeline .stop:nth-child(3){ color: var(--chalk-yellow); }
+.pipeline .stop:nth-child(5){ color: var(--chalk-pink); }
+.pipeline .stop:nth-child(7){ color: var(--chalk-green); }
+.pipeline-cap{ text-align:center; font-family:'Caveat', cursive; font-size:1.15rem; color:var(--chalk-dim); margin-bottom:36px; }
+
+/* Async waiter diagram */
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.2rem; color: var(--chalk-blue); margin-top:12px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.55rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 06 · Companion Notes</div>
+    <h1>DOM Manipulation</h1>
+    <p class="subhead">— how JavaScript reaches into a web page and changes it live —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Continuing from L05</span> Same functions and arrow syntax from last lecture — now put to work on a live page.</div>
+
+  <!-- Pipeline overview -->
+  <section>
+    <div class="pipeline">
+      <div class="stop"><span class="n">Select</span>getElementById</div>
+      <div class="sep">→</div>
+      <div class="stop"><span class="n">Modify</span>innerHTML</div>
+      <div class="sep">→</div>
+      <div class="stop"><span class="n">Listen</span>addEventListener</div>
+      <div class="sep">→</div>
+      <div class="stop"><span class="n">Respond</span>style / async</div>
+    </div>
+    <p class="pipeline-cap">Every interactive page follows this same four-step loop.</p>
+  </section>
+
+  <!-- Accessing & Modifying -->
+  <section>
+    <div class="section-head"><h2>Selecting &amp; Modifying Elements</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term"><span class="code">document.getElementById()</span></p>
+        <p class="def">Grabs a reference to one specific element on the page.</p>
+        <div class="row"><span class="label">Real Life</span><p>A librarian pulling one exact book off the shelf using its call number, instead of searching every shelf by title.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The <span class="code">id</span> is the call number — <span class="code">document</span> is the whole library, and this method goes straight to the one shelf slot you asked for.</p></div>
+      </div>
+      <div class="card">
+        <p class="term"><span class="code">innerHTML</span></p>
+        <p class="def">Replaces or inserts the content inside a selected element.</p>
+        <div class="row"><span class="label">Real Life</span><p>A restaurant's digital menu board — the screen (the element) stays bolted to the wall, but the dishes listed on it change throughout the day.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>You're not replacing the screen — you're swapping what's displayed on it, live, without anyone unbolting anything.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Events -->
+  <section>
+    <div class="section-head"><h2>User Interaction &amp; Events</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term"><span class="code">addEventListener</span></p>
+        <p class="def">Registers a function to run automatically when a specific action happens.</p>
+        <div class="row"><span class="label">Real Life</span><p>A doorbell wired to a chime — nothing happens until someone presses the button, then the chime fires instantly.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The button press is the event ("click"); the chime sound is the function you attached — it just waits, silently, until triggered.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Arrow Functions in Listeners</p>
+        <p class="def">A short, unnamed function written directly where it's needed.</p>
+        <div class="row"><span class="label">Real Life</span><p>Instead of hiring a dedicated employee (named function) to answer the doorbell, you leave a one-line sticky note on the door: "if rung, turn on the porch light."</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>It's not worth naming and filing away a function you'll only ever use once, right here, for this one doorbell.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Async -->
+  <section>
+    <div class="section-head"><h2>Timed &amp; Asynchronous Interactions</h2><div class="rule"></div></div>
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Space Mono, monospace" font-size="11" fill="#c9d1c3">
+          <circle cx="90" cy="80" r="34" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="90" y="75" text-anchor="middle" fill="#f4f1e6">You</text>
+          <text x="90" y="90" text-anchor="middle" fill="#f4f1e6">(order food)</text>
+
+          <path d="M126,80 L230,80" stroke="#e8c468" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <text x="178" y="70" text-anchor="middle" fill="#e8c468">await fetch()</text>
+
+          <circle cx="320" cy="80" r="34" fill="none" stroke="#d98fa0" stroke-width="1.5"/>
+          <text x="320" y="75" text-anchor="middle" fill="#f4f1e6">Kitchen</text>
+          <text x="320" y="90" text-anchor="middle" fill="#f4f1e6">(Promise)</text>
+
+          <path d="M354,80 L520,80" stroke="#9fd0a7" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow2)"/>
+          <text x="440" y="70" text-anchor="middle" fill="#9fd0a7">buzzer rings (resolve)</text>
+
+          <text x="90" y="135" text-anchor="middle" fill="#c9d1c3" font-size="10">chats with friends</text>
+          <text x="90" y="150" text-anchor="middle" fill="#c9d1c3" font-size="10">meanwhile (non-blocking)</text>
+
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8c468"/></marker>
+            <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fd0a7"/></marker>
+          </defs>
+        </g>
+      </svg>
+      <p class="caption">You place the order and keep chatting — the buzzer (Promise resolving) is what tells you the food's finally ready.</p>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term"><span class="code">async</span> / <span class="code">await</span></p>
+        <div class="row"><span class="label">Real Life</span><p>Ordering food at a counter, getting a buzzer, and continuing to chat with friends until it goes off.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">await</span> is standing right at the counter waiting for the buzzer before moving on — even though, behind the scenes, the kitchen (a Promise) keeps working without freezing the whole restaurant.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dynamic styling -->
+  <section>
+    <div class="section-head"><h2>Dynamic Styling</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Changing CSS via JS</p>
+        <p class="def">Updating properties like <span class="code">font-size</span> directly through the DOM.</p>
+        <div class="row"><span class="label">Real Life</span><p>A mood ring that changes color in response to your body temperature — the ring itself doesn't change, but its appearance does, live.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The HTML element is the ring; the event (a click, a hover) is your body heat; the style change is the color shift — same object, new appearance, triggered by interaction.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Selecting, modifying, listening, and responding — that four-step loop is the entire engine behind every interactive web page you've ever used.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
