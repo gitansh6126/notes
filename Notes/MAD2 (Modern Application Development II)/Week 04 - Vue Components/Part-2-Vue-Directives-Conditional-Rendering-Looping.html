@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vue Directives, Conditional Rendering & Looping — Study Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root{
+    --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+    --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+    --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+    --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+    --code-bg:#0D1118; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 15% 0%, rgba(139,147,255,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(240,180,80,0.06), transparent 40%),var(--bg);
+    color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .hero{
+    border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+    background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+  }
+  .hero::after{content:""; position:absolute; top:-40%; right:-10%; width:280px;height:280px;border-radius:50%; background:radial-gradient(circle, rgba(139,147,255,0.12), transparent 70%);}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--violet); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .eyebrow::before{content:"●"; font-size:10px;}
+  h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+  .hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+  .section-tag{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin:38px 0 10px; display:flex; align-items:center; gap:10px;}
+  .section-tag .n{width:22px;height:22px;border-radius:6px;background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--violet); font-weight:700; font-size:11px;}
+  .card{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:24px 26px; margin-bottom:18px;}
+  .card h2{font-size:19px; margin:0 0 10px; font-weight:700;}
+  .card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+  .emoji-h{display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;}
+  .emoji-h .e{font-size:20px;}
+  .dir-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+  .dir-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px; text-align:center;}
+  .dir-card .d-symbol{font-family:'JetBrains Mono',monospace; font-size:18px; font-weight:700; margin-bottom:4px;}
+  .dir-card .d-name{font-size:12px; color:var(--muted);}
+
+  .analogy-box{background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+  .analogy-box .a-text{font-size:13.5px; color:#E9D9B8;} .analogy-box .a-text b{color:var(--amber);}
+
+  .industry-box{background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+  .industry-box .i-text{font-size:13.5px; color:#D5D8FF;} .industry-box .i-text b{color:var(--violet);}
+
+  .mistake-box{background:var(--red-dim); border:1px solid rgba(240,80,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+  .mistake-box .m-text{font-size:13.5px; color:#F0B0B0;} .mistake-box .m-text b{color:var(--red);}
+
+  .tip-box{background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+  .tip-box .t-text{font-size:13.5px; color:#C9E8F8;} .tip-box .t-text b{color:var(--cyan);}
+
+  .why-box{background:var(--green-dim); border:1px solid rgba(74,222,148,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .why-box .w-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--green); font-weight:600; margin-bottom:4px;}
+  .why-box .w-text{font-size:13.5px; color:#C9F2DC;} .why-box .w-text b{color:var(--green);}
+
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; margin:12px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;}
+  code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;} .fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px;}
+  th,td{border:1px solid var(--line); padding:12px 14px; text-align:left;}
+  th{background:var(--panel-2); color:var(--violet); font-weight:600;}
+  td{background:var(--panel); color:var(--text);}
+
+  .qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+  .qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+  .qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+
+  .rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+  .rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+  .rev-item b{color:var(--violet);}
+  @media (max-width:768px){.rev-grid{grid-template-columns:1fr;}}
+
+  .badge{display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; padding:2px 8px; border-radius:4px; margin:2px;}
+  .badge-v{background:var(--violet-dim); color:var(--violet);} .badge-g{background:var(--green-dim); color:var(--green);}
+  .badge-a{background:var(--amber-dim); color:var(--amber);} .badge-c{background:var(--cyan-dim); color:var(--cyan);}
+
+  ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+  li{margin:4px 0; color:var(--text);}
+
+  .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">AppDev2 · Vue.js</div>
+    <h1>Vue Directives, Conditional Rendering &amp; Looping</h1>
+    <p>Directives are special reactive attributes prefixed with <code style="color:var(--violet)">v-</code> that apply special behaviors to the rendered DOM.</p>
+  </div>
+
+  <!-- ====== SECTION 1: DIRECTIVES OVERVIEW ====== -->
+  <div class="section-tag"><span class="n">1</span> DIRECTIVES OVERVIEW</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def">A <b>directive</b> is a special token in the markup that tells Vue to do something to a DOM element. Directives are prefixed with <code>v-</code> to indicate they are Vue-specific attributes. They apply reactive behavior to the rendered DOM — binding data, listening to events, conditionally rendering, or looping.</p>
+
+    <div class="dir-grid">
+      <div class="dir-card"><div class="d-symbol" style="color:var(--violet)">v-bind</div><div class="d-name">One-way binding</div></div>
+      <div class="dir-card"><div class="d-symbol" style="color:var(--green)">v-model</div><div class="d-name">Two-way binding</div></div>
+      <div class="dir-card"><div class="d-symbol" style="color:var(--amber)">v-on</div><div class="d-name">Event listener</div></div>
+      <div class="dir-card"><div class="d-symbol" style="color:var(--cyan)">v-if / v-show</div><div class="d-name">Conditional rendering</div></div>
+      <div class="dir-card"><div class="d-symbol" style="color:var(--green)">v-for</div><div class="d-name">Looping</div></div>
+      <div class="dir-card"><div class="d-symbol" style="color:var(--amber)">v-text / v-html</div><div class="d-name">Text & HTML output</div></div>
+    </div>
+  </div>
+
+  <!-- ====== v-bind ====== -->
+  <div class="section-tag"><span class="n">2</span> <span class="badge badge-v">v-bind</span> — ONE-WAY DATA BINDING</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-bind</code> synchronizes data from the model to the view. Updating the JavaScript variable automatically updates the display, but changes in the display do not modify the variable. It's a <b>one-way</b> data flow: data → DOM.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax</div>
+    <pre><code><span class="cmt">&lt;!-- Full syntax --&gt;</span>
+&lt;img <span class="prop">v-bind:src</span>=<span class="str">"imageUrl"</span>&gt;
+
+<span class="cmt">&lt;!-- Shorthand (:) --&gt;</span>
+&lt;img <span class="prop">:src</span>=<span class="str">"imageUrl"</span>&gt;
+&lt;a <span class="prop">:href</span>=<span class="str">"link.url"</span>&gt;{{ link.text }}&lt;/a&gt;
+&lt;button <span class="prop">:disabled</span>=<span class="str">"isSubmitting"</span>&gt;Submit&lt;/button&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — TV Screen</div>
+      <div class="a-text">Your TV displays whatever channel the cable box sends. Changing the channel on the cable box updates the TV. But pressing buttons on the TV screen itself doesn't change the cable box. The TV is <b>bound one-way</b> from the source.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💼</span> Industry Example</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example</div>
+      <div class="i-text"><b>LinkedIn profile page:</b> The profile photo <code>&lt;img :src="user.avatarUrl"&gt;</code> is bound to the user data. When a user uploads a new photo, the server updates the avatar URL, and Vue re-renders the image automatically. The image tag never needs manual reassignment.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Forgetting the quotes or using wrong syntax.</b> <code>:src="imageUrl"</code> (correct) vs <code>:src="imageUrl"</code> without quotes (correct) vs <code>:src={{ imageUrl }}</code> (wrong — don't use <code>{{ }}</code> with directives).</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💡</span> When to Use</div>
+    <div class="tip-box">
+      <div class="t-label">When to Use</div>
+      <div class="t-text">Use <code>v-bind</code> (or <code>:</code>) for <b>any HTML attribute that needs to be dynamic</b>: <code>src</code>, <code>href</code>, <code>class</code>, <code>style</code>, <code>disabled</code>, <code>title</code>, <code>alt</code>, custom component props, etc.</div>
+    </div>
+  </div>
+
+  <!-- ====== v-model ====== -->
+  <div class="section-tag"><span class="n">3</span> <span class="badge badge-g">v-model</span> — TWO-WAY DATA BINDING</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-model</code> creates a <b>bidirectional</b> relationship between the data model and a form element. Changing the UI input updates the underlying state, and updating the state updates the UI input. It's syntactic sugar for <code>:value + @input</code>.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax</div>
+    <pre><code><span class="cmt">&lt;!-- Text input — syncs both ways --&gt;</span>
+&lt;input <span class="prop">v-model</span>=<span class="str">"username"</span> placeholder=<span class="str">"Enter name"</span>&gt;
+&lt;p&gt;Hello, {{ username }}&lt;/p&gt;
+
+<span class="cmt">&lt;!-- Checkbox — binds to boolean --&gt;</span>
+&lt;input type=<span class="str">"checkbox"</span> <span class="prop">v-model</span>=<span class="str">"isAgreed"</span>&gt;
+&lt;button <span class="prop">:disabled</span>=<span class="str">"!isAgreed"</span>&gt;Continue&lt;/button&gt;
+
+<span class="cmt">&lt;!-- Select dropdown --&gt;</span>
+&lt;select <span class="prop">v-model</span>=<span class="str">"selectedCity"</span>&gt;
+  &lt;option <span class="prop">v-for</span>=<span class="str">"city in cities"</span> <span class="prop">:value</span>=<span class="str">"city.code"</span>&gt;{{ city.name }}&lt;/option&gt;
+&lt;/select&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Two-Way Mirror</div>
+      <div class="a-text">A two-way mirror lets both sides see each other. When you change expression (data), the mirror (view) reflects it. When you press on the mirror (view), the other side sees it (data). <code>v-model</code> is that two-way connection between form inputs and your data.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💼</span> Industry Example</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example</div>
+      <div class="i-text"><b>Google Docs title field:</b> The document title is an editable input. When you type, the title updates in the browser tab and the auto-save draft. Conversely, if the auto-save restores a previous title, the input field updates to match — classic two-way binding.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using v-model on non-form elements.</b> <code>v-model</code> is designed for <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, <code>&lt;select&gt;</code>, and custom components that emit <code>input</code> events. Don't use it on <code>&lt;div&gt;</code> or <code>&lt;p&gt;</code> — use <code>v-bind</code> instead.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💡</span> When to Use</div>
+    <div class="tip-box">
+      <div class="t-label">When to Use</div>
+      <div class="t-text">Use <code>v-model</code> for <b>form inputs</b> where the user can modify data and you need the state to reflect those changes immediately — text fields, checkboxes, radio buttons, selects, textareas.</div>
+    </div>
+  </div>
+
+  <!-- ====== v-on ====== -->
+  <div class="section-tag"><span class="n">4</span> <span class="badge badge-a">v-on</span> — EVENT BINDING</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-on</code> listens to DOM events (clicks, keypresses, form submissions) and triggers specified JavaScript methods or expressions when the event occurs. It's how Vue handles user interaction.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax</div>
+    <pre><code><span class="cmt">&lt;!-- Full syntax --&gt;</span>
+&lt;button <span class="prop">v-on:click</span>=<span class="str">"handleSubmit"</span>&gt;Submit&lt;/button&gt;
+
+<span class="cmt">&lt;!-- Shorthand (@) --&gt;</span>
+&lt;button <span class="prop">@click</span>=<span class="str">"handleSubmit"</span>&gt;Submit&lt;/button&gt;
+&lt;input <span class="prop">@keyup.enter</span>=<span class="str">"search"</span>&gt;
+&lt;form <span class="prop">@submit.prevent</span>=<span class="str">"onSubmit"</span>&gt;...&lt;/form&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Doorbell</div>
+      <div class="a-text">A doorbell has a button (DOM event) and a chime (event handler). You wire the button to the chime once. Whenever someone presses the button (click event), the chime rings (handler executes). <code>@click="ringBell"</code> is exactly that wiring.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💼</span> Industry Example</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example</div>
+      <div class="i-text"><b>Twitter's "Like" button:</b> <code>@click="toggleLike"</code> fires an API call, updates the heart icon, and increments the counter. The click handler may also debounce to prevent double-clicks and handle optimistic UI updates before the server confirms.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Calling the function instead of referencing it.</b> <code>@click="handleSubmit()"</code> (calls immediately on render) vs <code>@click="handleSubmit"</code> (calls on click). Only use parentheses if you need to pass arguments: <code>@click="deleteItem(item.id)"</code>.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💡</span> When to Use</div>
+    <div class="tip-box">
+      <div class="t-label">When to Use</div>
+      <div class="t-text">Use <code>v-on</code> (or <code>@</code>) for <b>all user interactions</b> — clicks, keypresses, mouse events, form submissions, scroll events, custom component events.</div>
+    </div>
+  </div>
+
+  <!-- ====== CONDITIONAL RENDERING ====== -->
+  <div class="section-tag"><span class="n">5</span> CONDITIONAL RENDERING — <span class="badge badge-v">v-if</span> vs <span class="badge badge-a">v-show</span></div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-if</code> and <code>v-show</code> both conditionally toggle elements based on a boolean expression, but their underlying mechanisms are fundamentally different.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax</div>
+    <pre><code><span class="cmt">&lt;!-- v-if with v-else-if and v-else --&gt;</span>
+&lt;div <span class="prop">v-if</span>=<span class="str">"status === 'loading'"</span>&gt;Loading...&lt;/div&gt;
+&lt;div <span class="prop">v-else-if</span>=<span class="str">"status === 'error'"</span>&gt;Error: {{ errorMsg }}&lt;/div&gt;
+&lt;div <span class="prop">v-else</span>&gt;Data loaded: {{ data }}&lt;/div&gt;
+
+<span class="cmt">&lt;!-- v-show — always rendered, just hidden --&gt;</span>
+&lt;div <span class="prop">v-show</span>=<span class="str">"isVisible"</span>&gt;Quick toggle content&lt;/div&gt;</code></pre>
+
+    <table>
+      <tr><th>Feature</th><th><span class="badge badge-v">v-if</span></th><th><span class="badge badge-a">v-show</span></th></tr>
+      <tr><td><b>Mechanism</b></td><td>JavaScript DOM alteration — removes/injects the element</td><td>CSS <code>display: none</code> — element always in DOM</td></tr>
+      <tr><td><b>DOM Presence</b></td><td>Element removed from or added to DOM tree</td><td>Element always present in DOM</td></tr>
+      <tr><td><b>Toggle Cost</b></td><td>Higher (creates/destroys DOM nodes)</td><td>Lower (cheap CSS property flip)</td></tr>
+      <tr><td><b>Initial Cost</b></td><td>Lower if condition starts false (nothing to render)</td><td>Higher (always renders initially, even if hidden)</td></tr>
+      <tr><td><b>Supports v-else</b></td><td>Yes</td><td>No</td></tr>
+      <tr><td><b>Best For</b></td><td>Rarely toggled, heavy sections</td><td>Frequently toggled, small/light elements</td></tr>
+    </table>
+
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy</div>
+      <div class="a-text"><b>v-if = Renting an apartment:</b> If you don't need it, you leave it empty (destroy). When you need it, you furnish it (create). Costly to set up each time, but no overhead when not in use.<br><b>v-show = Closing the blinds:</b> The furniture stays in the room, you just hide it from view. Cheap to toggle, but the room always exists.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💼</span> Industry Example</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example</div>
+      <div class="i-text"><b>YouTube's comments section:</b> The "Show more replies" button toggles a thread with <code>v-if</code> because it's a heavy section that loads on demand. The "Like" animation uses <code>v-show</code> because it toggles rapidly and the element is lightweight.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using v-if on frequently toggled elements.</b> If an element toggles many times per second (dropdown menus, tooltips, modals), <code>v-show</code> is far more performant. <code>v-if</code>'s DOM destruction/creation will cause jank.</div>
+    </div>
+  </div>
+
+  <!-- ====== LOOP RENDERING ====== -->
+  <div class="section-tag"><span class="n">6</span> LOOP RENDERING — <span class="badge badge-g">v-for</span></div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-for</code> iterates through any standard JavaScript iterable — Arrays, Objects, or Strings — rendering a template block for each item.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax — Arrays</div>
+    <pre><code><span class="cmt">&lt;!-- Basic array --&gt;</span>
+&lt;li <span class="prop">v-for</span>=<span class="str">"item in items"</span> <span class="prop">:key</span>=<span class="str">"item.id"</span>&gt;{{ item }}&lt;/li&gt;
+
+<span class="cmt">&lt;!-- With index --&gt;</span>
+&lt;li <span class="prop">v-for</span>=<span class="str">"(item, index) in items"</span> <span class="prop">:key</span>=<span class="str">"index"</span>&gt;
+  {{ index }}: {{ item }}
+&lt;/li&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax — Objects</div>
+    <pre><code><span class="cmt">&lt;!-- Object values only --&gt;</span>
+&lt;li <span class="prop">v-for</span>=<span class="str">"value in obj"</span>&gt;{{ value }}&lt;/li&gt;
+
+<span class="cmt">&lt;!-- Value + key --&gt;</span>
+&lt;li <span class="prop">v-for</span>=<span class="str">"(value, key) in obj"</span>&gt;{{ key }}: {{ value }}&lt;/li&gt;
+
+<span class="cmt">&lt;!-- Value + key + index --&gt;</span>
+&lt;li <span class="prop">v-for</span>=<span class="str">"(value, key, index) in obj"</span>&gt;
+  {{ index }}. {{ key }} = {{ value }}
+&lt;/li&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy — Shopping Cart</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Shopping Cart</div>
+      <div class="a-text">Your shopping cart has multiple items. Each item has the same layout: product image, name, price, quantity selector. Instead of writing HTML for each item individually, you use <code>v-for</code> to stamp out one row template per cart item. If a new item is added, a new row appears automatically.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💼</span> Industry Example</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example</div>
+      <div class="i-text"><b>Amazon product listing:</b> The search results page uses <code>v-for="product in products" :key="product.asin"</code> to render hundreds of product cards. Each card is identical in structure, only the data differs. The <code>:key</code> (ASIN — Amazon's unique product ID) lets Vue efficiently update only the cards whose data changed.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">🔑</span> Why Keys Matter — Virtual DOM Deep Dive</div>
+    <div class="why-box">
+      <div class="w-label">Why :key is Critical</div>
+      <div class="w-text">Every time a list updates, Vue generates new Virtual DOM representations. The <b>diffing algorithm</b> compares old and new Virtual DOM trees to determine minimal real DOM changes. Without <code>:key</code>, Vue uses a <b>heuristic</b> (comparing by index) which fails when items reorder. With <code>:key</code>, Vue can <b>identify each element uniquely</b> and move/reuse DOM nodes instead of destroying and recreating them. This preserves component state (e.g., input values in forms) and boosts performance.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using index as key for sortable lists.</b> When the array reorders, index-based keys cause Vue to reuse DOM nodes incorrectly — input values, focus states, and scroll positions get mapped to the wrong items. Always use a unique, stable identifier like <code>item.id</code> when the list can be reordered.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Omitting :key entirely.</b> Vue warns you in development mode. Without keys, Vue falls back to an inefficient in-place patch strategy that can cause subtle bugs and poor performance.</div>
+    </div>
+  </div>
+
+  <!-- ====== v-text & v-html ====== -->
+  <div class="section-tag"><span class="n">7</span> <span class="badge badge-c">v-text</span> &amp; <span class="badge badge-a">v-html</span></div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><code>v-text</code> updates the element's <code>textContent</code> (same as <code>{{ }}</code> but applied as an attribute). <code>v-html</code> updates the element's <code>innerHTML</code> — it renders raw HTML, which requires caution due to XSS risks.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Syntax</div>
+    <pre><code><span class="cmt">&lt;!-- v-text — same result as {{ }} --&gt;</span>
+&lt;p <span class="prop">v-text</span>=<span class="str">"message"</span>&gt;&lt;/p&gt;
+&lt;p&gt;{{ message }}&lt;/p&gt;  <span class="cmt">&lt;!-- equivalent --&gt;</span>
+
+<span class="cmt">&lt;!-- v-html — renders raw HTML (CAUTION!) --&gt;</span>
+&lt;div <span class="prop">v-html</span>=<span class="str">"rawHtml"</span>&gt;&lt;/div&gt;</code></pre>
+
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using v-html with user-generated content.</b> <code>v-html</code> bypasses Vue's XSS sanitization. If the content comes from user input, comments, or any untrusted source, you risk cross-site scripting attacks. Use <code>v-text</code> or <code>{{ }}</code> whenever possible.</div>
+    </div>
+
+    <div class="emoji-h"><span class="e">💡</span> Best Practice</div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice</div>
+      <div class="t-text">Prefer <code>{{ }}</code> over <code>v-text</code> for readability (<code>{{ }}</code> is more familiar to developers). Only use <code>v-html</code> when you explicitly trust the HTML source (e.g., rich text from an internal CMS with sanitized output).</div>
+    </div>
+  </div>
+
+  <!-- ====== REVISION CHEAT SHEET ====== -->
+  <div class="section-tag"><span class="n">8</span> REVISION CHEAT SHEET</div>
+  <div class="card">
+    <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
+    <ul>
+      <li><b>v-bind (:) —</b> One-way data → DOM. Use for dynamic HTML attributes.</li>
+      <li><b>v-model —</b> Two-way binding for form inputs. Sugar for <code>:value + @input</code>.</li>
+      <li><b>v-on (@) —</b> Event listeners. Use <code>.prevent</code>, <code>.stop</code>, <code>.enter</code> modifiers.</li>
+      <li><b>v-if</b> destroys/creates DOM; <b>v-show</b> toggles <code>display</code>. Choose based on toggle frequency.</li>
+      <li><b>v-for</b> iterates arrays and objects. <b>Always provide :key</b> with a unique identifier.</li>
+      <li><b>v-text</b> = <code>{{ }}</code>. <b>v-html</b> renders raw HTML — avoid with untrusted content.</li>
+      <li>Shorthands: <code>:</code> for v-bind, <code>@</code> for v-on.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">❓</span> Interview Question</div>
+    <div class="qa-box">
+      <div class="q">Q: What is the difference between v-if and v-show, and when would you use each?</div>
+      <div class="a"><b>A:</b> <code>v-if</code> conditionally creates or destroys DOM elements — it has higher toggle cost but lower initial cost if condition is false. <code>v-show</code> always renders the element and toggles CSS <code>display</code> — lower toggle cost but higher initial render cost. Use <code>v-if</code> for rarely-changed, heavy sections (e.g., tab panels, modals). Use <code>v-show</code> for frequently-toggled, lightweight elements (e.g., dropdowns, tooltips).</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: Why is the :key attribute important in v-for?</div>
+      <div class="a"><b>A:</b> <code>:key</code> gives Vue a unique identity for each element in a list. During Virtual DOM diffing, Vue uses keys to track which elements were added, removed, or moved. Without keys, Vue uses an index-based heuristic that fails during reordering — causing incorrect state mapping, ghost input values, and performance degradation.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">AppDev2 · Vue.js Directives, Conditional Rendering &amp; Looping — study card</div>
+</div>
+</body>
+</html>

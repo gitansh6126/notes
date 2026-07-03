@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaussian Mixture Models — Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+
+    /* mixture component palette */
+    --c1: #b5872a;  /* gold   */
+    --c1-soft: #f6ecd3;
+    --c2: #2c6b5d;  /* teal   */
+    --c2-soft: #e2efec;
+    --c3: #a8482a;  /* rust   */
+    --c3-soft: #f7e6df;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.6;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      radial-gradient(circle at 10% 110%, rgba(44,107,93,0.18), transparent 50%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8;
+    padding:64px 0 56px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px;
+    pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#d9b872; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{
+    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
+    font-size:clamp(32px, 5.4vw, 52px); line-height:1.08; margin:0 0 20px; letter-spacing:-0.01em;
+  }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:58ch; margin:0 0 34px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pill{
+    font-family:'JetBrains Mono', monospace; font-size:12px;
+    padding:7px 13px; border-radius:100px;
+    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  }
+
+  /* hero mini gaussians */
+  .hero-curves{ margin-top:34px; opacity:0.9; }
+
+  /* ---------- SCAFFOLD ---------- */
+  main{ padding:54px 0 90px; }
+  section.chapter{ margin-bottom:64px; }
+  section.chapter:last-of-type{ margin-bottom:0; }
+  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
+  .chapter-num{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  }
+  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 28px;
+  }
+  .card + .card{ margin-top:16px; }
+  .card h3{ font-family:'Fraunces', serif; font-size:18px; font-weight:600; margin:0 0 8px; }
+  .card p{ margin:0; color:var(--ink-soft); font-size:15px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+
+  /* ---------- SINGLE-GAUSSIAN-FAILS DIAGRAM ---------- */
+  .fit-diagram{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 24px 18px; margin-bottom:16px;
+  }
+  .fit-diagram .fit-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--ink-faint); margin-bottom:10px;
+  }
+  .fit-diagram svg{ width:100%; height:auto; display:block; }
+  .fit-caption{ font-size:13.5px; color:var(--ink-soft); margin-top:10px; text-align:center; }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
+  .callout .icon{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
+  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+  .callout.info b{ color:var(--indigo); }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.warn b{ color:var(--rust); }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.good b{ color:var(--teal); }
+
+  /* ---------- GENERATIVE STORY STEPS ---------- */
+  .steps{ display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+  .step-card{
+    flex:1; min-width:260px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 24px;
+  }
+  .step-card .step-num{
+    font-family:'JetBrains Mono', monospace; font-size:11px; font-weight:700;
+    color:#fff; background:var(--ink); width:24px; height:24px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+  }
+  .step-card h3{ font-family:'Fraunces', serif; font-size:17px; margin:0 0 8px; }
+  .step-card p{ font-size:14.5px; color:var(--ink-soft); margin:0 0 10px; }
+  .step-formula{
+    font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo);
+    background:var(--indigo-soft); border-radius:8px; padding:8px 12px; display:inline-block;
+  }
+
+  /* ---------- GENERATOR (signature interactive) ---------- */
+  .gen-wrap{
+    background:linear-gradient(180deg, #1b2030, #12151f);
+    border-radius:18px; padding:30px 26px 26px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .gen-wrap::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 15% 0%, rgba(181,135,42,0.14), transparent 50%),
+                radial-gradient(circle at 90% 100%, rgba(44,107,93,0.18), transparent 50%);
+    pointer-events:none;
+  }
+  .gen-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#8891a8; text-align:center; margin-bottom:18px;
+  }
+  .gen-controls{
+    display:flex; align-items:center; justify-content:center; gap:22px; flex-wrap:wrap;
+    position:relative; z-index:1; margin-bottom:22px;
+  }
+  .die{
+    width:64px; height:64px; border-radius:14px;
+    background:linear-gradient(160deg, #262c40, #171b28);
+    border:1px solid #363d54;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif; font-size:26px; font-weight:600; color:#d9b872;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+    transition: transform 0.35s ease;
+  }
+  .die.rolling{ animation: die-spin 0.35s ease; }
+  @keyframes die-spin{ 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+
+  .gen-btn{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    background:#d9b872; color:#1b1607; border:none; border-radius:9px; padding:13px 20px;
+    cursor:pointer; box-shadow:0 2px 0 #8f6a1c; transition:transform 0.08s ease, filter 0.15s ease;
+  }
+  .gen-btn:hover{ filter:brightness(1.05); }
+  .gen-btn:active{ transform:translateY(2px); box-shadow:0 0 0 #8f6a1c; }
+
+  .gen-readout{
+    background:#0d0f17; border:1px solid #2a3046; border-radius:10px; padding:12px 18px; min-width:200px;
+  }
+  .gen-readout .row{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; font-size:12px; }
+  .gen-readout .row:last-child{ margin-bottom:0; }
+  .gen-readout .k{ font-family:'JetBrains Mono', monospace; color:#7d859c; }
+  .gen-readout .v{ font-family:'JetBrains Mono', monospace; font-weight:600; }
+  .gen-readout .v.c1{ color:var(--c1); }
+  .gen-readout .v.c2{ color:var(--c2); }
+  .gen-readout .v.c3{ color:var(--c3); }
+
+  .gen-plot{ position:relative; z-index:1; }
+  .gen-plot svg{ width:100%; height:auto; display:block; }
+  .gen-hint{ text-align:center; margin-top:14px; font-size:12.5px; color:#7d859c; position:relative; z-index:1; }
+  .gen-reset{
+    font-family:'JetBrains Mono', monospace; font-size:11px; color:#8891a8; background:none;
+    border:1px solid #363d54; border-radius:7px; padding:6px 10px; cursor:pointer; margin-left:8px;
+  }
+  .gen-reset:hover{ color:#c2c6d6; border-color:#4a5270; }
+
+  .legend{ display:flex; gap:16px; justify-content:center; margin-top:14px; flex-wrap:wrap; position:relative; z-index:1; }
+  .legend .item{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#c2c6d6; }
+  .legend .dot{ width:9px; height:9px; border-radius:50%; }
+
+  /* ---------- LATENT VARIABLE DIAGRAM ---------- */
+  .latent-diagram{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:30px 24px; margin-bottom:16px;
+  }
+  .latent-row{ display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+  .latent-node{ padding:16px 20px; border-radius:12px; text-align:center; min-width:130px; }
+  .latent-node.hidden{ background:#f0f1f4; border:1px dashed #b6bccc; }
+  .latent-node.observed{ background:var(--gold-soft); border:1px solid #e3cf9b; }
+  .latent-label{ font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); }
+  .latent-value{ font-family:'Fraunces', serif; font-weight:600; font-size:18px; margin-top:4px; }
+  .latent-node.hidden .latent-value{ color:var(--ink-soft); }
+  .latent-node.observed .latent-value{ color:var(--gold-deep); }
+  .latent-arrow{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); display:flex; flex-direction:column; align-items:center; gap:2px; }
+  .latent-arrow .seg{ width:44px; height:2px; background:var(--line); position:relative; }
+  .latent-arrow .seg::after{ content:""; position:absolute; right:-1px; top:-4px; border-left:7px solid var(--ink-faint); border-top:5px solid transparent; border-bottom:5px solid transparent; }
+  .latent-caption{ text-align:center; margin-top:20px; font-size:13.5px; color:var(--ink-soft); }
+  .latent-caption b{ color:var(--ink); }
+
+  /* ---------- TABLE ---------- */
+  table.spec{
+    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  }
+  table.spec th{
+    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  }
+  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13.5px; color:var(--indigo); white-space:nowrap; }
+  table.spec tr.total td{ background:#fbfbfd; font-weight:600; }
+
+  /* ---------- CODE BLOCK ---------- */
+  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
+  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
+  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
+  .codeblock .c-comment{ color:#7d859c; }
+  .codeblock .c-kw{ color:#e2a25c; }
+  .codeblock .c-fn{ color:#7fb0e8; }
+  .codeblock .c-num{ color:#d9b872; }
+  .codeblock .c-str{ color:#9bc99b; }
+
+  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+
+  @media (max-width: 720px){
+    .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .hero{ padding:48px 0 40px; }
+    .chapter-head h2{ font-size:22px; }
+    .card{ padding:20px; }
+    .steps{ flex-direction:column; }
+    .gen-controls{ gap:14px; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .die.rolling{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+    <h1>Gaussian Mixture Models:<br>one bell curve isn't <em>enough</em></h1>
+    <p class="lede">Real data rarely clusters around a single center. GMMs model it as coming from several Gaussians at once — each observation secretly belonging to one of them, a hidden label we never get to see.</p>
+    <div class="hero-meta">
+      <span class="pill">§1 Why one Gaussian fails</span>
+      <span class="pill">§2 Generative story</span>
+      <span class="pill">§3 Latent variables</span>
+      <span class="pill">§4 Parameters to estimate</span>
+    </div>
+
+    <div class="hero-curves">
+      <svg viewBox="0 0 880 90" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,80 C120,80 130,10 190,10 C250,10 260,80 380,80" fill="none" stroke="#d9b872" stroke-width="2" opacity="0.8"/>
+        <path d="M120,80 C270,80 290,15 380,15 C470,15 490,80 640,80" fill="none" stroke="#7fc4b0" stroke-width="2" opacity="0.8"/>
+        <path d="M420,80 C540,80 560,20 630,20 C700,20 720,80 860,80" fill="none" stroke="#d98a6c" stroke-width="2" opacity="0.8"/>
+      </svg>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SECTION 1 -->
+  <section class="chapter" id="s1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>Why a single Gaussian fails</h2>
+    </div>
+    <p class="chapter-intro">When data has multiple modes — several dense clusters rather than one blob — a single Gaussian struggles. Even the <b>Maximum Likelihood</b> mean (the sample mean) lands in the empty space between clusters, assigning low density to the points that actually matter.</p>
+
+    <div class="fit-diagram">
+      <div class="fit-label">// single gaussian vs. multimodal data</div>
+      <svg viewBox="0 0 860 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- baseline -->
+        <line x1="20" y1="190" x2="840" y2="190" stroke="#dcdfe8" stroke-width="1.5"/>
+        <!-- data points, two dense clusters -->
+        <g fill="#33418e" opacity="0.75">
+          <circle cx="150" cy="185" r="5"/><circle cx="170" cy="185" r="5"/><circle cx="130" cy="185" r="5"/>
+          <circle cx="190" cy="185" r="5"/><circle cx="160" cy="185" r="5"/><circle cx="145" cy="185" r="5"/>
+          <circle cx="640" cy="185" r="5"/><circle cx="660" cy="185" r="5"/><circle cx="620" cy="185" r="5"/>
+          <circle cx="680" cy="185" r="5"/><circle cx="650" cy="185" r="5"/><circle cx="635" cy="185" r="5"/>
+        </g>
+        <!-- single gaussian centered in the middle, low + wrong -->
+        <path d="M20,190 C250,190 350,50 430,50 C510,50 610,190 840,190" fill="none" stroke="#a8482a" stroke-width="2.5" stroke-dasharray="6 5"/>
+        <text x="430" y="35" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8482a">single Gaussian — mean lands in empty space</text>
+        <text x="160" y="205" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#545c72">cluster A</text>
+        <text x="650" y="205" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#545c72">cluster B</text>
+      </svg>
+      <p class="fit-caption">The dashed curve is the best single Gaussian fit — yet it places almost no density directly over either real cluster.</p>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">!</div>
+      <div class="body">
+        <b>The core problem</b>
+        <p>A unimodal model has exactly one "center of mass." When the true data has several centers, that single center satisfies none of them well — the model is structurally too simple.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="chapter" id="s2">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>The generative story</h2>
+    </div>
+    <p class="chapter-intro">A GMM explains each data point with a two-step story. Think of it like a vending machine with <span class="mono">K</span> compartments: first a die decides <i>which</i> compartment, then that compartment's own dispenser produces the item.</p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Pick a component</h3>
+        <p>Roll a <span class="mono">K</span>-sided die. Face <span class="mono">l</span> comes up with probability <span class="mono">π_l</span>. The result is the latent indicator <span class="mono">z_i</span> for point <span class="mono">i</span>.</p>
+        <span class="step-formula">Σ πₗ = 1, &nbsp; 0 ≤ πₗ ≤ 1</span>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Sample from that Gaussian</h3>
+        <p>Given <span class="mono">z_i</span>, draw <span class="mono">x_i</span> from the Gaussian that belongs to that component — its own mean and variance.</p>
+        <span class="step-formula">x_i ~ N(μ_{z_i}, σ²_{z_i})</span>
+      </div>
+    </div>
+
+    <!-- SIGNATURE INTERACTIVE: die roll -> sample from mixture -->
+    <div class="gen-wrap">
+      <div class="gen-label">// generative story, live — K = 3</div>
+      <div class="gen-controls">
+        <div class="die" id="die">?</div>
+        <button class="gen-btn" id="rollBtn" onclick="rollAndSample()">▶ roll & sample</button>
+        <div class="gen-readout">
+          <div class="row"><span class="k">draws</span><span class="v" id="statN">0</span></div>
+          <div class="row"><span class="k">z=1 &nbsp;(π₁=0.5)</span><span class="v c1" id="statC1">0</span></div>
+          <div class="row"><span class="k">z=2 &nbsp;(π₂=0.3)</span><span class="v c2" id="statC2">0</span></div>
+          <div class="row"><span class="k">z=3 &nbsp;(π₃=0.2)</span><span class="v c3" id="statC3">0</span></div>
+        </div>
+      </div>
+
+      <div class="gen-plot">
+        <svg viewBox="0 0 860 210" xmlns="http://www.w3.org/2000/svg" id="plotSvg">
+          <!-- baseline -->
+          <line x1="20" y1="175" x2="840" y2="175" stroke="#363d54" stroke-width="1.5"/>
+          <!-- three gaussian curves -->
+          <path d="M20,175 C110,175 130,60 200,60 C270,60 290,175 380,175" fill="none" stroke="#d9b872" stroke-width="2.5" opacity="0.9"/>
+          <path d="M300,175 C370,175 390,90 440,90 C490,90 510,175 580,175" fill="none" stroke="#7fc4b0" stroke-width="2.5" opacity="0.9"/>
+          <path d="M540,175 C610,175 630,105 680,105 C730,105 750,175 840,175" fill="none" stroke="#d98a6c" stroke-width="2.5" opacity="0.9"/>
+          <text x="200" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#d9b872">μ₁</text>
+          <text x="440" y="75" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#7fc4b0">μ₂</text>
+          <text x="680" y="90" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#d98a6c">μ₃</text>
+          <g id="samplesLayer"></g>
+        </svg>
+      </div>
+
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:#d9b872;"></span>component 1</div>
+        <div class="item"><span class="dot" style="background:#7fc4b0;"></span>component 2</div>
+        <div class="item"><span class="dot" style="background:#d98a6c;"></span>component 3</div>
+      </div>
+      <div class="gen-hint">Each roll picks a component by π, then drops a point sampled from that component's curve.<button class="gen-reset" onclick="resetGen()">reset</button></div>
+    </div>
+
+    <div class="callout info" style="margin-top:20px;">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Notice</b>
+        <p>You never see the die roll — only the final point on the number line. Recovering which component <span class="mono">z_i</span> a point likely came from is exactly the inference problem GMMs are built to solve.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="chapter" id="s3">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>Latent variables</h2>
+    </div>
+    <p class="chapter-intro">A GMM is a <b>latent variable model</b>: the data we observe, <span class="mono">x₁, …, xₙ</span>, depends on variables we never observe, <span class="mono">z₁, …, zₙ</span> — the hidden component label behind each point.</p>
+
+    <div class="latent-diagram">
+      <div class="latent-row">
+        <div class="latent-node hidden">
+          <div class="latent-label">Latent · unobserved</div>
+          <div class="latent-value">z_i ∈ {1 … K}</div>
+        </div>
+        <div class="latent-arrow"><span>determines</span><div class="seg"></div></div>
+        <div class="latent-node observed">
+          <div class="latent-label">Observed</div>
+          <div class="latent-value">x_i ∈ ℝ</div>
+        </div>
+      </div>
+      <p class="latent-caption">We only ever see <b>x_i</b>. The component label <b>z_i</b> is the piece of the generative story that's hidden from us — inferring it (or averaging over it) is the central challenge of fitting a GMM.</p>
+    </div>
+
+    <div class="callout good">
+      <div class="icon">✓</div>
+      <div class="body">
+        <b>Structured clustering</b>
+        <p>Unlike K-Means' hard cluster assignments, the latent-variable view gives clustering a full probabilistic backbone: each point has a distribution over which component it likely came from.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="chapter" id="s4">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Parameters to estimate</h2>
+    </div>
+    <p class="chapter-intro">Fully specifying a GMM means estimating three families of parameters from data — for a <span class="mono">K</span>-component mixture, roughly <span class="mono">3K</span> numbers in total.</p>
+
+    <table class="spec">
+      <thead>
+        <tr><th>Parameter</th><th>Symbol</th><th>Count</th><th>Role</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>Mixing coefficients</b></td>
+          <td class="formula">π = {π₁ … π_K}</td>
+          <td>K &nbsp;(K−1 free)</td>
+          <td>How likely each component is to be picked</td>
+        </tr>
+        <tr>
+          <td><b>Means</b></td>
+          <td class="formula">μ_k</td>
+          <td>K</td>
+          <td>Center of each component's Gaussian</td>
+        </tr>
+        <tr>
+          <td><b>Variances</b></td>
+          <td class="formula">σ²_k</td>
+          <td>K</td>
+          <td>Spread of each component's Gaussian</td>
+        </tr>
+        <tr class="total">
+          <td>Total</td>
+          <td class="formula">—</td>
+          <td>3K &nbsp;(3K−1 free)</td>
+          <td>The π's sum-to-one constraint removes one degree of freedom</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="codeblock" style="margin-top:16px;">
+      <div class="filename">gmm_generative_story.py — sampling one point, made explicit</div>
+      <pre><span class="c-comment"># pi:    length-K array, sums to 1</span>
+<span class="c-comment"># mu:    length-K array of component means</span>
+<span class="c-comment"># sigma2: length-K array of component variances</span>
+
+<span class="c-kw">def</span> <span class="c-fn">sample_one_point</span>(pi, mu, sigma2):
+    <span class="c-comment"># step 1 — roll the K-sided die</span>
+    z_i = <span class="c-fn">random_choice</span>(K, p=pi)
+
+    <span class="c-comment"># step 2 — sample from that component's Gaussian</span>
+    x_i = <span class="c-fn">gaussian_sample</span>(mean=mu[z_i], var=sigma2[z_i])
+
+    <span class="c-kw">return</span> x_i  <span class="c-comment"># z_i itself is never returned — it's latent</span></pre>
+    </div>
+
+    <div class="callout info" style="margin-top:18px;">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Still Maximum Likelihood — just harder</b>
+        <p>Estimating <span class="mono">3K</span> parameters at once is far more involved than fitting one Gaussian, since the latent <span class="mono">z_i</span> are never observed directly. But the guiding principle is unchanged: find the parameters that make the observed data most probable.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>GAUSSIAN MIXTURE MODELS · LECTURE NOTES</p>
+</footer>
+
+<script>
+  const pis = [0.5, 0.3, 0.2];
+  const means = [200, 440, 680];   // x positions matching the curve peaks
+  const spreads = [55, 55, 55];
+  const colors = ['#d9b872', '#7fc4b0', '#d98a6c'];
+
+  let counts = [0,0,0];
+  let n = 0;
+  const samplesLayer = document.getElementById('samplesLayer');
+  const die = document.getElementById('die');
+
+  function weightedChoice(weights){
+    const r = Math.random();
+    let cum = 0;
+    for(let i=0;i<weights.length;i++){
+      cum += weights[i];
+      if(r <= cum) return i;
+    }
+    return weights.length - 1;
+  }
+
+  function gaussianSample(mean, spread){
+    // Box-Muller
+    const u1 = Math.random(), u2 = Math.random();
+    const z = Math.sqrt(-2*Math.log(u1)) * Math.cos(2*Math.PI*u2);
+    return mean + z * (spread/3);
+  }
+
+  function rollAndSample(){
+    const z = weightedChoice(pis);
+    n++;
+    counts[z]++;
+
+    die.textContent = (z+1);
+    die.classList.remove('rolling');
+    void die.offsetWidth;
+    die.classList.add('rolling');
+    die.style.color = colors[z];
+
+    const x = Math.max(30, Math.min(830, gaussianSample(means[z], spreads[z])));
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx', x);
+    dot.setAttribute('cy', 175);
+    dot.setAttribute('r', 5);
+    dot.setAttribute('fill', colors[z]);
+    dot.setAttribute('opacity', '0.85');
+    dot.setAttribute('stroke', '#12151f');
+    dot.setAttribute('stroke-width', '1');
+    samplesLayer.appendChild(dot);
+
+    document.getElementById('statN').textContent = n;
+    document.getElementById('statC1').textContent = counts[0];
+    document.getElementById('statC2').textContent = counts[1];
+    document.getElementById('statC3').textContent = counts[2];
+
+    // cap number of dots rendered
+    if(samplesLayer.childNodes.length > 60){
+      samplesLayer.removeChild(samplesLayer.firstChild);
+    }
+  }
+
+  function resetGen(){
+    counts = [0,0,0]; n = 0;
+    samplesLayer.innerHTML = '';
+    die.textContent = '?';
+    die.style.color = '#d9b872';
+    document.getElementById('statN').textContent = '0';
+    document.getElementById('statC1').textContent = '0';
+    document.getElementById('statC2').textContent = '0';
+    document.getElementById('statC3').textContent = '0';
+  }
+</script>
+
+</body>
+</html>

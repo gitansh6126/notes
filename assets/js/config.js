@@ -27,12 +27,19 @@ const COURSE_STRUCTURES = {
     {
       "weekName": "Week 03 - Vue.js Basics",
       "lectures": [
+        "demo4_vue_components_notes_light.html",
         "Screencast 3.1 - Introduction to VueJS.html"
       ]
     },
     {
       "weekName": "Week 04 - Vue Components",
       "lectures": [
+        "Part-1-Declarative-Rendering-Reactivity-Basics.html",
+        "Part-2-Vue-Directives-Conditional-Rendering-Looping.html",
+        "Part-3-ViewModel-Architecture-MVC-MVVM.html",
+        "Part-4-Computed-Properties-vs-Watchers.html",
+        "Part-5-Components-in-VueJS.html",
+        "Part-6-Deep-Dive-How-Reactivity-Works-Under-the-Hood.html",
         "Screencast 4.1 - Components in VueJS.html"
       ]
     },
@@ -156,10 +163,11 @@ const COURSE_STRUCTURES = {
         "L20 - MLE.html",
         "L21 - Bayesian Estimation.html",
         "L22 - GMM.html",
-        "L23 - Likelihood.html",
+        "L23 - Likelihood .html",
         "L24 - Jensen Inequality.html",
         "L25 - Parameter Estimation.html",
-        "L26 - EM Algorithm.html"
+        "L26 - EM Algorithm.html",
+        "my-campus-week4-complte.html"
       ]
     },
     {

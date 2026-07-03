@@ -45,6 +45,7 @@
           <a href="#step4" class="sidebar-link sub">Step 4 - Open VS Code</a>
           <a href="#step5" class="sidebar-link sub">Step 5 - Paste HTML</a>
           <a href="#step6" class="sidebar-link sub">Step 6 - Add New Files</a>
+          <a href="#step7" class="sidebar-link sub">Step 7 - Regenerate Config</a>
         </div>
         <div class="sidebar-group">
           <a href="#git-commands" class="sidebar-link">Git Commands</a>
@@ -145,12 +146,32 @@
             </div>
           </div>
 
+          <div class="timeline-item" id="step7">
+            <div class="timeline-title">Step 7 &mdash; Regenerate Portal Config</div>
+            <div class="timeline-content">
+              <p>After adding or removing any HTML files in the <code>Notes/</code> directory, you must regenerate the portal's configuration file so the sidebar navigation picks up the changes.</p>
+              <p>Run this command from the project root:</p>
+              <div class="code-block"><pre><code>node scripts\generate-config.js</code></pre></div>
+              <p>This scans all <code>Week */</code> folders for <code>.html</code> files and updates <code>assets/js/config.js</code> automatically.</p>
+              <div class="callout tip">
+                <i class="ph ph-lightbulb"></i>
+                <p><strong>Pro tip:</strong> Use the <code>--watch</code> flag to auto-regenerate whenever files change:</p>
+                <div class="code-block" style="margin-top:8px"><pre><code>node scripts\generate-config.js --watch</code></pre></div>
+                <p>Keep it running in a terminal while you work &mdash; it detects new, renamed, or deleted files and updates <code>config.js</code> on the fly.</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
       <section class="section" id="git-commands">
         <h2>Git Commands</h2>
         <p>Every command you need, ready to copy:</p>
+
+        <h3>Regenerate Portal Config</h3>
+        <div class="code-block"><pre><code>node scripts\generate-config.js</code></pre></div>
+        <p>Always run this after adding, renaming, or deleting HTML files in <code>Notes/</code>. It updates the sidebar navigation automatically.</p>
 
         <h3>Pull</h3>
         <div class="code-block"><pre><code>git pull</code></pre></div>
@@ -211,6 +232,7 @@
           <div class="card"><div class="card-icon purple"><i class="ph ph-link"></i></div><h4>Check Links</h4><p>Verify all internal links work.</p></div>
           <div class="card"><div class="card-icon blue"><i class="ph ph-text-aa"></i></div><h4>Consistent Filenames</h4><p>Use <code>lecture-XX.html</code> format.</p></div>
           <div class="card"><div class="card-icon green"><i class="ph ph-git-commit"></i></div><h4>Meaningful Commit Messages</h4><p>Describe what you added.</p></div>
+          <div class="card"><div class="card-icon purple"><i class="ph ph-gear"></i></div><h4>Regenerate Config After Changes</h4><p>Run <code>node scripts\generate-config.js</code> after adding or renaming files.</p></div>
         </div>
       </section>
 
@@ -220,6 +242,7 @@
         <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Wrong folder</strong> &mdash; Double-check subject and week.</p></div>
         <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Incorrect filename</strong> &mdash; Use <code>lecture-01.html</code> consistently.</p></div>
         <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Broken HTML</strong> &mdash; Preview in browser before committing.</p></div>
+        <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Forgot to regenerate config</strong> &mdash; New files won't appear in the portal sidebar. Run <code>node scripts\generate-config.js</code>.</p></div>
         <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Forgetting git push</strong> &mdash; Commit is not enough; push changes.</p></div>
         <div class="callout danger"><i class="ph ph-x-circle"></i><p><strong>Accidentally deleting files</strong> &mdash; Be careful when cleaning up.</p></div>
       </section>
@@ -234,6 +257,7 @@
           <li><input type="checkbox"> HTML copied</li>
           <li><input type="checkbox"> Correct folder used</li>
           <li><input type="checkbox"> Tested locally</li>
+          <li><input type="checkbox"> Config regenerated (<code>node scripts\generate-config.js</code>)</li>
           <li><input type="checkbox"> Git pull completed</li>
           <li><input type="checkbox"> Git add completed</li>
           <li><input type="checkbox"> Commit completed</li>

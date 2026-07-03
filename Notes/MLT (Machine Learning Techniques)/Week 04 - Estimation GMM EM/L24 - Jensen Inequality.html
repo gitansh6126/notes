@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convexity, Concavity &amp; Jensen's Inequality — Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      radial-gradient(circle at 10% 110%, rgba(51,65,142,0.22), transparent 50%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px; pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#d9b872; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{
+    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
+    font-size:clamp(30px, 5vw, 48px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pill{
+    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
+    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  }
+
+  /* ---------- SCAFFOLD ---------- */
+  main{ padding:54px 0 90px; }
+  section.chapter{ margin-bottom:64px; }
+  section.chapter:last-of-type{ margin-bottom:0; }
+  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
+  .chapter-num{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  }
+  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 24px;
+  }
+  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
+  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+
+  /* ---------- MATH CARD ---------- */
+  .math-card{
+    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:24px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
+  }
+  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
+  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:17px; color:#dbe0ef; white-space:nowrap; }
+  .math-card .expr .hi{ color:#d9b872; }
+  .math-card .expr .hi2{ color:#7fc4b0; }
+  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
+
+  /* ---------- MINI STATIC DIAGRAMS (special cases) ---------- */
+  .mini-diagram{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:16px 16px 12px; text-align:center;
+  }
+  .mini-diagram svg{ width:100%; height:auto; display:block; }
+  .mini-diagram .mini-title{ font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600; margin-top:8px; }
+  .mini-diagram .mini-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
+  .callout .icon{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
+  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+  .callout.info b{ color:var(--indigo); }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.warn b{ color:var(--rust); }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.good b{ color:var(--teal); }
+
+  /* ---------- SIGNATURE: CONVEXITY EXPLORER ---------- */
+  .explorer-wrap{
+    background:linear-gradient(180deg, #1b2030, #12151f);
+    border-radius:18px; padding:26px 24px 24px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .explorer-wrap::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 10% 0%, rgba(181,135,42,0.14), transparent 50%),
+                radial-gradient(circle at 95% 100%, rgba(51,65,142,0.22), transparent 50%);
+    pointer-events:none;
+  }
+  .explorer-top{
+    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+    position:relative; z-index:1; margin-bottom:14px;
+  }
+  .explorer-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#8891a8;
+  }
+  .mode-toggle{
+    display:flex; background:#0d0f17; border:1px solid #2a3046; border-radius:9px; padding:3px; gap:3px;
+  }
+  .mode-btn{
+    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
+    background:none; border:none; color:#8891a8; padding:8px 14px; border-radius:6px; cursor:pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .mode-btn.active{ background:#d9b872; color:#1b1607; }
+
+  .explorer-plot{ position:relative; z-index:1; background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:10px; }
+  .explorer-plot svg{ width:100%; height:auto; display:block; }
+
+  .explorer-controls{ position:relative; z-index:1; margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .explorer-controls input[type=range]{ flex:1; min-width:160px; accent-color:#d9b872; }
+  .explorer-controls .lam-val{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#c2c6d6; min-width:96px; }
+
+  .explorer-readout{
+    position:relative; z-index:1; margin-top:16px;
+    background:#0d0f17; border:1px solid #2a3046; border-radius:10px; padding:14px 18px;
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px;
+  }
+  .explorer-readout .r-item{ color:#8891a8; }
+  .explorer-readout .r-item b{ display:block; font-size:14.5px; margin-top:2px; }
+  .explorer-readout .r-item.curve b{ color:#7fc4b0; }
+  .explorer-readout .r-item.chord b{ color:#d9b872; }
+  .explorer-readout .r-item.ineq b{ color:#f2f3f8; }
+
+  .legend{ display:flex; gap:16px; justify-content:center; margin-top:14px; flex-wrap:wrap; position:relative; z-index:1; }
+  .legend .item{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#c2c6d6; }
+  .legend .dot{ width:9px; height:9px; border-radius:50%; }
+  .legend .dash{ width:16px; height:0; border-top:2px dashed #4a5270; }
+
+  /* ---------- TABLE ---------- */
+  table.spec{
+    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  }
+  table.spec th{
+    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  }
+  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
+
+  /* ---------- CODE BLOCK ---------- */
+  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
+  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
+  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
+  .codeblock .c-comment{ color:#7d859c; }
+  .codeblock .c-kw{ color:#e2a25c; }
+  .codeblock .c-fn{ color:#7fb0e8; }
+  .codeblock .c-num{ color:#d9b872; }
+
+  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+
+  @media (max-width: 720px){
+    .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .hero{ padding:48px 0 40px; }
+    .chapter-head h2{ font-size:22px; }
+    .explorer-readout{ flex-direction:column; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+    <h1>Convexity, concavity &amp;<br><em>Jensen's</em> inequality</h1>
+    <p class="lede">Last time, the log-likelihood of a GMM got stuck behind a sum trapped inside a logarithm. The fix starts with a simple geometric fact about curves and the straight lines drawn between their points.</p>
+    <div class="hero-meta">
+      <span class="pill">§1 Convex functions</span>
+      <span class="pill">§2 Concave functions</span>
+      <span class="pill">§3 Special cases</span>
+      <span class="pill">§4 Jensen's inequality</span>
+      <span class="pill">§5 Back to GMMs</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SECTION 1 + 2 + EXPLORER -->
+  <section class="chapter" id="s1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>Convex vs. concave</h2>
+    </div>
+    <p class="chapter-intro">Pick any two points <span class="mono">a</span> and <span class="mono">b</span> on a curve, and draw the straight chord between them. Where that chord sits, relative to the curve, is the entire definition.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="color:var(--teal);">Convex</h3>
+        <p>The chord lies <b>on or above</b> the curve. Like a bowl: interpolating between two points never underestimates how low the function actually dips.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--gold-deep);">Concave</h3>
+        <p>The chord lies <b>on or below</b> the curve. Like a dome: interpolating between two points never overestimates the peak.</p>
+      </div>
+    </div>
+
+    <div class="math-card" style="margin-top:16px;">
+      <div class="math-label">convex</div>
+      <div class="expr">f(λa + (1−λ)b) <span class="hi2">≤</span> λf(a) + (1−λ)f(b)</div>
+    </div>
+    <div class="math-card">
+      <div class="math-label">concave</div>
+      <div class="expr">f(λa + (1−λ)b) <span class="hi">≥</span> λf(a) + (1−λ)f(b)</div>
+      <div class="sub">for any λ ∈ [0, 1]</div>
+    </div>
+
+    <!-- SIGNATURE INTERACTIVE: convexity explorer -->
+    <div class="explorer-wrap">
+      <div class="explorer-top">
+        <span class="explorer-label">// drag λ, watch the gap</span>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnConvex" onclick="setMode('convex')">convex · x²</button>
+          <button class="mode-btn" id="btnConcave" onclick="setMode('concave')">concave · log(x)</button>
+        </div>
+      </div>
+
+      <div class="explorer-plot">
+        <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" id="plotSvg">
+          <path id="curvePath" fill="none" stroke-width="2.5" />
+          <line id="chordLine" stroke="#d9b872" stroke-width="2" stroke-dasharray="1 0" />
+          <line id="dropLine" stroke="#4a5270" stroke-width="1.5" stroke-dasharray="4 4" />
+          <circle id="ptA" r="4.5" fill="#c2c6d6" />
+          <circle id="ptB" r="4.5" fill="#c2c6d6" />
+          <circle id="ptChord" r="6.5" fill="#d9b872" stroke="#12151f" stroke-width="1.5" />
+          <circle id="ptCurve" r="6.5" fill="#7fc4b0" stroke="#12151f" stroke-width="1.5" />
+          <text id="labelA" font-family="JetBrains Mono, monospace" font-size="12" fill="#8891a8">a</text>
+          <text id="labelB" font-family="JetBrains Mono, monospace" font-size="12" fill="#8891a8">b</text>
+        </svg>
+      </div>
+
+      <div class="legend">
+        <div class="item"><span class="dot" style="background:#7fc4b0;"></span>f(λa+(1−λ)b) — on the curve</div>
+        <div class="item"><span class="dot" style="background:#d9b872;"></span>λf(a)+(1−λ)f(b) — on the chord</div>
+        <div class="item"><span class="dash"></span>the gap Jensen's inequality bounds</div>
+      </div>
+
+      <div class="explorer-controls">
+        <span class="lam-val" id="lamLabel">λ = 0.50</span>
+        <input type="range" id="lamSlider" min="0" max="100" value="50" oninput="onSlide(this.value)">
+      </div>
+
+      <div class="explorer-readout">
+        <div class="r-item curve">on curve<b id="curveVal">—</b></div>
+        <div class="r-item chord">on chord<b id="chordVal">—</b></div>
+        <div class="r-item ineq">relation<b id="ineqVal">—</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="chapter" id="s3">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>Special cases</h2>
+    </div>
+    <p class="chapter-intro">Two edge cases round out the picture: what happens when the inequality collapses to equality, and what happens when curvature isn't consistent at all.</p>
+
+    <div class="grid-2">
+      <div class="mini-diagram">
+        <svg viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="110" x2="280" y2="30" stroke="#33418e" stroke-width="3"/>
+          <circle cx="70" cy="97" r="4" fill="#8890a3"/>
+          <circle cx="230" cy="43" r="4" fill="#8890a3"/>
+        </svg>
+        <div class="mini-title" style="color:var(--indigo);">Linear — both at once</div>
+        <div class="mini-sub">Chord and curve coincide: f(λa+(1−λ)b) = λf(a)+(1−λ)f(b)</div>
+      </div>
+      <div class="mini-diagram">
+        <svg viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20,80 C70,20 110,130 160,60 C210,10 250,110 280,70" fill="none" stroke="#a8482a" stroke-width="2.5"/>
+          <line x1="45" y1="63" x2="255" y2="82" stroke="#8890a3" stroke-width="2" stroke-dasharray="4 3"/>
+          <circle cx="45" cy="63" r="4" fill="#8890a3"/>
+          <circle cx="255" cy="82" r="4" fill="#8890a3"/>
+        </svg>
+        <div class="mini-title" style="color:var(--rust);">Neither — curvature flips</div>
+        <div class="mini-sub">An oscillating curve crosses its own chords, so no global inequality holds</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="chapter" id="s4">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>Jensen's inequality</h2>
+    </div>
+    <p class="chapter-intro">Convexity and concavity were defined for two points. Jensen's inequality is the same idea stretched to any number of points <span class="mono">a₁, …, a_K</span>, weighted by <span class="mono">λ₁, …, λ_K</span> that sum to 1.</p>
+
+    <div class="math-card">
+      <div class="math-label">jensen's inequality — concave f</div>
+      <div class="expr">f( <span class="hi">Σᵢ λᵢ aᵢ</span> ) ≥ <span class="hi2">Σᵢ λᵢ f(aᵢ)</span></div>
+      <div class="sub">Σ λᵢ = 1, λᵢ ≥ 0 — the same "chord below the curve" idea, for K points at once</div>
+    </div>
+
+    <div class="card">
+      <h3>Convex hull, in one line</h3>
+      <p><span class="mono">Σᵢ λᵢ aᵢ</span> is just a weighted average — geometrically, it's guaranteed to land inside the convex hull of <span class="mono">a₁, …, a_K</span>. Jensen's inequality compares the function's value <i>there</i> to the weighted average of the function's values <i>at each point individually</i>.</p>
+    </div>
+
+    <table class="spec" style="margin-top:16px;">
+      <thead><tr><th>Function type</th><th>Two-point form</th><th>K-point (Jensen) form</th></tr></thead>
+      <tbody>
+        <tr><td><b>Convex</b></td><td class="formula">f(λa+(1−λ)b) ≤ λf(a)+(1−λ)f(b)</td><td class="formula">f(Σλᵢaᵢ) ≤ Σλᵢf(aᵢ)</td></tr>
+        <tr><td><b>Concave</b></td><td class="formula">f(λa+(1−λ)b) ≥ λf(a)+(1−λ)f(b)</td><td class="formula">f(Σλᵢaᵢ) ≥ Σλᵢf(aᵢ)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="chapter" id="s5">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Back to the GMM bottleneck</h2>
+    </div>
+    <p class="chapter-intro">The log function is concave. That single fact is the key that unlocks the log-sum problem from last lecture.</p>
+
+    <div class="codeblock">
+      <div class="filename">why_log_is_concave_matters.txt</div>
+      <pre><span class="c-comment">// last lecture, we got stuck here:</span>
+log( Σₖ πₖ · 𝒩(x_i | μₖ, σₖ²) )
+
+<span class="c-comment">// log is concave, and πₖ are weights that sum to 1 —</span>
+<span class="c-comment">// exactly the setup Jensen's inequality needs:</span>
+log( Σₖ πₖ · 𝒩ₖ ) <span class="c-num">≥</span> Σₖ πₖ · log( 𝒩ₖ )
+
+<span class="c-comment">// the sum has moved OUTSIDE the log</span></pre>
+    </div>
+
+    <div class="callout good" style="margin-top:18px;">
+      <div class="icon">✓</div>
+      <div class="body">
+        <b>Why a lower bound is enough</b>
+        <p>We don't get equality — but we get a tractable <b>lower bound</b> on the log-likelihood that we <i>can</i> differentiate cleanly. Maximizing that bound, instead of the true log-likelihood directly, is the core idea behind the algorithm we cover next.</p>
+      </div>
+    </div>
+    <div class="callout info">
+      <div class="icon">→</div>
+      <div class="body">
+        <b>Next lecture</b>
+        <p>We'll formalize this bound and turn it into an iterative procedure — the Expectation-Maximization (EM) algorithm.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>CONVEXITY, CONCAVITY &amp; JENSEN'S INEQUALITY · LECTURE NOTES</p>
+</footer>
+
+<script>
+  // ---- plot geometry ----
+  const X0 = 60, X1 = 640, Y0 = 250, Y1 = 40; // plot box in svg coords (Y inverted)
+  const domain = { min: 0.6, max: 5.8 };
+  const A = 1.3, B = 5.1;
+
+  const fns = {
+    convex: {
+      f: x => 0.16*(x-3)*(x-3) + 0.4,
+      color: '#7fc4b0',
+      symbol: '≤',
+      title: 'x²-type (convex)'
+    },
+    concave: {
+      f: x => 1.25*Math.log(x),
+      color: '#7fc4b0',
+      symbol: '≥',
+      title: 'log(x) (concave)'
+    }
+  };
+
+  let mode = 'convex';
+  let lambda = 0.5;
+  let yMin, yMax;
+
+  function toSvgX(x){ return X0 + (x - domain.min)/(domain.max - domain.min) * (X1 - X0); }
+  function toSvgY(y){ return Y0 - (y - yMin)/(yMax - yMin) * (Y0 - Y1); }
+
+  function computeRange(f){
+    let mn = Infinity, mx = -Infinity;
+    for(let i=0;i<=80;i++){
+      const x = domain.min + (domain.max-domain.min)*i/80;
+      const y = f(x);
+      mn = Math.min(mn,y); mx = Math.max(mx,y);
+    }
+    const pad = (mx-mn)*0.12;
+    yMin = mn - pad; yMax = mx + pad;
+  }
+
+  function drawCurve(f){
+    let d = '';
+    for(let i=0;i<=80;i++){
+      const x = domain.min + (domain.max-domain.min)*i/80;
+      const y = f(x);
+      const sx = toSvgX(x), sy = toSvgY(y);
+      d += (i===0 ? 'M' : 'L') + sx.toFixed(1) + ',' + sy.toFixed(1) + ' ';
+    }
+    document.getElementById('curvePath').setAttribute('d', d);
+  }
+
+  function render(){
+    const cfg = fns[mode];
+    computeRange(cfg.f);
+    drawCurve(cfg.f);
+    document.getElementById('curvePath').setAttribute('stroke', cfg.color);
+
+    const fa = cfg.f(A), fb = cfg.f(B);
+    const axA = toSvgX(A), ayA = toSvgY(fa);
+    const axB = toSvgX(B), ayB = toSvgY(fb);
+    document.getElementById('ptA').setAttribute('cx', axA);
+    document.getElementById('ptA').setAttribute('cy', ayA);
+    document.getElementById('ptB').setAttribute('cx', axB);
+    document.getElementById('ptB').setAttribute('cy', ayB);
+    document.getElementById('labelA').setAttribute('x', axA - 6);
+    document.getElementById('labelA').setAttribute('y', ayA + 20);
+    document.getElementById('labelB').setAttribute('x', axB - 6);
+    document.getElementById('labelB').setAttribute('y', ayB - 12);
+
+    const chordLine = document.getElementById('chordLine');
+    chordLine.setAttribute('x1', axA); chordLine.setAttribute('y1', ayA);
+    chordLine.setAttribute('x2', axB); chordLine.setAttribute('y2', ayB);
+
+    updateMarkers();
+  }
+
+  function updateMarkers(){
+    const cfg = fns[mode];
+    const x = lambda*A + (1-lambda)*B;
+    const curveY = cfg.f(x);
+    const chordY = lambda*cfg.f(A) + (1-lambda)*cfg.f(B);
+
+    const sx = toSvgX(x);
+    const scy = toSvgY(curveY);
+    const sch = toSvgY(chordY);
+
+    document.getElementById('ptCurve').setAttribute('cx', sx);
+    document.getElementById('ptCurve').setAttribute('cy', scy);
+    document.getElementById('ptChord').setAttribute('cx', sx);
+    document.getElementById('ptChord').setAttribute('cy', sch);
+
+    const dropLine = document.getElementById('dropLine');
+    dropLine.setAttribute('x1', sx); dropLine.setAttribute('y1', scy);
+    dropLine.setAttribute('x2', sx); dropLine.setAttribute('y2', sch);
+
+    document.getElementById('lamLabel').textContent = 'λ = ' + lambda.toFixed(2);
+    document.getElementById('curveVal').textContent = curveY.toFixed(3);
+    document.getElementById('chordVal').textContent = chordY.toFixed(3);
+
+    const symbol = curveY >= chordY ? '≥' : '≤';
+    document.getElementById('ineqVal').textContent = 'curve ' + symbol + ' chord';
+  }
+
+  function onSlide(v){
+    lambda = v/100;
+    updateMarkers();
+  }
+
+  function setMode(m){
+    mode = m;
+    document.getElementById('btnConvex').classList.toggle('active', m==='convex');
+    document.getElementById('btnConcave').classList.toggle('active', m==='concave');
+    render();
+  }
+
+  render();
+</script>
+
+</body>
+</html>
