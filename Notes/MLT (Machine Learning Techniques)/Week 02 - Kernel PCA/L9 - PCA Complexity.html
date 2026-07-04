@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time-Complexity Issues with PCA — Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
+  }
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      radial-gradient(circle at 10% 110%, rgba(168,72,42,0.16), transparent 50%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px; pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:#d9b872; margin-bottom:22px;
+  }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{
+    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
+    font-size:clamp(30px, 5vw, 48px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
+  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
+  .pill{
+    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
+    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  }
+
+  /* ---------- SCAFFOLD ---------- */
+  main{ padding:54px 0 90px; }
+  section.chapter{ margin-bottom:64px; }
+  section.chapter:last-of-type{ margin-bottom:0; }
+  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
+  .chapter-num{
+    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
+    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  }
+  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
+  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:22px 24px;
+  }
+  .card + .card{ margin-top:16px; }
+  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
+  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+
+  /* analogy card variant */
+  .card.analogy{
+    background:linear-gradient(180deg, #fffdf8, #ffffff);
+    border-color:#e3cf9b;
+  }
+  .card.analogy .a-tag{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--gold-deep); background:var(--gold-soft); padding:3px 9px; border-radius:100px; margin-bottom:10px; display:inline-block;
+  }
+
+  /* ---------- MATH CARD ---------- */
+  .math-card{
+    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:24px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
+  }
+  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
+  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:17px; color:#dbe0ef; white-space:nowrap; }
+  .math-card .expr .hi{ color:#d9b872; }
+  .math-card .expr .hi2{ color:#7fc4b0; }
+  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
+
+  /* ---------- MATRIX SIZE COMPARISON ---------- */
+  .matrix-compare{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:28px 24px; margin-bottom:16px;
+    display:flex; align-items:flex-end; justify-content:center; gap:36px; flex-wrap:wrap;
+  }
+  .matrix-block{ text-align:center; }
+  .matrix-square{
+    background:linear-gradient(160deg, var(--rust-soft), #fff);
+    border:2px solid var(--rust);
+    border-radius:8px;
+    margin:0 auto 10px;
+  }
+  .matrix-square.small{ background:linear-gradient(160deg, var(--teal-soft), #fff); border-color:var(--teal); }
+  .matrix-label{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600; }
+  .matrix-sub{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); margin-top:2px; }
+
+  /* ---------- COMBINATION DIAGRAM ---------- */
+  .combo-diagram{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:26px 22px; margin-bottom:16px;
+  }
+  .combo-row{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+  .combo-chip{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:600;
+    background:var(--indigo-soft); color:var(--indigo); padding:9px 13px; border-radius:9px;
+  }
+  .combo-plus{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-size:14px; }
+  .combo-eq{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-size:16px; margin:0 6px; }
+  .combo-result{
+    font-family:'JetBrains Mono', monospace; font-size:13.5px; font-weight:700;
+    background:var(--gold-soft); color:var(--gold-deep); padding:9px 16px; border-radius:9px;
+  }
+  .combo-caption{ text-align:center; margin-top:18px; font-size:13.5px; color:var(--ink-soft); }
+
+  /* ---------- STEP CARDS ---------- */
+  .steps{ display:flex; flex-direction:column; gap:12px; }
+  .step-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:18px 22px; display:flex; gap:16px; align-items:flex-start;
+  }
+  .step-card .step-num{
+    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:#fff;
+    background:var(--ink); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; margin-top:2px;
+  }
+  .step-card h3{ font-family:'Fraunces', serif; font-size:16px; margin:0 0 4px; }
+  .step-card p{ margin:0; font-size:14px; color:var(--ink-soft); }
+  .step-card .step-formula{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--indigo);
+    background:var(--indigo-soft); border-radius:7px; padding:5px 10px; display:inline-block; margin-top:8px;
+  }
+
+  /* ---------- CALLOUT ---------- */
+  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
+  .callout .icon{
+    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
+    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
+  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+  .callout.info b{ color:var(--indigo); }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.warn b{ color:var(--rust); }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.good b{ color:var(--teal); }
+
+  /* ---------- SIGNATURE: COMPLEXITY CALCULATOR ---------- */
+  .calc-wrap{
+    background:linear-gradient(180deg, #1b2030, #12151f);
+    border-radius:18px; padding:28px 26px 26px; box-shadow:var(--shadow);
+    position:relative; overflow:hidden;
+  }
+  .calc-wrap::before{
+    content:""; position:absolute; inset:0;
+    background: radial-gradient(circle at 10% 0%, rgba(168,72,42,0.16), transparent 50%),
+                radial-gradient(circle at 95% 100%, rgba(44,107,93,0.18), transparent 50%);
+    pointer-events:none;
+  }
+  .calc-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
+    color:#8891a8; text-align:center; margin-bottom:20px; position:relative; z-index:1;
+  }
+  .calc-sliders{ position:relative; z-index:1; display:flex; flex-direction:column; gap:16px; margin-bottom:22px; }
+  .calc-slider-row{ display:flex; align-items:center; gap:14px; }
+  .calc-slider-row label{
+    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#c2c6d6; width:150px; flex-shrink:0;
+  }
+  .calc-slider-row label b{ color:#f2f3f8; }
+  .calc-slider-row input[type=range]{ flex:1; accent-color:#d9b872; }
+  .calc-slider-row .val{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#d9b872; width:70px; text-align:right; flex-shrink:0; }
+
+  .calc-bars{
+    position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:center; gap:60px;
+    height:180px; background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:16px; margin-bottom:16px;
+  }
+  .calc-bar-group{ text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; }
+  .calc-bar{
+    width:64px; border-radius:6px 6px 0 0; transition: height 0.25s ease;
+    display:flex; align-items:flex-start; justify-content:center; padding-top:6px;
+  }
+  .calc-bar.dcube{ background:linear-gradient(180deg, #d98a6c, #a8482a); }
+  .calc-bar.ncube{ background:linear-gradient(180deg, #7fc4b0, #2c6b5d); }
+  .calc-bar span{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#12151f; font-weight:700; }
+  .calc-bar-caption{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#8891a8; margin-top:8px; }
+
+  .calc-readout{
+    position:relative; z-index:1;
+    background:#0d0f17; border:1px solid #2a3046; border-radius:10px; padding:14px 18px;
+    text-align:center; font-family:'JetBrains Mono', monospace; font-size:13.5px; color:#f2f3f8;
+  }
+  .calc-readout b{ color:#d9b872; }
+
+  /* ---------- TABLE ---------- */
+  table.spec{
+    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  }
+  table.spec th{
+    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
+    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  }
+  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
+
+  /* ---------- CODE BLOCK ---------- */
+  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
+  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
+  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
+  .codeblock .c-comment{ color:#7d859c; }
+  .codeblock .c-kw{ color:#e2a25c; }
+  .codeblock .c-fn{ color:#7fb0e8; }
+  .codeblock .c-num{ color:#d9b872; }
+
+  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+
+  @media (max-width: 720px){
+    .grid-3, .grid-2{ grid-template-columns:1fr; }
+    .hero{ padding:48px 0 40px; }
+    .chapter-head h2{ font-size:22px; }
+    .matrix-compare{ gap:20px; }
+    .calc-bars{ gap:28px; }
+    .calc-slider-row label{ width:110px; font-size:11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+    <h1>PCA's hidden cost:<br>when <em>features</em> outnumber <em>data</em></h1>
+    <p class="lede">PCA's textbook recipe quietly assumes you can afford to decompose a d×d matrix. The moment your features (d) vastly outnumber your data points (n) — genomics, images, text — that assumption becomes the whole bottleneck.</p>
+    <div class="hero-meta">
+      <span class="pill">§1 The bottleneck</span>
+      <span class="pill">§2 The key trick</span>
+      <span class="pill">§3 The algorithm</span>
+      <span class="pill">§4 Feel the speedup</span>
+      <span class="pill">§5 Toward kernels</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- SECTION 1 -->
+  <section class="chapter" id="s1">
+    <div class="chapter-head">
+      <span class="chapter-num">01</span>
+      <h2>The bottleneck: a matrix too big to decompose</h2>
+    </div>
+    <p class="chapter-intro">PCA finds principal components by eigen-decomposing the <b>covariance matrix</b> of the data. That matrix's size is dictated entirely by the number of features — not the number of data points.</p>
+
+    <div class="card analogy">
+      <span class="a-tag">Real-life analogy</span>
+      <p>Imagine describing 5 people using 20,000 medical measurements each (blood markers, genetic variants, scan readings). You'd build a giant 20,000 × 20,000 "how do these measurements relate to each other" matrix — but there are only 5 people's worth of actual information in the room. Most of that giant matrix is structurally redundant before you even start solving it.</p>
+    </div>
+
+    <div class="math-card">
+      <div class="math-label">the covariance matrix</div>
+      <div class="expr">C = <span class="hi">(1/n)</span> X X<sup>T</sup> &nbsp;&nbsp; — &nbsp; X is d × n, so C is <span class="hi2">d × d</span></div>
+    </div>
+
+    <div class="matrix-compare">
+      <div class="matrix-block">
+        <div class="matrix-square" style="width:160px; height:160px;"></div>
+        <div class="matrix-label" style="color:var(--rust);">C — d × d</div>
+        <div class="matrix-sub">eigen-decomposition: O(d³)</div>
+      </div>
+      <div class="matrix-block">
+        <div class="matrix-square small" style="width:52px; height:52px;"></div>
+        <div class="matrix-label" style="color:var(--teal);">K — n × n</div>
+        <div class="matrix-sub">the size we'd rather work with</div>
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">!</div>
+      <div class="body">
+        <b>Why this hurts</b>
+        <p>Eigenvalue decomposition of a d×d matrix costs <span class="mono">O(d³)</span>. With <span class="mono">d</span> in the tens of thousands — genes, pixels, vocabulary words — this becomes computationally impossible long before it becomes merely slow.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="chapter" id="s2">
+    <div class="chapter-head">
+      <span class="chapter-num">02</span>
+      <h2>The key trick: recycle the data itself</h2>
+    </div>
+    <p class="chapter-intro">The escape route relies on one elegant fact: every principal direction we're searching for is secretly already buildable from the data points we have.</p>
+
+    <div class="card analogy">
+      <span class="a-tag">Real-life analogy</span>
+      <p>Think of mixing paint. You don't need to invent a brand-new pigment to get a new principal direction — you just need to blend the paint samples (data points) you already own, in different proportions. With only <span class="mono">n</span> samples, there are only <span class="mono">n</span> independent ways to blend, no matter how many color channels (features) each sample has.</p>
+    </div>
+
+    <div class="combo-diagram">
+      <div class="combo-row">
+        <span class="combo-chip">α₁ · x₁</span>
+        <span class="combo-plus">+</span>
+        <span class="combo-chip">α₂ · x₂</span>
+        <span class="combo-plus">+</span>
+        <span class="combo-chip">…</span>
+        <span class="combo-plus">+</span>
+        <span class="combo-chip">α_n · x_n</span>
+        <span class="combo-eq">=</span>
+        <span class="combo-result">w_k</span>
+      </div>
+      <p class="combo-caption">Every eigenvector <b>w_k</b> of the covariance matrix is just a weighted combination of the <b>n</b> data points — written compactly as <span class="mono">w_k = Xα_k</span>, with <span class="mono">α_k ∈ ℝⁿ</span>.</p>
+    </div>
+
+    <div class="math-card">
+      <div class="math-label">substituting into the eigenvalue equation</div>
+      <div class="expr">C w_k = λ_k w_k &nbsp;&nbsp;→&nbsp;&nbsp; <span class="hi">K</span> α_k = (n λ_k) α_k</div>
+      <div class="sub">where K = X<sup>T</sup>X &nbsp;is only n × n</div>
+    </div>
+
+    <div class="callout good">
+      <div class="icon">✓</div>
+      <div class="body">
+        <b>The payoff</b>
+        <p>We've traded a d × d eigen-problem for an equivalent n × n one. When <span class="mono">d ≫ n</span>, that's the difference between "impossible" and "instant."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="chapter" id="s3">
+    <div class="chapter-head">
+      <span class="chapter-num">03</span>
+      <h2>The algorithm</h2>
+    </div>
+    <p class="chapter-intro">Four steps take you from raw data to the same principal components PCA would have found the expensive way.</p>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Compute K</h3>
+          <p>Build the n × n matrix <span class="mono">K = XᵀX</span> instead of the d × d covariance matrix.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Eigen-decompose K</h3>
+          <p>Find K's eigenvectors <span class="mono">β_k</span> and eigenvalues <span class="mono">λ̃_k</span> — an O(n³) operation.</p>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Normalize</h3>
+          <p>K's eigenvectors aren't quite the α_k we need — rescale them.</p>
+          <span class="step-formula">α_k = β_k / √(n λ_k)</span>
+        </div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <div>
+          <h3>Reconstruct</h3>
+          <p>Map back to the original feature space to recover the actual principal components.</p>
+          <span class="step-formula">w_k = X α_k</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px;">
+      <div class="icon">i</div>
+      <div class="body">
+        <b>Why this is valid</b>
+        <p>A standard linear-algebra fact underwrites the whole trick: <span class="mono">XXᵀ</span> and <span class="mono">XᵀX</span> share the same non-zero eigenvalues. We never lose any real structure — we just choose to compute it in whichever matrix is smaller.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="chapter" id="s4">
+    <div class="chapter-head">
+      <span class="chapter-num">04</span>
+      <h2>Feel the speedup</h2>
+    </div>
+    <p class="chapter-intro">Numbers make this concrete faster than algebra does. Drag <span class="mono">d</span> and <span class="mono">n</span> below and watch the two costs diverge — try d = 20,000 genes measured across n = 200 patients, a real genomics scenario.</p>
+
+    <div class="calc-wrap">
+      <div class="calc-label">// O(d³) vs O(n³), live</div>
+
+      <div class="calc-sliders">
+        <div class="calc-slider-row">
+          <label>features <b>d</b></label>
+          <input type="range" id="dSlider" min="10" max="20000" value="20000" step="10" oninput="updateCalc()">
+          <span class="val" id="dVal">20,000</span>
+        </div>
+        <div class="calc-slider-row">
+          <label>data points <b>n</b></label>
+          <input type="range" id="nSlider" min="5" max="2000" value="200" step="5" oninput="updateCalc()">
+          <span class="val" id="nVal">200</span>
+        </div>
+      </div>
+
+      <div class="calc-bars">
+        <div class="calc-bar-group">
+          <div class="calc-bar dcube" id="dBar" style="height:170px;"></div>
+          <div class="calc-bar-caption">O(d³)</div>
+        </div>
+        <div class="calc-bar-group">
+          <div class="calc-bar ncube" id="nBar" style="height:6px;"></div>
+          <div class="calc-bar-caption">O(n³)</div>
+        </div>
+      </div>
+
+      <div class="calc-readout" id="calcReadout">
+        d³ ≈ <b id="dCubeVal">—</b> operations &nbsp;·&nbsp; n³ ≈ <b id="nCubeVal">—</b> operations &nbsp;·&nbsp; speedup <b id="speedupVal">—</b>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="chapter" id="s5">
+    <div class="chapter-head">
+      <span class="chapter-num">05</span>
+      <h2>One more observation — the door to Kernel PCA</h2>
+    </div>
+    <p class="chapter-intro">Look closely at what <span class="mono">K = XᵀX</span> actually contains: entry <span class="mono">(i, j)</span> is <span class="mono">xᵢᵀxⱼ</span> — the dot product between data points <span class="mono">i</span> and <span class="mono">j</span>.</p>
+
+    <div class="card analogy">
+      <span class="a-tag">Real-life analogy</span>
+      <p>It's like judging how similar two songs are just by how they make you feel side by side, rather than comparing every individual audio frequency in each track. K is nothing but a table of pairwise similarities between data points — PCA never actually needs the raw high-dimensional features themselves, only how each point relates to every other point.</p>
+    </div>
+
+    <div class="codeblock">
+      <div class="filename">why_this_matters.txt</div>
+      <pre><span class="c-comment">// K only ever needs pairwise dot products:</span>
+K[i][j] = x_i . x_j
+
+<span class="c-comment">// swap the dot product for any valid "similarity" function,</span>
+<span class="c-comment">// and the whole algorithm still works — even for data where</span>
+<span class="c-comment">// no straight-line relationship exists at all</span>
+K[i][j] = kernel(x_i, x_j)</pre>
+    </div>
+
+    <div class="callout good">
+      <div class="icon">→</div>
+      <div class="body">
+        <b>This is the seed of Kernel PCA</b>
+        <p>Once PCA is rewritten purely in terms of pairwise similarities, replacing the dot product with a kernel function lets PCA uncover non-linear structure — without ever explicitly building the giant feature vectors.</p>
+      </div>
+    </div>
+
+    <table class="spec" style="margin-top:16px;">
+      <thead><tr><th>Setting</th><th>Features (d)</th><th>Data points (n)</th><th>Why this trick is essential</th></tr></thead>
+      <tbody>
+        <tr><td><b>Genomics</b></td><td>~20,000 genes</td><td>~200 patients</td><td>d/n ratio of 100:1 — the d×d matrix is never feasible</td></tr>
+        <tr><td><b>Text mining</b></td><td>~50,000 vocabulary terms</td><td>~1,000 documents</td><td>Sparse, huge feature space per document</td></tr>
+        <tr><td><b>Small-sample imaging</b></td><td>~1,000,000 pixels</td><td>~50 images</td><td>Extreme d≫n; only the n×n route is tractable</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<footer>
+  <p>TIME-COMPLEXITY ISSUES WITH PCA · LECTURE NOTES</p>
+</footer>
+
+<script>
+  function formatNum(n){
+    if(n >= 1e9) return (n/1e9).toFixed(2) + 'B';
+    if(n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if(n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+    return Math.round(n).toString();
+  }
+
+  function updateCalc(){
+    const d = parseInt(document.getElementById('dSlider').value);
+    const n = parseInt(document.getElementById('nSlider').value);
+    document.getElementById('dVal').textContent = d.toLocaleString();
+    document.getElementById('nVal').textContent = n.toLocaleString();
+
+    const dCube = Math.pow(d,3);
+    const nCube = Math.pow(n,3);
+
+    document.getElementById('dCubeVal').textContent = formatNum(dCube);
+    document.getElementById('nCubeVal').textContent = formatNum(nCube);
+
+    const speedup = dCube / nCube;
+    document.getElementById('speedupVal').textContent = speedup >= 1
+      ? (speedup >= 1000 ? formatNum(speedup) + '×' : speedup.toFixed(1) + '×')
+      : (1/speedup).toFixed(1) + '× slower';
+
+    // bar heights on a log scale, capped at 170px
+    const maxH = 170, minH = 4;
+    const logD = Math.log10(dCube + 1);
+    const logN = Math.log10(nCube + 1);
+    const maxLog = Math.max(logD, logN, 1);
+
+    document.getElementById('dBar').style.height = Math.max(minH, (logD/maxLog)*maxH) + 'px';
+    document.getElementById('nBar').style.height = Math.max(minH, (logN/maxLog)*maxH) + 'px';
+  }
+
+  updateCalc();
+</script>
+
+</body>
+</html>

@@ -76,9 +76,10 @@
           </div>
         </div>
         <div class="header-right">
-          <button class="icon-btn" id="searchToggle" aria-label="Search notes" title="Search (Ctrl+K)">
+          <div class="header-search" id="headerSearch">
             <i class="ph ph-magnifying-glass"></i>
-          </button>
+            <input type="text" class="header-search-input" id="searchInput" placeholder="Search..." autocomplete="off">
+          </div>
           <button class="icon-btn" id="prevLectureBtn" aria-label="Previous Lecture" title="Previous Lecture">
             <i class="ph ph-arrow-left"></i>
           </button>
@@ -112,19 +113,8 @@
     </main>
   </div>
 
-  <div class="search-overlay" id="searchOverlay">
-    <div class="search-modal" id="searchModal">
-      <div class="search-input-wrapper">
-        <i class="ph ph-magnifying-glass search-input-icon"></i>
-        <input type="text" class="search-input" id="searchInput" placeholder="Search lectures, topics, keywords..." autocomplete="off">
-        <button class="search-close-btn" id="searchCloseBtn" aria-label="Close search">
-          <i class="ph ph-x"></i>
-        </button>
-      </div>
-      <div class="search-results" id="searchResults">
-        <div class="search-empty">Type to search across all lectures...</div>
-      </div>
-    </div>
+  <div class="search-results" id="searchResults">
+    <div class="search-empty">Type to search across all lectures...</div>
   </div>
 
   <script>

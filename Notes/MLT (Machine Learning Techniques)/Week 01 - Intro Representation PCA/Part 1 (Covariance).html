@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLT Week 1 — PCA Numerical Workbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --bg: #eef1f6;
+    --surface: #ffffff;
+    --ink: #191e2b;
+    --ink-soft: #545c72;
+    --ink-faint: #8890a3;
+    --line: #dcdfe8;
+    --indigo: #33418e;
+    --indigo-soft: #e9ebf7;
+    --gold: #b5872a;
+    --gold-deep: #8f6a1c;
+    --gold-soft: #f6ecd3;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6; }
+  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
+  .wrap{ max-width:960px; margin:0 auto; padding:0 24px; }
+  code, .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    background:
+      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
+      radial-gradient(circle at 10% 110%, rgba(51,65,142,0.2), transparent 50%),
+      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
+    color:#f2f3f8; padding:56px 0 44px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size:34px 34px; pointer-events:none;
+  }
+  .hero .wrap{ position:relative; z-index:1; }
+  .eyebrow{ display:inline-flex; align-items:center; gap:8px; font-family:'JetBrains Mono', monospace; font-size:12px; letter-spacing:0.14em; text-transform:uppercase; color:#d9b872; margin-bottom:18px; }
+  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
+  .hero h1{ font-family:'Fraunces', serif; font-weight:600; font-size:clamp(28px, 4.6vw, 44px); line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em; }
+  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
+  .hero p.lede{ font-size:15.5px; color:#c2c6d6; max-width:64ch; margin:0 0 22px; }
+  .breadcrumb-top{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:#8891a8; margin-bottom:16px; }
+  .breadcrumb-top b{ color:#d9b872; font-weight:600; }
+  .toc-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .toc-pill{ font-family:'JetBrains Mono', monospace; font-size:11.5px; padding:7px 12px; border-radius:100px; border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04); text-decoration:none; }
+  .toc-pill:hover{ border-color:#d9b872; color:#f2f3f8; }
+
+  main{ padding:40px 0 80px; }
+
+  /* ---------- OVERVIEW TABLE ---------- */
+  .overview-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px 24px; margin-bottom:28px; }
+  .overview-card h2{ font-family:'Fraunces', serif; font-size:19px; margin:0 0 6px; }
+  .overview-card > p{ font-size:14px; color:var(--ink-soft); margin:0 0 16px; }
+  table.spec{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.spec th{ text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:10px 12px; border-bottom:1px solid var(--line); }
+  table.spec td{ padding:11px 12px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
+  table.spec tr:last-child td{ border-bottom:none; }
+  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--indigo); }
+  .stars{ color:var(--gold); letter-spacing:1px; white-space:nowrap; }
+  .stars .dim{ color:#d8dbe3; }
+
+  .controls-row{ display:flex; justify-content:flex-end; gap:8px; margin-bottom:14px; }
+  .ctrl-btn{ font-family:'JetBrains Mono', monospace; font-size:11.5px; background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--ink-soft); }
+  .ctrl-btn:hover{ border-color:var(--gold); color:var(--gold-deep); }
+
+  /* ---------- TOPIC ACCORDION ---------- */
+  details.topic{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:18px; overflow:hidden; }
+  details.topic > summary{ list-style:none; cursor:pointer; padding:20px 24px; display:flex; align-items:center; gap:14px; justify-content:space-between; flex-wrap:wrap; }
+  details.topic > summary::-webkit-details-marker{ display:none; }
+  .summary-left{ display:flex; align-items:center; gap:14px; }
+  .topic-num{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:var(--gold-deep); background:var(--gold-soft); border-radius:8px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .summary-title{ font-family:'Fraunces', serif; font-weight:600; font-size:19px; }
+  .summary-sub{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); margin-top:2px; }
+  .chevron{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); transition:transform 0.2s ease; }
+  details[open] .chevron{ transform:rotate(90deg); }
+  .topic-body{ padding:0 24px 26px; border-top:1px solid var(--line); }
+  .breadcrumb{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); padding:14px 0 4px; }
+  .breadcrumb b{ color:var(--gold-deep); }
+
+  .subhead{ display:flex; align-items:center; gap:10px; margin:22px 0 12px; }
+  .subhead .tag{ font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.07em; color:var(--gold-deep); background:var(--gold-soft); padding:4px 9px; border-radius:100px; flex-shrink:0; }
+  .subhead h4{ font-family:'Fraunces', serif; font-size:15.5px; margin:0; color:var(--ink); }
+
+  /* intuition box */
+  .intuition-box{ background:linear-gradient(180deg, #fffdf8, #ffffff); border:1px solid #e3cf9b; border-radius:12px; padding:16px 18px; font-size:14px; color:var(--ink-soft); }
+  .intuition-box b{ color:var(--ink); }
+
+  /* formula box */
+  .formula-box{ background:#171b28; border-radius:12px; padding:20px 20px; text-align:center; overflow-x:auto; }
+  .formula-box .expr{ font-family:'JetBrains Mono', monospace; font-size:16px; color:#dbe0ef; }
+  .formula-box .expr .hi{ color:#d9b872; }
+  .var-legend{ margin-top:10px; font-size:13px; }
+  .var-legend table{ width:100%; border-collapse:collapse; }
+  .var-legend td{ padding:6px 8px; font-size:12.5px; border-bottom:1px dashed var(--line); }
+  .var-legend td:first-child{ font-family:'JetBrains Mono', monospace; color:var(--indigo); white-space:nowrap; width:1%; }
+  .var-legend tr:last-child td{ border-bottom:none; }
+
+  /* flowchart */
+  .flow-row{ display:flex; align-items:center; justify-content:center; gap:8px; flex-wrap:wrap; padding:6px 0; }
+  .flow-step{ background:#f5f6fa; border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-align:center; min-width:120px; flex:1; }
+  .flow-step .fs-num{ font-family:'JetBrains Mono', monospace; font-size:10.5px; font-weight:700; color:#fff; background:var(--ink); width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 6px; }
+  .flow-step .fs-text{ font-size:12.5px; color:var(--ink-soft); }
+  .flow-arrow{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-size:14px; flex-shrink:0; }
+
+  /* example cards */
+  .example-card{ border-radius:12px; padding:16px 18px; background:#f9fafc; border:1px solid var(--line); border-left-width:4px; }
+  .example-card.beginner{ border-left-color:var(--teal); }
+  .example-card.medium{ border-left-color:var(--gold); }
+  .example-card.pyq{ border-left-color:var(--indigo); }
+  .example-card .ex-tag{ font-family:'JetBrains Mono', monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; margin-bottom:8px; display:inline-block; }
+  .example-card.beginner .ex-tag{ color:var(--teal); }
+  .example-card.medium .ex-tag{ color:var(--gold-deep); }
+  .example-card.pyq .ex-tag{ color:var(--indigo); }
+  .example-card p{ margin:6px 0; font-size:13.5px; color:var(--ink-soft); }
+  .example-card .ex-q{ color:var(--ink); font-weight:600; font-size:14px; margin-bottom:8px; }
+  .example-card .ex-step{ font-family:'JetBrains Mono', monospace; font-size:12.5px; background:#fff; border:1px solid var(--line); border-radius:6px; padding:6px 10px; margin:4px 0; }
+  .example-card .ex-ans{ margin-top:8px; font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:700; color:var(--ink); background:var(--gold-soft); padding:8px 10px; border-radius:7px; display:inline-block; }
+
+  /* challenge box */
+  .challenge-box{ background:var(--rust-soft); border:1px solid #e6c3b3; border-radius:12px; padding:16px 18px; }
+  .challenge-box .ex-tag{ font-family:'JetBrains Mono', monospace; font-size:10px; text-transform:uppercase; letter-spacing:0.06em; font-weight:700; color:var(--rust); margin-bottom:8px; display:inline-block; }
+  .challenge-box p{ margin:6px 0; font-size:13.5px; color:var(--ink-soft); }
+  .challenge-box details{ margin-top:10px; }
+  .challenge-box summary{ cursor:pointer; font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--rust); font-weight:600; }
+  .challenge-box .reveal{ margin-top:8px; font-size:13.5px; color:var(--ink); background:#fff; border-radius:8px; padding:10px 12px; }
+
+  /* callouts */
+  .callout{ border-radius:12px; padding:14px 18px; margin:0; display:flex; gap:12px; border:1px solid transparent; }
+  .callout .icon{ font-family:'JetBrains Mono', monospace; font-weight:700; font-size:12px; width:24px; height:24px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .callout ul{ margin:0; padding-left:18px; font-size:13.5px; color:var(--ink-soft); }
+  .callout li{ margin-bottom:4px; }
+  .callout li:last-child{ margin-bottom:0; }
+  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
+  .callout.warn .icon{ background:var(--rust); color:#fff; }
+  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
+  .callout.good .icon{ background:var(--teal); color:#fff; }
+  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
+  .callout.info .icon{ background:var(--indigo); color:#fff; }
+
+  .grid-2c{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  /* active recall */
+  .recall-list{ display:flex; flex-direction:column; gap:8px; }
+  .recall-item{ background:#f9fafc; border:1px solid var(--line); border-radius:9px; padding:2px 14px; }
+  .recall-item summary{ cursor:pointer; font-size:13.5px; font-weight:600; padding:10px 0; color:var(--ink); list-style:none; }
+  .recall-item summary::-webkit-details-marker{ display:none; }
+  .recall-item summary::before{ content:"Q · "; color:var(--gold-deep); font-family:'JetBrains Mono', monospace; }
+  .recall-item .a{ font-size:13.5px; color:var(--ink-soft); padding:0 0 12px; }
+  .recall-item .a::before{ content:"A · "; color:var(--teal); font-family:'JetBrains Mono', monospace; font-weight:600; }
+
+  /* freq badge inline in summary */
+  .freq-inline{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); }
+
+  .comparison-note{ font-size:13.5px; color:var(--ink-soft); background:#f5f6fa; border-radius:10px; padding:12px 16px; }
+
+  footer{ border-top:1px solid var(--line); padding:24px 0 40px; text-align:center; }
+  footer p{ font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-faint); margin:0; }
+
+  .section-gap{ display:flex; flex-direction:column; gap:14px; }
+
+  @media (max-width: 680px){
+    .grid-2c{ grid-template-columns:1fr; }
+    .flow-row{ flex-direction:column; }
+    .flow-arrow{ transform:rotate(90deg); }
+    .summary-title{ font-size:16.5px; }
+    details.topic > summary{ padding:16px 16px; }
+    .topic-body{ padding:0 16px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span>IIT Madras · MLT · Week 1</div>
+    <div class="breadcrumb-top">MLT &rsaquo; Week 1 &rsaquo; <b>PCA Numerical Workbook</b></div>
+    <h1>PCA Numericals:<br>the <em>seven</em> calculations you must never fumble</h1>
+    <p class="lede">No eigenvalues here — just the arithmetic foundation every PCA question is built on: centering, variance, covariance, matrix setup, and the scaling questions that trip people up under exam pressure.</p>
+    <div class="toc-row">
+      <a class="toc-pill" href="#t1">1 · Covariance Matrix</a>
+      <a class="toc-pill" href="#t2">2 · Mean Centering</a>
+      <a class="toc-pill" href="#t3">3 · Variance</a>
+      <a class="toc-pill" href="#t4">4 · Covariance</a>
+      <a class="toc-pill" href="#t5">5 · Matrix Construction</a>
+      <a class="toc-pill" href="#t6">6 · Standardization vs Normalization</a>
+      <a class="toc-pill" href="#t7">7 · Correlation vs Covariance Matrix</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="overview-card">
+    <h2>Workbook map</h2>
+    <p>Click a topic below to expand it. Every topic follows the same 11-part structure, so once you know the drill, you can move fast.</p>
+    <table class="spec">
+      <thead><tr><th>#</th><th>Numerical type</th><th>Core formula</th><th>PYQ frequency</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Covariance Matrix</td><td class="formula">C = (1/n) XXᵀ</td><td class="stars">★★★★★</td></tr>
+        <tr><td>2</td><td>Mean Centering</td><td class="formula">xᵢ' = xᵢ − μ</td><td class="stars">★★★★<span class="dim">☆</span></td></tr>
+        <tr><td>3</td><td>Variance</td><td class="formula">σ² = (1/n)Σ(xᵢ−μ)²</td><td class="stars">★★★★<span class="dim">☆</span></td></tr>
+        <tr><td>4</td><td>Covariance (pairwise)</td><td class="formula">cov(x,y) = (1/n)Σ(xᵢ−μx)(yᵢ−μy)</td><td class="stars">★★★★<span class="dim">☆</span></td></tr>
+        <tr><td>5</td><td>Matrix Construction</td><td class="formula">X ∈ ℝ^(d×n)</td><td class="stars">★★★<span class="dim">☆☆</span></td></tr>
+        <tr><td>6</td><td>Standardization vs Normalization</td><td class="formula">z=(x−μ)/σ &nbsp;|&nbsp; x'=(x−min)/(max−min)</td><td class="stars">★★★★★</td></tr>
+        <tr><td>7</td><td>Correlation vs Covariance Matrix</td><td class="formula">R = D⁻¹CD⁻¹, D=diag(σ)</td><td class="stars">★★★★★</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="controls-row">
+    <button class="ctrl-btn" onclick="toggleAll(true)">expand all</button>
+    <button class="ctrl-btn" onclick="toggleAll(false)">collapse all</button>
+  </div>
+
+  <!-- ================= TOPIC 1 : COVARIANCE MATRIX ================= -->
+  <details class="topic" id="t1" open>
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">01</span>
+        <div>
+          <div class="summary-title">Covariance Matrix Calculation</div>
+          <div class="summary-sub">the d×d map of how every feature pair moves together</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Covariance Matrix</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">Think of the covariance matrix as a <b>"friendship map"</b> between features. The diagonal tells you how much each feature varies on its own (its variance); the off-diagonal entries tell you whether pairs of features rise and fall together (positive), move oppositely (negative), or are unrelated (~0).</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">C = <span class="hi">(1/n)</span> X X<sup>T</sup> &nbsp;&nbsp;(X already mean-centered)</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>X</td><td>d × n centered data matrix — each column is one data point</td></tr>
+              <tr><td>C</td><td>d × d covariance matrix — symmetric</td></tr>
+              <tr><td>Cᵢᵢ</td><td>variance of feature i (diagonal)</td></tr>
+              <tr><td>Cᵢⱼ</td><td>covariance between feature i and j (off-diagonal)</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Compute mean vector μ (one mean per feature)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Center data: subtract μ from every column</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Multiply centered X by its transpose</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Divide every entry by n (or n−1 for sample covariance)</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">Feature A: [1, 3, 5] &nbsp; Feature B: [2, 4, 6]. Find C.</p>
+          <p class="ex-step">μ_A = 3, μ_B = 4</p>
+          <p class="ex-step">Centered: A' = [−2,0,2], B' = [−2,0,2]</p>
+          <p class="ex-step">Var(A) = (4+0+4)/3 = 2.67 &nbsp;·&nbsp; Var(B) = 2.67 &nbsp;·&nbsp; Cov(A,B) = (4+0+4)/3 = 2.67</p>
+          <span class="ex-ans">C = [[2.67, 2.67], [2.67, 2.67]]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">3 features, 4 points: A=[2,4,6,8], B=[1,3,2,4], C=[5,5,7,7]. Find the 3×3 covariance matrix.</p>
+          <p class="ex-step">μ_A=5, μ_B=2.5, μ_C=6</p>
+          <p class="ex-step">Center each row, then compute all 6 unique entries (3 variances + 3 covariances) using the centered rows</p>
+          <p class="ex-step">Var(A)=6.67, Var(B)=1.25, Var(C)=1.0, Cov(A,B)=2.5, Cov(A,C)=1.33, Cov(B,C)=0.5</p>
+          <span class="ex-ans">C is symmetric — fill diagonal + upper triangle, mirror the rest</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">A dataset has 2 features with covariance matrix C = [[4, −2], [−2, 9]]. Interpret the sign and magnitude of the off-diagonal entry, and state whether the features are more or less variable than each other.</p>
+          <p class="ex-step">Off-diagonal = −2 → the two features move in <b>opposite</b> directions on average</p>
+          <p class="ex-step">Var(feature 2) = 9 &gt; Var(feature 1) = 4 → feature 2 is more spread out</p>
+          <span class="ex-ans">Negative, moderate association; feature 2 more variable</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>A 3×3 covariance matrix is symmetric with diagonal [5, 8, 3]. You're told Cov(x₁,x₂) = 2 and the trace of the matrix is 16. Two entries are missing. Can you find them, or is there insufficient information?</p>
+          <details><summary>Show reasoning</summary><div class="reveal">Trace = sum of diagonal = 5+8+3 = 16 ✓ (consistent, but trace only constrains the diagonal). Cov(x₁,x₃) and Cov(x₂,x₃) are NOT determined by the trace or by Cov(x₁,x₂) — they are independent pieces of information. <b>Insufficient information</b> to find them; this is a common trap testing whether you understand which quantities are actually linked.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Forgetting to mean-center the data before multiplying XXᵀ</li>
+            <li>Dividing by n when the question asks for sample covariance (n−1), or vice versa</li>
+            <li>Confusing XXᵀ (d×d) with XᵀX (n×n) — wrong matrix shape entirely</li>
+            <li>Sign errors when multiplying negative centered values</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>C is always symmetric — compute only the upper triangle and mirror it</li>
+            <li>Diagonal entries are just variances — reuse your Topic 3 workflow directly</li>
+            <li>If the question says "data is already centered," skip straight to step 3</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>Use C = (1/n)ΣxᵢxᵢT − μμᵀ to avoid writing out centered values by hand</li>
+            <li>Tabulate Σx, Σy, Σxy for every pair once — reuse across all matrix entries</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>Why must a covariance matrix always be symmetric?</summary><div class="a">Because Cov(x,y) = Cov(y,x) by definition of the product of centered values — order doesn't matter in multiplication.</div></details>
+          <details class="recall-item"><summary>What does a diagonal entry of C represent?</summary><div class="a">The variance of that single feature — how spread out it is on its own.</div></details>
+          <details class="recall-item"><summary>What must be true about the data before computing C = (1/n)XXᵀ?</summary><div class="a">X must already be mean-centered — each row/feature must have mean zero.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★★</span> &nbsp;— appears in nearly every term's PCA numerical section, often as the opening question.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 2 : MEAN CENTERING ================= -->
+  <details class="topic" id="t2">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">02</span>
+        <div>
+          <div class="summary-title">Mean Centering</div>
+          <div class="summary-sub">shifting the data cloud so it's centered at the origin</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Mean Centering</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">Imagine re-parking a cluster of cars so their <b>average position</b> sits exactly on a lamp post marked zero — the cars' positions relative to each other don't change, only where the whole cluster sits. That's mean centering: it removes location, keeps shape.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">x'ᵢ = xᵢ <span class="hi">−</span> μ, &nbsp; μ = (1/n) Σᵢ xᵢ</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>xᵢ</td><td>original i-th data point (or value)</td></tr>
+              <tr><td>μ</td><td>mean, computed separately per feature</td></tr>
+              <tr><td>x'ᵢ</td><td>centered value — mean of all x'ᵢ is always 0</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Identify each feature (row) separately</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Compute mean of that feature across all n points</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Subtract the mean from every value in that feature</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Check: centered values must sum to 0</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">Center: [4, 6, 8, 10, 12]</p>
+          <p class="ex-step">μ = (4+6+8+10+12)/5 = 8</p>
+          <span class="ex-ans">Centered = [−4, −2, 0, 2, 4]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">Center a 2-feature, 4-point matrix: A=[3,5,7,9], B=[10,20,15,25]</p>
+          <p class="ex-step">μ_A = 6, μ_B = 17.5</p>
+          <span class="ex-ans">A' = [−3,−1,1,3] &nbsp;·&nbsp; B' = [−7.5, 2.5, −2.5, 7.5]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">After centering a feature, a student gets [−2, −1, 0, 1, 3]. Is this centering correct?</p>
+          <p class="ex-step">Sum = −2−1+0+1+3 = 1 ≠ 0</p>
+          <span class="ex-ans">Incorrect — a properly centered feature must sum to exactly 0</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>You're given centered values [−3, 1, 2] and told the original mean was 10. Reconstruct the original data — and prove algebraically why mean-centered data always sums to zero.</p>
+          <details><summary>Show reasoning</summary><div class="reveal">Original = centered + μ = [7, 11, 12]. Proof: Σ(xᵢ−μ) = Σxᵢ − nμ = Σxᵢ − n·(Σxᵢ/n) = Σxᵢ − Σxᵢ = 0 for any dataset.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Centering along the wrong axis (subtracting a row mean from a column, or vice versa)</li>
+            <li>Reusing one global mean across all features instead of computing one mean per feature</li>
+            <li>Confusing mean centering with full standardization (also dividing by σ)</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>Sum-to-zero is a free correctness check — always verify it before moving on</li>
+            <li>Compute μ once and reuse it for both centering and the variance/covariance steps that usually follow</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>For symmetric-looking data, eyeball the midpoint as μ instead of summing manually</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>What does mean centering NOT change about the data?</summary><div class="a">The shape/spread of the data — only its location shifts.</div></details>
+          <details class="recall-item"><summary>What's a quick way to check if centering was done correctly?</summary><div class="a">The centered values must sum to zero.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★<span class="dim">☆</span></span> &nbsp;— rarely asked alone, but appears as a required sub-step inside almost every covariance/PCA question.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 3 : VARIANCE ================= -->
+  <details class="topic" id="t3">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">03</span>
+        <div>
+          <div class="summary-title">Variance Calculation</div>
+          <div class="summary-sub">how spread out a single feature is</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Variance</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">Variance answers: <b>"on average, how far do points wander from the center?"</b> Squaring the distances means far-away points count extra — a few outliers can inflate variance a lot more than many small deviations.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">σ² = (1/n) <span class="hi">Σᵢ</span> (xᵢ − μ)²</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>n</td><td>divide by n for population variance, n−1 for sample variance</td></tr>
+              <tr><td>μ</td><td>mean of the feature</td></tr>
+              <tr><td>alt form</td><td>σ² = E[x²] − (E[x])² — often faster with integers</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Compute mean μ</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Find each deviation (xᵢ − μ)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Square every deviation</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Average the squared deviations (÷n or ÷n−1)</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">Find variance of [2, 4, 6] (population)</p>
+          <p class="ex-step">μ = 4 &nbsp;·&nbsp; deviations = [−2,0,2] &nbsp;·&nbsp; squared = [4,0,4]</p>
+          <span class="ex-ans">σ² = 8/3 = 2.67</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">Find the sample variance (n−1) of [5, 9, 12, 14]</p>
+          <p class="ex-step">μ = 10 &nbsp;·&nbsp; deviations = [−5,−1,2,4] &nbsp;·&nbsp; squared = [25,1,4,16] &nbsp;·&nbsp; sum = 46</p>
+          <span class="ex-ans">σ² = 46/3 = 15.33 (note: n−1, not n)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">A 3-feature dataset's second row is [6, 10, 8, 12]. As part of building the covariance matrix, find Var(feature 2) using the shortcut identity.</p>
+          <p class="ex-step">E[x] = 9, E[x²] = (36+100+64+144)/4 = 86</p>
+          <span class="ex-ans">σ² = 86 − 81 = 5</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>A dataset [a, 6, 10, 14] has population variance 14 and mean 10. Find the missing value a.</p>
+          <details><summary>Show reasoning</summary><div class="reveal">Mean=10 → a+6+10+14=40 → a=10. Check variance: deviations=[0,−4,0,4], squared=[0,16,0,16], sum=32, σ²=32/4=8 ≠14. So a=10 fails — must solve simultaneously: (a+30)/4=10 → a=10 is forced by the mean, meaning the variance constraint is then automatically fixed by the data, not a free choice — this shows the two constraints (mean and variance) can conflict, and the question is testing whether you check consistency rather than solving blindly.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Forgetting to square deviations (positive and negative deviations then wrongly cancel to ~0)</li>
+            <li>Using n instead of n−1 (or vice versa) against the question's explicit instruction</li>
+            <li>Reporting standard deviation (√σ²) when variance was asked for</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>Use σ² = E[x²] − (E[x])² when numbers are small integers — fewer subtraction steps</li>
+            <li>If deviations are already symmetric around 0, squared terms mirror — halve the work</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>Build a quick table of x, x², running sums before applying any formula — avoids recomputation</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>Why do we square the deviations instead of just averaging them?</summary><div class="a">Because raw deviations always sum to zero — squaring prevents positive and negative deviations from cancelling out.</div></details>
+          <details class="recall-item"><summary>When should you divide by n−1 instead of n?</summary><div class="a">When computing sample variance (estimating population variance from a sample) rather than the exact population variance.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★<span class="dim">☆</span></span> &nbsp;— a constant building block, tested directly and as part of covariance-matrix questions.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 4 : COVARIANCE (PAIRWISE) ================= -->
+  <details class="topic" id="t4">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">04</span>
+        <div>
+          <div class="summary-title">Covariance Calculation</div>
+          <div class="summary-sub">how two variables move together</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Pairwise Covariance</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">If two people's moods always swing the same way — happy together, sad together — they have <b>positive covariance</b>. If one's up when the other's down, that's <b>negative covariance</b>. No pattern at all means covariance near zero.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">cov(x,y) = (1/n) <span class="hi">Σᵢ</span> (xᵢ−μx)(yᵢ−μy)</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>μx, μy</td><td>means of x and y respectively</td></tr>
+              <tr><td>alt form</td><td>cov(x,y) = E[xy] − E[x]E[y]</td></tr>
+              <tr><td>symmetry</td><td>cov(x,y) = cov(y,x) always</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Compute μx and μy</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Pair up deviations (xᵢ−μx)(yᵢ−μy)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Sum the products</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Divide by n (or n−1)</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">x=[1,2,3,4], y=[2,4,6,8]. Find cov(x,y)</p>
+          <p class="ex-step">μx=2.5, μy=5 &nbsp;·&nbsp; deviations x'=[−1.5,−0.5,0.5,1.5], y'=[−3,−1,1,3]</p>
+          <p class="ex-step">products = [4.5, 0.5, 0.5, 4.5], sum=10</p>
+          <span class="ex-ans">cov(x,y) = 10/4 = 2.5</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">x=[3,7,9,5,6], y=[8,4,3,9,6]. Find cov(x,y) using the alt formula</p>
+          <p class="ex-step">E[x]=6, E[y]=6, Σxy = 24+28+27+45+36 = 160, E[xy]=32</p>
+          <span class="ex-ans">cov(x,y) = 32 − 36 = −4 (negative relationship)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">Two features have cov(x,y) = 12, Var(x)=16, Var(y)=9. Classify the strength of their linear relationship without computing correlation directly (that's Topic 7) — just describe direction and rough intensity.</p>
+          <p class="ex-step">Sign is positive → they move together. Magnitude (12) is close to √(Var(x)·Var(y)) = √144 = 12 → very strong association</p>
+          <span class="ex-ans">Strong positive relationship (covariance close to its own theoretical maximum)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>Prove that cov(x,x) = Var(x), using the definitions from Topics 3 and 4.</p>
+          <details><summary>Show reasoning</summary><div class="reveal">cov(x,x) = (1/n)Σ(xᵢ−μx)(xᵢ−μx) = (1/n)Σ(xᵢ−μx)² = Var(x). The diagonal of any covariance matrix is literally each feature's covariance with itself — which is exactly its variance.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Mixing up which mean subtracts from which variable</li>
+            <li>Sign slips when multiplying two negative deviations</li>
+            <li>Forgetting cov(x,y) = cov(y,x), redoing work unnecessarily</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>The alt formula E[xy]−E[x]E[y] avoids writing out every deviation pair</li>
+            <li>cov(x,x) = Var(x) — never recompute a diagonal entry from scratch</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>Tabulate x, y, xy, x², y² in one pass — reuse the same table for variance and covariance</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>What does a covariance of 0 mean (and NOT mean)?</summary><div class="a">It means no linear relationship — but it does NOT rule out a non-linear relationship between the variables.</div></details>
+          <details class="recall-item"><summary>How does cov(x,x) relate to variance?</summary><div class="a">They're identical — variance is just a variable's covariance with itself.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★<span class="dim">☆</span></span> &nbsp;— frequently tested standalone and as the off-diagonal engine of covariance-matrix questions.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 5 : MATRIX CONSTRUCTION ================= -->
+  <details class="topic" id="t5">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">05</span>
+        <div>
+          <div class="summary-title">Matrix Construction</div>
+          <div class="summary-sub">organizing raw data before any formula can be applied</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Matrix Construction</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">Before you can search a filing cabinet, you first have to <b>alphabetize the files</b>. Likewise, before any PCA formula works, you have to decide — consistently — which axis is "features" and which is "data points." Get the orientation wrong and every downstream formula silently breaks.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">X ∈ ℝ<sup>d×n</sup> &nbsp;&nbsp; — column i is data point xᵢ ∈ ℝᵈ</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>d</td><td>number of features (rows in this course's convention)</td></tr>
+              <tr><td>n</td><td>number of data points (columns)</td></tr>
+              <tr><td>Xᵀ</td><td>n × d — the "flipped" convention some textbooks use instead</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">List what's being measured (features) vs. how many were measured (samples)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Decide orientation (this course: features = rows, samples = columns)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Fill in values consistently, one column per sample</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Sanity-check shape against whatever formula comes next</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">3 samples, 2 features (height, weight): (150,50), (160,55), (170,60). Build X.</p>
+          <span class="ex-ans">X = [[150,160,170],[50,55,60]] &nbsp;(2×3, d=2, n=3)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">A table has 4 rows (students) and 3 columns (marks in 3 subjects). Construct X in this course's convention, and also give Xᵀ.</p>
+          <p class="ex-step">Features = subjects (3), samples = students (4) → X should be 3×4, meaning the raw table (4×3) must be <b>transposed</b></p>
+          <span class="ex-ans">X = table<sup>T</sup> (3×4); Xᵀ = original table (4×3)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">You compute C = XXᵀ and get a 5×5 matrix. If your raw table had 5 columns and 20 rows, was X built correctly for this course's convention?</p>
+          <p class="ex-step">C = XXᵀ is d×d. Getting 5×5 means d=5, so X must be 5×n. If the raw table was 20 rows × 5 columns, X = table<sup>T</sup> (5×20) — correct only if that transpose was actually applied</p>
+          <span class="ex-ans">Correct only if X = (raw table)ᵀ was used, not the raw table directly</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>An unlabeled matrix is 6×50. You're told the covariance matrix computed from it should describe relationships between 6 sensors. Which orientation is X, and how do you know?</p>
+          <details><summary>Show reasoning</summary><div class="reveal">Since C must be d×d = 6×6 (one row/column per sensor), and C=(1/n)XXᵀ requires X to be d×n = 6×50, the given 6×50 matrix is <b>already</b> in the correct orientation (features=6 rows, samples=50 columns) — no transpose needed.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Using the raw table's natural orientation without checking which convention the formula expects</li>
+            <li>Switching orientation midway through a multi-part question</li>
+            <li>Forgetting to transpose when the raw table lists samples as rows (very common in spreadsheets)</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>Check the expected output shape (e.g. C must be d×d) and work backward to confirm X's orientation</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>Label rows and columns explicitly the moment you write X down — prevents mid-solution confusion</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>In this course's convention, what do the rows of X represent? The columns?</summary><div class="a">Rows = features (dimensions), columns = individual data points/samples.</div></details>
+          <details class="recall-item"><summary>How can you verify X's orientation without re-reading the problem?</summary><div class="a">Check that a downstream formula's output shape (like C being d×d) matches — work backward from the expected result.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★<span class="dim">☆☆</span></span> &nbsp;— rarely the whole question, but a silent prerequisite that causes wrong answers elsewhere if skipped.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 6 : STANDARDIZATION VS NORMALIZATION ================= -->
+  <details class="topic" id="t6">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">06</span>
+        <div>
+          <div class="summary-title">Standardization vs Normalization</div>
+          <div class="summary-sub">two different ways to rescale features — don't mix them up</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Standardization vs Normalization</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box"><b>Standardization</b> is like grading on a curve — it tells you how many standard deviations above or below average you are, regardless of the original units. <b>Normalization</b> is like compressing everyone's height into a 0–1 "shortest to tallest" scale — it only cares about relative position between the min and max.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">standardize: z = (x − μ) / σ &nbsp;&nbsp;|&nbsp;&nbsp; normalize: x' = (x − min) / (max − min)</div>
+        </div>
+
+        <table class="spec" style="margin-top:4px;">
+          <thead><tr><th>Aspect</th><th>Standardization</th><th>Normalization</th></tr></thead>
+          <tbody>
+            <tr><td>Resulting range</td><td>Unbounded (typically ~[−3, 3])</td><td>Exactly [0, 1]</td></tr>
+            <tr><td>Resulting mean / spread</td><td>Mean = 0, Std = 1</td><td>Min = 0, Max = 1</td></tr>
+            <tr><td>Sensitive to outliers?</td><td>Less — outliers pull σ, dampening effect</td><td>Very — a single outlier compresses everything else</td></tr>
+            <tr><td>Preferred before PCA?</td><td>Yes — PCA assumes comparable variance scales</td><td>Rarely used before PCA</td></tr>
+            <tr><td>Needs</td><td>Mean and standard deviation</td><td>Minimum and maximum</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Standardization: find μ and σ</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Apply z=(x−μ)/σ to every value</div></div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Normalization: find min and max</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Apply x'=(x−min)/(max−min) to every value</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">Standardize [2, 4, 6, 8] (μ=5, σ=2.236)</p>
+          <span class="ex-ans">z ≈ [−1.34, −0.45, 0.45, 1.34]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">For the same data [2,4,6,8], compute normalization too, and compare</p>
+          <p class="ex-step">min=2, max=8, range=6</p>
+          <span class="ex-ans">Normalized = [0, 0.33, 0.67, 1] &nbsp;vs&nbsp; Standardized ≈ [−1.34,−0.45,0.45,1.34]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">Two features are measured in centimeters and kilometers respectively. Which technique should you apply before PCA, and why?</p>
+          <p class="ex-step">PCA is scale-sensitive — a feature with naturally larger numeric range will dominate variance purely due to units</p>
+          <span class="ex-ans">Standardization — it removes the unit/scale dependence so both features contribute fairly</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>Data = [1, 2, 3, 4, 100] (one extreme outlier). Compute both standardized and normalized versions of the value "4", and explain why they look so different.</p>
+          <details><summary>Show reasoning</summary><div class="reveal">μ≈22, σ≈39.2 → z(4) ≈ (4−22)/39.2 ≈ −0.46 (barely distinguishable from the other small values). min=1,max=100 → normalized(4) = 3/99 ≈ 0.03 (crushed near 0). The outlier inflates the normalization range far more than it inflates σ, showing why normalization is fragile to outliers.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Using the two terms interchangeably — they are NOT the same operation</li>
+            <li>Dividing by variance instead of standard deviation when standardizing</li>
+            <li>Applying normalization before PCA out of habit from other ML pipelines</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>Memory anchor: <b>"S</b>tandardize → <b>S</b>td = 1" and <b>"N</b>ormalize → <b>[0,1]</b> raNge"</li>
+            <li>If units differ across features and PCA is mentioned → standardization, almost always</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>Compute μ, σ, min, and max in one pass over the data if a question might ask for either</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>Which technique guarantees output strictly between 0 and 1?</summary><div class="a">Normalization (min-max scaling).</div></details>
+          <details class="recall-item"><summary>Why is standardization generally preferred before PCA?</summary><div class="a">PCA finds directions of maximum variance — if features have different units/scales, the ones with naturally larger numbers dominate unfairly unless standardized.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★★</span> &nbsp;— a favorite conceptual + numeric combo question, tested almost every term.</p>
+
+      </div>
+    </div>
+  </details>
+
+  <!-- ================= TOPIC 7 : CORRELATION VS COVARIANCE MATRIX ================= -->
+  <details class="topic" id="t7">
+    <summary>
+      <div class="summary-left">
+        <span class="topic-num">07</span>
+        <div>
+          <div class="summary-title">Correlation Matrix vs Covariance Matrix</div>
+          <div class="summary-sub">the same relationships, with and without the units removed</div>
+        </div>
+      </div>
+      <span class="chevron">▶</span>
+    </summary>
+    <div class="topic-body">
+      <div class="breadcrumb">Week 1 &rsaquo; PCA Numericals &rsaquo; <b>Correlation vs Covariance Matrix</b></div>
+      <div class="section-gap">
+
+        <div class="subhead"><span class="tag">Core Intuition</span></div>
+        <div class="intuition-box">Covariance tells you the direction of a relationship but its <b>size depends on units</b> — covariance in kilometers looks huge next to covariance in centimeters, even for identical relationships. Correlation <b>strips the units away</b>, always landing in [−1, 1], so you can compare relationship strength fairly across any pair of variables.</div>
+
+        <div class="subhead"><span class="tag">Formula Explanation</span></div>
+        <div class="formula-box">
+          <div class="expr">corr(x,y) = cov(x,y) / (σx · σy)</div>
+          <div class="var-legend">
+            <table>
+              <tr><td>R</td><td>correlation matrix — same shape as C, always has 1's on the diagonal</td></tr>
+              <tr><td>σx, σy</td><td>standard deviations of x and y</td></tr>
+              <tr><td>range</td><td>every entry of R lies in [−1, 1]</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <table class="spec" style="margin-top:4px;">
+          <thead><tr><th>Aspect</th><th>Covariance Matrix</th><th>Correlation Matrix</th></tr></thead>
+          <tbody>
+            <tr><td>Diagonal values</td><td>Variances (can be any positive number)</td><td>Always exactly 1</td></tr>
+            <tr><td>Range of entries</td><td>Unbounded, depends on units</td><td>Always [−1, 1]</td></tr>
+            <tr><td>Affected by scale/units?</td><td>Yes — changes if you rescale a feature</td><td>No — scale-invariant</td></tr>
+            <tr><td>What it needs</td><td>Raw (centered) data</td><td>Covariance matrix + each std deviation</td></tr>
+            <tr><td>Best for</td><td>Feeding directly into PCA's eigen-step</td><td>Comparing strength of relationships across differently-scaled variables</td></tr>
+          </tbody>
+        </table>
+
+        <div class="subhead"><span class="tag">Step-by-Step Algorithm</span></div>
+        <div class="flow-row">
+          <div class="flow-step"><div class="fs-num">1</div><div class="fs-text">Compute covariance matrix C</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">2</div><div class="fs-text">Compute std deviation σ for each feature (√ of diagonal)</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">3</div><div class="fs-text">Divide entry Cᵢⱼ by σᵢ·σⱼ</div></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-step"><div class="fs-num">4</div><div class="fs-text">Confirm diagonal is exactly 1</div></div>
+        </div>
+
+        <div class="subhead"><span class="tag">Beginner Example</span></div>
+        <div class="example-card beginner">
+          <span class="ex-tag">Beginner</span>
+          <p class="ex-q">cov(x,y)=6, Var(x)=4, Var(y)=9. Find corr(x,y)</p>
+          <p class="ex-step">σx=2, σy=3</p>
+          <span class="ex-ans">corr(x,y) = 6/(2×3) = 1.0 (perfect positive relationship)</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Medium Example</span></div>
+        <div class="example-card medium">
+          <span class="ex-tag">Medium</span>
+          <p class="ex-q">C = [[4, 2, −1], [2, 9, 3], [−1, 3, 1]]. Find the full correlation matrix R.</p>
+          <p class="ex-step">σ = [2, 3, 1]</p>
+          <p class="ex-step">R₁₂ = 2/(2×3)=0.33, R₁₃=−1/(2×1)=−0.5, R₂₃=3/(3×1)=1.0</p>
+          <span class="ex-ans">R = [[1, 0.33, −0.5], [0.33, 1, 1.0], [−0.5, 1.0, 1]]</span>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ-Level Example</span></div>
+        <div class="example-card pyq">
+          <span class="ex-tag">PYQ Style</span>
+          <p class="ex-q">Given only R = [[1, 0.8],[0.8, 1]] and Var(x)=25, Var(y)=16, reconstruct cov(x,y).</p>
+          <p class="ex-step">σx=5, σy=4</p>
+          <span class="ex-ans">cov(x,y) = corr × σx × σy = 0.8 × 5 × 4 = 16</span>
+        </div>
+
+        <div class="subhead"><span class="tag">Challenge Question</span></div>
+        <div class="challenge-box">
+          <span class="ex-tag">Challenge</span>
+          <p>Can two datasets have identical correlation matrices but completely different covariance matrices? Justify with an example.</p>
+          <details><summary>Show reasoning</summary><div class="reveal">Yes. Correlation is scale-invariant, so simply rescaling every value of one feature (e.g., converting cm to km) changes every covariance entry involving that feature, but leaves the correlation matrix completely unchanged, since the σ's in the denominator rescale by exactly the same factor.</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">Common Mistakes</span></div>
+        <div class="callout warn">
+          <div class="icon">!</div>
+          <ul>
+            <li>Dividing by variance instead of standard deviation when converting covariance to correlation</li>
+            <li>Forgetting the correlation matrix diagonal must be exactly 1 — a fast self-check</li>
+            <li>Treating a large covariance value as automatically "strong" without checking the corresponding correlation</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Exam Shortcuts</span></div>
+        <div class="callout good">
+          <div class="icon">✓</div>
+          <ul>
+            <li>Diagonal of R is always 1 — never compute it, just write it in</li>
+            <li>R is symmetric just like C — only compute the upper triangle</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Time-Saving Tricks</span></div>
+        <div class="callout info">
+          <div class="icon">→</div>
+          <ul>
+            <li>If only R and the variances are given (no raw data), you can still fully reconstruct C — no need to ask for original data</li>
+          </ul>
+        </div>
+
+        <div class="subhead"><span class="tag">Active Recall</span></div>
+        <div class="recall-list">
+          <details class="recall-item"><summary>Why is every diagonal entry of a correlation matrix exactly 1?</summary><div class="a">Because corr(x,x) = cov(x,x)/(σx·σx) = Var(x)/Var(x) = 1.</div></details>
+          <details class="recall-item"><summary>What single quantity do you need to convert an entire covariance matrix into a correlation matrix?</summary><div class="a">Just the standard deviation of each feature (the square roots of the diagonal entries).</div></details>
+        </div>
+
+        <div class="subhead"><span class="tag">PYQ Frequency</span></div>
+        <p class="freq-inline"><span class="stars">★★★★★</span> &nbsp;— a high-frequency question, often paired directly with Topic 6 in the same exam question.</p>
+
+      </div>
+    </div>
+  </details>
+
+</main>
+
+<footer>
+  <p>IIT MADRAS · MLT · WEEK 1 — PCA NUMERICAL WORKBOOK</p>
+</footer>
+
+<script>
+  function toggleAll(open){
+    document.querySelectorAll('details.topic').forEach(d => { d.open = open; });
+  }
+</script>
+
+</body>
+</html>

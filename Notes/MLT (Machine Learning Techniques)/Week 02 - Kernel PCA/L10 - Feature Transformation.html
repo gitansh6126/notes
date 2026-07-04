@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Transformation &amp; the Limits of PCA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  /* ========================================================
+     TOKENS
+  ======================================================== */
+  :root{
+    --paper:        #FBF8F1;
+    --paper-line:   #E3DCC8;
+    --paper-edge:   #D8CFB4;
+    --ink:          #232323;
+    --ink-soft:     #5B5647;
+    --ink-faint:    #948C74;
+    --pen-blue:     #1F4E8C;
+    --pen-blue-soft:#E7EEF8;
+    --pen-red:      #A32B2B;
+    --pen-red-soft: #F8E9E7;
+    --marker:       #E3A320;
+    --marker-soft:  #FBF0D6;
+    --card:         #FFFDF8;
+    --card-shadow:  rgba(60, 50, 20, 0.14);
+    --radius-sm:    6px;
+    --radius-md:    10px;
+    --serif: 'Fraunces', serif;
+    --sans:  'Inter', sans-serif;
+    --mono:  'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+
+  a{ color:var(--pen-blue); }
+
+  /* ========================================================
+     LAYOUT SHELL — notebook margin rule
+  ======================================================== */
+  .sheet{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 28px 90px 64px;
+    position:relative;
+  }
+  .sheet::before{ /* red margin rule, classic school notebook */
+    content:"";
+    position:absolute;
+    top:0; bottom:0; left:38px;
+    width:2px;
+    background:var(--pen-red);
+    opacity:0.35;
+  }
+  @media (max-width:640px){
+    .sheet{ padding:0 18px 70px 34px; }
+    .sheet::before{ left:16px; }
+  }
+
+  /* ========================================================
+     TOP NAV — tab strip
+  ======================================================== */
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,248,241,0.92);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--paper-edge);
+  }
+  .navwrap{
+    max-width:920px; margin:0 auto;
+    padding:14px 28px 14px 64px;
+    display:flex; align-items:center; gap:10px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .navwrap::-webkit-scrollbar{ display:none; }
+  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
+
+  .nav-tag{
+    font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+    color:var(--ink-faint); white-space:nowrap; margin-right:6px;
+  }
+  .nav-link{
+    font-family:var(--sans); font-weight:600; font-size:13px;
+    color:var(--ink-soft); text-decoration:none;
+    padding:6px 12px; border-radius:20px; white-space:nowrap;
+    border:1px solid transparent;
+    transition:all .15s ease;
+  }
+  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
+
+  /* ========================================================
+     HERO
+  ======================================================== */
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
+    color:var(--pen-red); text-transform:uppercase; font-weight:600;
+    display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:"§"; font-size:15px; }
+
+  h1.title{
+    font-family:var(--serif); font-weight:600;
+    font-size:clamp(34px, 6vw, 54px);
+    line-height:1.08; margin:0 0 14px;
+    color:var(--ink);
+    letter-spacing:-0.01em;
+  }
+  .title em{
+    font-style:italic; color:var(--pen-blue); font-weight:500;
+  }
+  .subtitle{
+    font-size:17px; color:var(--ink-soft); max-width:600px; margin:0 0 26px;
+  }
+  .meta-row{
+    display:flex; gap:22px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    border-top:1px dashed var(--paper-edge); padding-top:16px;
+  }
+  .meta-row b{ color:var(--ink-soft); }
+
+  /* ========================================================
+     SECTION HEADERS
+  ======================================================== */
+  .section{ margin-top:62px; }
+  .sec-head{
+    display:flex; align-items:baseline; gap:14px; margin-bottom:22px;
+  }
+  .sec-num{
+    font-family:var(--mono); font-size:13px; color:var(--pen-red);
+    font-weight:600; border:1px solid var(--pen-red); border-radius:50%;
+    width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .sec-head h2{
+    font-family:var(--serif); font-size:clamp(22px,3.4vw,29px);
+    font-weight:600; margin:0; color:var(--ink);
+  }
+
+  /* ========================================================
+     CARDS
+  ======================================================== */
+  .card{
+    background:var(--card);
+    border:1px solid var(--paper-edge);
+    border-radius:var(--radius-md);
+    box-shadow:0 3px 0 var(--card-shadow);
+    padding:26px 28px;
+    margin-bottom:22px;
+    position:relative;
+  }
+  .card h3{
+    font-family:var(--serif); font-size:19px; font-weight:600;
+    margin:0 0 10px; color:var(--ink);
+  }
+  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:0 0 12px; padding-left:20px; }
+  .card li{ margin-bottom:7px; font-size:15.5px; }
+
+  .card-label{
+    position:absolute; top:-11px; left:24px;
+    background:var(--marker-soft); color:#7A5A0A;
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    letter-spacing:.04em; padding:3px 10px; border-radius:20px;
+    border:1px solid #E8CE86;
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+
+  /* ========================================================
+     ANALOGY BOX
+  ======================================================== */
+  .analogy{
+    background:var(--pen-blue-soft);
+    border-left:4px solid var(--pen-blue);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+    padding:18px 22px;
+    margin:18px 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700;
+    letter-spacing:.08em; color:var(--pen-blue); text-transform:uppercase;
+    display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .analogy .tag::before{ content:"💭"; font-size:13px; }
+  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
+
+  /* ========================================================
+     CALLOUTS
+  ======================================================== */
+  .callout{
+    border-radius:var(--radius-sm);
+    padding:18px 22px;
+    margin:20px 0;
+    border:1.5px dashed;
+  }
+  .callout .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase;
+    display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .callout p{ margin:0; font-size:15px; }
+  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
+  .callout.key .tag{ color:#8A6510; }
+  .callout.key .tag::before{ content:"★"; }
+  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
+  .callout.warn .tag{ color:var(--pen-red); }
+  .callout.warn .tag::before{ content:"⚠"; }
+  .callout.note{ background:#EFF3EC; border-color:#7A9B6E; }
+  .callout.note .tag{ color:#4B6B43; }
+  .callout.note .tag::before{ content:"✎"; }
+
+  /* ========================================================
+     FORMULA CHIP
+  ======================================================== */
+  .formula{
+    display:inline-block;
+    font-family:var(--mono); font-size:14.5px;
+    background:#EEF2FA; color:var(--pen-blue);
+    border:1px solid #C9D8EF;
+    padding:3px 10px; border-radius:5px;
+    margin:2px 0;
+  }
+  .formula-block{
+    font-family:var(--mono); font-size:15px;
+    background:#20242C; color:#DCE6F7;
+    border-radius:var(--radius-sm);
+    padding:16px 20px;
+    margin:16px 0;
+    overflow-x:auto;
+    line-height:1.7;
+  }
+  .formula-block .c1{ color:#7FD9B8; }   /* comment green */
+  .formula-block .c2{ color:#F2C868; }   /* highlight amber */
+  .formula-block .c3{ color:#EF9393; }   /* warn red */
+  .formula-block .op{ color:#9DB4D4; }
+
+  /* ========================================================
+     TABLES
+  ======================================================== */
+  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
+  table{ width:100%; border-collapse:collapse; min-width:480px; background:var(--card); }
+  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
+  th{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
+    background:#F1ECDD; color:var(--ink-soft); font-weight:600;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.num{ font-family:var(--mono); font-weight:600; color:var(--pen-blue); }
+  td.flag{ font-family:var(--mono); font-size:13px; }
+  tr.danger td.num{ color:var(--pen-red); }
+  tr.danger{ background:var(--pen-red-soft); }
+
+  /* ========================================================
+     DIAGRAM 1 — Circle / PCA confusion
+  ======================================================== */
+  .diagram{
+    background:#FCFAF3;
+    border:1px solid var(--paper-edge);
+    border-radius:var(--radius-md);
+    padding:28px 20px 22px;
+    margin:20px 0;
+  }
+  .diagram-title{
+    text-align:center; font-family:var(--mono); font-size:11.5px;
+    letter-spacing:.06em; color:var(--ink-faint); text-transform:uppercase;
+    margin-bottom:18px;
+  }
+  .circle-diagram{
+    position:relative;
+    width:220px; height:220px;
+    margin:0 auto 10px;
+  }
+  .circle-ring{
+    position:absolute; inset:0;
+    border:2px dashed var(--ink-faint);
+    border-radius:50%;
+    opacity:.5;
+  }
+  .dot-orbit{
+    position:absolute; inset:0;
+  }
+  .dot{
+    position:absolute; top:50%; left:50%;
+    width:9px; height:9px; border-radius:50%;
+    background:var(--pen-blue);
+    transform-origin:0 0;
+    margin:-4.5px 0 0 -4.5px;
+  }
+  .axis{
+    position:absolute; top:50%; left:50%;
+    background:var(--pen-red);
+    transform-origin:0 50%;
+    height:2px;
+  }
+  .axis-label{
+    position:absolute;
+    font-family:var(--mono); font-size:11px; font-weight:700; color:var(--pen-red);
+  }
+  .center-dot{
+    position:absolute; top:50%; left:50%; width:6px; height:6px;
+    background:var(--ink); border-radius:50%; margin:-3px 0 0 -3px;
+  }
+  .diagram-caption{
+    text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:420px;
+    margin:14px auto 0; font-style:italic;
+  }
+
+  /* ========================================================
+     DIAGRAM 2 — Lifting map (flat -> lifted)
+  ======================================================== */
+  .lift-wrap{
+    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px;
+  }
+  @media (max-width:640px){
+    .lift-wrap{ grid-template-columns:1fr; }
+    .lift-arrow{ transform:rotate(90deg); margin:6px auto; }
+  }
+  .lift-panel{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
+    padding:16px; text-align:center;
+  }
+  .lift-panel .panel-title{
+    font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-transform:uppercase;
+    letter-spacing:.05em; margin-bottom:10px;
+  }
+  .flat-plane{
+    position:relative; width:140px; height:70px; margin:0 auto;
+    border:2px solid var(--ink-faint); border-radius:6px;
+    background:repeating-linear-gradient(90deg, transparent, transparent 13px, #EFE9D8 13px, #EFE9D8 14px);
+  }
+  .flat-plane .dot{ background:var(--pen-blue); box-shadow:0 0 0 2px #fff; }
+  .lifted-plane{
+    position:relative; width:150px; height:100px; margin:8px auto 0;
+    perspective:340px;
+  }
+  .lifted-inner{
+    position:absolute; inset:0;
+    transform:rotateX(52deg) rotateZ(-4deg);
+    border:2px solid var(--pen-blue);
+    border-radius:6px;
+    background:linear-gradient(180deg, #E7EEF8, #F6F9FD);
+  }
+  .lifted-inner .dot{ background:var(--pen-red); box-shadow:0 0 0 2px #fff; }
+  .cut-plane{
+    position:absolute; left:6%; right:6%; top:38%;
+    height:3px; background:var(--marker);
+    transform:rotateX(52deg) rotateZ(-4deg) translateZ(1px);
+  }
+  .lift-arrow{
+    font-family:var(--mono); font-size:12px; color:var(--pen-blue); font-weight:700;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+  }
+  .lift-arrow .arrow-glyph{ font-size:26px; line-height:1; animation:pulse-x 2.6s ease-in-out infinite; }
+  @keyframes pulse-x{ 0%,100%{ transform:translateX(0); opacity:.75;} 50%{ transform:translateX(5px); opacity:1;} }
+
+  /* ========================================================
+     DIAGRAM 3 — Exponential blow-up bars
+  ======================================================== */
+  .bar-chart{
+    display:flex; align-items:flex-end; gap:14px; height:190px;
+    padding:0 6px 0; margin-top:10px; overflow-x:auto;
+  }
+  .bar-col{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; min-width:56px; }
+  .bar{
+    width:100%; max-width:46px; border-radius:5px 5px 2px 2px;
+    background:linear-gradient(180deg, #3E76C4, var(--pen-blue));
+    position:relative;
+  }
+  .bar.blow{
+    background:linear-gradient(180deg, #D65C5C, var(--pen-red));
+  }
+  .bar-val{
+    font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--ink);
+    white-space:nowrap;
+  }
+  .bar.blow + .bar-val, .bar-col:last-child .bar-val{ color:var(--pen-red); }
+  .bar-label{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-align:center; }
+  .bar-track{ width:100%; height:190px; display:flex; align-items:flex-end; }
+
+  /* ========================================================
+     ANNOTATED CODE
+  ======================================================== */
+  .code-wrap{ position:relative; margin:18px 0; }
+  .code-block{
+    font-family:var(--mono); font-size:13.5px; line-height:1.75;
+    background:#20242C; color:#D9E1EE;
+    border-radius:var(--radius-sm); padding:18px 20px;
+    overflow-x:auto;
+  }
+  .code-block .ln{ color:#5C6577; margin-right:14px; user-select:none; }
+  .code-block .kw{ color:#7FA8D9; }
+  .code-block .fn{ color:#F2C868; }
+  .code-block .cm{ color:#7FD9B8; font-style:italic; }
+  .code-block .st{ color:#EF9393; }
+  .annot-list{ margin:14px 0 0; padding-left:0; list-style:none; }
+  .annot-list li{
+    font-size:14px; color:var(--ink-soft); margin-bottom:8px;
+    padding-left:22px; position:relative;
+  }
+  .annot-list li::before{
+    content:attr(data-n); position:absolute; left:0; top:0;
+    font-family:var(--mono); font-size:11px; font-weight:700;
+    color:#fff; background:var(--pen-blue);
+    width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  /* ========================================================
+     TAKEAWAYS
+  ======================================================== */
+  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
+  .takeaway{
+    background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
+    padding:16px 18px; display:flex; gap:12px; align-items:flex-start;
+  }
+  .takeaway .num{
+    font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue);
+    flex-shrink:0; line-height:1;
+  }
+  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
+
+  /* ========================================================
+     FOOTER
+  ======================================================== */
+  .footer{
+    margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge);
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  ::selection{ background:var(--marker-soft); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navwrap">
+    <span class="nav-tag">JUMP TO</span>
+    <a class="nav-link" href="#s1">01 · PCA's Blind Spot</a>
+    <a class="nav-link" href="#s2">02 · Feature Mapping</a>
+    <a class="nav-link" href="#s3">03 · The Kernel Shortcut</a>
+    <a class="nav-link" href="#s4">04 · The Bottleneck</a>
+    <a class="nav-link" href="#s5">Takeaways</a>
+  </div>
+</nav>
+
+<div class="sheet">
+
+  <!-- ================= HERO ================= -->
+  <header class="hero">
+    <div class="eyebrow">Dimensionality Reduction Series</div>
+    <h1 class="title">Feature Transformation &amp;<br>the Limits of <em>PCA</em></h1>
+    <p class="subtitle">
+      PCA is brilliant at untangling straight-line relationships — and lost the moment
+      your data curves. This lecture unpacks why, and how a clever trick called
+      <strong>feature mapping</strong> rescues it — plus the price you pay for that rescue.
+    </p>
+    <div class="meta-row">
+      <span><b>Prereqs</b> · Eigenvectors, variance, covariance matrices</span>
+      <span><b>Core idea</b> · Non-linear → linear via higher dimensions</span>
+      <span><b>Watch for</b> · The dimensionality explosion trap</span>
+    </div>
+  </header>
+
+  <!-- ================= SECTION 1 ================= -->
+  <section class="section" id="s1">
+    <div class="sec-head">
+      <div class="sec-num">1</div>
+      <h2>Where PCA Gets Lost: Non-Linear Data</h2>
+    </div>
+
+    <div class="card">
+      <span class="card-label">THE CORE PROBLEM</span>
+      <h3>PCA only knows how to look in straight lines</h3>
+      <p>
+        PCA works by rotating the axes of your data to point toward the directions
+        of <strong>maximum variance</strong> — the directions along which points are
+        most spread out. That works beautifully when the "shape" of your data is
+        an elongated cloud, like a cigar. But it has no concept of a <em>curve</em>.
+      </p>
+      <p>
+        Give it a dataset shaped like a <strong>circle</strong>, and something breaks:
+        the variance is spread out <em>evenly in every direction</em>. There is no
+        "long axis" to find, so PCA reports that both dimensions matter roughly
+        equally — even though every point on a circle can actually be described
+        by a <em>single number</em>: its angle. The true structure is
+        one-dimensional; PCA sees two.
+      </p>
+
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          Imagine you're standing at the very center of a circular running track,
+          looking outward. No matter which direction you turn, the track is
+          exactly the same distance away. If someone asked you "which direction
+          is the track <em>mainly</em> in?", you couldn't answer — it's equally in
+          every direction. Yet the track itself is a simple, one-dimensional loop;
+          a runner's entire position is described by one number (how far around
+          they've gone). Standing at the center, staring outward in straight
+          lines, is exactly the vantage point PCA is stuck with.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-title">Points on a circle — as PCA sees them</div>
+        <div class="circle-diagram" id="circleDiagram">
+          <div class="circle-ring"></div>
+          <div class="dot-orbit" id="dotOrbit"></div>
+          <div class="axis" style="width:100px; left:calc(50% - 100px);"></div>
+          <div class="axis" style="width:100px;"></div>
+          <div class="axis" style="width:100px; top:calc(50% - 100px); transform:rotate(90deg);"></div>
+          <div class="center-dot"></div>
+          <div class="axis-label" style="top:44%; left:74%;">PC1</div>
+          <div class="axis-label" style="top:18%; left:53%;">PC2</div>
+        </div>
+        <p class="diagram-caption">
+          12 points spaced evenly around a circle. PC1 and PC2 (red) capture
+          <strong>almost identical variance</strong> — PCA has no reason to
+          prefer one over the other, so it can't compress the circle down to 1
+          dimension, even though the data only has one true degree of freedom
+          (the angle).
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Aspect</th><th>Linear cloud (PCA's comfort zone)</th><th>Circle (non-linear)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Variance distribution</td><td>Concentrated along 1–2 directions</td><td>Spread evenly in all directions</td></tr>
+            <tr><td>PC1 vs PC2 variance</td><td>PC1 ≫ PC2</td><td>PC1 ≈ PC2</td></tr>
+            <tr><td>True degrees of freedom</td><td>Matches number of "big" PCs</td><td>Just 1 (the angle) — hidden inside 2D</td></tr>
+            <tr><td>PCA's verdict</td><td>✅ Correctly compresses dimensions</td><td>❌ Says "keep both dimensions"</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout key">
+        <div class="tag">Key insight</div>
+        <p>
+          PCA isn't "wrong" — it's doing exactly what it's designed to do
+          (maximize captured variance along <em>straight</em> directions). The
+          circle simply has no straight direction to find. We need to change
+          the space the data lives in, not the algorithm.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 2 ================= -->
+  <section class="section" id="s2">
+    <div class="sec-head">
+      <div class="sec-num">2</div>
+      <h2>The Fix: Feature Mapping φ</h2>
+    </div>
+
+    <div class="card">
+      <span class="card-label">THE STRATEGY</span>
+      <h3>Lift the data somewhere the curve becomes straight</h3>
+      <p>
+        The trick is to stop looking at the data in its original, low-dimensional
+        space <span class="formula">ℝ<sup>d</sup></span> and instead pass every
+        point through a <strong>feature map</strong>
+        <span class="formula">φ(x)</span> that sends it into a much
+        higher-dimensional space <span class="formula">ℝ<sup>D</sup></span>,
+        where <span class="formula">D &gt; d</span>. Done well, the curve that
+        was hopelessly non-linear "down here" becomes a flat, linear surface
+        "up there."
+      </p>
+      <p>
+        Concretely: the equation of a circle, <span class="formula">x₁² + x₂² = r²</span>,
+        is non-linear in <span class="formula">x</span>. But if we map each point
+        to include the term <span class="formula">x₁² + x₂²</span> as one of its
+        new coordinates, that same relationship becomes a
+        <strong>linear constraint</strong> in the new space:
+        <span class="formula">φ(x)ᵀu = 0</span>. The curvy 1D circle is now sitting
+        flat inside a linear subspace of the bigger space — exactly what PCA
+        knows how to find.
+      </p>
+
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          Think of pizza dough dusted with pepper flakes and shaped into a ring
+          on a flat tray — a "circle" from above. From directly overhead, no flat
+          cut ever separates the ring's pepper flakes from the empty middle;
+          any straight line through the tray clips through both. Now push up
+          the center of the dough like a small volcano, so height depends on
+          distance from the middle. Look at the dough from the <em>side</em> now:
+          the ring of pepper flakes sits along a slanted rim, and a single flat
+          knife-cut easily separates it from the peak. Nothing about the
+          pepper flakes changed — you just gave the problem one more dimension
+          (height) to live in, and the "impossible" curve became an easy
+          straight cut.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-title">Feature mapping: flat &amp; tangled → lifted &amp; linear</div>
+        <div class="lift-wrap">
+          <div class="lift-panel">
+            <div class="panel-title">Before · ℝ<sup>d</sup></div>
+            <div class="flat-plane" id="flatPlane"></div>
+            <p style="font-size:12px;color:var(--ink-faint);margin:10px 0 0;">Points ringed together — no straight cut separates them</p>
+          </div>
+          <div class="lift-arrow">
+            <span>φ(x)</span>
+            <span class="arrow-glyph">➜</span>
+            <span>maps up</span>
+          </div>
+          <div class="lift-panel">
+            <div class="panel-title">After · ℝ<sup>D</sup></div>
+            <div class="lifted-plane">
+              <div class="lifted-inner" id="liftedInner"></div>
+              <div class="cut-plane"></div>
+            </div>
+            <p style="font-size:12px;color:var(--ink-faint);margin:10px 0 0;">Same points, now separable by one flat cut (amber line)</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout note">
+        <div class="tag">Worth noting</div>
+        <p>
+          The new coordinate <span class="formula">x₁² + x₂²</span> isn't magic —
+          it's just one extra "ingredient" computed from the originals. Feature
+          mapping is really the systematic version of the trick you've probably
+          already used: adding <span class="formula">x²</span> as a feature so a
+          straight-line model can fit a parabola.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="card-label">THE COMPLICATION</span>
+      <h3>Now D might be enormous — and bigger than n</h3>
+      <p>
+        Because mapping <em>increases</em> dimensionality (<span class="formula">D &gt; d</span>),
+        we can quickly land in a regime where <span class="formula">D ≫ n</span>
+        — far more feature dimensions than we have data samples. Computing a
+        full <span class="formula">D × D</span> covariance matrix of
+        <span class="formula">φ(X)</span> for PCA becomes expensive or outright
+        infeasible.
+      </p>
+      <p>
+        The fix: instead of eigen-decomposing the huge covariance matrix
+        <span class="formula">φ(X)ᵀφ(X)/n</span> (size <span class="formula">D×D</span>),
+        we can work with the much smaller matrix
+        <span class="formula">φ(X)φ(X)ᵀ</span> (size <span class="formula">n×n</span>),
+        whose non-zero eigenvalues/eigenvectors correspond exactly to the ones
+        we need. This is the seed of what's known as the <strong>kernel trick</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 3 ================= -->
+  <section class="section" id="s3">
+    <div class="sec-head">
+      <div class="sec-num">3</div>
+      <h2>The Kernel Shortcut, Annotated</h2>
+    </div>
+
+    <div class="card">
+      <span class="card-label">WHY THIS MATTERS</span>
+      <h3>Swap a D×D problem for an n×n problem</h3>
+      <p>
+        Here's the same idea expressed as pseudocode, with the reasoning behind
+        each line called out below.
+      </p>
+
+      <div class="code-wrap">
+        <pre class="code-block"><span class="ln">1</span><span class="cm"># X: n samples, each originally in R^d</span>
+<span class="ln">2</span><span class="kw">phi_X</span> = <span class="fn">feature_map</span>(X)            <span class="cm"># shape: (n, D)  — D can be huge</span>
+<span class="ln">3</span>
+<span class="ln">4</span><span class="cm"># Expensive route (avoid): D x D covariance</span>
+<span class="ln">5</span>cov = (phi_X.T @ phi_X) / n     <span class="cm"># shape: (D, D)  -- can be 10^15!</span>
+<span class="ln">6</span>
+<span class="ln">7</span><span class="cm"># Efficient route: n x n Gram matrix instead</span>
+<span class="ln">8</span><span class="kw">gram</span> = phi_X @ phi_X.T        <span class="op">#</span> shape: (n, n)  <span class="c1">← tiny by comparison</span>
+<span class="ln">9</span>eigvals, eigvecs = <span class="fn">eigh</span>(gram)   <span class="cm"># solve the small problem</span>
+<span class="ln">10</span><span class="c2"># eigvecs of gram map back to the eigvecs of cov</span>
+<span class="ln">11</span><span class="c2"># we actually needed — same information, far less work</span></pre>
+      </div>
+
+      <ul class="annot-list">
+        <li data-n="1">Feature mapping happens first — every point balloons from <span class="formula">d</span> to <span class="formula">D</span> coordinates.</li>
+        <li data-n="2">The "obvious" covariance route scales with <span class="formula">D²</span> — this is where things blow up.</li>
+        <li data-n="3">The Gram matrix route scales with <span class="formula">n²</span> instead — and in most real datasets, <span class="formula">n ≪ D</span>.</li>
+        <li data-n="4">Both matrices share the same non-zero eigenvalues, so we lose nothing by solving the smaller one.</li>
+      </ul>
+
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          It's like being asked to compare every pair of ingredients across
+          10,000 possible recipes versus comparing your 40 actual dinner guests
+          to each other. Both comparisons can reveal the same insight about who
+          likes what — but one involves a 10,000-row table and the other a
+          40-row table. You always solve the smaller table if it tells you the
+          same story.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SECTION 4 ================= -->
+  <section class="section" id="s4">
+    <div class="sec-head">
+      <div class="sec-num">4</div>
+      <h2>The Catch: Exponential Growth</h2>
+    </div>
+
+    <div class="card">
+      <span class="card-label">THE BOTTLENECK</span>
+      <h3>Even the "efficient" route has a limit</h3>
+      <p>
+        The Gram-matrix shortcut helps with the <em>n×n</em> computation, but it
+        doesn't rescue us from the underlying problem: if we want our feature map
+        to capture <strong>all interactions up to the p-th power</strong> among
+        <span class="formula">d</span> original features, the number of resulting
+        dimensions grows roughly as
+      </p>
+
+      <div class="formula-block">D  ≈  O( d<sup style="color:#F2C868">p</sup> )</div>
+
+      <p>
+        That "p" in the exponent is brutal. Small increases in the degree of
+        interaction you want to model cause the dimensionality to rocket upward
+        — long before you get anywhere near a useful degree like 15.
+      </p>
+
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          Picture a pizza place with just <strong>10 toppings</strong> on the
+          menu. Choosing single toppings, or even pairs, is manageable — a
+          handful of combinations. But if a "specialty pizza" has to consider
+          every possible combination of <strong>up to 15 toppings at once</strong>
+          (including toppings repeated, order mattering the way polynomial terms
+          do), the menu of possible specialty pizzas explodes into the
+          quadrillions. The kitchen — no matter how efficient — cannot prep for
+          that menu.
+        </p>
+      </div>
+
+      <div class="diagram">
+        <div class="diagram-title">Dimensions needed as interaction degree (p) grows — 10 original features</div>
+        <div class="bar-chart">
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar" style="height:14%;"></div></div>
+            <div class="bar-val">~55</div>
+            <div class="bar-label">p = 2</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar" style="height:26%;"></div></div>
+            <div class="bar-val">~3,003</div>
+            <div class="bar-label">p = 5</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar" style="height:46%;"></div></div>
+            <div class="bar-val">~184,756</div>
+            <div class="bar-label">p = 10</div>
+          </div>
+          <div class="bar-col">
+            <div class="bar-track"><div class="bar blow" style="height:96%;"></div></div>
+            <div class="bar-val">~10<sup>15</sup></div>
+            <div class="bar-label">p = 15</div>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Bar heights are on a compressed scale just to fit the page — the real
+          jump from p&nbsp;=&nbsp;10 to p&nbsp;=&nbsp;15 is several orders of magnitude larger
+          than the bars can show. That's the point.
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>d (features)</th><th>p (degree)</th><th>Approx. D (dimensions)</th><th>Feasible?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>10</td><td>2</td><td class="num">~55</td><td class="flag">✅ trivial</td></tr>
+            <tr><td>10</td><td>5</td><td class="num">~3,003</td><td class="flag">✅ manageable</td></tr>
+            <tr><td>10</td><td>10</td><td class="num">~184,756</td><td class="flag">⚠️ heavy</td></tr>
+            <tr class="danger"><td>10</td><td>15</td><td class="num">~10<sup>15</sup></td><td class="flag">❌ unfeasible</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout warn">
+        <div class="tag">Watch out</div>
+        <p>
+          This is precisely why brute-force feature mapping is rarely used
+          directly in practice. Even the "smaller" n×n trick from Section 3
+          doesn't save you here — it avoids building the <em>D×D</em> covariance
+          matrix, but computing <span class="formula">φ(x)</span> itself still
+          requires materializing all <span class="formula">D</span> coordinates
+          for every point, unless the kernel function lets us skip that step
+          entirely (a preview of where kernel methods go next).
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TAKEAWAYS ================= -->
+  <section class="section" id="s5">
+    <div class="sec-head">
+      <div class="sec-num">✓</div>
+      <h2>Key Takeaways</h2>
+    </div>
+
+    <div class="takeaway-grid">
+      <div class="takeaway">
+        <div class="num">1</div>
+        <p>PCA only finds straight-line structure. Data shaped like a circle or curve fools it into thinking every direction matters equally.</p>
+      </div>
+      <div class="takeaway">
+        <div class="num">2</div>
+        <p>Feature mapping φ lifts data into a higher-dimensional space where non-linear relationships become linear constraints PCA can find.</p>
+      </div>
+      <div class="takeaway">
+        <div class="num">3</div>
+        <p>When D ≫ n, solve the small n×n Gram matrix instead of the huge D×D covariance matrix — same eigen-information, far less compute.</p>
+      </div>
+      <div class="takeaway">
+        <div class="num">4</div>
+        <p>Capturing all interactions up to degree p makes dimensions grow like O(d^p) — a fast route to an unmanageable feature space.</p>
+      </div>
+    </div>
+
+    <div class="callout key" style="margin-top:20px;">
+      <div class="tag">Looking ahead</div>
+      <p>
+        The natural next question: can we get the benefit of a huge feature
+        space <em>without ever computing φ(x) explicitly</em>? That's exactly
+        the problem kernel functions are built to solve — the subject of the
+        next lecture.
+      </p>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>Lecture Notes · Feature Transformation &amp; PCA</span>
+    <span>Dimensionality Reduction Series</span>
+  </div>
+
+</div>
+
+<script>
+  // Place 12 dots evenly around the circle diagram using rotate+translate
+  (function(){
+    var orbit = document.getElementById('dotOrbit');
+    var n = 12, r = 100;
+    for(var i=0;i<n;i++){
+      var angle = (360/n)*i;
+      var dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.transform = 'rotate('+angle+'deg) translate('+r+'px)';
+      orbit.appendChild(dot);
+    }
+  })();
+
+  // Scatter a ring of dots in the "flat" panel (top-down, all same layer)
+  (function(){
+    var flat = document.getElementById('flatPlane');
+    var n = 8, cx = 70, cy = 35, r = 24;
+    for(var i=0;i<n;i++){
+      var a = (Math.PI*2/n)*i;
+      var dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.position='absolute';
+      dot.style.left = (cx + r*Math.cos(a)) + 'px';
+      dot.style.top  = (cy + r*0.5*Math.sin(a)) + 'px';
+      flat.appendChild(dot);
+    }
+  })();
+
+  // Scatter the same ring in the "lifted" panel, now along a slanted rim
+  (function(){
+    var lifted = document.getElementById('liftedInner');
+    var n = 8, cx = 65, cy = 45, r = 26;
+    for(var i=0;i<n;i++){
+      var a = (Math.PI*2/n)*i;
+      var dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.style.position='absolute';
+      dot.style.left = (cx + r*Math.cos(a)) + 'px';
+      dot.style.top  = (cy + r*0.5*Math.sin(a)) + 'px';
+      lifted.appendChild(dot);
+    }
+  })();
+</script>
+
+</body>
+</html>

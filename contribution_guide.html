@@ -80,13 +80,13 @@
           </div>
 
           <div class="timeline-item" id="step2">
-            <div class="timeline-title">Step 2 &mdash; Generate Raw Notes using Gemini</div>
+            <div class="timeline-title">Step 2 &mdash; Generate Raw Notes using Gemini in YT</div>
             <div class="timeline-content">
               <p><strong>Go to Gemini</strong> and upload the lecture. Use this prompt:</p>
-              <div class="code-block"><pre><code>Create lecture notes without timestamps. Include all key concepts, definitions, and examples.</code></pre></div>
+              <div class="code-block"><pre><code>Create lecture notes without timestampsand with lecture no on it. Include all key concepts, definitions, and examples.</code></pre></div>
               <p>Follow these steps:
               </p><ol>
-                <li>Upload the lecture video or audio to Gemini.</li>
+                <li>Upload the lecture video or audio to Gemini IN YT.</li>
                 <li>Paste the prompt above.</li>
                 <li>Wait for the response to complete.</li>
                 <li>Copy the generated lecture notes.</li>
@@ -106,7 +106,8 @@
 - Annotated code &amp; visual hierarchy
 - Tables &amp; callout boxes
 - Diagrams using pure HTML/CSS
-- Mobile responsive design</code></pre></div>
+- Mobile responsive design
+- the best for learning this topic possible</code></pre></div>
               <div class="screenshot">Screenshot: assets/img/ &mdash; Claude Prompt</div>
               <p>Claude will generate an Artifact. Copy the HTML or download it.(some time it give option to copy as img , in that case download the file then you will get .html file)</p>
               <img src="assets/img/artifact output.png" alt="Claude Artifact" class="screenshot-img">
@@ -149,7 +150,7 @@
           <div class="timeline-item" id="step7">
             <div class="timeline-title">Step 7 &mdash; Regenerate Portal Config</div>
             <div class="timeline-content">
-              <p>After adding or removing any HTML files in the <code>Notes/</code> directory, you must regenerate the portal's configuration file so the sidebar navigation picks up the changes.</p>
+              <p>After adding new any HTML files in the <code>Notes/</code> directory, you must regenerate the portal's configuration file so the sidebar navigation picks up the changes.</p>
               <p>Run this command from the project root:</p>
               <div class="code-block"><pre><code>node scripts\generate-config.js</code></pre></div>
               <p>This scans all <code>Week */</code> folders for <code>.html</code> files and updates <code>assets/js/config.js</code> automatically.</p>
@@ -293,7 +294,7 @@
         <h2>Resources</h2>
         <div class="card-grid">
           <div class="card"><div class="card-icon blue"><i class="ph ph-github-logo"></i></div><h4>Repository</h4><p>Access the full notes collection on GitHub.</p></div>
-          <div class="card"><div class="card-icon green"><i class="ph ph-robot"></i></div><h4>Gemini</h4><p>Use Gemini to generate raw notes from lectures.</p></div>
+          <div class="card"><div class="card-icon green"><i class="ph ph-robot"></i></div><h4>Gemini</h4><p>Use Gemini IN YT to generate raw notes from lectures.</p></div>
           <div class="card"><div class="card-icon orange"><i class="ph ph-sparkle"></i></div><h4>Claude</h4><p>Convert raw notes into beautiful HTML using Claude.</p></div>
           <div class="card"><div class="card-icon purple"><i class="ph ph-code-block"></i></div><h4>VS Code</h4><p>Your editor for managing the repository files.</p></div>
           <div class="card"><div class="card-icon blue"><i class="ph ph-git-branch"></i></div><h4>Git Documentation</h4><p>Official Git docs for advanced commands.</p></div>

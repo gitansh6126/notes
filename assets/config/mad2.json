@@ -52,8 +52,8 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 4,
           "slug": "l4-identifiers-expressions-variables",
-          "lastModified": "2026-07-02T05:57:16.671Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-03T11:59:23.531Z",
+          "readingTime": 11,
           "tags": [],
           "keywords": []
         },
@@ -65,8 +65,8 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 5,
           "slug": "l5-control-flow-functions",
-          "lastModified": "2026-07-02T05:57:16.681Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-03T11:59:23.534Z",
+          "readingTime": 14,
           "tags": [],
           "keywords": []
         },
@@ -78,8 +78,8 @@
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 6,
           "slug": "l6-dom-api",
-          "lastModified": "2026-07-02T05:57:16.689Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-03T11:59:23.536Z",
+          "readingTime": 12,
           "tags": [],
           "keywords": []
         }
@@ -96,8 +96,8 @@
           "week": "Week 02 - Advanced JavaScript",
           "order": 1,
           "slug": "l1-collections-arrays",
-          "lastModified": "2026-07-02T05:57:16.698Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-03T11:59:23.539Z",
+          "readingTime": 14,
           "tags": [],
           "keywords": []
         },

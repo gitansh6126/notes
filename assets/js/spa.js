@@ -44,7 +44,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
-      openSearch();
+      const input = document.getElementById('searchInput');
+      if (input) { input.value = ''; input.focus(); performSearch(''); }
     }
     if (e.key === 'Escape') {
       closeSearch();
@@ -485,74 +486,50 @@ function closeMobileSidebar() {
 let searchActiveIndex = -1;
 
 function initSearch() {
-  const searchToggle = document.getElementById('searchToggle');
-  const searchOverlay = document.getElementById('searchOverlay');
-  const searchClose = document.getElementById('searchCloseBtn');
   const searchInput = document.getElementById('searchInput');
   const searchResults = document.getElementById('searchResults');
 
-  if (!searchToggle || !searchOverlay) return;
+  if (!searchInput) return;
 
-  searchToggle.addEventListener('click', openSearch);
-
-  if (searchClose) {
-    searchClose.addEventListener('click', closeSearch);
-  }
-
-  searchOverlay.addEventListener('click', (e) => {
-    if (e.target === searchOverlay) closeSearch();
+  searchInput.addEventListener('input', () => {
+    searchActiveIndex = -1;
+    performSearch(searchInput.value);
   });
 
-  if (searchInput) {
-    searchInput.addEventListener('input', () => {
-      searchActiveIndex = -1;
-      performSearch(searchInput.value);
-    });
-
-    searchInput.addEventListener('keydown', (e) => {
-      const items = searchResults.querySelectorAll('.search-result-item');
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
-        highlightSearchItem(items);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
-        highlightSearchItem(items);
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
-          items[searchActiveIndex].click();
-        }
-      }
-    });
-  }
-}
-
-function openSearch() {
-  const overlay = document.getElementById('searchOverlay');
-  const input = document.getElementById('searchInput');
-  const results = document.getElementById('searchResults');
-  if (!overlay) return;
-
-  overlay.classList.add('open');
-  searchActiveIndex = -1;
-
-  if (results) {
-    results.innerHTML = '<div class="search-empty">Type to search across all lectures...</div>';
-  }
-
-  setTimeout(() => {
-    if (input) {
-      input.value = '';
-      input.focus();
+  searchInput.addEventListener('focus', () => {
+    if (searchInput.value.trim()) {
+      searchResults.classList.add('open');
     }
-  }, 100);
+  });
+
+  searchInput.addEventListener('blur', () => {
+    setTimeout(() => searchResults.classList.remove('open'), 200);
+  });
+
+  searchInput.addEventListener('keydown', (e) => {
+    const items = searchResults.querySelectorAll('.search-result-item');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+      highlightSearchItem(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+      highlightSearchItem(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+        items[searchActiveIndex].click();
+      }
+    }
+  });
 }
 
 function closeSearch() {
-  const overlay = document.getElementById('searchOverlay');
-  if (overlay) overlay.classList.remove('open');
+  const results = document.getElementById('searchResults');
+  const input = document.getElementById('searchInput');
+  if (results) results.classList.remove('open');
+  if (input) input.blur();
 }
 
 function performSearch(query) {
@@ -562,6 +539,7 @@ function performSearch(query) {
   const trimmed = query.trim().toLowerCase();
   if (!trimmed) {
     results.innerHTML = '<div class="search-empty">Type to search across all lectures...</div>';
+    results.classList.remove('open');
     return;
   }
 
@@ -581,6 +559,7 @@ function performSearch(query) {
 
   if (matches.length === 0) {
     results.innerHTML = '<div class="search-empty">No lectures found matching your search.</div>';
+    results.classList.remove('open');
     return;
   }
 
@@ -599,6 +578,8 @@ function performSearch(query) {
       </div>
     `;
   }).join('');
+
+  results.classList.add('open');
 
   results.querySelectorAll('.search-result-item').forEach(item => {
     item.addEventListener('click', () => {
