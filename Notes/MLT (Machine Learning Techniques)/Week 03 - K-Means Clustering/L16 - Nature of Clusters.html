@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nature of K-Means Clusters — Voronoi Regions &amp; Their Limits</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --paper:        #FBF8F1;
+    --paper-line:   #E3DCC8;
+    --paper-edge:   #D8CFB4;
+    --ink:          #232323;
+    --ink-soft:     #5B5647;
+    --ink-faint:    #948C74;
+    --pen-blue:     #1F4E8C;
+    --pen-blue-soft:#E7EEF8;
+    --pen-red:      #A32B2B;
+    --pen-red-soft: #F8E9E7;
+    --marker:       #E3A320;
+    --marker-soft:  #FBF0D6;
+    --green:        #4B6B43;
+    --green-soft:   #EFF3EC;
+    --teal:         #2E7C74;
+    --teal-soft:    #E6F1EF;
+    --card:         #FFFDF8;
+    --card-shadow:  rgba(60, 50, 20, 0.14);
+    --radius-sm:    6px;
+    --radius-md:    10px;
+    --serif: 'Fraunces', serif;
+    --sans:  'Inter', sans-serif;
+    --mono:  'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  a{ color:var(--pen-blue); }
+
+  .sheet{ max-width:920px; margin:0 auto; padding:0 28px 90px 64px; position:relative; }
+  .sheet::before{
+    content:""; position:absolute; top:0; bottom:0; left:38px;
+    width:2px; background:var(--pen-red); opacity:0.35;
+  }
+  @media (max-width:640px){ .sheet{ padding:0 18px 70px 34px; } .sheet::before{ left:16px; } }
+
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,248,241,0.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--paper-edge);
+  }
+  .navwrap{
+    max-width:920px; margin:0 auto; padding:14px 28px 14px 64px;
+    display:flex; align-items:center; gap:10px; overflow-x:auto; scrollbar-width:none;
+  }
+  .navwrap::-webkit-scrollbar{ display:none; }
+  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
+  .nav-tag{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-faint); white-space:nowrap; margin-right:6px; }
+  .nav-link{
+    font-family:var(--sans); font-weight:600; font-size:13px; color:var(--ink-soft);
+    text-decoration:none; padding:6px 12px; border-radius:20px; white-space:nowrap;
+    border:1px solid transparent; transition:all .15s ease;
+  }
+  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--pen-red);
+    text-transform:uppercase; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:"§"; font-size:15px; }
+  h1.title{
+    font-family:var(--serif); font-weight:600; font-size:clamp(34px, 6vw, 54px);
+    line-height:1.08; margin:0 0 14px; color:var(--ink); letter-spacing:-0.01em;
+  }
+  .title em{ font-style:italic; color:var(--pen-blue); font-weight:500; }
+  .subtitle{ font-size:17px; color:var(--ink-soft); max-width:620px; margin:0 0 26px; }
+  .meta-row{
+    display:flex; gap:22px; flex-wrap:wrap; font-family:var(--mono); font-size:12px;
+    color:var(--ink-faint); border-top:1px dashed var(--paper-edge); padding-top:16px;
+  }
+  .meta-row b{ color:var(--ink-soft); }
+
+  .section{ margin-top:62px; }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:22px; }
+  .sec-num{
+    font-family:var(--mono); font-size:13px; color:var(--pen-red); font-weight:600;
+    border:1px solid var(--pen-red); border-radius:50%; width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .sec-head h2{ font-family:var(--serif); font-size:clamp(22px,3.4vw,29px); font-weight:600; margin:0; color:var(--ink); }
+
+  .card{
+    background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    box-shadow:0 3px 0 var(--card-shadow); padding:26px 28px; margin-bottom:22px; position:relative;
+  }
+  .card h3{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 10px; color:var(--ink); }
+  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:0 0 12px; padding-left:20px; }
+  .card li{ margin-bottom:7px; font-size:15.5px; }
+
+  .card-label{
+    position:absolute; top:-11px; left:24px; background:var(--marker-soft); color:#7A5A0A;
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
+    padding:3px 10px; border-radius:20px; border:1px solid #E8CE86;
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:700px){ .grid-3{ grid-template-columns:1fr; } }
+
+  .step-card{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
+    padding:16px; position:relative;
+  }
+  .step-card .step-n{
+    font-family:var(--serif); font-weight:700; font-size:24px; color:var(--pen-blue);
+    display:block; margin-bottom:6px;
+  }
+  .step-card h4{ font-family:var(--sans); font-size:14px; font-weight:700; margin:0 0 6px; }
+  .step-card p{ font-size:13px; color:var(--ink-soft); margin:0; }
+
+  .analogy{
+    background:var(--pen-blue-soft); border-left:4px solid var(--pen-blue);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:18px 22px; margin:18px 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    color:var(--pen-blue); text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .analogy .tag::before{ content:"💭"; font-size:13px; }
+  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
+
+  .callout{ border-radius:var(--radius-sm); padding:18px 22px; margin:20px 0; border:1.5px dashed; }
+  .callout .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .callout p{ margin:0; font-size:15px; }
+  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
+  .callout.key .tag{ color:#8A6510; } .callout.key .tag::before{ content:"★"; }
+  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
+  .callout.warn .tag{ color:var(--pen-red); } .callout.warn .tag::before{ content:"⚠"; }
+  .callout.note{ background:var(--green-soft); border-color:#7A9B6E; }
+  .callout.note .tag{ color:var(--green); } .callout.note .tag::before{ content:"✎"; }
+
+  .formula{
+    display:inline-block; font-family:var(--mono); font-size:14.5px; background:#EEF2FA;
+    color:var(--pen-blue); border:1px solid #C9D8EF; padding:3px 10px; border-radius:5px; margin:2px 0;
+  }
+  .formula-block{
+    font-family:var(--mono); font-size:15px; background:#20242C; color:#DCE6F7;
+    border-radius:var(--radius-sm); padding:18px 22px; margin:16px 0; overflow-x:auto;
+    line-height:1.9; text-align:center;
+  }
+  .formula-block .hl{ color:#F2C868; }
+  .formula-block .hl2{ color:#7FD9B8; }
+  .formula-block small{ display:block; font-family:var(--sans); font-size:12px; color:#8FA0BE; margin-top:8px; }
+  .formula-steps{ font-family:var(--mono); font-size:14px; background:#20242C; color:#DCE6F7; border-radius:var(--radius-sm); padding:18px 22px; margin:16px 0; overflow-x:auto; line-height:2.1; }
+  .formula-steps .row{ display:block; }
+  .formula-steps .hl{ color:#F2C868; }
+  .formula-steps .hl2{ color:#7FD9B8; }
+  .formula-steps small{ display:block; font-family:var(--sans); font-size:12px; color:#8FA0BE; margin-top:10px; line-height:1.5; }
+
+  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
+  table{ width:100%; border-collapse:collapse; min-width:480px; background:var(--card); }
+  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
+  th{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
+    background:#F1ECDD; color:var(--ink-soft); font-weight:600;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.mono{ font-family:var(--mono); color:var(--pen-blue); }
+
+  .diagram{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    padding:28px 20px 22px; margin:20px 0;
+  }
+  .diagram-title{
+    text-align:center; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px;
+  }
+  .diagram-caption{
+    text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:540px;
+    margin:14px auto 0; font-style:italic;
+  }
+  .diagram-svg-wrap{ max-width:460px; margin:0 auto; }
+  .diagram-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+  .legend-row{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); }
+  .legend-swatch{ width:11px; height:11px; border-radius:3px; display:inline-block; }
+
+  .code-wrap{ position:relative; margin:18px 0; }
+  .code-block{
+    font-family:var(--mono); font-size:13.5px; line-height:1.75; background:#20242C; color:#D9E1EE;
+    border-radius:var(--radius-sm); padding:18px 20px; overflow-x:auto;
+  }
+  .code-block .ln{ color:#5C6577; margin-right:14px; user-select:none; }
+  .code-block .cm{ color:#7FD9B8; font-style:italic; }
+  .code-block .hl{ color:#F2C868; }
+  .code-block .kw{ color:#7FA8D9; }
+  .annot-list{ margin:14px 0 0; padding-left:0; list-style:none; }
+  .annot-list li{ font-size:14px; color:var(--ink-soft); margin-bottom:8px; padding-left:22px; position:relative; }
+  .annot-list li::before{
+    content:attr(data-n); position:absolute; left:0; top:0; font-family:var(--mono); font-size:11px;
+    font-weight:700; color:#fff; background:var(--pen-blue); width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
+  .takeaway{ background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:16px 18px; display:flex; gap:12px; align-items:flex-start; }
+  .takeaway .num{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue); flex-shrink:0; line-height:1; }
+  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
+
+  .preview-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .preview-grid{ grid-template-columns:1fr; } }
+  .preview-card{ background:#FCFAF3; border:1px dashed var(--paper-edge); border-radius:var(--radius-sm); padding:18px 20px; }
+  .preview-card .p-tag{ font-family:var(--mono); font-size:11px; color:var(--pen-red); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+  .preview-card h4{ font-family:var(--serif); font-size:16.5px; margin:0 0 8px; }
+  .preview-card p{ font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .footer{
+    margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge);
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  ::selection{ background:var(--marker-soft); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navwrap">
+    <span class="nav-tag">JUMP TO</span>
+    <a class="nav-link" href="#s1">01 · The Convergence Condition</a>
+    <a class="nav-link" href="#s2">02 · Linear Boundaries</a>
+    <a class="nav-link" href="#s3">03 · Voronoi Regions</a>
+    <a class="nav-link" href="#s4">04 · Where It Fails</a>
+    <a class="nav-link" href="#s5">05 · Kernel K-Means</a>
+    <a class="nav-link" href="#s6">Takeaways</a>
+  </div>
+</nav>
+
+<div class="sheet">
+
+  <header class="hero">
+    <div class="eyebrow">Clustering Series · Lecture 16</div>
+    <h1 class="title">Nature of K-Means Clusters —<br>Voronoi Regions &amp;<br><em>Their Limits</em></h1>
+    <p class="subtitle">
+      K-Means always converges — last lecture proved that. This lecture asks
+      the next question: converge to <em>what kind of shape</em>? The answer
+      turns out to be baked into the algorithm's arithmetic, and it explains
+      both what K-Means is great at and where it quietly breaks.
+    </p>
+    <div class="meta-row">
+      <span><b>Builds on</b> · Lloyd's algorithm, the convergence proof</span>
+      <span><b>Core idea</b> · The convergence condition is a linear inequality in disguise</span>
+      <span><b>Output</b> · Every cluster is convex — which is a feature and a limitation</span>
+    </div>
+  </header>
+
+  <!-- SECTION 1 -->
+  <section class="section" id="s1">
+    <div class="sec-head"><div class="sec-num">1</div><h2>What "Converged" Actually Says About Each Point</h2></div>
+    <div class="card">
+      <span class="card-label">STARTING CONDITION</span>
+      <h3>Every point is closer to its own mean than to anyone else's</h3>
+      <p>
+        At the fixed point the previous lecture proved K-Means must reach, one
+        simple statement is true of <em>every single point</em> in the dataset:
+        for a point <span class="formula">x</span> assigned to cluster
+        <span class="formula">i</span> with mean <span class="formula">μᵢ</span>,
+        it must be at least as close to <span class="formula">μᵢ</span> as to
+        any other cluster's mean <span class="formula">μⱼ</span> — otherwise the
+        reassignment step would have moved it.
+      </p>
+      <div class="formula-block">
+        ‖x − μ<sub>i</sub>‖² &nbsp;≤&nbsp; ‖x − μ<sub>j</sub>‖² &nbsp;&nbsp; for every other cluster j
+        <small>true of every point, for every pair of clusters, at convergence — this single inequality is about to explain the entire shape of a K-Means cluster</small>
+      </div>
+      <p>
+        It looks like a throwaway fact — almost the definition of "assigned to
+        the nearest mean." But expanding it algebraically reveals something
+        much stronger about the <em>geometry</em> that inequality implies.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="section" id="s2">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Why the Boundary Between Two Clusters Is a Straight Line</h2></div>
+    <div class="card">
+      <span class="card-label">THE ALGEBRA</span>
+      <h3>Expand the squared distances — the curvature cancels out</h3>
+      <p>
+        Squared Euclidean distance expands into a quadratic term, a linear
+        term, and a constant. Watch what happens to the quadratic term when
+        both sides of the inequality are expanded:
+      </p>
+      <div class="formula-steps">
+<span class="row">‖x − μ<sub>i</sub>‖² &nbsp;≤&nbsp; ‖x − μ<sub>j</sub>‖²</span>
+<span class="row"><span class="hl">x</span><sup>T</sup><span class="hl">x</span> − 2x<sup>T</sup>μ<sub>i</sub> + μ<sub>i</sub><sup>T</sup>μ<sub>i</sub> &nbsp;≤&nbsp; <span class="hl">x</span><sup>T</sup><span class="hl">x</span> − 2x<sup>T</sup>μ<sub>j</sub> + μ<sub>j</sub><sup>T</sup>μ<sub>j</sub></span>
+<span class="row">— the x<sup>T</sup>x term appears on both sides and cancels —</span>
+<span class="row">2x<sup>T</sup>(μ<sub>j</sub> − μ<sub>i</sub>) &nbsp;≤&nbsp; μ<sub>j</sub><sup>T</sup>μ<sub>j</sub> − μ<sub>i</sub><sup>T</sup>μ<sub>i</sub></span>
+<small>what remains is linear in x — no x² term survives. The boundary where equality holds is therefore a hyperplane: specifically, the perpendicular bisector of the segment joining μᵢ and μⱼ.</small>
+      </div>
+      <div class="diagram">
+        <div class="diagram-title">The bisector boundary between two means</div>
+        <div class="diagram-svg-wrap">
+          <svg viewBox="0 0 420 260" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="0,0 420,0 420,260 0,260" fill="none"/>
+            <!-- half space fills, split by bisector line -->
+            <polygon points="0,0 210,0 155,260 0,260" fill="#E7EEF8"/>
+            <polygon points="210,0 420,0 420,260 155,260" fill="#FBF0D6"/>
+            <!-- segment between means, dashed -->
+            <line x1="110" y1="90" x2="300" y2="170" stroke="#948C74" stroke-width="1.5" stroke-dasharray="5,4"/>
+            <!-- bisector line (perpendicular, solid) -->
+            <line x1="210" y1="0" x2="155" y2="260" stroke="#A32B2B" stroke-width="2.5"/>
+            <!-- mean points -->
+            <circle cx="110" cy="90" r="8" fill="#1F4E8C" stroke="#fff" stroke-width="2"/>
+            <text x="110" y="70" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#1F4E8C">μᵢ</text>
+            <circle cx="300" cy="170" r="8" fill="#E3A320" stroke="#fff" stroke-width="2"/>
+            <text x="300" y="195" text-anchor="middle" font-family="JetBrains Mono" font-size="13" fill="#8A6510">μⱼ</text>
+            <!-- sample point x with distances -->
+            <circle cx="150" cy="150" r="5" fill="#232323"/>
+            <text x="150" y="135" text-anchor="middle" font-family="JetBrains Mono" font-size="12" fill="#232323">x</text>
+            <line x1="150" y1="150" x2="110" y2="90" stroke="#1F4E8C" stroke-width="1.3" stroke-dasharray="3,3"/>
+            <line x1="150" y1="150" x2="300" y2="170" stroke="#8A6510" stroke-width="1.3" stroke-dasharray="3,3"/>
+          </svg>
+        </div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch" style="background:#E7EEF8;border:1px solid #C9D8EF;"></span>closer to μᵢ</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#FBF0D6;border:1px solid #E8CE86;"></span>closer to μⱼ</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#A32B2B;"></span>bisector (the boundary)</span>
+        </div>
+        <p class="diagram-caption">
+          Point <span class="formula">x</span> is assigned to whichever mean is
+          nearer. As x slides across the red line, the two dashed distances
+          become exactly equal — that line is the entire decision boundary
+          between these two clusters, and it is perfectly straight.
+        </p>
+      </div>
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          It's the same rule that decides which of two pizza shops delivers to
+          your house first: not a curved zone, but a single straight line
+          exactly halfway between the two shops. Everyone on your side of that
+          line is closer to your shop; everyone past it belongs to the other.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="section" id="s3">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Scaling Up: Voronoi Regions</h2></div>
+    <div class="card">
+      <span class="card-label">FROM ONE PAIR TO ALL K CLUSTERS</span>
+      <h3>Each cluster is the intersection of K−1 half-spaces</h3>
+      <p>
+        The pairwise argument above holds for every other cluster simultaneously.
+        A point in cluster <span class="formula">i</span> must sit on the "μᵢ side"
+        of the bisector against cluster 1, <em>and</em> against cluster 2, and so
+        on for all <span class="formula">K−1</span> other clusters at once.
+        Intersecting <span class="formula">K−1</span> half-spaces produces a
+        single <strong>convex</strong> region — this is precisely the definition
+        of a <strong>Voronoi region</strong>.
+      </p>
+      <div class="diagram">
+        <div class="diagram-title">Five means, five convex Voronoi regions, zero gaps</div>
+        <div class="diagram-svg-wrap">
+          <svg viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
+            <!-- top cell -->
+            <polygon points="0,0 400,0 283,97.5 143,97.5" fill="#E7EEF8" stroke="#FBF8F1" stroke-width="2"/>
+            <!-- right cell -->
+            <polygon points="400,0 400,300 283,202.5 283,97.5" fill="#FBF0D6" stroke="#FBF8F1" stroke-width="2"/>
+            <!-- bottom cell -->
+            <polygon points="400,300 0,300 143,202.5 283,202.5" fill="#EFF3EC" stroke="#FBF8F1" stroke-width="2"/>
+            <!-- left cell -->
+            <polygon points="0,300 0,0 143,97.5 143,202.5" fill="#F8E9E7" stroke="#FBF8F1" stroke-width="2"/>
+            <!-- center cell -->
+            <polygon points="143,97.5 283,97.5 283,202.5 143,202.5" fill="#E6F1EF" stroke="#FBF8F1" stroke-width="2"/>
+            <!-- seeds -->
+            <circle cx="220" cy="40" r="6" fill="#1F4E8C" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="350" cy="150" r="6" fill="#B9862A" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="220" cy="260" r="6" fill="#4B6B43" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="90" cy="150" r="6" fill="#A32B2B" stroke="#fff" stroke-width="1.5"/>
+            <circle cx="213" cy="150" r="6" fill="#2E7C74" stroke="#fff" stroke-width="1.5"/>
+            <text x="220" y="28" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#1F4E8C">μ₁</text>
+            <text x="362" y="150" text-anchor="start" font-family="JetBrains Mono" font-size="11" fill="#8A6510">μ₂</text>
+            <text x="220" y="278" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#4B6B43">μ₃</text>
+            <text x="78" y="150" text-anchor="end" font-family="JetBrains Mono" font-size="11" fill="#A32B2B">μ₄</text>
+            <text x="213" y="140" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#2E7C74">μ₅</text>
+          </svg>
+        </div>
+        <p class="diagram-caption">
+          Every internal edge here is itself a perpendicular bisector between
+          two neighboring means. However many clusters K there are, the space
+          splits into exactly K convex tiles — every straight edge, no curved
+          boundary anywhere.
+        </p>
+      </div>
+      <div class="callout key">
+        <div class="tag">Key insight</div>
+        <p>
+          K-Means doesn't just <em>tend to</em> produce convex clusters — it is
+          structurally incapable of producing anything else. The intersection
+          of half-spaces is convex by definition, full stop.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="section" id="s4">
+    <div class="sec-head"><div class="sec-num">4</div><h2>Where Convexity Becomes a Problem</h2></div>
+    <div class="card">
+      <span class="card-label">THE LIMITATION</span>
+      <h3>Only linearly separable structure is recoverable</h3>
+      <p>
+        Convex regions are exactly what you want when true clusters really are
+        blob-shaped and roughly separable by straight lines. They are exactly
+        the wrong tool the moment true structure is <strong>non-convex</strong> —
+        and nested rings are the cleanest example of that failure.
+      </p>
+      <div class="diagram">
+        <div class="diagram-title">Concentric rings: the true clusters vs. what K-Means can draw</div>
+        <div class="diagram-svg-wrap">
+          <svg viewBox="0 0 400 260" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="200" height="260" fill="#E7EEF8"/>
+            <rect x="200" y="0" width="200" height="260" fill="#FBF0D6"/>
+            <line x1="200" y1="0" x2="200" y2="260" stroke="#A32B2B" stroke-width="2.5"/>
+            <circle cx="200" cy="130" r="95" fill="none" stroke="#948C74" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <circle cx="200" cy="130" r="42" fill="none" stroke="#948C74" stroke-width="1.5" stroke-dasharray="4,4"/>
+            <!-- outer ring points -->
+            <circle cx="120" cy="60" r="5" fill="#1F4E8C"/><circle cx="280" cy="60" r="5" fill="#B9862A"/>
+            <circle cx="100" cy="130" r="5" fill="#1F4E8C"/><circle cx="300" cy="130" r="5" fill="#B9862A"/>
+            <circle cx="120" cy="200" r="5" fill="#1F4E8C"/><circle cx="280" cy="200" r="5" fill="#B9862A"/>
+            <circle cx="200" cy="35" r="5" fill="#1F4E8C" fill-opacity="0"/>
+            <circle cx="160" cy="45" r="5" fill="#1F4E8C"/><circle cx="245" cy="45" r="5" fill="#B9862A"/>
+            <circle cx="160" cy="215" r="5" fill="#1F4E8C"/><circle cx="245" cy="215" r="5" fill="#B9862A"/>
+            <!-- inner ring points -->
+            <circle cx="175" cy="105" r="5" fill="#1F4E8C"/><circle cx="225" cy="105" r="5" fill="#B9862A"/>
+            <circle cx="175" cy="155" r="5" fill="#1F4E8C"/><circle cx="225" cy="155" r="5" fill="#B9862A"/>
+            <circle cx="200" cy="90" r="5" fill="#1F4E8C"/><circle cx="200" cy="170" r="5" fill="#B9862A"/>
+            <text x="105" y="245" font-family="JetBrains Mono" font-size="11" fill="#1F4E8C">K-Means side A</text>
+            <text x="245" y="245" font-family="JetBrains Mono" font-size="11" fill="#8A6510">K-Means side B</text>
+          </svg>
+        </div>
+        <p class="diagram-caption">
+          The dashed circles are the true rings we want as clusters. The red
+          line is the best a 2-mean K-Means can do: a straight cut that slices
+          <em>through</em> both rings, mixing inner and outer points on each
+          side instead of separating them.
+        </p>
+      </div>
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          It's like trying to separate the bullseye from the outer rings of a
+          dartboard using a single straight fence. No matter where or at what
+          angle you plant that fence, it will always cut across both rings —
+          a straight boundary simply cannot isolate a ring-shaped region.
+        </p>
+      </div>
+      <div class="callout warn">
+        <div class="tag">Watch out</div>
+        <p>
+          This isn't a bug that better initialization or more iterations can
+          fix. It's a structural ceiling: as long as the algorithm assigns
+          points using straight-line distance to a mean, ring-shaped, spiral,
+          or otherwise non-convex clusters are out of reach.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="section" id="s5">
+    <div class="sec-head"><div class="sec-num">5</div><h2>The Fix: Move the Straight Lines Somewhere They Work</h2></div>
+    <div class="card">
+      <span class="card-label">KERNEL K-MEANS</span>
+      <h3>Same convex machinery — a different, better-behaved space</h3>
+      <p>
+        The convexity limitation lives entirely in the original space
+        <span class="formula">ℝ<sup>d</sup></span>. Exactly as with kernel PCA,
+        the fix is to map points into a higher-dimensional feature space via
+        <span class="formula">φ</span>, where the same straight-line, convex
+        K-Means machinery — run using only kernel evaluations
+        <span class="formula">K(Xᵢ, Xⱼ) = φ(Xᵢ)ᵀφ(Xⱼ)</span> — can now separate
+        structure that was non-convex back in the original space.
+      </p>
+      <div class="grid-2">
+        <div class="step-card">
+          <span class="step-n">→</span>
+          <h4>Original space</h4>
+          <p>Concentric rings. No straight line can separate them. Standard K-Means is stuck.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-n">→</span>
+          <h4>Feature space (via φ)</h4>
+          <p>The rings unfold into groups a hyperplane <em>can</em> separate. K-Means's convex regions become the right tool again.</p>
+        </div>
+      </div>
+      <div class="callout note">
+        <div class="tag">Worth noting</div>
+        <p>
+          Kernelized K-Means is closely related to <strong>spectral
+          clustering</strong>, which partitions data using the eigenvectors of
+          a kernel (or similarity) matrix rather than iterating means directly —
+          two different routes to the same non-convexity fix.
+        </p>
+      </div>
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          Think of trying to separate the colors of a swirled marble cake with
+          a single straight knife cut — impossible in the pan. Unroll each
+          swirl into its own straight layer first, and one clean cut suddenly
+          separates everything. The kernel map is that unrolling step.
+        </p>
+      </div>
+    </div>
+
+    <div class="callout key">
+      <div class="tag">Key insight</div>
+      <p>
+        Nothing about the K-Means <em>algorithm</em> changes under kernelization
+        — reassign, then recompute — only the space it operates in changes,
+        via the kernel trick. Convexity is still required; the trick is finding
+        a space where the true clusters happen to satisfy it.
+      </p>
+    </div>
+  </section>
+
+  <!-- LOOKING AHEAD -->
+  <section class="section" id="s5b">
+    <div class="sec-head"><div class="sec-num">→</div><h2>Coming Up</h2></div>
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="p-tag">Next lecture</div>
+        <h4>Initialization strategies</h4>
+        <p>Given that different starting means can land in different local minima, how should the initial seed points actually be chosen?</p>
+      </div>
+      <div class="preview-card">
+        <div class="p-tag">Following lecture</div>
+        <h4>Choosing K</h4>
+        <p>With no ground-truth labels to check against in unsupervised clustering, what tells us the "right" number of clusters?</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAKEAWAYS -->
+  <section class="section" id="s6">
+    <div class="sec-head"><div class="sec-num">✓</div><h2>Key Takeaways</h2></div>
+    <div class="takeaway-grid">
+      <div class="takeaway"><div class="num">1</div><p>The convergence condition ‖x−μᵢ‖² ≤ ‖x−μⱼ‖², once expanded, is linear in x — the quadratic terms cancel and only a hyperplane condition survives.</p></div>
+      <div class="takeaway"><div class="num">2</div><p>That hyperplane is the perpendicular bisector between two means; intersecting K−1 of them per cluster produces convex Voronoi regions.</p></div>
+      <div class="takeaway"><div class="num">3</div><p>Because every cluster is an intersection of half-spaces, K-Means can only recover linearly separable, convex structure — never rings, spirals, or other non-convex shapes.</p></div>
+      <div class="takeaway"><div class="num">4</div><p>Kernel K-Means resolves this the same way kernel PCA does: keep the convex machinery, just run it in a feature space where the true clusters become convex.</p></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>Lecture Notes · Nature of K-Means Clusters</span>
+    <span>Clustering Series · Lecture 16</span>
+  </div>
+
+</div>
+
+</body>
+</html>

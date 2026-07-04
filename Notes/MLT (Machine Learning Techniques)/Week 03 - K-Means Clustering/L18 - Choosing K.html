@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choosing K — Balancing Fit Against Complexity</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --paper:        #FBF8F1;
+    --paper-line:   #E3DCC8;
+    --paper-edge:   #D8CFB4;
+    --ink:          #232323;
+    --ink-soft:     #5B5647;
+    --ink-faint:    #948C74;
+    --pen-blue:     #1F4E8C;
+    --pen-blue-soft:#E7EEF8;
+    --pen-red:      #A32B2B;
+    --pen-red-soft: #F8E9E7;
+    --marker:       #E3A320;
+    --marker-soft:  #FBF0D6;
+    --green:        #4B6B43;
+    --green-soft:   #EFF3EC;
+    --violet:       #6B4E9C;
+    --violet-soft:  #EEE8F6;
+    --card:         #FFFDF8;
+    --card-shadow:  rgba(60, 50, 20, 0.14);
+    --radius-sm:    6px;
+    --radius-md:    10px;
+    --serif: 'Fraunces', serif;
+    --sans:  'Inter', sans-serif;
+    --mono:  'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  a{ color:var(--pen-blue); }
+
+  .sheet{ max-width:920px; margin:0 auto; padding:0 28px 90px 64px; position:relative; }
+  .sheet::before{
+    content:""; position:absolute; top:0; bottom:0; left:38px;
+    width:2px; background:var(--pen-red); opacity:0.35;
+  }
+  @media (max-width:640px){ .sheet{ padding:0 18px 70px 34px; } .sheet::before{ left:16px; } }
+
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,248,241,0.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--paper-edge);
+  }
+  .navwrap{
+    max-width:920px; margin:0 auto; padding:14px 28px 14px 64px;
+    display:flex; align-items:center; gap:10px; overflow-x:auto; scrollbar-width:none;
+  }
+  .navwrap::-webkit-scrollbar{ display:none; }
+  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
+  .nav-tag{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-faint); white-space:nowrap; margin-right:6px; }
+  .nav-link{
+    font-family:var(--sans); font-weight:600; font-size:13px; color:var(--ink-soft);
+    text-decoration:none; padding:6px 12px; border-radius:20px; white-space:nowrap;
+    border:1px solid transparent; transition:all .15s ease;
+  }
+  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--pen-red);
+    text-transform:uppercase; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:"§"; font-size:15px; }
+  h1.title{
+    font-family:var(--serif); font-weight:600; font-size:clamp(34px, 6vw, 54px);
+    line-height:1.08; margin:0 0 14px; color:var(--ink); letter-spacing:-0.01em;
+  }
+  .title em{ font-style:italic; color:var(--pen-blue); font-weight:500; }
+  .subtitle{ font-size:17px; color:var(--ink-soft); max-width:620px; margin:0 0 26px; }
+  .meta-row{
+    display:flex; gap:22px; flex-wrap:wrap; font-family:var(--mono); font-size:12px;
+    color:var(--ink-faint); border-top:1px dashed var(--paper-edge); padding-top:16px;
+  }
+  .meta-row b{ color:var(--ink-soft); }
+
+  .section{ margin-top:62px; }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:22px; }
+  .sec-num{
+    font-family:var(--mono); font-size:13px; color:var(--pen-red); font-weight:600;
+    border:1px solid var(--pen-red); border-radius:50%; width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .sec-head h2{ font-family:var(--serif); font-size:clamp(22px,3.4vw,29px); font-weight:600; margin:0; color:var(--ink); }
+
+  .card{
+    background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    box-shadow:0 3px 0 var(--card-shadow); padding:26px 28px; margin-bottom:22px; position:relative;
+  }
+  .card h3{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 10px; color:var(--ink); }
+  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:0 0 12px; padding-left:20px; }
+  .card ol{ margin:0 0 12px; padding-left:20px; }
+  .card li{ margin-bottom:7px; font-size:15.5px; }
+
+  .card-label{
+    position:absolute; top:-11px; left:24px; background:var(--marker-soft); color:#7A5A0A;
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
+    padding:3px 10px; border-radius:20px; border:1px solid #E8CE86;
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  @media (max-width:760px){ .grid-3{ grid-template-columns:1fr; } }
+
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media (max-width:760px){ .grid-4{ grid-template-columns:repeat(2,1fr); } }
+
+  .step-card{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
+    padding:16px; position:relative;
+  }
+  .step-card .step-n{
+    font-family:var(--serif); font-weight:700; font-size:24px; color:var(--pen-blue);
+    display:block; margin-bottom:6px;
+  }
+  .step-card h4{ font-family:var(--sans); font-size:14px; font-weight:700; margin:0 0 6px; }
+  .step-card p{ font-size:13px; color:var(--ink-soft); margin:0; }
+
+  .analogy{
+    background:var(--pen-blue-soft); border-left:4px solid var(--pen-blue);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:18px 22px; margin:18px 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    color:var(--pen-blue); text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .analogy .tag::before{ content:"💭"; font-size:13px; }
+  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
+
+  .callout{ border-radius:var(--radius-sm); padding:18px 22px; margin:20px 0; border:1.5px dashed; }
+  .callout .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .callout p{ margin:0; font-size:15px; }
+  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
+  .callout.key .tag{ color:#8A6510; } .callout.key .tag::before{ content:"★"; }
+  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
+  .callout.warn .tag{ color:var(--pen-red); } .callout.warn .tag::before{ content:"⚠"; }
+  .callout.note{ background:var(--green-soft); border-color:#7A9B6E; }
+  .callout.note .tag{ color:var(--green); } .callout.note .tag::before{ content:"✎"; }
+  .callout.prob{ background:var(--violet-soft); border-color:#B7A2D6; }
+  .callout.prob .tag{ color:var(--violet); } .callout.prob .tag::before{ content:"🎲"; }
+
+  .formula{
+    display:inline-block; font-family:var(--mono); font-size:14.5px; background:#EEF2FA;
+    color:var(--pen-blue); border:1px solid #C9D8EF; padding:3px 10px; border-radius:5px; margin:2px 0;
+  }
+  .formula-block{
+    font-family:var(--mono); font-size:15px; background:#20242C; color:#DCE6F7;
+    border-radius:var(--radius-sm); padding:18px 22px; margin:16px 0; overflow-x:auto;
+    line-height:1.9; text-align:center;
+  }
+  .formula-block .hl{ color:#F2C868; }
+  .formula-block .hl2{ color:#7FD9B8; }
+  .formula-block small{ display:block; font-family:var(--sans); font-size:12px; color:#8FA0BE; margin-top:8px; }
+
+  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
+  table{ width:100%; border-collapse:collapse; min-width:520px; background:var(--card); }
+  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
+  th{
+    font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
+    background:#F1ECDD; color:var(--ink-soft); font-weight:600;
+  }
+  tr:last-child td{ border-bottom:none; }
+  td.mono{ font-family:var(--mono); color:var(--pen-blue); }
+
+  .diagram{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    padding:26px 20px 22px; margin:20px 0;
+  }
+  .diagram-title{
+    text-align:center; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em;
+    color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px;
+  }
+  .diagram-caption{
+    text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:540px;
+    margin:14px auto 0; font-style:italic;
+  }
+  .diagram-svg-wrap{ max-width:480px; margin:0 auto; }
+  .diagram-svg-wrap svg{ width:100%; height:auto; display:block; }
+
+  .legend-row{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+  .legend-item{ display:flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11.5px; color:var(--ink-soft); }
+  .legend-swatch{ width:16px; height:3px; border-radius:2px; display:inline-block; }
+  .legend-swatch.dot{ width:9px; height:9px; border-radius:50%; }
+
+  .kpp-step{ background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:14px; }
+  .kpp-step .kpp-n{
+    font-family:var(--mono); font-size:11px; font-weight:700; color:#fff; background:var(--pen-blue);
+    display:inline-flex; align-items:center; justify-content:center; padding:2px 9px;
+    border-radius:20px; margin-bottom:8px;
+  }
+  .kpp-step h4{ font-family:var(--sans); font-size:13.5px; font-weight:700; margin:0 0 6px; }
+  .kpp-step p{ font-size:12.5px; color:var(--ink-soft); margin:0 0 8px; }
+  .kpp-step svg{ width:100%; height:auto; display:block; background:#fff; border:1px solid var(--paper-edge); border-radius:6px; }
+
+  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
+  .takeaway{ background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:16px 18px; display:flex; gap:12px; align-items:flex-start; }
+  .takeaway .num{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue); flex-shrink:0; line-height:1; }
+  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
+
+  /* ---- course recap timeline ---- */
+  .recap-timeline{ display:flex; flex-direction:column; gap:0; margin-top:10px; }
+  .recap-item{ display:grid; grid-template-columns:64px 1fr; gap:16px; padding:16px 0; position:relative; }
+  .recap-item:not(:last-child)::after{
+    content:""; position:absolute; left:31px; bottom:-2px; width:2px; height:16px; background:var(--paper-edge);
+  }
+  .recap-lec{
+    font-family:var(--mono); font-size:12px; font-weight:700; color:#fff; background:var(--pen-red);
+    border-radius:50%; width:56px; height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    line-height:1.15; text-align:center; flex-shrink:0;
+  }
+  .recap-lec span{ font-size:9px; opacity:0.85; text-transform:uppercase; letter-spacing:.03em; }
+  .recap-body h4{ font-family:var(--serif); font-size:16.5px; margin:0 0 4px; }
+  .recap-body p{ font-size:14px; color:var(--ink-soft); margin:0; }
+
+  .footer{
+    margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge);
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  ::selection{ background:var(--marker-soft); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navwrap">
+    <span class="nav-tag">JUMP TO</span>
+    <a class="nav-link" href="#s1">01 · The Trivial Solution</a>
+    <a class="nav-link" href="#s2">02 · Penalizing Complexity</a>
+    <a class="nav-link" href="#s3">03 · AIC &amp; BIC</a>
+    <a class="nav-link" href="#s4">04 · The Full Story</a>
+    <a class="nav-link" href="#s5">Takeaways</a>
+  </div>
+</nav>
+
+<div class="sheet">
+
+  <header class="hero">
+    <div class="eyebrow">Clustering Series · Lecture 22 · Series Finale</div>
+    <h1 class="title">Choosing K —<br>Balancing Fit<br>Against <em>Complexity</em></h1>
+    <p class="subtitle">
+      Every earlier lecture quietly assumed K was handed to us. It never is.
+      This lecture confronts the last open question in K-Means head-on: left
+      unchecked, the objective function wants K as large as possible — so
+      something else has to want the opposite.
+    </p>
+    <div class="meta-row">
+      <span><b>Builds on</b> · The K-Means objective, model-selection intuition</span>
+      <span><b>Core idea</b> · Fit alone always prefers more clusters; a penalty term has to push back</span>
+      <span><b>Output</b> · AIC / BIC — principled ways to pick K* automatically</span>
+    </div>
+  </header>
+
+  <!-- SECTION 1 -->
+  <section class="section" id="s1">
+    <div class="sec-head"><div class="sec-num">1</div><h2>The Problem with Minimizing the Objective Alone</h2></div>
+    <div class="card">
+      <span class="card-label">THE TRAP</span>
+      <h3>Unconstrained, the objective is happiest at K = n</h3>
+      <p>
+        Recall the K-Means objective — total squared distance from every point
+        to its cluster's mean:
+      </p>
+      <div class="formula-block">
+        f(z<sub>1</sub>, …, z<sub>n</sub>) &nbsp;=&nbsp; Σ<sub>i=1</sub><sup>n</sup> ‖x<sub>i</sub> − μ<sub>z<sub>i</sub></sub>‖²
+        <small>the standard objective — total squared distance from every point to its assigned mean</small>
+      </div>
+      <p>
+        If <span class="formula">K</span> is free to grow, the minimizer is
+        trivial: set <span class="formula">K = n</span>, give every point its
+        own cluster, and the mean of a single-point cluster is that point
+        itself. Every distance term becomes exactly zero.
+      </p>
+      <div class="diagram">
+        <div class="diagram-title">Watching the objective collapse to zero as K grows</div>
+        <div class="grid-3">
+          <div class="kpp-step">
+            <span class="kpp-n">K = 2</span>
+            <h4>Real compression</h4>
+            <p>Two means summarize ten points. High, but meaningful, objective.</p>
+            <svg viewBox="0 0 160 120">
+              <circle cx="30" cy="30" r="3.5" fill="#1F4E8C"/><circle cx="45" cy="50" r="3.5" fill="#1F4E8C"/>
+              <circle cx="60" cy="25" r="3.5" fill="#1F4E8C"/><circle cx="40" cy="90" r="3.5" fill="#1F4E8C"/>
+              <circle cx="60" cy="100" r="3.5" fill="#1F4E8C"/>
+              <circle cx="100" cy="40" r="3.5" fill="#E3A320"/><circle cx="115" cy="60" r="3.5" fill="#E3A320"/>
+              <circle cx="130" cy="35" r="3.5" fill="#E3A320"/><circle cx="100" cy="95" r="3.5" fill="#E3A320"/>
+              <circle cx="120" cy="105" r="3.5" fill="#E3A320"/>
+              <circle cx="47" cy="59" r="8" fill="none" stroke="#1F4E8C" stroke-width="2.5"/>
+              <circle cx="113" cy="67" r="8" fill="none" stroke="#8A6510" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="kpp-step">
+            <span class="kpp-n">K = 5</span>
+            <h4>Tighter, but shrinking fast</h4>
+            <p>Each mean now covers just 2 points — the objective has visibly dropped.</p>
+            <svg viewBox="0 0 160 120">
+              <circle cx="30" cy="30" r="3.5" fill="#1F4E8C"/><circle cx="45" cy="50" r="3.5" fill="#1F4E8C"/>
+              <circle cx="60" cy="25" r="3.5" fill="#4B6B43"/><circle cx="130" cy="35" r="3.5" fill="#4B6B43"/>
+              <circle cx="100" cy="40" r="3.5" fill="#6B4E9C"/><circle cx="115" cy="60" r="3.5" fill="#6B4E9C"/>
+              <circle cx="40" cy="90" r="3.5" fill="#A32B2B"/><circle cx="60" cy="100" r="3.5" fill="#A32B2B"/>
+              <circle cx="100" cy="95" r="3.5" fill="#E3A320"/><circle cx="120" cy="105" r="3.5" fill="#E3A320"/>
+              <circle cx="37" cy="40" r="5" fill="none" stroke="#1F4E8C" stroke-width="2"/>
+              <circle cx="95" cy="30" r="5" fill="none" stroke="#3A5A2E" stroke-width="2"/>
+              <circle cx="107" cy="50" r="5" fill="none" stroke="#4A3070" stroke-width="2"/>
+              <circle cx="50" cy="95" r="5" fill="none" stroke="#6B1A1A" stroke-width="2"/>
+              <circle cx="110" cy="100" r="5" fill="none" stroke="#8A6510" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="kpp-step">
+            <span class="kpp-n">K = n</span>
+            <h4>Zero objective, zero use</h4>
+            <p>Every point is its own mean. Distance is zero everywhere — and nothing has been learned.</p>
+            <svg viewBox="0 0 160 120">
+              <circle cx="30" cy="30" r="3.5" fill="#1F4E8C"/><circle cx="45" cy="50" r="3.5" fill="#4B6B43"/>
+              <circle cx="60" cy="25" r="3.5" fill="#E3A320"/><circle cx="130" cy="35" r="3.5" fill="#6B4E9C"/>
+              <circle cx="100" cy="40" r="3.5" fill="#A32B2B"/><circle cx="115" cy="60" r="3.5" fill="#1F4E8C"/>
+              <circle cx="40" cy="90" r="3.5" fill="#4B6B43"/><circle cx="60" cy="100" r="3.5" fill="#E3A320"/>
+              <circle cx="100" cy="95" r="3.5" fill="#6B4E9C"/><circle cx="120" cy="105" r="3.5" fill="#A32B2B"/>
+              <circle cx="30" cy="30" r="6" fill="none" stroke="#1F4E8C" stroke-width="1.5"/>
+              <circle cx="45" cy="50" r="6" fill="none" stroke="#3A5A2E" stroke-width="1.5"/>
+              <circle cx="60" cy="25" r="6" fill="none" stroke="#8A6510" stroke-width="1.5"/>
+              <circle cx="130" cy="35" r="6" fill="none" stroke="#4A3070" stroke-width="1.5"/>
+              <circle cx="100" cy="40" r="6" fill="none" stroke="#6B1A1A" stroke-width="1.5"/>
+              <circle cx="115" cy="60" r="6" fill="none" stroke="#1F4E8C" stroke-width="1.5"/>
+              <circle cx="40" cy="90" r="6" fill="none" stroke="#3A5A2E" stroke-width="1.5"/>
+              <circle cx="60" cy="100" r="6" fill="none" stroke="#8A6510" stroke-width="1.5"/>
+              <circle cx="100" cy="95" r="6" fill="none" stroke="#4A3070" stroke-width="1.5"/>
+              <circle cx="120" cy="105" r="6" fill="none" stroke="#6B1A1A" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+        <p class="diagram-caption">
+          Each ring is a cluster mean. By K = n, every ring sits exactly on its
+          one point — perfect "fit," but a completely useless model: no
+          grouping, no compression, no insight into structure.
+        </p>
+      </div>
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          It's like summarizing a book by quoting every single sentence
+          verbatim — technically a perfect, zero-loss "summary," but it has
+          compressed nothing and taught you nothing you didn't already have.
+          A useful summary has to lose some detail to gain any value.
+        </p>
+      </div>
+      <div class="callout warn">
+        <div class="tag">Watch out</div>
+        <p>
+          Never select K by comparing raw objective values across different K.
+          The objective is monotonically non-increasing in K by construction —
+          it will always vote for more clusters, right up to the useless
+          extreme of K = n.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="section" id="s2">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Fixing It: Add a Penalty That Wants the Opposite</h2></div>
+    <div class="card">
+      <span class="card-label">THE FIX</span>
+      <h3>Make complexity cost something</h3>
+      <p>
+        If the objective always prefers larger K, the selection criterion needs
+        a second term that always prefers <em>smaller</em> K. Adding the two
+        together produces a total cost with a genuine interior minimum:
+      </p>
+      <div class="formula-block">
+        Total Cost(K) &nbsp;=&nbsp; <span class="hl">Objective(K)</span> &nbsp;+&nbsp; <span class="hl2">Penalty(K)</span>
+        <small>Objective(K) decreases (weakly) in K; Penalty(K) increases in K — their sum can have a genuine interior minimum</small>
+      </div>
+      <div class="diagram">
+        <div class="diagram-title">Two opposing trends meet at K*</div>
+        <div class="diagram-svg-wrap">
+          <svg viewBox="0 0 460 260" xmlns="http://www.w3.org/2000/svg">
+            <!-- axes -->
+            <line x1="30" y1="230" x2="450" y2="230" stroke="#D8CFB4" stroke-width="1.5"/>
+            <line x1="30" y1="15" x2="30" y2="230" stroke="#D8CFB4" stroke-width="1.5"/>
+            <text x="440" y="245" font-family="JetBrains Mono" font-size="11" fill="#948C74" text-anchor="end">K</text>
+            <text x="14" y="20" font-family="JetBrains Mono" font-size="11" fill="#948C74">cost</text>
+
+            <!-- objective curve (blue) -->
+            <polyline points="40,29.5 75,86.7 110,128.6 145,159 180,178.1 215,191.4 250,201 285,206.7 320,210.5 355,214.3 390,217.1 425,219"
+                      fill="none" stroke="#1F4E8C" stroke-width="2.5"/>
+            <!-- penalty curve (amber) -->
+            <polyline points="40,216.2 75,210.5 110,202.9 145,193.3 180,181.9 215,168.6 250,153.3 285,136.2 320,117.1 355,96.2 390,73.3 425,48.6"
+                      fill="none" stroke="#B9862A" stroke-width="2.5"/>
+            <!-- sum curve (red, thicker) -->
+            <polyline points="40,25.7 75,77.1 110,111.4 145,132.4 180,140 215,140 250,134.3 285,122.9 320,107.6 355,90.5 390,70.5 425,47.6"
+                      fill="none" stroke="#A32B2B" stroke-width="3"/>
+
+            <!-- K* marker -->
+            <line x1="180" y1="140" x2="180" y2="230" stroke="#A32B2B" stroke-width="1.3" stroke-dasharray="4,3"/>
+            <circle cx="180" cy="140" r="5.5" fill="#A32B2B" stroke="#fff" stroke-width="1.5"/>
+            <text x="180" y="245" font-family="JetBrains Mono" font-size="12" fill="#A32B2B" text-anchor="middle" font-weight="700">K*</text>
+          </svg>
+        </div>
+        <div class="legend-row">
+          <span class="legend-item"><span class="legend-swatch" style="background:#1F4E8C;"></span>Objective(K) — falls as K grows</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#B9862A;"></span>Penalty(K) — rises as K grows</span>
+          <span class="legend-item"><span class="legend-swatch" style="background:#A32B2B;"></span>Total cost — dips, then rises</span>
+        </div>
+        <p class="diagram-caption">
+          K* sits where the total-cost curve bottoms out — not where either
+          individual curve is smallest. Past that point, added complexity costs
+          more in penalty than it saves in fit.
+        </p>
+      </div>
+      <div class="analogy">
+        <div class="tag">Real-life analogy</div>
+        <p>
+          It's the same logic behind deciding how many suitcases to pack for a
+          trip: more suitcases let you bring more things (better "fit" to
+          everything you might want), but each extra suitcase costs you real
+          hassle at the airport. The right number balances both, rather than
+          maximizing either alone.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="section" id="s3">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Two Concrete Penalties: AIC and BIC</h2></div>
+    <div class="card">
+      <span class="card-label">TURNING THE IDEA INTO A FORMULA</span>
+      <h3>Both criteria score a model by likelihood minus a complexity charge</h3>
+      <p>
+        AIC and BIC both formalize "Total Cost" using a probabilistic lens:
+        assume the data was generated by some model with parameters (the
+        cluster means, in this case), score how well those parameters explain
+        the data via their <strong>likelihood</strong>, and subtract a penalty
+        that grows with the number of parameters — which, in K-Means, grows
+        with <span class="formula">K</span>.
+      </p>
+      <div class="grid-2">
+        <div class="step-card">
+          <span class="step-n">AIC</span>
+          <h4>Akaike Information Criterion</h4>
+          <p>Penalizes complexity proportionally to K itself. Comparatively lenient — tends to favor larger K than BIC.</p>
+        </div>
+        <div class="step-card">
+          <span class="step-n">BIC</span>
+          <h4>Bayesian Information Criterion</h4>
+          <p>Penalizes complexity proportionally to K·log(n). Grows harsher as the dataset gets larger — noticeably more stringent than AIC.</p>
+        </div>
+      </div>
+      <div class="formula-block">
+        AIC &nbsp;∝&nbsp; <span class="hl">−log-likelihood</span> + <span class="hl2">c₁ · K</span>
+        &nbsp;&nbsp;&nbsp;&nbsp; BIC &nbsp;∝&nbsp; <span class="hl">−log-likelihood</span> + <span class="hl2">c₂ · K log(n)</span>
+        <small>same shape, different penalty growth rate — BIC's K·log(n) term outpaces AIC's plain K term as n grows, so BIC systematically prefers smaller K on larger datasets</small>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Criterion</th><th>Penalty term</th><th>Complexity stance</th><th>Grows with n?</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>AIC</td><td class="mono">c · K</td><td>More permissive</td><td>No</td></tr>
+            <tr><td>BIC</td><td class="mono">c · K log(n)</td><td>More stringent</td><td>Yes</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="callout note">
+        <div class="tag">Worth noting</div>
+        <p>
+          Both criteria lean on "likelihood," which presumes some probabilistic
+          model of how the data was generated (commonly, that points scatter
+          around their true cluster mean according to a Gaussian). The
+          penalty's job either way is the same: make additional clusters earn
+          their keep, rather than being free.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: FULL STORY -->
+  <section class="section" id="s4">
+    <div class="sec-head"><div class="sec-num">✓</div><h2>The Full Story: Four Lectures on K-Means</h2></div>
+    <div class="card">
+      <span class="card-label">SERIES RECAP</span>
+      <h3>From "does it converge" to "how many clusters"</h3>
+      <p>
+        This closes the K-Means arc. Four questions, asked in order, now each
+        have a real answer:
+      </p>
+      <div class="recap-timeline">
+        <div class="recap-item">
+          <div class="recap-lec">15<span>lecture</span></div>
+          <div class="recap-body">
+            <h4>Convergence</h4>
+            <p>Lloyd's algorithm is guaranteed to converge — the objective decreases monotonically and the state space is finite — but only to a local optimum, not necessarily the global one.</p>
+          </div>
+        </div>
+        <div class="recap-item">
+          <div class="recap-lec">16<span>lecture</span></div>
+          <div class="recap-body">
+            <h4>Cluster nature</h4>
+            <p>Clusters produced by Lloyd's algorithm are Voronoi regions — convex intersections of half-spaces — which is exactly why non-convex structure like concentric rings defeats it.</p>
+          </div>
+        </div>
+        <div class="recap-item">
+          <div class="recap-lec">17<span>lecture</span></div>
+          <div class="recap-body">
+            <h4>Initialization</h4>
+            <p>Where you start decides which local optimum you reach. K-Means++ seeds centroids by sampling proportional to distance from what's already chosen, trading extra computation for a real quality guarantee.</p>
+          </div>
+        </div>
+        <div class="recap-item">
+          <div class="recap-lec">22<span>lecture</span></div>
+          <div class="recap-body">
+            <h4>Choice of K</h4>
+            <p>The objective alone always prefers more clusters. Balancing it against a complexity penalty — as AIC and BIC both do — is what turns K into a well-posed choice rather than a trivial one.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="callout key">
+      <div class="tag">The thread connecting all four</div>
+      <p>
+        Every one of these results traces back to the same handful of ideas:
+        squared Euclidean distance, means as optimal centers, and straight-line
+        (half-space) decision boundaries. Understanding those fundamentals is
+        what makes convergence, cluster shape, initialization, and model
+        selection all fall out as consequences rather than separate rules to
+        memorize.
+      </p>
+    </div>
+  </section>
+
+  <!-- TAKEAWAYS -->
+  <section class="section" id="s5">
+    <div class="sec-head"><div class="sec-num">✓</div><h2>Key Takeaways</h2></div>
+    <div class="takeaway-grid">
+      <div class="takeaway"><div class="num">1</div><p>Minimizing the raw K-Means objective alone always drives K toward n, where every point is its own (useless) cluster.</p></div>
+      <div class="takeaway"><div class="num">2</div><p>A workable selection rule needs a penalty term that increases with K, so the sum Objective(K) + Penalty(K) has a genuine interior minimum K*.</p></div>
+      <div class="takeaway"><div class="num">3</div><p>AIC penalizes complexity proportional to K; BIC penalizes proportional to K·log(n) and is correspondingly more conservative, especially on larger datasets.</p></div>
+      <div class="takeaway"><div class="num">4</div><p>Together, Lectures 15–22 answer convergence, cluster shape, initialization, and K — the four practical questions any real use of K-Means has to face.</p></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>Lecture Notes · Choice of K in K-Means</span>
+    <span>Clustering Series · Lecture 22 · Finale</span>
+  </div>
+
+</div>
+
+</body>
+</html>
