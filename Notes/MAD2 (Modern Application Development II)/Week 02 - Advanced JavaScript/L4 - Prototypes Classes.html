@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Getters, Setters, Prototypes &amp; Classes — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2rem, 4.8vw, 3.1rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.85rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:60px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.2rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* call/apply/bind comparison strip */
+.trio{ display:grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 18px; }
+.trio .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
+.trio .panel.call{ --accent: var(--chalk-blue); }
+.trio .panel.apply{ --accent: var(--chalk-pink); }
+.trio .panel.bind{ --accent: var(--chalk-yellow); }
+.trio .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.1rem; margin:0 0 10px; }
+.trio .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
+
+/* Proto diagram */
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 09 · Companion Notes</div>
+    <h1>Getters, Setters,<br>Prototypes &amp; Classes</h1>
+    <p class="subhead">— fine control over how properties compute, and how objects share behavior —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Continuing from L08</span> Same prototype chain from last time — now formalized with cleaner syntax.</div>
+
+  <!-- Getters & Setters -->
+  <section>
+    <div class="section-head"><h2>Getters &amp; Setters</h2><div class="rule"></div></div>
+    <p class="section-intro">Properties that don't just store a value — they compute or react to one.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term"><span class="code">get</span> — Derived Property</p>
+        <p class="def">Looks like a plain property, but is computed fresh every time it's accessed.</p>
+        <div class="row"><span class="label">Real Life</span><p>A car's dashboard "average speed" readout — it's not stored anywhere permanent, it's recalculated from distance and time the instant you glance at it.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A <span class="code">get fullName()</span> reads exactly like <span class="code">person.fullName</span> — no parentheses needed — but under the hood it's combining <span class="code">firstName</span> and <span class="code">lastName</span> live.</p></div>
+      </div>
+      <div class="card">
+        <p class="term"><span class="code">set</span> — Reactive Assignment</p>
+        <p class="def">Runs custom logic whenever a value is assigned, often updating several fields at once.</p>
+        <div class="row"><span class="label">Real Life</span><p>A thermostat dial — you set one number, "72°," but internally that single input adjusts the compressor, fan speed, and vents all at once.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">set fullName(name)</span> can take one string and quietly split it back into <span class="code">firstName</span> and <span class="code">lastName</span> — one assignment, several updates.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- call/apply/bind -->
+  <section>
+    <div class="section-head"><h2>call, apply, bind</h2><div class="rule"></div></div>
+    <p class="section-intro">All three control what <span class="code">this</span> means inside a function — they just differ in when it runs and how arguments arrive.</p>
+    <div class="trio">
+      <div class="panel call">
+        <h4><span class="code">call()</span></h4>
+        <p>Runs immediately, with a specific <span class="code">this</span> and arguments listed one by one.</p>
+        <p><strong>Real life:</strong> a guest chef using another restaurant's kitchen right now, explicitly told "for tonight, treat me as head chef here."</p>
+      </div>
+      <div class="panel apply">
+        <h4><span class="code">apply()</span></h4>
+        <p>Same as <span class="code">call()</span>, but arguments arrive as one pre-packed array.</p>
+        <p><strong>Real life:</strong> handing that same guest chef a grocery bag of ingredients already packed, instead of listing each item out loud.</p>
+      </div>
+      <div class="panel bind">
+        <h4><span class="code">bind()</span></h4>
+        <p>Doesn't run yet — returns a new function with <span class="code">this</span> (and maybe some args) locked in for later.</p>
+        <p><strong>Real life:</strong> pre-programming a thermostat schedule once, so it can trigger the exact same settings automatically, anytime, without you re-entering them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Prototypal inheritance -->
+  <section>
+    <div class="section-head"><h2>Prototypal Inheritance &amp; <span class="code">__proto__</span></h2><div class="rule"></div></div>
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 140" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Kalam, cursive" font-size="13">
+          <rect x="30" y="50" width="150" height="50" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5"/>
+          <text x="105" y="72" text-anchor="middle" fill="#f4f1e6">Your House</text>
+          <text x="105" y="90" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(no spare key here)</text>
+
+          <path d="M180,75 L440,75" stroke="#8fb8c9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#pk)"/>
+          <text x="310" y="65" text-anchor="middle" fill="#8fb8c9" font-family="Space Mono, monospace" font-size="10">__proto__ (checks next)</text>
+
+          <rect x="440" y="50" width="170" height="50" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="525" y="72" text-anchor="middle" fill="#f4f1e6">Neighbor's House</text>
+          <text x="525" y="90" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(spare key kept here)</text>
+
+          <defs><marker id="pk" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker></defs>
+        </g>
+      </svg>
+      <p class="caption">If a property isn't found on the object itself, JS checks <span class="code">__proto__</span> next — like checking the spare key at the neighbor's house before giving up.</p>
+    </div>
+  </section>
+
+  <!-- Modern class syntax -->
+  <section>
+    <div class="section-head"><h2>Modern <span class="code">class</span> Syntax</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Constructors &amp; <span class="code">new</span></p>
+        <p class="def">Initializes a fresh object's properties the moment it's created.</p>
+        <div class="row"><span class="label">Real Life</span><p>A car factory's assembly template — every time the "start" button is pressed, a new car rolls out with the standard features already installed.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">new Car()</span> is pressing that start button — the constructor is the assembly step that runs automatically for every unit.</p></div>
+      </div>
+      <div class="card">
+        <p class="term"><span class="code">extends</span> &amp; <span class="code">super</span></p>
+        <p class="def">Lets a subclass inherit a parent's behavior, then add to or override it.</p>
+        <div class="row"><span class="label">Real Life</span><p>A spinoff recipe that says: "first do everything my parent recipe does (that's <span class="code">super()</span>), then add my own twist on top."</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A <span class="code">Manager</span> class extending <span class="code">Employee</span> still gets every base employee behavior for free — it only needs to describe what's <em>different</em> about managing people.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Getters and setters make properties act smart; <span class="code">class</span> makes prototype chains look tidy — but underneath, it's still one object quietly asking another for what it doesn't have.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
