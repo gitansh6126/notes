@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vue + Fetch Integration — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2rem, 4.8vw, 3.1rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:660px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; text-align:center; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:56px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 8px; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Status light diagram */
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+.states{ display:flex; gap:0; flex-wrap:wrap; justify-content:center; margin-top:10px; }
+.states .state{ font-family:'Kalam', cursive; font-size:0.95rem; border:1px solid var(--board-line); border-radius:20px; padding:8px 18px; margin:5px; }
+.states .state.y{ color: var(--chalk-yellow); }
+.states .state.g{ color: var(--chalk-green); }
+.states .state.r{ color: var(--chalk-pink); }
+.states .sep{ font-family:'Kalam', cursive; font-size:1.2rem; color: var(--board-line); padding: 8px 4px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 15 · Companion Notes</div>
+    <h1>Vue + Fetch Integration</h1>
+    <p class="subhead">— the house from Lecture 12 finally starts receiving deliveries —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Two Threads Merge</span> The Vue house (L12) meets the delivery truck (L13–14) — this is where they connect.</div>
+
+  <!-- mounted -->
+  <section>
+    <div class="section-head"><h2>Fetching in <span class="code">mounted</span></h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Why <span class="code">mounted</span>, Specifically</p>
+        <div class="row"><span class="label">Real Life</span><p>The house is finally standing at its address (mounted to the DOM) — only now does it make sense to schedule the welcome-basket delivery.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Calling for a delivery before the house exists (in <span class="code">created</span>) risks the truck showing up to an empty lot — <span class="code">mounted</span> guarantees somewhere real to receive it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Status light -->
+  <section>
+    <div class="section-head"><h2>Dynamic Visual Feedback</h2><div class="rule"></div></div>
+    <div class="diagram-box" style="margin-bottom:20px;">
+      <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Kalam, cursive" font-size="13">
+          <rect x="40" y="30" width="140" height="70" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="110" y="70" text-anchor="middle" fill="#f4f1e6" font-size="12">House</text>
+          <circle cx="180" cy="30" r="10" fill="#e8c468"/>
+          <text x="180" y="15" text-anchor="middle" fill="#e8c468" font-family="Space Mono, monospace" font-size="9">saving</text>
+
+          <path d="M260,65 L360,65" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#s1)"/>
+
+          <rect x="360" y="30" width="140" height="70" rx="6" fill="none" stroke="#9fd0a7" stroke-width="1.5"/>
+          <text x="430" y="70" text-anchor="middle" fill="#f4f1e6" font-size="12">House</text>
+          <circle cx="500" cy="30" r="10" fill="#9fd0a7"/>
+          <text x="500" y="15" text-anchor="middle" fill="#9fd0a7" font-family="Space Mono, monospace" font-size="9">delivered</text>
+
+          <defs><marker id="s1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker></defs>
+        </g>
+      </svg>
+      <p class="caption">A porch light wired to the delivery status — glowing yellow while the truck is en route, switching the moment the package status changes.</p>
+    </div>
+    <div class="states">
+      <span class="state y">🟡 yellow — truck en route (saving)</span>
+      <span class="sep">→</span>
+      <span class="state g">🟢 green — delivered safely (success)</span>
+    </div>
+    <div class="states">
+      <span class="state y">🟡 yellow — truck en route (saving)</span>
+      <span class="sep">→</span>
+      <span class="state r">🔴 red — delivery failed (error)</span>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">Class Binding = The Porch Light</p>
+        <div class="row"><span class="label">Real Life</span><p>A porch light rigged to change color automatically based on the delivery app's live status.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Vue's class binding swaps the icon's CSS class the instant the request's state changes — no one has to manually flip a switch.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- try-catch -->
+  <section>
+    <div class="section-head"><h2>try-catch: A Household Safety Net</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Why Wrap the Fetch Call</p>
+        <div class="row"><span class="label">Real Life</span><p>If the delivery truck crashes en route, the house shouldn't collapse — the resident should calmly note "delivery failed today" and carry on with the rest of their day.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Without <span class="code">try-catch</span>, one failed fetch could crash the whole component — with it, the failure is contained and the app stays usable.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- State & reactivity -->
+  <section>
+    <div class="section-head"><h2>State Management &amp; Reactivity</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Data → View, Automatically</p>
+        <div class="row"><span class="label">Real Life</span><p>A smart mailbox that raises its little flag the instant mail lands inside — no one has to walk out and check manually.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Assigning fetched data into a reactive <span class="code">messages</span> array is dropping mail into that smart mailbox — Vue raises the "flag" (re-renders the view) automatically.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Watchers -->
+  <section>
+    <div class="section-head"><h2>Watchers: A Different Kind of Trigger</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Watching a Specific Value</p>
+        <div class="row"><span class="label">Real Life</span><p>A motion sensor pointed only at the mailbox — it doesn't care about anything else happening on the property, only whether that one mailbox's contents changed.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A watcher on a search input fires a new fetch every time that one value changes — like the sensor re-triggering a fresh delivery check the moment the mailbox's contents shift, without waiting for the whole house's lifecycle to run again.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>The house doesn't just get built once — it keeps a porch light wired to every incoming delivery, a mailbox that flags itself, and a sensor that reacts the moment something specific changes.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
