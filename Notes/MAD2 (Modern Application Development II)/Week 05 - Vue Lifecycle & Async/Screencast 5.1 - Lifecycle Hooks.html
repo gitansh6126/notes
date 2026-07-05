@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Vue.js Lifecycle &amp; Hooks — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1040px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5vw, 3.3rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:56px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+/* House timeline */
+.house-timeline{ display:flex; flex-direction:column; gap:0; }
+.stage-row{
+  display:grid; grid-template-columns: 46px 1fr; gap:16px;
+  padding: 18px 0; border-bottom: 1px dotted var(--board-line); position:relative;
+}
+.stage-row:last-child{ border-bottom:none; }
+.stage-row .icon{
+  width:46px; height:46px; border-radius:50%; border: 2px solid var(--accent);
+  display:flex; align-items:center; justify-content:center; font-size:20px;
+}
+.stage-row .content h4{ font-family:'Kalam', cursive; font-size:1.2rem; color: var(--accent); margin: 2px 0 8px; }
+.stage-row .content .hooks{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+.stage-row .content p{ font-size: 12.5px; color: var(--chalk-dim); line-height:1.6; margin:0 0 6px; }
+.stage-row .content p strong{ color: var(--chalk); }
+
+.stage-row.init{ --accent: var(--chalk-blue); }
+.stage-row.mount{ --accent: var(--chalk-yellow); }
+.stage-row.update{ --accent: var(--chalk-pink); }
+.stage-row.destroy{ --accent: var(--chalk-green); }
+
+/* Practice cards */
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 10px; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 12 · Companion Notes</div>
+    <h1>Vue.js Lifecycle &amp; Hooks</h1>
+    <p class="subhead">— every component's life, told as building, moving into, renovating, and eventually demolishing a house —</p>
+  </header>
+
+  <div class="thread"><span class="tag">New Framework</span> Same DOM ideas from earlier lectures — now managed automatically by Vue instead of by hand.</div>
+
+  <!-- The house timeline -->
+  <section>
+    <div class="section-head"><h2>The House, Stage by Stage</h2><div class="rule"></div></div>
+    <div class="house-timeline">
+
+      <div class="stage-row init">
+        <div class="icon">📐</div>
+        <div class="content">
+          <h4>Initialization</h4>
+          <div class="hooks"><span class="code">beforeCreate</span><span class="code">created</span></div>
+          <p><strong>beforeCreate:</strong> the architect has just been hired, but no foundation exists yet — you can't ask "what's in the kitchen," because nothing has been built. Data and watchers aren't set up.</p>
+          <p><strong>created:</strong> blueprints, plumbing, and wiring plans are finalized and the utilities are set up on paper — data, computed values, and methods all exist — but the house isn't standing at its address yet. A common time to pre-order furniture (fetch initial data).</p>
+        </div>
+      </div>
+
+      <div class="stage-row mount">
+        <div class="icon">🏗️</div>
+        <div class="content">
+          <h4>Mounting</h4>
+          <div class="hooks"><span class="code">beforeMount</span><span class="code">mounted</span></div>
+          <p><strong>beforeMount:</strong> the prefab house sections are fully built off-site and are being craned onto the empty lot right now — the "for sale" sign is about to be swapped for an actual house.</p>
+          <p><strong>mounted:</strong> the house is standing at its address, doors open, move-in day. The element genuinely exists now — the best time to arrange furniture (DOM manipulation) or schedule deliveries (backend data fetching).</p>
+        </div>
+      </div>
+
+      <div class="stage-row update">
+        <div class="icon">🔨</div>
+        <div class="content">
+          <h4>Updating</h4>
+          <div class="hooks"><span class="code">beforeUpdate</span><span class="code">updated</span></div>
+          <p><strong>beforeUpdate:</strong> the homeowner has requested a wall knocked down and a new room added — contractors are about to start, but nothing's physically changed yet.</p>
+          <p><strong>updated:</strong> the renovation is finished, the paint is dry, and the new layout is fully visible and walkable.</p>
+        </div>
+      </div>
+
+      <div class="stage-row destroy">
+        <div class="icon">🏚️</div>
+        <div class="content">
+          <h4>Destruction</h4>
+          <div class="hooks"><span class="code">beforeDestroy</span><span class="code">destroyed</span></div>
+          <p><strong>beforeDestroy:</strong> moving-out day — cancel the mail forwarding, shut off the utilities, unplug every appliance (remove event listeners, clear timers) before the movers arrive.</p>
+          <p><strong>destroyed:</strong> the house has been demolished, the lot is empty. Final confirmation that the instance is entirely gone.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Best practices -->
+  <section>
+    <div class="section-head"><h2>Best Practices</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Avoid Arrow Functions in Hooks</p>
+        <div class="row"><span class="label">Real Life</span><p>An intercom system that's supposed to auto-connect to whichever house it's installed in — but wiring it with a walkie-talkie borrowed from a house down the street means it stays tuned to that other house's channel instead.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Arrow functions inherit <span class="code">this</span> from their surrounding scope rather than binding to the component — exactly like that borrowed walkie-talkie staying tuned to the wrong address.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Fetch in <span class="code">mounted</span>, not <span class="code">created</span></p>
+        <div class="row"><span class="label">Real Life</span><p>Scheduling a furniture delivery to an address before the house is confirmed built — with server-side rendering, there may be no real "house" (DOM) yet to receive the delivery.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Waiting until <span class="code">mounted</span> — the house is physically standing — keeps the delivery compatible whether the house was built on-site (browser) or off-site (SSR).</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Non-Blocking <span class="code">async/await</span></p>
+        <div class="row"><span class="label">Real Life</span><p>Calling the furniture store to schedule a delivery — you don't stand at the door waiting for the truck. You keep living in the house, and the delivery arrives whenever it's ready.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>An <span class="code">async</span> call inside <span class="code">mounted</span> doesn't freeze the house's rendering while the "delivery truck" (API call) is en route.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">App vs. Component Lifecycle</p>
+        <div class="row"><span class="label">Real Life</span><p>An entire apartment building (the app) going through construction and demolition, while each individual unit (a component) has its own move-in and move-out day nested inside that timeline.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A single tenant moving out doesn't demolish the building — their unit just runs its own destruction hooks while the rest of the building carries on.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Every Vue component lives the same four chapters a house does: built, moved into, renovated, and eventually torn down — the hooks are just where you're allowed to step in at each chapter.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
