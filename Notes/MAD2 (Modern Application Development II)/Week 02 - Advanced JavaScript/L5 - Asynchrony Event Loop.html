@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>JavaScript Asynchrony — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5vw, 3.3rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.85rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:60px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.2rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+.loop-diagram{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.loop-diagram svg{ max-width:100%; height:auto; }
+.loop-diagram .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 10 · Companion Notes</div>
+    <h1>JavaScript Asynchrony</h1>
+    <p class="subhead">— how one thread fakes doing several things at once —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Continuing from L09</span> Same function calls as before — now watching exactly how they queue up and return.</div>
+
+  <!-- Call stack -->
+  <section>
+    <div class="section-head"><h2>The Call Stack</h2><div class="rule"></div></div>
+    <div class="diagram-box" style="margin-bottom:20px;">
+      <svg viewBox="0 0 400 220" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Space Mono, monospace" font-size="12">
+          <ellipse cx="200" cy="180" rx="90" ry="14" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="200" y="185" text-anchor="middle" fill="#f4f1e6">main()</text>
+
+          <ellipse cx="200" cy="145" rx="90" ry="14" fill="none" stroke="#e8c468" stroke-width="1.5"/>
+          <text x="200" y="150" text-anchor="middle" fill="#f4f1e6">getUser()</text>
+
+          <ellipse cx="200" cy="110" rx="90" ry="14" fill="none" stroke="#d98fa0" stroke-width="1.5"/>
+          <text x="200" y="115" text-anchor="middle" fill="#f4f1e6">formatName()</text>
+
+          <path d="M200,70 L200,96" stroke="#9fd0a7" stroke-width="1.5" marker-end="url(#down)"/>
+          <text x="230" y="85" fill="#9fd0a7" font-size="10">next plate added</text>
+
+          <defs><marker id="down" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto"><path d="M0,0 L8,0 L4,7 Z" fill="#9fd0a7"/></marker></defs>
+        </g>
+      </svg>
+      <p class="caption">A stack of plates — each function call adds a plate on top. The top plate (most recent call) has to be finished and removed before the one beneath it can continue.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Stack Frames</p>
+        <div class="row"><span class="label">Real Life</span><p>A pile of sticky notes on a desk — each one records exactly what task you were doing and where to pick up once the note above it is done.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Finishing a function "pops" its sticky note off, revealing exactly where the function below it left off.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Single-Threaded</p>
+        <div class="row"><span class="label">Real Life</span><p>A single cashier at a checkout counter — there's only one register, one person serving, one customer at a time.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The cashier can't split into two people to serve two customers simultaneously — JS can't run two stack frames in parallel either.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Blocking -->
+  <section>
+    <div class="section-head"><h2>Blocking the Thread</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">A Blocked Call Stack</p>
+        <div class="row"><span class="label">Real Life</span><p>That same cashier stuck doing a slow, manual price check for one customer — the entire line behind them freezes, no matter how many people are waiting.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A heavy synchronous loop or file read does the same thing to the call stack — nothing else gets touched, including the UI, until that one task steps aside.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Event loop & task queue -->
+  <section>
+    <div class="section-head"><h2>Event Loop &amp; Task Queue</h2><div class="rule"></div></div>
+    <div class="loop-diagram">
+      <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Kalam, cursive" font-size="13">
+          <rect x="20" y="70" width="150" height="50" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5"/>
+          <text x="95" y="92" text-anchor="middle" fill="#f4f1e6">Waiter</text>
+          <text x="95" y="108" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(call stack)</text>
+
+          <path d="M170,85 L280,85" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#e1)"/>
+          <text x="225" y="76" text-anchor="middle" fill="#8fb8c9" font-family="Space Mono, monospace" font-size="9">order sent</text>
+
+          <rect x="280" y="60" width="150" height="50" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
+          <text x="355" y="82" text-anchor="middle" fill="#f4f1e6">Kitchen</text>
+          <text x="355" y="98" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(async task)</text>
+
+          <path d="M355,110 L355,140" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#e2)"/>
+          <text x="410" y="130" text-anchor="middle" fill="#d98fa0" font-family="Space Mono, monospace" font-size="9">dish ready → bell</text>
+
+          <rect x="280" y="145" width="150" height="45" rx="6" fill="none" stroke="#d98fa0" stroke-width="1.5"/>
+          <text x="355" y="172" text-anchor="middle" fill="#f4f1e6" font-size="12">Pass Window</text>
+          <text x="355" y="184" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(task queue)</text>
+
+          <path d="M280,167 Q220,167 170,110" stroke="#9fd0a7" stroke-width="1.5" fill="none" marker-end="url(#e3)"/>
+          <text x="200" y="150" fill="#9fd0a7" font-family="Space Mono, monospace" font-size="9">waiter grabs dish when free</text>
+
+          <defs>
+            <marker id="e1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker>
+            <marker id="e2" markerWidth="8" markerHeight="8" refX="4" refY="6" orient="auto"><path d="M0,0 L8,0 L4,7 Z" fill="#d98fa0"/></marker>
+            <marker id="e3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fd0a7"/></marker>
+          </defs>
+        </g>
+      </svg>
+      <p class="caption">The waiter sends the order to the kitchen and keeps serving other tables. Only once a dish hits the pass window — and the waiter is free — does it get delivered.</p>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">Offloading &amp; Rejoining</p>
+        <div class="row"><span class="label">Real Life</span><p>The kitchen (network, disk, timers) works independently of the waiter — the waiter never stands at the stove waiting.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A finished async operation waits at the "pass window" (task queue) until the call stack is completely clear — the waiter only grabs it once every other table's been handled.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Callbacks -->
+  <section>
+    <div class="section-head"><h2>Callbacks</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Callback Function</p>
+        <p class="def">A function passed in to be run only after a long task completes.</p>
+        <div class="row"><span class="label">Real Life</span><p>Leaving your phone number at a hotel front desk and being told "we'll call you the moment your room is ready" — instead of standing at the desk the whole time.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>You go do other things (the call stack stays free); the desk "calls back" exactly when the room (the async result) is ready.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Why Anonymous?</p>
+        <div class="row"><span class="label">Real Life</span><p>A quick verbal instruction left with the desk — "call this number when ready" — rather than filing a formal, permanently-named memo for a one-time request.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Since the callback is usually only ever used in this one spot, there's little value in giving it a name that gets filed away for reuse elsewhere.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>JavaScript never actually multitasks — it just gets very good at handing slow work to someone else, and picking it back up the moment it's free.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
