@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Async, Promises &amp; Error Handling — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2rem, 4.8vw, 3.1rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:56px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 8px; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Tracking receipt diagram */
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+/* Promise states */
+.states{ display:flex; gap:0; flex-wrap:wrap; justify-content:center; }
+.states .state{ font-family:'Kalam', cursive; font-size:1rem; border:1px solid var(--board-line); border-radius:20px; padding:10px 20px; margin:6px; }
+.states .state.pending{ color: var(--chalk-blue); }
+.states .state.fulfilled{ color: var(--chalk-green); }
+.states .state.rejected{ color: var(--chalk-pink); }
+.states .sep{ font-family:'Kalam', cursive; font-size:1.3rem; color: var(--board-line); padding: 10px 6px; }
+
+/* Duo error handling */
+.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
+.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
+.duo .panel.a{ --accent: var(--chalk-blue); }
+.duo .panel.b{ --accent: var(--chalk-pink); }
+.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.1rem; margin:0 0 10px; }
+.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 13 · Companion Notes</div>
+    <h1>Async, Promises &amp;<br>Error Handling</h1>
+    <p class="subhead">— getting a tracking number now, and dealing with whatever shows up later —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Back to Core JS</span> Same event loop from Lecture 10 — now wrapped in the cleaner Promise and async/await syntax.</div>
+
+  <!-- Overview -->
+  <section>
+    <div class="section-head"><h2>Sync by Default, Async by Choice</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">JS Is Fundamentally Synchronous</p>
+        <div class="row"><span class="label">Real Life</span><p>Reading a recipe top to bottom, one step fully finished before starting the next.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Async features are the "place an order and keep cooking" escape hatch for the few steps — like waiting for dough to rise — that would otherwise stall the whole recipe.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Promises -->
+  <section>
+    <div class="section-head"><h2>Promises: A Tracking Number, Not the Package</h2><div class="rule"></div></div>
+    <div class="diagram-box" style="margin-bottom:20px;">
+      <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Kalam, cursive" font-size="13">
+          <rect x="20" y="55" width="150" height="50" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5"/>
+          <text x="95" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Place Order</text>
+          <text x="95" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">fetch(...)</text>
+
+          <path d="M170,80 L260,80" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#p1)"/>
+          <text x="215" y="70" text-anchor="middle" fill="#8fb8c9" font-family="Space Mono, monospace" font-size="9">returns</text>
+
+          <rect x="260" y="55" width="150" height="50" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="335" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Tracking Number</text>
+          <text x="335" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">the Promise</text>
+
+          <path d="M410,80 L500,80" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#p2)"/>
+          <text x="455" y="70" text-anchor="middle" fill="#d98fa0" font-family="Space Mono, monospace" font-size="9">later →</text>
+
+          <rect x="500" y="55" width="120" height="50" rx="6" fill="none" stroke="#9fd0a7" stroke-width="1.5"/>
+          <text x="560" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Package</text>
+          <text x="560" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">.then() / .catch()</text>
+
+          <defs>
+            <marker id="p1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker>
+            <marker id="p2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d98fa0"/></marker>
+          </defs>
+        </g>
+      </svg>
+      <p class="caption">Ordering online hands you a tracking number immediately — not the package. The Promise is that tracking number: a placeholder for a value that isn't here yet.</p>
+    </div>
+
+    <div class="states">
+      <span class="state pending">pending — "in transit"</span>
+      <span class="sep">→</span>
+      <span class="state fulfilled">fulfilled — "delivered"</span>
+    </div>
+    <div class="states">
+      <span class="state pending">pending — "in transit"</span>
+      <span class="sep">→</span>
+      <span class="state rejected">rejected — "lost in transit"</span>
+    </div>
+  </section>
+
+  <!-- then/catch -->
+  <section>
+    <div class="grid">
+      <div class="card">
+        <p class="term"><span class="code">.then()</span></p>
+        <p class="def">Runs once the Promise resolves successfully.</p>
+        <div class="row"><span class="label">Real Life</span><p>Opening the box the moment it's delivered and actually using what's inside.</p></div>
+      </div>
+      <div class="card">
+        <p class="term"><span class="code">.catch()</span></p>
+        <p class="def">Runs if the Promise rejects — something went wrong.</p>
+        <div class="row"><span class="label">Real Life</span><p>Filing a damage claim if the package arrives broken, or never arrives at all.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- await -->
+  <section>
+    <div class="section-head"><h2>await: A Scoped Pause</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">await Pauses Just This Function</p>
+        <div class="row"><span class="label">Real Life</span><p>Standing at the pickup counter waiting for your specific package to be called — you're paused, but the rest of the store keeps serving other customers just fine.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">await</span> only blocks the <span class="code">async</span> function it's written in — it doesn't freeze the whole call stack the way a long synchronous loop does.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Only Inside <span class="code">async</span></p>
+        <div class="row"><span class="label">Real Life</span><p>You can only stand at "the pickup counter" if you're actually the customer with an order in the system — bystanders can't just wait there for nothing.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">await</span> needs an <span class="code">async</span> function's context to make sense — with rare top-level exceptions in some environments.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Error handling comparison -->
+  <section>
+    <div class="section-head"><h2>Two Styles of Error Handling</h2><div class="rule"></div></div>
+    <div class="duo">
+      <div class="panel a">
+        <h4>Promise-Based: <span class="code">.catch()</span></h4>
+        <p>A damage-claim form attached directly to that one specific order — chained right onto the delivery you're tracking.</p>
+      </div>
+      <div class="panel b">
+        <h4>Async/Await: <span class="code">try...catch</span></h4>
+        <p>A general safety net wrapped around the whole counter visit — if anything goes wrong while you're waiting, the <span class="code">catch</span> block steps in immediately, same as handling errors in ordinary synchronous code.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>A Promise is a receipt for something not here yet; await is choosing to wait for that one receipt without shutting down everything else going on.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
