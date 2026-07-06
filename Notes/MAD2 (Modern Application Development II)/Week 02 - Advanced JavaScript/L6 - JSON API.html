@@ -1,196 +1,279 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>JSON — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>JSON API — Study Notes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.2rem, 5.2vw, 3.6rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:600px; margin: 0 auto; }
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.85rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:60px; }
-
-.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
-
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.2rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Flat-pack diagram: object <-> string */
-.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
-.diagram-box svg{ max-width:100%; height:auto; }
-.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
-
-/* Frozen spec banner */
-.thesis{ background: var(--board-alt); border: 1px dashed var(--chalk-yellow); border-radius: 8px; padding: 26px 30px; text-align:center; }
-.thesis .big{ font-family:'Kalam', cursive; font-size: clamp(1.3rem, 3.2vw, 1.8rem); color: var(--chalk-yellow); margin: 0 0 8px; }
-.thesis p{ font-size: 13px; color: var(--chalk-dim); max-width: 620px; margin: 0 auto; line-height:1.6; }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 11 · Companion Notes</div>
-    <h1>JSON</h1>
-    <p class="subhead">— the flat-pack format that lets any two machines ship data to each other —</p>
-  </header>
-
-  <div class="thread"><span class="tag">Continuing from L10</span> Same objects and classes from earlier — now flattened into text so they can travel across a network.</div>
-
-  <!-- Overview -->
-  <section>
-    <div class="thesis">
-      <p class="big">JSON is a shipping format, not a language.</p>
-      <p>It doesn't care whether the sender was written in JavaScript, Python, or Java — as long as both sides agree on the same flat, text-based packing format, the data survives the trip.</p>
-    </div>
-  </section>
-
-  <!-- Frozen spec -->
-  <section>
-    <div class="grid">
-      <div class="card">
-        <p class="term">A "Frozen" Specification</p>
-        <div class="row"><span class="label">Real Life</span><p>A passport's page layout — every country's passport office agrees to the exact same format, forever, so any border checkpoint anywhere can read it without guessing.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>JSON being "frozen" means no country (or company) can quietly redesign the format later — every system that reads JSON today will still read it correctly years from now.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- stringify / parse -->
-  <section>
-    <div class="section-head"><h2>stringify() &amp; parse()</h2><div class="rule"></div></div>
-    <div class="diagram-box" style="margin-bottom:20px;">
-      <svg viewBox="0 0 640 160" xmlns="http://www.w3.org/2000/svg">
-        <g font-family="Kalam, cursive" font-size="13">
-          <rect x="30" y="55" width="150" height="55" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <text x="105" y="80" text-anchor="middle" fill="#f4f1e6" font-size="12">Assembled Chair</text>
-          <text x="105" y="98" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(JS object)</text>
-
-          <path d="M180,72 L280,72" stroke="#e8c468" stroke-width="1.5" marker-end="url(#j1)"/>
-          <text x="230" y="63" text-anchor="middle" fill="#e8c468" font-family="Space Mono, monospace" font-size="9">stringify()</text>
-
-          <rect x="280" y="55" width="150" height="55" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="355" y="80" text-anchor="middle" fill="#f4f1e6" font-size="12">Flat-Pack Box</text>
-          <text x="355" y="98" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">(JSON string)</text>
-
-          <path d="M430,95 L330,130" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#j2)"/>
-          <text x="380" y="120" text-anchor="middle" fill="#d98fa0" font-family="Space Mono, monospace" font-size="9">ships over network</text>
-
-          <path d="M280,95 L180,95" stroke="#9fd0a7" stroke-width="1.5" marker-end="url(#j3)" transform="translate(0,20)"/>
-          <text x="230" y="130" text-anchor="middle" fill="#9fd0a7" font-family="Space Mono, monospace" font-size="9">parse()</text>
-
-          <defs>
-            <marker id="j1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8c468"/></marker>
-            <marker id="j2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d98fa0"/></marker>
-            <marker id="j3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fd0a7"/></marker>
-          </defs>
-        </g>
-      </svg>
-      <p class="caption">stringify() flattens the assembled chair into a flat-pack box for shipping. parse() unpacks that box back into something usable at the other end.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term"><span class="code">JSON.stringify()</span></p>
-        <p class="def">Turns a JS object into a plain text string.</p>
-        <div class="row"><span class="label">Real Life</span><p>Flat-packing a fully built chair back into its box before shipping — smaller, standardized, and easy for a courier to carry.</p></div>
-      </div>
-      <div class="card">
-        <p class="term"><span class="code">JSON.parse()</span></p>
-        <p class="def">Turns a JSON string back into a usable JS object.</p>
-        <div class="row"><span class="label">Real Life</span><p>Opening the flat-pack box at the destination and reassembling the parts back into a chair you can actually sit in.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Reconstructing classes -->
-  <section>
-    <div class="section-head"><h2>Reconstructing Classes</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">The Problem</p>
-        <div class="row"><span class="label">Real Life</span><p>The flat-pack box only ships the wood panels and screws — not the brand's assembly manual or any of the chair's folding hinges' built-in mechanisms.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>JSON ships the data (the wood and screws) but not the class's methods (the folding mechanism) — parsing alone gives you loose parts, not a working <span class="code">Cat</span> instance.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">The Fix: <span class="code">fromJSON</span></p>
-        <div class="row"><span class="label">Real Life</span><p>Calling in the original manufacturer's assembly manual to turn those loose parts back into a fully working, foldable chair — hinges and all.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A static <span class="code">Cat.fromJSON(data)</span> method takes the plain parsed object and feeds it into the real constructor — restoring every method the plain data alone couldn't carry.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Why JSON -->
-  <section>
-    <div class="section-head"><h2>Why JSON, Specifically</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Readable &amp; Language-Agnostic</p>
-        <div class="row"><span class="label">Real Life</span><p>A packing slip written in plain, universal terms ("2 chairs, 4 screws") that any warehouse worker can read, regardless of which country or company packed the box.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A Python server and a JavaScript browser don't speak the same "language" internally — but both can read the same JSON packing slip without translation.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="takeaway">
-    <p>JSON is the universal flat-pack format for data — stringify boxes it up, parse opens it back up, and fromJSON is the manual that restores what got left out of the box.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 06</div>
+  <h1>JSON &amp; the Fetch API</h1>
+  <p>Two pillars of modern web communication: <b>JSON</b> — the universal data interchange format — and the <b>Fetch API</b> — the native browser tool for HTTP requests.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span> JSON Syntax Rules</div>
+<div class="card">
+  <h2>What Makes Valid JSON</h2>
+  <div class="def">JSON is a subset of JavaScript object syntax — stricter, but language-agnostic. Every JSON document is a valid JS expression (but not vice versa).</div>
+<pre><code><span class="cmt">// ✅ Valid JSON</span>
+{
+  <span class="str">"name"</span>: <span class="str">"Alice"</span>,
+  <span class="str">"age"</span>: <span class="num">30</span>,
+  <span class="str">"isStudent"</span>: <span class="kw">false</span>,
+  <span class="str">"hobbies"</span>: [<span class="str">"reading"</span>, <span class="str">"coding"</span>],
+  <span class="str">"address"</span>: <span class="kw">null</span>
+}
+
+<span class="cmt">// ❌ Invalid JSON — common mistakes</span>
+{
+  name: <span class="str">"Alice"</span>,       <span class="cmt">// keys must be double-quoted</span>
+  <span class="str">"age"</span>: <span class="num">30</span>,           <span class="cmt">// trailing comma not allowed</span>
+  <span class="str">"comment"</span>: <span class="str">"..."</span>,   <span class="cmt">// no comments allowed</span>
+  <span class="str">"date"</span>: <span class="kw">new</span> Date()   <span class="cmt">// no Date type — only strings, numbers, objects, arrays, booleans, null</span>
+}</code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">JSON is like a shipping container standardized by ISO — every container has the same locking mechanism, dimensions, and labeling rules. It doesn't matter if the cargo came from a factory in China or a farm in Brazil; as long as it fits the container, any port in the world can handle it.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> JSON.stringify &amp; JSON.parse</div>
+<div class="card">
+  <h2>Serializing &amp; Deserializing</h2>
+  <div class="def"><code>JSON.stringify</code> converts JS values to JSON text. <code>JSON.parse</code> converts JSON text back to JS values. Both accept optional transform functions.</div>
+<pre><code><span class="kw">const</span> data <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Alice'</span>,
+  <span class="prop">age</span>: <span class="num">30</span>,
+  <span class="prop">born</span>: <span class="kw">new</span> Date(<span class="str">'1995-01-01'</span>),
+  <span class="prop">score</span>: <span class="kw">undefined</span>,      <span class="cmt">// dropped by stringify</span>
+  <span class="fn">greet</span>() { <span class="kw">return</span> <span class="str">'hi'</span>; } <span class="cmt">// functions are dropped</span>
+};
+
+<span class="cmt">// Basic stringify</span>
+JSON.stringify(data);
+<span class="cmt">// → {"name":"Alice","age":30,"born":"1995-01-01T00:00:00.000Z"}</span>
+
+<span class="cmt">// With replacer — control what gets included</span>
+JSON.stringify(data, [<span class="str">'name'</span>, <span class="str">'age'</span>]);
+
+<span class="cmt">// With space — pretty printing</span>
+JSON.stringify(data, <span class="kw">null</span>, <span class="num">2</span>);
+
+<span class="cmt">// JSON.parse with reviver — transform values on the way in</span>
+<span class="kw">const</span> parsed <span class="kw">=</span> JSON.parse(jsonStr, <span class="fn">(key, value)</span> <span class="kw">=></span> {
+  <span class="kw">if</span> (key <span class="kw">===</span> <span class="str">'born'</span>) <span class="kw">return</span> <span class="kw">new</span> Date(value);
+  <span class="kw">return</span> value;
+});</code></pre>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Assuming <code>JSON.parse(JSON.stringify(obj))</code> creates a deep clone. It doesn't handle <code>undefined</code>, functions, Symbols, Dates (converted to strings), circular references, or special objects like <code>Map</code>/<code>Set</code>. Use a structured clone algorithm for true deep cloning.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> The Fetch API — GET</div>
+<div class="card">
+  <h2>Fetching Data from a Server</h2>
+  <div class="def">The Fetch API provides a Promise-based interface for HTTP requests. Always check <code>response.ok</code> before consuming the body.</div>
+<pre><code><span class="cmt">// Basic GET request</span>
+<span class="kw">const</span> response <span class="kw">=</span> <span class="kw">await</span> fetch(<span class="str">'https://api.example.com/users'</span>);
+
+<span class="cmt">// Always check for HTTP errors</span>
+<span class="kw">if</span> (!response.ok) {
+  <span class="kw">throw</span> <span class="kw">new</span> Error(<span class="str">`HTTP ${response.status}`</span>);
+}
+
+<span class="cmt">// Parse JSON body</span>
+<span class="kw">const</span> users <span class="kw">=</span> <span class="kw">await</span> response.json();
+
+<span class="cmt">// Alternative: parse as text</span>
+<span class="kw">const</span> text <span class="kw">=</span> <span class="kw">await</span> response.text();
+
+<span class="cmt">// Chaining with .then() instead of await</span>
+fetch(<span class="str">'https://api.example.com/users'</span>)
+  .then(<span class="fn">res</span> <span class="kw">=></span> {
+    <span class="kw">if</span> (!res.ok) <span class="kw">throw</span> <span class="kw">new</span> Error(<span class="str">`Error ${res.status}`</span>);
+    <span class="kw">return</span> res.json();
+  })
+  .then(<span class="fn">data</span> <span class="kw">=></span> console.log(data))
+  .catch(<span class="fn">err</span> <span class="kw">=></span> console.error(err));
+
+<span class="cmt">// Checking specific status codes</span>
+<span class="kw">if</span> (response.status <span class="kw">===</span> <span class="num">404</span>) { <span class="cmt">/* not found */</span> }
+<span class="kw">if</span> (response.status <span class="kw">===</span> <span class="num">401</span>) { <span class="cmt">/* unauthorized */</span> }</code></pre>
+  <div class="tip-box">
+    <div class="t-label">Important</div>
+    <div class="t-text"><code>fetch()</code> only rejects on network errors (DNS failure, no connection). HTTP 4xx/5xx responses are not rejections — you must check <code>response.ok</code> or <code>response.status</code> explicitly.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> POST with JSON Body</div>
+<div class="card">
+  <h2>Sending Data to a Server</h2>
+  <div class="def">POST requests send JSON in the request body. Set the <code>Content-Type</code> header so the server knows how to parse it.</div>
+<pre><code><span class="kw">const</span> newUser <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Bob'</span>,
+  <span class="prop">email</span>: <span class="str">'bob@example.com'</span>
+};
+
+<span class="kw">const</span> response <span class="kw">=</span> <span class="kw">await</span> fetch(<span class="str">'https://api.example.com/users'</span>, {
+  <span class="prop">method</span>: <span class="str">'POST'</span>,
+  <span class="prop">headers</span>: {
+    <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>
+  },
+  <span class="prop">body</span>: JSON.stringify(newUser)
+});
+
+<span class="kw">if</span> (!response.ok) {
+  <span class="kw">const</span> errorBody <span class="kw">=</span> <span class="kw">await</span> response.text();
+  <span class="kw">throw</span> <span class="kw">new</span> Error(<span class="str">`POST failed: ${errorBody}`</span>);
+}
+
+<span class="kw">const</span> created <span class="kw">=</span> <span class="kw">await</span> response.json();</code></pre>
+  <div class="industry-box">
+    <div class="i-label">REST API Best Practices</div>
+    <div class="i-text">Use <code>POST</code> for creating resources, <code>GET</code> for reading, <code>PUT</code> for full replacement, <code>PATCH</code> for partial updates, and <code>DELETE</code> for removal. Always match the HTTP method to the operation's semantics.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">XMLHttpRequest (Legacy)</div>
+    <div class="c-desc">Event-based (<code>onload</code>, <code>onerror</code>), verbose boilerplate, no Promise support. Requires manual <code>JSON.parse</code>. Still exists in browsers but not used in modern code.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">Fetch API (Modern)</div>
+    <div class="c-desc">Promise-based, clean API, native streaming support, built-in JSON parsing (<code>.json()</code>). Rejects only on network errors — must check <code>response.ok</code> for HTTP errors.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> Why does <code>JSON.stringify</code> drop functions and <code>undefined</code> values?</div>
+  <div class="a"><strong>A:</strong> JSON is a data-interchange format, not a serialization format for executable code. Functions have no equivalent in other languages, and <code>undefined</code> is not a valid JSON value. This ensures the output can be parsed by any language, not just JavaScript.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> How would you handle a fetch request that might return either JSON or an error text?</div>
+  <div class="a"><strong>A:</strong> Check <code>response.ok</code> first. If the request failed, call <code>response.text()</code> to read the error body (which may contain a human-readable message). If successful, call <code>response.json()</code> to parse the data. You cannot call both <code>.json()</code> and <code>.text()</code> on the same response — the body can only be read once.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What's the difference between <code>PUT</code> and <code>PATCH</code>?</div>
+  <div class="a"><strong>A:</strong> <code>PUT</code> replaces the entire resource with the provided representation (idempotent). <code>PATCH</code> applies a partial update — it only changes the fields you send. <code>PUT</code> requires the full resource; <code>PATCH</code> can send just the diff.</div>
+</div>
+
+<div class="section-tag"><span class="n">6</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>JSON keys</b> — must be double-quoted</div>
+  <div class="rev-item"><b>No trailing commas</b> — invalid in JSON</div>
+  <div class="rev-item"><b>No comments</b> — not allowed in JSON</div>
+  <div class="rev-item"><b>Valid types</b> — string, number, bool, null, object, array</div>
+  <div class="rev-item"><b>stringify</b> — JS → JSON string</div>
+  <div class="rev-item"><b>parse</b> — JSON string → JS value</div>
+  <div class="rev-item"><b>Replacer</b> — filter/transform during stringify</div>
+  <div class="rev-item"><b>Reviver</b> — transform during parse</div>
+  <div class="rev-item"><b>fetch(url)</b> — GET request</div>
+  <div class="rev-item"><b>response.ok</b> — check HTTP success</div>
+  <div class="rev-item"><b>.json()</b> — parse response as JSON</div>
+  <div class="rev-item"><b>.text()</b> — parse as plain text</div>
+  <div class="rev-item"><b>POST body</b> — JSON.stringify + Content-Type</div>
+  <div class="rev-item"><b>HTTP methods</b> — GET, POST, PUT, PATCH, DELETE</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

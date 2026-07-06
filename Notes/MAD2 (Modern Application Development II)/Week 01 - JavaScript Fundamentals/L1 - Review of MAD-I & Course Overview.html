@@ -1,502 +1,321 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Intro to Machine Learning — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L1 – Review of MAD-I &amp; Course Overview — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
-
 *{box-sizing:border-box;}
-
 body{
   margin:0;
-  background:var(--board);
-  color:var(--chalk);
-  font-family:'Space Mono', monospace;
-  position:relative;
-  overflow-x:hidden;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-
-/* chalk dust texture */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px;
-  z-index:1;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-
-.wrap{
-  max-width: 980px;
-  margin:0 auto;
-  padding: 56px 28px 100px;
-  position:relative;
-  z-index:2;
-}
-
-/* ---------- Header ---------- */
-header{
-  text-align:center;
-  margin-bottom:64px;
-  padding-bottom:36px;
-  border-bottom: 2px dashed var(--board-line);
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
 .eyebrow{
-  font-family:'Space Mono', monospace;
-  font-size:12px;
-  letter-spacing:4px;
-  text-transform:uppercase;
-  color: var(--chalk-yellow);
-  margin-bottom:18px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
 }
-h1{
-  font-family:'Kalam', cursive;
-  font-weight:700;
-  font-size: clamp(2.4rem, 6vw, 4.2rem);
-  margin:0 0 14px;
-  line-height:1.05;
-  color:var(--chalk);
-  text-shadow: 0 0 18px rgba(244,241,230,0.08);
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
 }
-.subhead{
-  font-family:'Caveat', cursive;
-  font-size: 1.6rem;
-  color: var(--chalk-blue);
-  max-width:560px;
-  margin: 0 auto;
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
 }
-
-/* ---------- Section ---------- */
-section{ margin-bottom: 68px; }
-
-.section-head{
-  display:flex;
-  align-items:baseline;
-  gap:16px;
-  margin-bottom: 28px;
-}
-.section-head h2{
-  font-family:'Kalam', cursive;
-  font-weight:700;
-  font-size: 1.9rem;
-  color: var(--chalk-yellow);
-  margin:0;
-  white-space:nowrap;
-}
-.section-head .rule{
-  flex:1;
-  height:1px;
-  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
-}
-.section-intro{
-  font-family:'Caveat', cursive;
-  font-size:1.3rem;
-  color:var(--chalk-dim);
-  max-width:680px;
-  margin: -14px 0 26px;
-}
-
-/* ---------- Cards ---------- */
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-}
-
 .card{
-  background: var(--board-alt);
-  border: 1px solid var(--board-line);
-  border-radius: 6px;
-  padding: 22px 22px 20px;
-  position:relative;
-  transition: transform .25s ease, border-color .25s ease;
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
 }
-.card:hover{
-  transform: translateY(-3px);
-  border-color: var(--chalk-yellow);
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
 }
-.card .term{
-  font-family:'Kalam', cursive;
-  font-size: 1.3rem;
-  color: var(--chalk);
-  margin: 0 0 12px;
-  display:flex;
-  align-items:center;
-  gap:8px;
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
 }
-.card .term::before{
-  content:"✎";
-  color: var(--chalk-yellow);
-  font-size:1rem;
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
 }
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-.row{
-  margin-bottom: 12px;
-}
-.row .label{
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--chalk-blue);
-  display:block;
-  margin-bottom: 4px;
-}
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{
-  margin:0;
-  font-size: 13.5px;
-  line-height:1.55;
-  color: var(--chalk-dim);
-}
-
-/* connecting chalk line between the two rows */
-.card .link-line{
-  width: 100%;
-  height: 14px;
-  margin: 2px 0 8px;
-}
-.card .link-line path{
-  fill:none;
-  stroke: var(--chalk-yellow);
-  stroke-width:1.4;
-  stroke-linecap:round;
-  stroke-dasharray: 220;
-  stroke-dashoffset: 220;
-  transition: stroke-dashoffset .6s ease;
-  opacity:0.7;
-}
-.card:hover .link-line path{
-  stroke-dashoffset: 0;
-}
-
-/* ---------- AI vs ML banner ---------- */
-.banner{
-  background: var(--board-alt);
-  border: 1px dashed var(--board-line);
-  border-radius: 8px;
-  padding: 28px 26px;
-  display:flex;
-  gap:28px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.banner .side{
-  flex:1;
-  min-width:220px;
-}
-.banner .side h3{
-  font-family:'Kalam', cursive;
-  font-size:1.25rem;
-  margin:0 0 6px;
-}
-.banner .side.ai h3{ color: var(--chalk-blue); }
-.banner .side.ml h3{ color: var(--chalk-yellow); }
-.banner .side p{
-  margin:0;
-  font-size:13px;
-  color:var(--chalk-dim);
-  line-height:1.5;
-}
-.banner .arrow{
-  font-family:'Kalam', cursive;
-  font-size:1.6rem;
-  color: var(--chalk-pink);
-}
-
-/* ---------- Not-ML two-panel ---------- */
-.duo{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:20px;
-}
-@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
-.duo .panel{
-  background: var(--board-alt);
-  border-left: 3px solid var(--chalk-pink);
-  border-radius: 4px;
-  padding: 20px;
-}
-.duo .panel h4{
-  font-family:'Kalam', cursive;
-  color: var(--chalk-pink);
-  font-size:1.15rem;
-  margin:0 0 10px;
-}
-.duo .panel p{
-  font-size:13px;
-  color:var(--chalk-dim);
-  line-height:1.55;
-  margin: 0 0 8px;
-}
-.duo .panel p strong{ color: var(--chalk); }
-
-/* ---------- Recap chalkboard ledge ---------- */
-.recap{
-  margin-top: 80px;
-}
-.recap h2{
-  font-family:'Kalam', cursive;
-  color: var(--chalk-yellow);
-  text-align:center;
-  font-size:1.8rem;
-  margin-bottom: 30px;
-}
-.ledge-list{
-  list-style:none;
-  margin:0;
-  padding:0;
-  border-top: 4px solid var(--shelf);
-  padding-top: 24px;
-}
-.ledge-list li{
-  display:grid;
-  grid-template-columns: 200px 1fr;
-  gap: 18px;
-  padding: 10px 4px;
-  border-bottom: 1px dotted var(--board-line);
-  align-items:baseline;
-}
-.ledge-list li:last-child{ border-bottom:none; }
-.ledge-list .k{
-  font-family:'Kalam', cursive;
-  color: var(--chalk-blue);
-  font-size:1rem;
-}
-.ledge-list .v{
-  font-family:'Caveat', cursive;
-  font-size: 1.25rem;
-  color: var(--chalk);
-}
-@media (max-width:560px){
-  .ledge-list li{ grid-template-columns: 1fr; gap:2px; }
-}
-
-footer{
-  text-align:center;
-  margin-top: 60px;
-  font-size:11px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color: var(--board-line);
-}
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 01 · Companion Notes</div>
-    <h1>Introduction to<br>Machine Learning</h1>
-    <p class="subhead">— every concept, paired with something you already understand —</p>
-  </header>
-
-  <section>
-    <div class="section-head">
-      <h2>Why Study It?</h2>
-      <div class="rule"></div>
-    </div>
-    <p class="section-intro">ML already runs quietly behind things you touch every day.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Analytics &amp; AI</p>
-        <div class="row"><span class="label">Real Life</span><p>Netflix analyzing billions of viewing hours to decide what to produce next.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A shopkeeper who remembers every customer's past purchases to restock smarter.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Conversational AI</p>
-        <div class="row"><span class="label">Real Life</span><p>Siri or Alexa understanding "set a timer for 10 minutes."</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A new employee who understands your instructions better the longer they work with you.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Autonomous Systems</p>
-        <div class="row"><span class="label">Real Life</span><p>A delivery drone rerouting around a tree it detects mid-flight.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A cyclist swerving around a pothole without being told exactly where every pothole is.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>AI vs. ML</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="banner">
-      <div class="side ai">
-        <h3>Artificial Intelligence</h3>
-        <p>The destination — a machine that thinks and acts like a human.</p>
-      </div>
-      <div class="arrow">→</div>
-      <div class="side ml">
-        <h3>Machine Learning</h3>
-        <p>The vehicle getting us there — today's fastest, most reliable route.</p>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>Application Domains</h2>
-      <div class="rule"></div>
-    </div>
-    <p class="section-intro">ML teaches machines to mimic natural human senses and cognition.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Computer Vision</p>
-        <div class="row"><span class="label">Real Life</span><p>Face ID unlocking your phone.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A club bouncer who recognizes regulars by face, not by checking ID every time.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Speech &amp; NLP</p>
-        <div class="row"><span class="label">Real Life</span><p>Google Translate converting spoken Spanish into English text.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A bilingual friend who translates what you mean, not word-for-word.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Text Processing</p>
-        <div class="row"><span class="label">Real Life</span><p>Gmail sorting millions of emails into Promotions vs. Primary.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A mailroom clerk who's sorted so much mail they know junk from letters at a glance.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Science &amp; Engineering</p>
-        <div class="row"><span class="label">Real Life</span><p>Predicting how a new drug molecule binds to a protein.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A chemist who's mixed thousands of compounds and senses what might work before testing.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Finance &amp; Sports</p>
-        <div class="row"><span class="label">Real Life</span><p>Predicting stock trends or a team's win probability from past stats.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A bookmaker setting odds from years of match history, not gut feeling.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">E-commerce</p>
-        <div class="row"><span class="label">Real Life</span><p>Amazon's "customers who bought this also bought…"</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A bookstore owner who says "if you liked that novel, you'll love this one."</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>What ML Is NOT</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="duo">
-      <div class="panel">
-        <h4>Not Procedural</h4>
-        <p><strong>Real life:</strong> A tax app with an explicit rule for every income bracket.</p>
-        <p><strong>Analogy:</strong> A recipe card — follow the exact steps, get the exact result, every time. ML instead behaves like a chef improvising from years of taste patterns, not a fixed card.</p>
-      </div>
-      <div class="panel">
-        <h4>Not Memorization</h4>
-        <p><strong>Real life:</strong> A spam filter that only blocks emails it has seen word-for-word before misses new spam.</p>
-        <p><strong>Analogy:</strong> A student who memorizes last year's exam answers verbatim — and fails this year's reworded questions.</p>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>Core Principles</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Data — the "Secret Sauce"</p>
-        <div class="row"><span class="label">Real Life</span><p>A credit card company scanning millions of transactions to spot fraud.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A detective who's worked hundreds of cases and starts noticing patterns rookies miss.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Generalization</p>
-        <div class="row"><span class="label">Real Life</span><p>A handwriting app reading your messy writing, though trained on other people's.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Learning to ride a bike on one street, then confidently riding a street you've never seen.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Mathematical Basis</p>
-        <div class="row"><span class="label">Real Life</span><p>Weather models using probability and statistics to predict rain.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A sailor reading wind, clouds, and pressure to predict a storm — grounded in physics, not guesswork.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head">
-      <h2>Common Paradigms</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Classification</p>
-        <div class="row"><span class="label">Real Life</span><p>Gmail sorting spam vs. not-spam.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A bouncer sorting people into "let in" or "turn away" based on learned traits.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Prediction / Forecasting</p>
-        <div class="row"><span class="label">Real Life</span><p>Forecasting tomorrow's rainfall, or next quarter's stock prices.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A farmer who's watched the sky for 30 years and says "rain's coming."</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Clustering / Grouping</p>
-        <div class="row"><span class="label">Real Life</span><p>Google Photos grouping pictures of the same person, unlabeled.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Sorting a mixed laundry pile by color and fabric — no labels needed to see what belongs together.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Reinforcement Learning</p>
-        <div class="row"><span class="label">Real Life</span><p>A robot vacuum learning the best path, bumping furniture at first.</p></div>
-        <svg class="link-line" viewBox="0 0 200 14"><path d="M5,7 Q100,-3 195,7"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A toddler learning to walk — falling, adjusting, improving with each attempt.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="recap">
-    <h2>On the Ledge — Quick Recap</h2>
-    <ul class="ledge-list">
-      <li><span class="k">AI vs ML</span><span class="v">AI is the destination, ML is the vehicle</span></li>
-      <li><span class="k">Procedural code</span><span class="v">A recipe card — fixed steps, fixed result</span></li>
-      <li><span class="k">ML learning</span><span class="v">A chef improvising from experience</span></li>
-      <li><span class="k">Memorization</span><span class="v">Cramming exam answers, failing on new questions</span></li>
-      <li><span class="k">Generalization</span><span class="v">Riding a bike on a street you've never seen</span></li>
-      <li><span class="k">Classification</span><span class="v">A bouncer sorting people into categories</span></li>
-      <li><span class="k">Prediction</span><span class="v">A farmer forecasting rain from experience</span></li>
-      <li><span class="k">Clustering</span><span class="v">Sorting laundry by similarity, no labels needed</span></li>
-      <li><span class="k">Reinforcement Learning</span><span class="v">A toddler learning to walk through trial and error</span></li>
-    </ul>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 1</div>
+  <h1>Review of MAD-I &amp; Course Overview</h1>
+  <p>Welcome to <b>Modern Application Development II</b>. This course dives deep into <b>JavaScript</b> — the language that powers the modern web. We begin with a broad landscape view: what JS is, where it runs, what makes it special, and how it fits alongside the technologies you encountered in MAD-I.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span>What is JavaScript?</div>
+<div class="card">
+  <h2>The Language of the Web</h2>
+  <div class="def">
+    JavaScript (JS) is a <b>high-level, dynamic, interpreted</b> programming language that conforms to the ECMAScript specification. It is one of the three core technologies of the World Wide Web — alongside HTML and CSS — and is supported by every modern browser.
+  </div>
+  <h3>Key Characteristics</h3>
+  <ul>
+    <li><b>Dynamic typing</b> — variables can hold any type; type is determined at runtime</li>
+    <li><b>First-class functions</b> — functions are treated like any other value (passed as arguments, returned, assigned)</li>
+    <li><b>Prototype-based inheritance</b> — objects inherit directly from other objects (not classical classes)</li>
+    <li><b>Event-driven</b> — built around an event loop for asynchronous operations</li>
+    <li><b>Single-threaded</b> — one call stack, one heap, async via the event loop</li>
+  </ul>
+  <pre><code><span class="cmt">// A quick taste of JavaScript</span>
+<span class="kw">const</span> greet = <span class="fn">(name)</span> <span class="kw">=></span> <span class="str">`Hello, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">greet</span>(<span class="str">"MAD2"</span>));  <span class="cmt">// → Hello, MAD2!</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Runtime Environments</div>
+<div class="card">
+  <h2>Where JavaScript Runs</h2>
+  <div class="def">
+    JavaScript was originally created to run <b>only in browsers</b>. Today it runs almost everywhere.
+  </div>
+
+  <h3>Browser Runtime</h3>
+  <ul>
+    <li><b>Google Chrome</b> — V8 engine</li>
+    <li><b>Mozilla Firefox</b> — SpiderMonkey engine</li>
+    <li><b>Apple Safari</b> — JavaScriptCore (Nitro)</li>
+    <li><b>Microsoft Edge</b> — V8 (Chromium-based)</li>
+  </ul>
+  <p>The browser provides Web APIs: <code>document</code>, <code>console</code>, <code>fetch</code>, <code>setTimeout</code>, DOM APIs, and more.</p>
+
+  <h3>Server-Side Runtime</h3>
+  <ul>
+    <li><b>Node.js</b> — V8 engine + libuv for I/O; file system, networking, process APIs</li>
+    <li><b>Deno</b> — V8 + Rust-built; secure by default, supports TypeScript natively</li>
+    <li><b>Bun</b> — JavaScriptCore-based; built-in bundler, test runner, package manager</li>
+  </ul>
+
+  <svg viewBox="0 0 600 200" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="200" fill="#12161F" rx="10"/>
+    <text x="300" y="30" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="14" font-weight="700">JavaScript Runtime Environments</text>
+    <rect x="40" y="50" width="240" height="120" rx="8" fill="#234436" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="160" y="80" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700">Browser</text>
+    <text x="160" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">JS Engine + Web APIs</text>
+    <text x="160" y="120" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">DOM, fetch, console,</text>
+    <text x="160" y="138" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">events, localStorage</text>
+    <rect x="320" y="50" width="240" height="120" rx="8" fill="#26264A" stroke="#8B93FF" stroke-width="1.5"/>
+    <text x="440" y="80" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700">Node.js / Deno</text>
+    <text x="440" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">V8 + libuv / Rust</text>
+    <text x="440" y="120" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">fs, http, path, process,</text>
+    <text x="440" y="138" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">crypto, streams</text>
+    <line x1="280" y1="110" x2="320" y2="110" stroke="#232A38" stroke-width="2" stroke-dasharray="4,3"/>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Development Setup</div>
+<div class="card">
+  <h2>Tools of the Trade</h2>
+  <h3>Browser Console</h3>
+  <p>Every browser includes <b>DevTools</b> (F12 / Ctrl+Shift+I). The Console tab is a <b>REPL</b> — Read-Eval-Print Loop — where you can type and run JS instantly.</p>
+  <pre><code><span class="cmt">// Open console → paste this → press Enter</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Hello from the browser console!"</span>);
+<span class="fn">console</span>.<span class="fn">table</span>({ <span class="prop">name</span>: <span class="str">"JS"</span>, <span class="prop">year</span>: <span class="str">1995</span> });</code></pre>
+
+  <h3>Script Tags in HTML</h3>
+  <p>There are two ways to include JS in an HTML page:</p>
+  <pre><code><span class="cmt">&lt;!-- Internal script (inside HTML) --></span>
+<span class="kw">&lt;</span><span class="fn">script</span><span class="kw">></span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Internal JS"</span>);
+<span class="kw">&lt;/</span><span class="fn">script</span><span class="kw">></span>
+
+<span class="cmt">&lt;!-- External script (separate .js file) --></span>
+<span class="kw">&lt;</span><span class="fn">script</span> <span class="prop">src</span>=<span class="str">"app.js"</span><span class="kw">>&lt;/</span><span class="fn">script</span><span class="kw">></span></code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Place <code>&lt;script&gt;</code> tags just before <code>&lt;/body&gt;</code> or use the <code>defer</code> attribute to avoid blocking HTML parsing. Always prefer external scripts for production.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>JavaScript vs Other Languages</div>
+<div class="card">
+  <h2>How JS Compares</h2>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Java / C++</div>
+      <div class="c-desc">Statically typed, class-based OOP, compiled. Verbose. Threads via OS threads.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">JavaScript</div>
+      <div class="c-desc">Dynamically typed, prototype-based, interpreted. Concise. Async via event loop (single-threaded).</div>
+    </div>
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Python</div>
+      <div class="c-desc">Dynamically typed, indent-based, synchronous by default. Used for data/backend/ML.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">JavaScript</div>
+      <div class="c-desc">Curly-brace syntax, async-native, prototype-based. Only language in the browser.</div>
+    </div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">Think of JavaScript as the <b>universal translator</b> of the web. HTML is the skeleton, CSS is the clothes, and JavaScript is the muscles that make everything move and respond. Without JS, web pages would be static documents — with JS, they become applications.</div>
+  </div>
+
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>JS is <b>dynamically typed</b> — flexible but requires discipline</li>
+    <li>Functions are <b>first-class citizens</b> — a core paradigm</li>
+    <li><b>Prototype-based</b> inheritance is unique to JS</li>
+    <li>JS is <b>single-threaded</b> but non-blocking via the event loop</li>
+    <li>The <b>V8 engine</b> (Chrome/Node/Deno) uses JIT compilation for speed</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">5</span>MAD-I Recap &amp; MAD-II Roadmap</div>
+<div class="card">
+  <h2>From MAD-I to MAD-II</h2>
+  <div class="def">
+    In MAD-I, you built REST APIs with Flask and learned Python, SQL, and basic frontend integration. MAD-II shifts focus to <b>full-stack JavaScript</b> — from browser to server.
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">MAD-I (Python/Flask)</div>
+      <div class="c-desc">Python, Flask REST APIs, SQLite/PostgreSQL, SQLAlchemy, Jinja templates, HTML/CSS basics, Git, deployment basics</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">MAD-II (JavaScript/Node)</div>
+      <div class="c-desc">JavaScript fundamentals, DOM API, Node.js + Express, React or Vue, MongoDB, async programming, full-stack integration, deployment</div>
+    </div>
+  </div>
+  <h3>Why JavaScript for MAD-II?</h3>
+  <ul>
+    <li><b>Full-stack in one language</b> — one language for frontend (browser) and backend (Node.js)</li>
+    <li><b>Industry standard</b> — most job postings for full-stack roles list JavaScript as a core requirement</li>
+    <li><b>Rich ecosystem</b> — npm (package manager) has over 2 million packages</li>
+    <li><b>Modern frameworks</b> — React, Vue, Angular dominate the frontend landscape</li>
+    <li><b>Real-time capabilities</b> — WebSockets, SSE, event-driven architecture built in</li>
+  </ul>
+  <p>This course builds from <b>zero</b> JS knowledge to being able to build complete, interactive web applications by the end.</p>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Common Pitfalls</div>
+<div class="card">
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Confusing JavaScript with Java.</b> Despite the similar name, they are entirely different languages. Java is compiled, statically typed, and runs on the JVM. JavaScript is interpreted, dynamically typed, and runs in browsers/Node. The name "JavaScript" was a marketing ploy during the browser wars.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Blocking the main thread.</b> JS is single-threaded. If you run a long synchronous loop, the entire page freezes. Always use async patterns (callbacks, promises, async/await) for I/O and heavy computation.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Not using semicolons in ambiguous cases.</b> While JS has automatic semicolon insertion (ASI), it can break on lines starting with <code>(</code>, <code>[</code>, or <code>`</code>. Always use semicolons or learn the few places where ASI fails.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">JavaScript has been the <b>most popular programming language on Stack Overflow</b> for 10+ consecutive years. According to the 2023 Stack Overflow survey, over 65% of professional developers use JavaScript. The entire modern web — React, Vue, Angular, Next.js, Svelte — is built on JavaScript. Learning JS opens doors to frontend, backend (Node.js), mobile (React Native), and desktop (Electron) development.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: Is JavaScript compiled or interpreted?</div>
+    <div class="a">A: Traditionally interpreted, but modern engines use <b>JIT (Just-In-Time) compilation</b>. V8 compiles JS to native machine code at runtime. So it's best described as a <b>JIT-compiled</b> language.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between JavaScript and ECMAScript?</div>
+    <div class="a">A: <b>ECMAScript (ES)</b> is the specification / standard. <b>JavaScript</b> is the most popular implementation of that standard. Other implementations include JScript (Microsoft), ActionScript (Adobe). When people say "ES6" they refer to the 6th edition of the ECMAScript specification.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the event loop in JavaScript?</div>
+    <div class="a">A: The event loop is the mechanism that allows JS to perform non-blocking I/O despite being single-threaded. The call stack executes code, the event loop checks if the call stack is empty, and then pushes pending callbacks (from the callback queue) onto the stack. This is the foundation of JavaScript's concurrency model.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What are the different ways to include JavaScript in an HTML page?</div>
+    <div class="a">A: (1) <b>Inline</b> — directly in HTML attributes (<code>onclick</code>), bad practice. (2) <b>Internal</b> — <code>&lt;script&gt;</code> tag in the HTML body. (3) <b>External</b> — <code>&lt;script src="file.js"&gt;</code>, best for production. Use <code>defer</code> or <code>async</code> attributes for non-blocking loading.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>JS born</b> 1995, Brendan Eich</div>
+    <div class="rev-item"><b>Dynamic typing</b> types determined at runtime</div>
+    <div class="rev-item"><b>First-class fns</b> treated as values</div>
+    <div class="rev-item"><b>Prototype-based</b> objects inherit from objects</div>
+    <div class="rev-item"><b>Single-threaded</b> one call stack</div>
+    <div class="rev-item"><b>Event loop</b> async concurrency model</div>
+    <div class="rev-item"><b>JIT-compiled</b> by modern engines</div>
+    <div class="rev-item"><b>V8 engine</b> Chrome, Node, Deno</div>
+    <div class="rev-item"><b>ECMAScript</b> the standard behind JS</div>
+    <div class="rev-item"><b>script defer</b> non-blocking loading</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

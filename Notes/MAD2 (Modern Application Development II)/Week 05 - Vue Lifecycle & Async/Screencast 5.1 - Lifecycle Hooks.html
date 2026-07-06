@@ -2,187 +2,453 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Vue.js Lifecycle &amp; Hooks — Chalkboard Notes</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Lifecycle Hooks — Study Notes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-.wrap{ max-width: 1040px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5vw, 3.3rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
-
-.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:56px; }
-
-.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
-
-/* House timeline */
-.house-timeline{ display:flex; flex-direction:column; gap:0; }
-.stage-row{
-  display:grid; grid-template-columns: 46px 1fr; gap:16px;
-  padding: 18px 0; border-bottom: 1px dotted var(--board-line); position:relative;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-.stage-row:last-child{ border-bottom:none; }
-.stage-row .icon{
-  width:46px; height:46px; border-radius:50%; border: 2px solid var(--accent);
-  display:flex; align-items:center; justify-content:center; font-size:20px;
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
-.stage-row .content h4{ font-family:'Kalam', cursive; font-size:1.2rem; color: var(--accent); margin: 2px 0 8px; }
-.stage-row .content .hooks{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-.stage-row .content p{ font-size: 12.5px; color: var(--chalk-dim); line-height:1.6; margin:0 0 6px; }
-.stage-row .content p strong{ color: var(--chalk); }
-
-.stage-row.init{ --accent: var(--chalk-blue); }
-.stage-row.mount{ --accent: var(--chalk-yellow); }
-.stage-row.update{ --accent: var(--chalk-pink); }
-.stage-row.destroy{ --accent: var(--chalk-green); }
-
-/* Practice cards */
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 10px; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="eyebrow">Lecture 12 · Companion Notes</div>
-    <h1>Vue.js Lifecycle &amp; Hooks</h1>
-    <p class="subhead">— every component's life, told as building, moving into, renovating, and eventually demolishing a house —</p>
-  </header>
+<div class="hero">
+  <div class="eyebrow">Week 05 · Screencast 5.1</div>
+  <h1>Vue Lifecycle Hooks</h1>
+  <p>Every Vue component goes through a predictable set of stages — <b>creation</b>, <b>mounting</b>, <b>updating</b>, and <b>destruction</b>. Lifecycle hooks let you run code at each stage, giving you fine-grained control over component behavior.</p>
+</div>
 
-  <div class="thread"><span class="tag">New Framework</span> Same DOM ideas from earlier lectures — now managed automatically by Vue instead of by hand.</div>
+<div class="section-tag"><span class="n">1</span> CREATION — beforeCreate &amp; created</div>
+<div class="card">
+  <h2>The Blueprint Phase</h2>
+  <p class="def">When a component is first initialized, Vue sets up data reactivity, computed properties, watchers, and methods. The creation hooks fire before the component is added to the DOM.</p>
 
-  <!-- The house timeline -->
-  <section>
-    <div class="section-head"><h2>The House, Stage by Stage</h2><div class="rule"></div></div>
-    <div class="house-timeline">
+  <h3>beforeCreate</h3>
+  <p class="def">Called after the component instance is constructed, but before reactive data and events are set up. You cannot access <code class="prop">data</code>, <code class="prop">computed</code>, or <code class="prop">methods</code> yet.</p>
 
-      <div class="stage-row init">
-        <div class="icon">📐</div>
-        <div class="content">
-          <h4>Initialization</h4>
-          <div class="hooks"><span class="code">beforeCreate</span><span class="code">created</span></div>
-          <p><strong>beforeCreate:</strong> the architect has just been hired, but no foundation exists yet — you can't ask "what's in the kitchen," because nothing has been built. Data and watchers aren't set up.</p>
-          <p><strong>created:</strong> blueprints, plumbing, and wiring plans are finalized and the utilities are set up on paper — data, computed values, and methods all exist — but the house isn't standing at its address yet. A common time to pre-order furniture (fetch initial data).</p>
-        </div>
-      </div>
+  <pre><span class="cmt">// beforeCreate — nothing is available yet</span>
+<span class="kw">export default</span> {
+  <span class="fn">beforeCreate</span>() {
+    console.log(<span class="str">'data:'</span>, <span class="kw">this</span>.$data)       <span class="cmt">// undefined</span>
+    console.log(<span class="str">'message:'</span>, <span class="kw">this</span>.message)  <span class="cmt">// undefined</span>
+    <span class="kw">this</span>.<span class="fn">fetchData</span>()                      <span class="cmt">// TypeError</span>
+  }
+}</pre>
 
-      <div class="stage-row mount">
-        <div class="icon">🏗️</div>
-        <div class="content">
-          <h4>Mounting</h4>
-          <div class="hooks"><span class="code">beforeMount</span><span class="code">mounted</span></div>
-          <p><strong>beforeMount:</strong> the prefab house sections are fully built off-site and are being craned onto the empty lot right now — the "for sale" sign is about to be swapped for an actual house.</p>
-          <p><strong>mounted:</strong> the house is standing at its address, doors open, move-in day. The element genuinely exists now — the best time to arrange furniture (DOM manipulation) or schedule deliveries (backend data fetching).</p>
-        </div>
-      </div>
+  <h3>created</h3>
+  <p class="def">Called after reactive data, computed properties, methods, and watchers are fully initialized. The component is not yet mounted (no DOM access). This is a common place to fetch initial data for non-DOM operations.</p>
 
-      <div class="stage-row update">
-        <div class="icon">🔨</div>
-        <div class="content">
-          <h4>Updating</h4>
-          <div class="hooks"><span class="code">beforeUpdate</span><span class="code">updated</span></div>
-          <p><strong>beforeUpdate:</strong> the homeowner has requested a wall knocked down and a new room added — contractors are about to start, but nothing's physically changed yet.</p>
-          <p><strong>updated:</strong> the renovation is finished, the paint is dry, and the new layout is fully visible and walkable.</p>
-        </div>
-      </div>
+  <pre><span class="kw">export default</span> {
+  <span class="fn">data</span>() {
+    <span class="kw">return</span> { message: <span class="str">'Hello'</span> }
+  },
+  <span class="fn">created</span>() {
+    console.log(<span class="kw">this</span>.message)              <span class="cmt">// 'Hello'  ✅ data is available</span>
+    <span class="kw">this</span>.<span class="fn">fetchInitialConfig</span>()              <span class="cmt">// ✅ methods are ready</span>
+    <span class="kw">this</span>.$el                             <span class="cmt">// undefined ❌ no DOM yet</span>
+  }
+}</pre>
 
-      <div class="stage-row destroy">
-        <div class="icon">🏚️</div>
-        <div class="content">
-          <h4>Destruction</h4>
-          <div class="hooks"><span class="code">beforeDestroy</span><span class="code">destroyed</span></div>
-          <p><strong>beforeDestroy:</strong> moving-out day — cancel the mail forwarding, shut off the utilities, unplug every appliance (remove event listeners, clear timers) before the movers arrive.</p>
-          <p><strong>destroyed:</strong> the house has been demolished, the lot is empty. Final confirmation that the instance is entirely gone.</p>
-        </div>
-      </div>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><b>beforeCreate</b> is like when you've hired an architect but the blueprints haven't been drawn yet — ask about the kitchen layout and you'll get a blank stare. <b>created</b> is when the blueprints are finalized: all the rooms, plumbing, and wiring are planned on paper, but no construction has started on the lot.</div>
+  </div>
 
+  <div class="industry-box">
+    <div class="i-label">Industry Context</div>
+    <div class="i-text">Enterprise apps often use <b>created</b> to initialize analytics trackers, restore user preferences from localStorage, or set up non-DOM integrations (WebSocket connections, logging services). Never use it for DOM-dependent operations.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> MOUNTING — beforeMount &amp; mounted</div>
+<div class="card">
+  <h2>Moving Into the DOM</h2>
+  <p class="def">Mounting hooks fire when the component's template is being rendered into the DOM for the first time.</p>
+
+  <h3>beforeMount</h3>
+  <p class="def">Called right before the component's template is compiled and mounted to the DOM. The render function is about to be called. The virtual DOM exists but the real DOM hasn't been updated yet.</p>
+
+  <h3>mounted</h3>
+  <p class="def">Called after the component is added to the DOM. All child components are also mounted. You can now access the DOM via <code class="prop">this.$el</code>, use <code class="fn">$refs</code>, and perform DOM operations. <b>This is the recommended hook for fetching data from an API.</b></p>
+
+  <pre><span class="kw">export default</span> {
+  <span class="fn">data</span>() {
+    <span class="kw">return</span> { items: [], loading: <span class="kw">true</span> }
+  },
+  <span class="fn">async mounted</span>() {
+    <span class="kw">try</span> {
+      <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/items'</span>)
+      <span class="kw">this</span>.items = <span class="kw">await</span> res.<span class="fn">json</span>()
+      <span class="kw">this</span>.$refs.container.<span class="fn">scrollIntoView</span>()  <span class="cmt">// ✅ DOM is ready</span>
+    } <span class="kw">finally</span> {
+      <span class="kw">this</span>.loading = <span class="kw">false</span>
+    }
+  }
+}</pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><b>beforeMount</b> is the furniture delivery truck pulling up to your address — the house is built off-site and about to be placed on the lot. <b>mounted</b> is move-in day: the doors are open, the keys are in your hand, and you can finally arrange the furniture (DOM manipulation) and plug in appliances (start timers, fetch data).</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> UPDATING — beforeUpdate &amp; updated</div>
+<div class="card">
+  <h2>Renovation Mode</h2>
+  <p class="def">When a reactive property changes, Vue re-renders the component. Update hooks fire before and after the DOM is patched.</p>
+
+  <h3>beforeUpdate</h3>
+  <p class="def">Called when reactive data has changed but the DOM hasn't been re-rendered yet. Use this to read the current DOM state before Vue patches it, or to manually tweak values.</p>
+
+  <h3>updated</h3>
+  <p class="def">Called after the DOM has been re-rendered following a data change. Be careful — do not mutate data in this hook (it creates infinite loops). Use <code class="fn">$nextTick</code> if you need to wait for the specific DOM update.</p>
+
+  <pre><span class="kw">export default</span> {
+  <span class="fn">data</span>() {
+    <span class="kw">return</span> { search: <span class="str">''</span>, results: [] }
+  },
+  <span class="fn">beforeUpdate</span>() {
+    console.log(<span class="str">'Scroll position:'</span>, <span class="kw">this</span>.$el.scrollTop)  <span class="cmt">// old DOM state</span>
+  },
+  <span class="fn">updated</span>() {
+    <span class="cmt">// this.search = 'new' — DON'T do this! Infinite loop!</span>
+    <span class="kw">this</span>.$nextTick(<span class="fn">() =></span> {
+      <span class="fn">highlightMatches</span>(<span class="kw">this</span>.$el)  <span class="cmt">// safe after render</span>
+    })
+  }
+}</pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Mutating data inside <code>updated</code> hook</b> — this triggers another update, which calls <code>updated</code> again, creating an infinite loop. Always use <code>computed</code> properties or watchers for reactive data transformations instead.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> DESTRUCTION — beforeDestroy &amp; destroyed</div>
+<div class="card">
+  <h2>Demolition Day</h2>
+  <p class="def">When a component is removed from the DOM (v-if toggled off, route changes, etc.), destruction hooks fire so you can clean up resources.</p>
+
+  <h3>beforeDestroy</h3>
+  <p class="def">Called right before the component instance is destroyed. The component is still fully functional — this is your last chance to clean up: remove event listeners, clear timers, unsubscribe from stores, cancel pending API requests.</p>
+
+  <h3>destroyed</h3>
+  <p class="def">Called after the component instance has been destroyed. All directives, watchers, and child components are unbound and removed. The component is gone from the DOM and memory.</p>
+
+  <pre><span class="kw">export default</span> {
+  <span class="fn">data</span>() {
+    <span class="kw">return</span> { timer: <span class="kw">null</span> }
+  },
+  <span class="fn">mounted</span>() {
+    <span class="kw">this</span>.timer = <span class="fn">setInterval</span>(<span class="fn">() =></span> {
+      console.log(<span class="str">'tick'</span>)
+    }, <span class="str">1000</span>)
+  },
+  <span class="fn">beforeDestroy</span>() {
+    <span class="fn">clearInterval</span>(<span class="kw">this</span>.timer)          <span class="cmt">// ✅ crucial cleanup!</span>
+    <span class="kw">this</span>.<span class="fn">cleanupSubscriptions</span>()         <span class="cmt">// unsubscribe from stores</span>
+    <span class="kw">this</span>.$refs.video?.<span class="fn">pause</span>()          <span class="cmt">// clean up media</span>
+  }
+}</pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Forgetting cleanup in <code>beforeDestroy</code></b> — setInterval, addEventListener, WebSocket connections, and RxJS subscriptions all leak memory if not cleaned up. This is the #1 cause of memory leaks in Vue SPAs. Always pair your creation with destruction.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> KEEP-ALIVE HOOKS — activated &amp; deactivated</div>
+<div class="card">
+  <h2>Cached Components</h2>
+  <p class="def">When a component is wrapped in <code class="kw">&lt;keep-alive&gt;</code>, it's not destroyed when toggled off — it's deactivated and cached. Two additional hooks become available.</p>
+
+  <pre><span class="kw">&lt;keep-alive&gt;</span>
+  <span class="kw">&lt;component</span> <span class="prop">:is</span>=<span class="str">"currentTab"</span> <span class="kw">/&gt;</span>
+<span class="kw">&lt;/keep-alive&gt;</span></pre>
+
+  <p class="def"><b>activated</b> — fires when the component is reactivated from cache. Useful for refreshing data. <b>deactivated</b> — fires when the component is cached (not destroyed). Clean up here instead of <code class="fn">beforeDestroy</code> if using keep-alive.</p>
+
+  <pre><span class="kw">export default</span> {
+  <span class="fn">activated</span>() {
+    <span class="kw">this</span>.<span class="fn">refreshData</span>()  <span class="cmt">// refresh when tab becomes active</span>
+  },
+  <span class="fn">deactivated</span>() {
+    <span class="fn">clearInterval</span>(<span class="kw">this</span>.timer)  <span class="cmt">// cleanup but component stays alive</span>
+  }
+}</pre>
+</div>
+
+<div class="section-tag"><span class="n">6</span> ASYNC IN LIFECYCLE HOOKS</div>
+<div class="card">
+  <h2>Async/Await in Hooks</h2>
+  <p class="def">Lifecycle hooks can be async, but Vue doesn't wait for the promise to resolve before continuing the lifecycle. This is usually fine — your data will arrive and trigger a re-render when it resolves.</p>
+
+  <pre><span class="kw">export default</span> {
+  <span class="fn">async created</span>() {
+    <span class="kw">const</span> config = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/config'</span>)
+    <span class="kw">Object</span>.<span class="fn">assign</span>(<span class="kw">this</span>, config)  <span class="cmt">// will trigger re-render when resolved</span>
+    <span class="cmt">// Vue has already mounted by the time this finishes — that's okay!</span>
+  }
+}</pre>
+
+  <div class="tip-box">
+    <div class="t-label">Pro Tip</div>
+    <div class="t-text">Use <b>mounted</b> (not created) for async data fetching in browser-rendered apps. In SSR contexts, <b>created</b> is the only hook that runs on the server — so you might fetch there for universal data, but always guard against DOM-dependent code.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> COMMON MISTAKES</div>
+<div class="card">
+  <h2>Arrow Functions in Hooks</h2>
+  <pre><span class="cmt">// ❌ BAD — arrow function doesn't bind to component instance</span>
+<span class="kw">export default</span> {
+  <span class="fn">data</span>: <span class="fn">() =></span> ({
+    count: <span class="str">0</span>
+  }),
+  <span class="fn">created</span>: <span class="fn">() =></span> {
+    console.log(<span class="kw">this</span>.count)  <span class="cmt">// undefined — 'this' is window (or undefined in strict mode)</span>
+  }
+}
+
+<span class="cmt">// ✅ GOOD — method shorthand binds to the component</span>
+<span class="kw">export default</span> {
+  <span class="fn">data</span>() {
+    <span class="kw">return</span> { count: <span class="str">0</span> }
+  },
+  <span class="fn">created</span>() {
+    console.log(<span class="kw">this</span>.count)  <span class="cmt">// 0 ✅</span>
+  }
+}</pre>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Arrow Function</div>
+      <div class="c-desc"><code>this</code> inherits from parent scope (likely window/undefined). Methods and data are inaccessible.</div>
     </div>
-  </section>
-
-  <!-- Best practices -->
-  <section>
-    <div class="section-head"><h2>Best Practices</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Avoid Arrow Functions in Hooks</p>
-        <div class="row"><span class="label">Real Life</span><p>An intercom system that's supposed to auto-connect to whichever house it's installed in — but wiring it with a walkie-talkie borrowed from a house down the street means it stays tuned to that other house's channel instead.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Arrow functions inherit <span class="code">this</span> from their surrounding scope rather than binding to the component — exactly like that borrowed walkie-talkie staying tuned to the wrong address.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Fetch in <span class="code">mounted</span>, not <span class="code">created</span></p>
-        <div class="row"><span class="label">Real Life</span><p>Scheduling a furniture delivery to an address before the house is confirmed built — with server-side rendering, there may be no real "house" (DOM) yet to receive the delivery.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Waiting until <span class="code">mounted</span> — the house is physically standing — keeps the delivery compatible whether the house was built on-site (browser) or off-site (SSR).</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Non-Blocking <span class="code">async/await</span></p>
-        <div class="row"><span class="label">Real Life</span><p>Calling the furniture store to schedule a delivery — you don't stand at the door waiting for the truck. You keep living in the house, and the delivery arrives whenever it's ready.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>An <span class="code">async</span> call inside <span class="code">mounted</span> doesn't freeze the house's rendering while the "delivery truck" (API call) is en route.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">App vs. Component Lifecycle</p>
-        <div class="row"><span class="label">Real Life</span><p>An entire apartment building (the app) going through construction and demolition, while each individual unit (a component) has its own move-in and move-out day nested inside that timeline.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A single tenant moving out doesn't demolish the building — their unit just runs its own destruction hooks while the rest of the building carries on.</p></div>
-      </div>
+    <div class="comp-card new">
+      <div class="c-title">Method Shorthand</div>
+      <div class="c-desc"><code>this</code> is the Vue component instance. All data, computed, and methods are available.</div>
     </div>
-  </section>
+  </div>
 
-  <section class="takeaway">
-    <p>Every Vue component lives the same four chapters a house does: built, moved into, renovated, and eventually torn down — the hooks are just where you're allowed to step in at each chapter.</p>
-  </section>
+  <h3>Forgetting to Clean Up</h3>
+  <pre><span class="cmt">// ❌ BAD — setInterval lives on after component is destroyed</span>
+<span class="fn">mounted</span>() { <span class="kw">this</span>.timer = <span class="fn">setInterval</span>(<span class="fn">() =></span> {}, <span class="str">1000</span>) }
+<span class="cmt">// beforeDestroy never defined — memory leak!</span>
 
-  <footer>Hover any card to connect the dots</footer>
+<span class="cmt">// ✅ GOOD — cleanup in beforeDestroy</span>
+<span class="fn">beforeDestroy</span>() { <span class="fn">clearInterval</span>(<span class="kw">this</span>.timer) }</pre>
+</div>
 
+<div class="section-tag"><span class="n">8</span> LIFECYCLE DIAGRAM</div>
+<div class="card">
+  <svg viewBox="0 0 680 520" width="100%" style="max-width:680px;display:block;margin:0 auto;">
+    <style>
+      .lg-node{fill:#12161F;stroke:#232A38;stroke-width:1.5;}
+      .lg-text{fill:#E7EAF2;font-family:'JetBrains Mono',monospace;font-size:11px;}
+      .lg-hook{fill:#4ADE94;font-family:'JetBrains Mono',monospace;font-size:10px;}
+      .lg-arrow{stroke:#232A38;stroke-width:1.5;fill:none;}
+      .lg-arrow-head{fill:#232A38;}
+      .lg-label{fill:#8A93A8;font-family:'Sora',sans-serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase;}
+      .lg-title{fill:#7DD3FC;font-family:'Sora',sans-serif;font-size:10px;font-weight:700;}
+    </style>
+    <rect x="240" y="10" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="32" text-anchor="middle" class="lg-title">new Vue() / Component</text>
+    <line x1="340" y1="44" x2="340" y2="68" class="lg-arrow"/>
+    <polygon points="335,68 345,68 340,76" class="lg-arrow-head"/>
+
+    <rect x="240" y="76" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="90" text-anchor="middle" class="lg-hook">beforeCreate</text>
+    <text x="340" y="102" text-anchor="middle" class="lg-label">Init Events &amp; Lifecycle</text>
+    <line x1="340" y1="110" x2="340" y2="134" class="lg-arrow"/>
+    <polygon points="335,134 345,134 340,142" class="lg-arrow-head"/>
+
+    <rect x="240" y="142" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="156" text-anchor="middle" class="lg-hook">created</text>
+    <text x="340" y="168" text-anchor="middle" class="lg-label">Init Reactivity, Data, Computed</text>
+    <line x1="340" y1="176" x2="340" y2="200" class="lg-arrow"/>
+    <polygon points="335,200 345,200 340,208" class="lg-arrow-head"/>
+
+    <rect x="240" y="208" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="222" text-anchor="middle" class="lg-hook">beforeMount</text>
+    <text x="340" y="234" text-anchor="middle" class="lg-label">Compile Template / Render</text>
+    <line x1="340" y1="242" x2="340" y2="266" class="lg-arrow"/>
+    <polygon points="335,266 345,266 340,274" class="lg-arrow-head"/>
+
+    <rect x="240" y="274" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="288" text-anchor="middle" class="lg-hook">mounted</text>
+    <text x="340" y="300" text-anchor="middle" class="lg-label">DOM Ready — Fetch Data Here</text>
+    <line x1="340" y1="308" x2="340" y2="332" class="lg-arrow"/>
+    <polygon points="335,332 345,332 340,340" class="lg-arrow-head"/>
+
+    <rect x="240" y="340" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="354" text-anchor="middle" class="lg-title">Data Mutation</text>
+    <text x="340" y="366" text-anchor="middle" class="lg-label">Reactive Property Changes</text>
+
+    <line x1="340" y1="340" x2="340" y2="310" class="lg-arrow"/>
+    <polygon points="335,310 345,310 340,302" class="lg-arrow-head" transform="rotate(180,340,310)"/>
+    <text x="350" y="320" class="lg-label" transform="rotate(90,350,320)">vDOM re-render</text>
+
+    <line x1="340" y1="374" x2="340" y2="398" class="lg-arrow"/>
+    <polygon points="335,398 345,398 340,406" class="lg-arrow-head"/>
+
+    <rect x="240" y="406" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="420" text-anchor="middle" class="lg-hook">beforeUpdate</text>
+    <line x1="340" y1="440" x2="340" y2="464" class="lg-arrow"/>
+    <polygon points="335,464 345,464 340,472" class="lg-arrow-head"/>
+
+    <rect x="240" y="472" width="200" height="34" rx="17" class="lg-node"/>
+    <text x="340" y="486" text-anchor="middle" class="lg-hook">updated</text>
+
+    <line x1="440" y1="489" x2="500" y2="489" class="lg-arrow"/>
+    <polygon points="500,484 500,494 508,489" class="lg-arrow-head"/>
+    <text x="475" y="482" text-anchor="middle" class="lg-label">Loop</text>
+
+    <path d="M 80 80 L 80 490 L 200 490" class="lg-arrow" stroke-dasharray="4,3"/>
+    <polygon points="200,485 200,495 208,490" class="lg-arrow-head"/>
+    <text x="140" y="96" text-anchor="middle" class="lg-title">Destruction Path</text>
+    <line x1="80" y1="100" x2="80" y2="460" class="lg-arrow"/>
+    <rect x="30" y="440" width="100" height="34" rx="17" class="lg-node"/>
+    <text x="80" y="454" text-anchor="middle" class="lg-hook">beforeDestroy</text>
+    <line x1="80" y1="474" x2="80" y2="498" class="lg-arrow"/>
+    <polygon points="75,498 85,498 80,506" class="lg-arrow-head"/>
+    <rect x="30" y="506" width="100" height="34" rx="17" class="lg-node"/>
+    <text x="80" y="520" text-anchor="middle" class="lg-hook">destroyed</text>
+    <text x="80" y="533" text-anchor="middle" class="lg-label">Teardown Complete</text>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">9</span> INTERVIEW Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What's the difference between <code>created</code> and <code>mounted</code>? When would you use each?</div>
+    <div class="a">A: <b>created</b> runs after reactive data is initialized but before DOM insertion — use for non-DOM setup (API calls in SSR, init non-DOM libraries). <b>mounted</b> runs after the DOM is rendered — use for DOM-dependent operations, third-party DOM libraries, and fetching data in client-side apps.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: Why should you avoid arrow functions in Vue lifecycle hooks?</div>
+    <div class="a">A: Arrow functions don't have their own <code>this</code> binding — they inherit it from the enclosing lexical scope. In Vue options, arrow functions would bind to the module scope (window or undefined) instead of the component instance, making <code>this.data</code>, <code>this.methods</code>, and <code>this.$el</code> inaccessible.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What happens if you use <code>async</code> on a lifecycle hook?</div>
+    <div class="a">A: It works fine — the async function returns a promise, but Vue doesn't await it before continuing the lifecycle. The hook fires, starts the async operation, and the component continues mounting. When the promise resolves, data updates trigger a re-render. Just be careful: the component may have been destroyed by the time the promise resolves.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> QUICK REVISION</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>beforeCreate</b> — nothing exists yet, no data/methods</div>
+    <div class="rev-item"><b>created</b> — data/methods ready, no DOM, init non-DOM work</div>
+    <div class="rev-item"><b>beforeMount</b> — template compiled, not yet in DOM</div>
+    <div class="rev-item"><b>mounted</b> — DOM ready, fetch data, DOM libraries</div>
+    <div class="rev-item"><b>beforeUpdate</b> — data changed, DOM not yet patched</div>
+    <div class="rev-item"><b>updated</b> — DOM re-rendered, avoid mutating data here</div>
+    <div class="rev-item"><b>beforeDestroy</b> — cleanup timers, listeners, subscriptions</div>
+    <div class="rev-item"><b>destroyed</b> — component fully torn down, all watchers removed</div>
+    <div class="rev-item"><b>activated</b> — keep-alive: component reactivated</div>
+    <div class="rev-item"><b>deactivated</b> — keep-alive: component cached</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · Vue.js — study card</div>
 </div>
 </body>
 </html>

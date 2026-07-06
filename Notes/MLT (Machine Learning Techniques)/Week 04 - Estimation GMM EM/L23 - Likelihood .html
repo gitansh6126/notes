@@ -3,439 +3,1646 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Likelihood of Gaussian Mixture Models — Lecture Notes</title>
+<title>Likelihood of Gaussian Mixture Models — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  :root{
-    --bg: #eef1f6;
+  :root {
+    --bg: #f4f5f9;
     --surface: #ffffff;
-    --ink: #191e2b;
-    --ink-soft: #545c72;
-    --ink-faint: #8890a3;
-    --line: #dcdfe8;
-    --indigo: #33418e;
-    --indigo-soft: #e9ebf7;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
     --gold: #b5872a;
-    --gold-deep: #8f6a1c;
     --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
     --rust: #a8482a;
     --rust-soft: #f7e6df;
     --teal: #2c6b5d;
     --teal-soft: #e2efec;
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
-    --c1: #b5872a; --c2: #2c6b5d; --c3: #a8482a;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
-  }
-  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
-  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
-  code, .mono{ font-family:'JetBrains Mono', monospace; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  /* ---------- HERO ---------- */
-  .hero{
-    background:
-      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
-      radial-gradient(circle at 10% 110%, rgba(168,72,42,0.16), transparent 50%),
-      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
-    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
-  .hero::after{
-    content:""; position:absolute; inset:0;
+
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===========================
+     HERO
+  =========================== */
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size:34px 34px; pointer-events:none;
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
   }
-  .hero .wrap{ position:relative; z-index:1; }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
-    color:#d9b872; margin-bottom:22px;
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
-  .hero h1{
-    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
-    font-size:clamp(32px, 5.2vw, 50px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
   }
-  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
-  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
-  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
-  .pill{
-    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
-    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
   }
 
-  /* ---------- SCAFFOLD ---------- */
-  main{ padding:54px 0 90px; }
-  section.chapter{ margin-bottom:64px; }
-  section.chapter:last-of-type{ margin-bottom:0; }
-  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
-  .chapter-num{
-    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
-    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
-  }
-  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
-  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+  /* ===========================
+     MAIN
+  =========================== */
+  main { padding: 56px 0 90px; }
 
-  /* ---------- CARDS ---------- */
-  .card{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:22px 24px;
-  }
-  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
-  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
-  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
 
-  .param-symbol{
-    font-family:'JetBrains Mono', monospace; font-size:20px; font-weight:600; margin-bottom:10px; display:block;
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
   }
-  .card.c1 .param-symbol{ color:var(--c1); }
-  .card.c2 .param-symbol{ color:var(--c2); }
-  .card.c3 .param-symbol{ color:var(--c3); }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
 
-  /* ---------- RECAP FLOW (compact) ---------- */
-  .recap-flow{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:20px 22px; display:flex; align-items:center; justify-content:center;
-    gap:14px; flex-wrap:wrap; margin-bottom:16px;
+  /* ===========================
+     RULE 1: EQUATION PANEL
+  =========================== */
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
   }
-  .recap-node{
-    font-family:'JetBrains Mono', monospace; font-size:12.5px;
-    padding:10px 16px; border-radius:9px; background:#f5f6fa; color:var(--ink-soft);
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
   }
-  .recap-node.hot{ background:var(--gold-soft); color:var(--gold-deep); font-weight:600; }
-  .recap-arrow{ color:var(--ink-faint); font-family:'JetBrains Mono', monospace; font-size:13px; }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
 
-  /* ---------- MATH CARD ---------- */
-  .math-card{
-    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:26px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
+  /* ===========================
+     RULE 2: MULTI-LINE EQUATIONS
+  =========================== */
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
   }
-  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
-  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:19px; color:#dbe0ef; white-space:nowrap; }
-  .math-card .expr .hi{ color:#d9b872; }
-  .math-card .expr .hi2{ color:#7fc4b0; }
-  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
 
-  /* ---------- CALLOUT ---------- */
-  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
-  .callout .icon{
-    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
-    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  /* ===========================
+     RULE 3 & 8: DERIVATION TIMELINE
+  =========================== */
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
   }
-  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
-  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
-  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
-  .callout.info .icon{ background:var(--indigo); color:#fff; }
-  .callout.info b{ color:var(--indigo); }
-  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
-  .callout.warn .icon{ background:var(--rust); color:#fff; }
-  .callout.warn b{ color:var(--rust); }
-  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
-  .callout.good .icon{ background:var(--teal); color:#fff; }
-  .callout.good b{ color:var(--teal); }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
 
-  /* ---------- SIGNATURE: LOG-SUM COMPARISON ---------- */
-  .compare-wrap{
-    background:linear-gradient(180deg, #1b2030, #12151f);
-    border-radius:18px; padding:30px 26px 28px; box-shadow:var(--shadow);
-    position:relative; overflow:hidden;
+  /* ===========================
+     RULE 5: SYMBOL LEGEND
+  =========================== */
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
   }
-  .compare-wrap::before{
-    content:""; position:absolute; inset:0;
-    background: radial-gradient(circle at 10% 0%, rgba(44,107,93,0.16), transparent 50%),
-                radial-gradient(circle at 95% 100%, rgba(168,72,42,0.18), transparent 50%);
-    pointer-events:none;
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
   }
-  .compare-label{
-    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase;
-    color:#8891a8; text-align:center; margin-bottom:20px; position:relative; z-index:1;
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
   }
-  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; position:relative; z-index:1; }
-  .compare-card{
-    background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:20px 18px; text-align:center;
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
   }
-  .compare-card .tag-mini{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;
-    padding:3px 9px; border-radius:100px; margin-bottom:14px; display:inline-block;
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
   }
-  .compare-card.ok .tag-mini{ background:rgba(44,107,93,0.25); color:#7fc4b0; }
-  .compare-card.blocked .tag-mini{ background:rgba(168,72,42,0.25); color:#e0967a; }
-  .compare-card .expr-line{
-    font-family:'JetBrains Mono', monospace; font-size:14px; color:#dbe0ef; margin:10px 0; min-height:24px;
-    transition: transform 0.2s ease, opacity 0.2s ease;
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
   }
-  .compare-card .expr-line.step2{ color:#9aa2ba; font-size:13px; }
-  .compare-card .result{
-    margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
-    padding:10px; border-radius:8px; opacity:0; transition:opacity 0.3s ease;
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
   }
-  .compare-card.ok .result{ background:rgba(44,107,93,0.18); color:#7fc4b0; }
-  .compare-card.blocked .result{ background:rgba(168,72,42,0.18); color:#e0967a; }
-  .compare-card .result.show{ opacity:1; }
-  .compare-card .expr-line.shake{ animation: shake 0.4s ease; }
-  @keyframes shake{
-    0%,100%{ transform:translateX(0); }
-    20%{ transform:translateX(-5px); }
-    40%{ transform:translateX(5px); }
-    60%{ transform:translateX(-4px); }
-    80%{ transform:translateX(4px); }
-  }
-  .compare-btn-row{ text-align:center; margin-top:22px; position:relative; z-index:1; }
-  .compare-btn{
-    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
-    background:#d9b872; color:#1b1607; border:none; border-radius:9px; padding:13px 22px;
-    cursor:pointer; box-shadow:0 2px 0 #8f6a1c; transition:transform 0.08s ease, filter 0.15s ease;
-  }
-  .compare-btn:hover{ filter:brightness(1.05); }
-  .compare-btn:active{ transform:translateY(2px); box-shadow:0 0 0 #8f6a1c; }
-  .compare-btn:disabled{ opacity:0.5; cursor:default; }
-  .compare-reset{
-    font-family:'JetBrains Mono', monospace; font-size:11px; color:#8891a8; background:none;
-    border:1px solid #363d54; border-radius:7px; padding:6px 10px; cursor:pointer; margin-left:10px;
-  }
-  .compare-reset:hover{ color:#c2c6d6; border-color:#4a5270; }
 
-  /* ---------- TABLE ---------- */
-  table.spec{
-    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
-    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
-  }
-  table.spec th{
-    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
-    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
-  }
-  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
-  table.spec tr:last-child td{ border-bottom:none; }
-  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
+  /* ===========================
+     RULE 9: BELOW-EQUATION COMPONENTS
+  =========================== */
 
-  /* ---------- CODE BLOCK ---------- */
-  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
-  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
-  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
-  .codeblock .c-comment{ color:#7d859c; }
-  .codeblock .c-kw{ color:#e2a25c; }
-  .codeblock .c-fn{ color:#7fb0e8; }
-  .codeblock .c-err{ color:#e0967a; }
-
-  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
-  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
-
-  @media (max-width: 720px){
-    .grid-3, .grid-2{ grid-template-columns:1fr; }
-    .compare-grid{ grid-template-columns:1fr; }
-    .hero{ padding:48px 0 40px; }
-    .chapter-head h2{ font-size:22px; }
-    .math-card .expr{ font-size:15px; }
+  /* English Explanation */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
   }
-  @media (prefers-reduced-motion: reduce){
-    .expr-line.shake{ animation:none; }
-    html{ scroll-behavior:auto; }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  /* Intuition */
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  /* Numerical Example */
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  /* Interpretation */
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  /* Common Mistakes */
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  /* Applications */
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  /* ===========================
+     RULE 12: SVG ILLUSTRATIONS
+  =========================== */
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* ===========================
+     CALLOUTS
+  =========================== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  /* ===========================
+     CODE BLOCK
+  =========================== */
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
+
+  /* ===========================
+     PARAMETER CARDS
+  =========================== */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .param-card.gold .p-sym .katex { color: var(--gold); }
+
+  /* ===========================
+     INTERACTIVE COMPARE
+  =========================== */
+  .compare-wrap {
+    background: linear-gradient(180deg, #161b2a, #10141f);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 32px 28px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .compare-wrap .cp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7d859c;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .compare-card {
+    background: #0d0f17;
+    border: 1px solid #282e44;
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-align: center;
+  }
+  .compare-card .cc-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .compare-card.ok .cc-tag { background: rgba(44,107,93,0.25); color: #7fc4b0; }
+  .compare-card.blocked .cc-tag { background: rgba(168,72,42,0.25); color: #e0967a; }
+  .compare-card .cc-line {
+    font-size: 14px;
+    margin: 10px 0;
+    min-height: 28px;
+    transition: transform 0.2s, opacity 0.2s;
+    color: #dbe0ef;
+  }
+  .compare-card .cc-line.cc-step2 { color: #8b91a5; font-size: 13px; }
+  .compare-card .cc-result {
+    margin-top: 14px;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+  .compare-card.ok .cc-result { background: rgba(44,107,93,0.18); color: #7fc4b0; }
+  .compare-card.blocked .cc-result { background: rgba(168,72,42,0.18); color: #e0967a; }
+  .compare-card .cc-result.show { opacity: 1; }
+  .compare-card .cc-line.shake { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .cp-btn-row { text-align: center; margin-top: 22px; }
+  .cp-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    background: #d9b872;
+    color: #1b1607;
+    border: none;
+    border-radius: 9px;
+    padding: 13px 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #8f6a1c;
+    transition: transform 0.08s, filter 0.15s;
+  }
+  .cp-btn:hover { filter: brightness(1.05); }
+  .cp-btn:active { transform: translateY(2px); box-shadow: none; }
+  .cp-btn:disabled { opacity: 0.5; cursor: default; }
+  .cp-reset {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #7d859c;
+    background: none;
+    border: 1px solid #282e44;
+    border-radius: 7px;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  .cp-reset:hover { color: #c2c6d6; border-color: #4a5270; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc-line.shake { animation: none; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <div class="wrap">
-    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+  <div class="container">
+    <div class="tag">Unsupervised Learning &middot; Lecture Notes</div>
     <h1>Likelihood of GMMs:<br>when the log stops <em>helping</em></h1>
-    <p class="lede">Logs are supposed to turn hard products into easy sums. For a Gaussian Mixture Model, that trick jams — the mixture puts a sum <i>inside</i> the log, and the algebra simply won't come apart.</p>
-    <div class="hero-meta">
-      <span class="pill">§1 Recap</span>
-      <span class="pill">§2 The likelihood</span>
-      <span class="pill">§3 The log-sum bottleneck</span>
-      <span class="pill">§4 Why MLE stalls</span>
-      <span class="pill">§5 What's next</span>
+    <p>Logs are supposed to turn hard products into easy sums. For a Gaussian Mixture Model, that trick jams — the mixture puts a sum <em>inside</em> the log, and the algebra simply won't come apart.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Recap</a>
+      <a href="#s2" class="nav-pill">&sect;2 Marginal Density</a>
+      <a href="#s3" class="nav-pill">&sect;3 Full Likelihood</a>
+      <a href="#s4" class="nav-pill">&sect;4 Log-Likelihood</a>
+      <a href="#s5" class="nav-pill">&sect;5 Why MLE Stalls</a>
     </div>
   </div>
 </header>
 
-<main class="wrap">
+<main>
+  <div class="container">
 
-  <!-- SECTION 1 -->
-  <section class="chapter" id="s1">
-    <div class="chapter-head">
-      <span class="chapter-num">01</span>
-      <h2>Recap — the three unknowns</h2>
-    </div>
-    <p class="chapter-intro">A GMM assumes every point comes from one of <span class="mono">K</span> Gaussians. Fitting it means estimating three families of parameters, together written <span class="mono">θ</span>.</p>
-
-    <div class="grid-3">
-      <div class="card c1">
-        <span class="param-symbol">μ₁ … μ_K</span>
-        <h3>Means</h3>
-        <p>The center of each component's cluster.</p>
+    <!-- ================================================================
+         SECTION 1: RECAP
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Recap — the three unknowns</h2>
       </div>
-      <div class="card c2">
-        <span class="param-symbol">σ₁² … σ_K²</span>
-        <h3>Variances</h3>
-        <p>How spread out each cluster is.</p>
-      </div>
-      <div class="card c3">
-        <span class="param-symbol">π₁ … π_K</span>
-        <h3>Mixing proportions</h3>
-        <p>How likely each component is to be picked. <span class="mono">Σ πₖ = 1</span>.</p>
-      </div>
-    </div>
+      <p class="sec-intro">
+        A GMM assumes every point comes from one of $K$ Gaussians.
+        Fitting it means estimating three families of parameters, together written $\boldsymbol{\theta}$.
+      </p>
 
-    <div class="recap-flow">
-      <div class="recap-node hot">select component by π</div>
-      <div class="recap-arrow">→</div>
-      <div class="recap-node">sample x from that Gaussian</div>
-      <div class="recap-arrow">→</div>
-      <div class="recap-node">z is never observed</div>
-    </div>
-  </section>
-
-  <!-- SECTION 2 -->
-  <section class="chapter" id="s2">
-    <div class="chapter-head">
-      <span class="chapter-num">02</span>
-      <h2>The likelihood function</h2>
-    </div>
-    <p class="chapter-intro">For a single point, we don't know which component generated it — so its density is a weighted average over all <span class="mono">K</span> possibilities. That's the <b>marginal density</b>.</p>
-
-    <div class="math-card">
-      <div class="math-label">marginal density of one point</div>
-      <div class="expr">p(x_i | θ) = <span class="hi">Σₖ πₖ</span> · 𝒩(x_i | μₖ, σₖ²)</div>
-      <div class="sub">weighted sum across all K components — this is where the trouble starts</div>
-    </div>
-
-    <div class="math-card">
-      <div class="math-label">full likelihood, over N i.i.d. points</div>
-      <div class="expr">L(θ) = <span class="hi2">∏ᵢ</span> [ <span class="hi">Σₖ πₖ</span> · 𝒩(x_i | μₖ, σₖ²) ]</div>
-      <div class="sub">a product over data points (from i.i.d.) — of sums over components</div>
-    </div>
-
-    <div class="callout info">
-      <div class="icon">i</div>
-      <div class="body">
-        <b>Same recipe as before</b>
-        <p>Because observations are i.i.d., the joint likelihood is still a clean product across data points — that part hasn't changed since the single-Gaussian case.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 3 -->
-  <section class="chapter" id="s3">
-    <div class="chapter-head">
-      <span class="chapter-num">03</span>
-      <h2>The log-sum bottleneck</h2>
-    </div>
-    <p class="chapter-intro">Taking the log usually turns a product of terms into a sum of logs — easy to differentiate. Try it on both cases below and watch what happens to the sum sitting inside each mixture term.</p>
-
-    <div class="compare-wrap">
-      <div class="compare-label">// try to push the log inside</div>
-      <div class="compare-grid">
-
-        <div class="compare-card ok" id="cardSingle">
-          <span class="tag-mini">K = 1 · single Gaussian</span>
-          <div class="expr-line" id="lineSingle1">log ∏ᵢ 𝒩(x_i | μ, σ²)</div>
-          <div class="expr-line step2" id="lineSingle2">&nbsp;</div>
-          <div class="result" id="resultSingle">✓ becomes Σᵢ log 𝒩(x_i|μ,σ²) — clean, solvable</div>
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <span class="p-sym">$\boldsymbol{\mu}_1 \dots \boldsymbol{\mu}_K$</span>
+          <h4>Means</h4>
+          <p>The center of each component's cluster.</p>
         </div>
-
-        <div class="compare-card blocked" id="cardMix">
-          <span class="tag-mini">K &gt; 1 · mixture</span>
-          <div class="expr-line" id="lineMix1">log ∏ᵢ [ Σₖ πₖ 𝒩(x_i|μₖ,σₖ²) ]</div>
-          <div class="expr-line step2" id="lineMix2">&nbsp;</div>
-          <div class="result" id="resultMix">✗ stuck at Σᵢ log( Σₖ … ) — log can't enter the inner sum</div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$\sigma_1^2 \dots \sigma_K^2$</span>
+          <h4>Variances</h4>
+          <p>How spread out each cluster is.</p>
         </div>
-
+        <div class="param-card" style="border-top: 3px solid var(--rust);">
+          <span class="p-sym">$\pi_1 \dots \pi_K$</span>
+          <h4>Mixing proportions</h4>
+          <p>How likely each component is to be picked. $\sum \pi_k = 1$.</p>
+        </div>
       </div>
-      <div class="compare-btn-row">
-        <button class="compare-btn" id="tryBtn" onclick="trySimplify()">▶ try to simplify both</button>
-        <button class="compare-reset" onclick="resetCompare()">reset</button>
+
+      <div class="svg-card">
+        <div class="svg-label">&sect; Recap Flow</div>
+        <svg viewBox="0 0 860 64" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20"  y="12" width="180" height="40" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="110" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#8f6a1c" font-weight="600">select component by $\pi$</text>
+          <text x="245" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+          <rect x="280" y="12" width="200" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="380" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#1d4e44" font-weight="600">sample $x$ from that Gaussian</text>
+          <text x="525" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+          <rect x="560" y="12" width="180" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="650" y="37" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#7a321e" font-weight="600">$z$ is never observed</text>
+        </svg>
+        <div class="svg-caption">The generative story: roll a $K$-sided die, sample from the chosen Gaussian, hide the label $z$.</div>
       </div>
-    </div>
+    </section>
 
-    <div class="callout warn" style="margin-top:20px;">
-      <div class="icon">!</div>
-      <div class="body">
-        <b>Why this blocks everything downstream</b>
-        <p><span class="mono">log(a + b) ≠ log a + log b</span>. The mixture's inner sum survives the log untouched, so the neat term-by-term derivative that worked for a single Gaussian no longer isolates any single <span class="mono">μₖ</span>, <span class="mono">σₖ²</span>, or <span class="mono">πₖ</span>.</p>
+    <!-- ================================================================
+         SECTION 2: MARGINAL DENSITY
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>The marginal density of one point</h2>
       </div>
-    </div>
-  </section>
+      <p class="sec-intro">
+        For a single point, we don't know which component generated it — so its density is a
+        <strong>weighted average</strong> over all $K$ possibilities. This is the
+        <strong>marginal density</strong> — the core equation of every GMM.
+      </p>
 
-  <!-- SECTION 4 -->
-  <section class="chapter" id="s4">
-    <div class="chapter-head">
-      <span class="chapter-num">04</span>
-      <h2>Why MLE stalls here</h2>
-    </div>
-    <p class="chapter-intro">Two compounding difficulties keep the GMM log-likelihood from being solved the way we solved a single Gaussian.</p>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3>No closed-form solution</h3>
-        <p>Setting <span class="mono">∂ log L / ∂θ = 0</span> no longer isolates a clean formula (like the sample mean). Each parameter's equation stays entangled with every other component through the trapped inner sum.</p>
+      <!-- EQUATION PANEL (Rule 1) -->
+      <div class="eq-panel" id="eq-marginal">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Marginal Density</div>
+        $$p(\mathbf{x}_i \mid \boldsymbol{\theta}) = \sum_{k=1}^{K} \pi_k \,
+        \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$$
+        <div class="eq-caption">The probability of one point is the weighted sum across every Gaussian component</div>
       </div>
-      <div class="card">
-        <h3>Constrained optimization</h3>
-        <p>The mixing proportions must satisfy <span class="mono">Σ πₖ = 1</span> and <span class="mono">πₖ ≥ 0</span>. Any optimizer has to respect that constraint on every step, not just find an unconstrained maximum.</p>
+
+      <!-- Rule 9a: English Explanation -->
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The probability of observing data point $\mathbf{x}_i$, given the parameters
+          $\boldsymbol{\theta}$, equals the <strong>sum</strong> over $k$ from $1$ to $K$
+          of the mixing weight $\pi_k$ <strong>multiplied by</strong> the Gaussian density of
+          $\mathbf{x}_i$ with mean $\boldsymbol{\mu}_k$ and variance $\sigma_k^2$.&rdquo;
+        </div>
       </div>
-    </div>
 
-    <div class="codeblock" style="margin-top:16px;">
-      <div class="filename">naive_mle_attempt.py — what breaks</div>
-      <pre><span class="c-comment"># works fine for a single Gaussian:</span>
-mu_hat = <span class="c-fn">sum</span>(x) / n   <span class="c-comment"># closed form, done</span>
-
-<span class="c-comment"># for a GMM, the analogous line doesn't exist —</span>
-<span class="c-comment"># d/d(mu_k) of log( sum_k pi_k * N(x_i | mu_k, sigma_k^2) )</span>
-<span class="c-comment"># still has EVERY component's mu, sigma, pi tangled together</span>
-mu_k_hat = <span class="c-err">    # &lt;- no closed form; can't isolate mu_k</span></pre>
-    </div>
-  </section>
-
-  <!-- SECTION 5 -->
-  <section class="chapter" id="s5">
-    <div class="chapter-head">
-      <span class="chapter-num">05</span>
-      <h2>Where this leaves us</h2>
-    </div>
-    <p class="chapter-intro">Generic optimizers like gradient ascent can grind through this numerically — but they ignore the fact that the model has a clean latent structure (component → sample) sitting right behind the messy formula.</p>
-
-    <div class="callout good">
-      <div class="icon">→</div>
-      <div class="body">
-        <b>Next lecture</b>
-        <p>Instead of attacking <span class="mono">log Σ</span> head-on, we'll use the structure of convex functions to build a tractable lower bound on the likelihood — the first step toward the Expectation-Maximization (EM) algorithm.</p>
+      <!-- Rule 5: Symbol Legend -->
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{x}_i$</td>
+              <td class="leg-meaning">A single data point (the $i$-th observation)</td>
+              <td class="leg-example">$\text{Height} = 172\text{ cm}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\theta}$</td>
+              <td class="leg-meaning">All model parameters</td>
+              <td class="leg-example">$\{\boldsymbol{\mu}_k, \sigma_k^2, \pi_k\}_{k=1}^K$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\displaystyle\sum_{k=1}^{K}$</td>
+              <td class="leg-meaning">Sum over all $K$ components (add, don't multiply)</td>
+              <td class="leg-example">$K = 3 \implies 3$ weighted terms added</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\pi_k$</td>
+              <td class="leg-meaning">Mixing coefficient — probability of picking component $k$</td>
+              <td class="leg-example">$\pi_1 = 0.5$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}, \sigma^2)$</td>
+              <td class="leg-meaning">Gaussian (normal) density — bell curve height at point $\mathbf{x}$</td>
+              <td class="leg-example">$\mathcal{N}(172 \mid 170, 25) \approx 0.079$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\mu}_k$</td>
+              <td class="leg-meaning">Mean of the $k$-th component — its center</td>
+              <td class="leg-example">$\boldsymbol{\mu}_1 = 170$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sigma_k^2$</td>
+              <td class="leg-meaning">Variance of the $k$-th component — its spread</td>
+              <td class="leg-example">$\sigma_1^2 = 25$</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-    </div>
-  </section>
 
+      <!-- Rule 9b: Intuition -->
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine you hear a sound from behind a wall. There are <strong>three speakers</strong>
+          ($K = 3$). Each speaker plays a different note, but you can't see which speaker is active.
+          The sound you hear is a <span class="highlight">weighted blend</span> of all three
+          — some speakers are louder (higher $\pi$) than others.
+          <br><br>
+          The marginal density does exactly that: instead of picking one Gaussian, it considers
+          <strong>every possible component</strong>, weights each by its probability $\pi_k$,
+          and <strong>adds</strong> them together. The result is a single number saying how
+          likely that sound (data point) is under the overall model.
+        </div>
+      </div>
+
+      <!-- Rule 8: Step Timeline -->
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step Construction</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Pick a component <strong>$k$</strong> with probability <strong>$\pi_k$</strong></div>
+          <div class="dt-formula">$k \sim \text{Categorical}(\boldsymbol{\pi})$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Compute the Gaussian density for that component at point <strong>$\mathbf{x}_i$</strong></div>
+          <div class="dt-formula">$\mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Multiply by the mixing weight <strong>$\pi_k$</strong></div>
+          <div class="dt-formula">$\pi_k \cdot \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Repeat for <strong>every</strong> component $k = 1, 2, \dots, K$</div>
+          <div class="dt-formula">$K$ separate weighted densities</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">5</div>
+          <div class="dt-text"><strong>Add</strong> all $K$ weighted densities together</div>
+          <div class="dt-formula">$\displaystyle p(\mathbf{x}_i \mid \boldsymbol{\theta}) = \sum_{k=1}^K \pi_k \, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$</div>
+        </div>
+      </div>
+
+      <!-- Rule 12: SVG Illustration -->
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual Flow: Weighted Sum of Gaussians</div>
+        <svg viewBox="0 0 860 360" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+
+          <!-- Component boxes (left) -->
+          <rect x="30" y="15" width="160" height="60" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="110" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Component 1</text>
+          <text x="110" y="58" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#b5872a">$\pi_1 = 0.5$</text>
+
+          <rect x="30" y="95" width="160" height="60" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="110" y="120" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Component 2</text>
+          <text x="110" y="138" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">$\pi_2 = 0.3$</text>
+
+          <rect x="30" y="175" width="160" height="60" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="110" y="200" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">Component 3</text>
+          <text x="110" y="218" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">$\pi_3 = 0.2$</text>
+
+          <!-- Arrows to Gaussians -->
+          <line x1="190" y1="45" x2="290" y2="45" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="190" y1="125" x2="290" y2="125" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="190" y1="205" x2="290" y2="205" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <!-- Gaussians (center) -->
+          <path d="M300,85 C330,85 345,15 380,15 C415,15 430,85 460,85" fill="none" stroke="#b5872a" stroke-width="2" opacity="0.8"/>
+          <text x="380" y="100" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">$\mathcal{N}(x \mid \mu_1, \sigma_1^2)$</text>
+
+          <path d="M300,155 C350,155 360,100 380,100 C400,100 410,155 460,155" fill="none" stroke="#2c6b5d" stroke-width="2" opacity="0.8"/>
+          <text x="380" y="168" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">$\mathcal{N}(x \mid \mu_2, \sigma_2^2)$</text>
+
+          <path d="M300,230 C340,230 350,185 380,185 C410,185 420,230 460,230" fill="none" stroke="#a8482a" stroke-width="2" opacity="0.8"/>
+          <text x="380" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">$\mathcal{N}(x \mid \mu_3, \sigma_3^2)$</text>
+
+          <!-- Arrows from Gaussians to weighting boxes -->
+          <line x1="460" y1="45" x2="540" y2="45" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="460" y1="125" x2="540" y2="125" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="460" y1="205" x2="540" y2="205" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <!-- Weighted result boxes -->
+          <rect x="550" y="25" width="130" height="40" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+          <text x="615" y="43" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8f6a1c">$\pi_1 \cdot \mathcal{N}_1$</text>
+          <text x="615" y="58" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">$= 0.5 \cdot 0.031$</text>
+
+          <rect x="550" y="105" width="130" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+          <text x="615" y="123" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1d4e44">$\pi_2 \cdot \mathcal{N}_2$</text>
+          <text x="615" y="138" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">$= 0.3 \cdot 0.052$</text>
+
+          <rect x="550" y="185" width="130" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+          <text x="615" y="203" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7a321e">$\pi_3 \cdot \mathcal{N}_3$</text>
+          <text x="615" y="218" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">$= 0.2 \cdot 0.017$</text>
+
+          <!-- Summation arrows -->
+          <line x1="680" y1="45" x2="740" y2="155" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="680" y1="125" x2="740" y2="155" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+          <line x1="680" y1="205" x2="740" y2="155" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <!-- Final result -->
+          <rect x="740" y="120" width="120" height="70" rx="12" fill="#161b2a" stroke="#b5872a" stroke-width="2"/>
+          <text x="800" y="148" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#d9b872">$p(\mathbf{x} \mid \theta)$</text>
+          <text x="800" y="168" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#7d859c">$= \sum \pi_k \mathcal{N}_k$</text>
+          <text x="800" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#d9b872" font-weight="600">$= 0.0345$</text>
+        </svg>
+        <div class="svg-caption">Each component contributes a weighted density. The final result is the sum of all three contributions.</div>
+      </div>
+
+      <!-- Rule 9c: Numerical Example -->
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example ($K = 2$, 1-dimensional)</div>
+        <div class="num-setup"><strong>Setup:</strong> A GMM with two components. Given point $\mathbf{x} = 172$, compute its marginal density.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>$k$</th><th>$\pi_k$</th><th>$\mu_k$</th><th>$\sigma_k^2$</th><th>$\mathcal{N}(172 \mid \mu_k, \sigma_k^2)$</th><th>$\pi_k \cdot \mathcal{N}_k$</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;color:var(--gold)">1</td>
+              <td>$0.6$</td>
+              <td>$170$</td>
+              <td>$25$</td>
+              <td style="font-size:13px;">$\displaystyle\frac{1}{\sqrt{2\pi \cdot 25}} \exp\!\left(-\frac{(172-170)^2}{2 \cdot 25}\right) = 0.0798 \cdot 0.9231 = \mathbf{0.0737}$</td>
+              <td style="font-weight:600;color:var(--gold)">$0.6 \cdot 0.0737 = \mathbf{0.0442}$</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:var(--teal)">2</td>
+              <td>$0.4$</td>
+              <td>$165$</td>
+              <td>$36$</td>
+              <td style="font-size:13px;">$\displaystyle\frac{1}{\sqrt{2\pi \cdot 36}} \exp\!\left(-\frac{(172-165)^2}{2 \cdot 36}\right) = 0.0665 \cdot 0.5061 = \mathbf{0.0337}$</td>
+              <td style="font-weight:600;color:var(--teal)">$0.4 \cdot 0.0337 = \mathbf{0.0135}$</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle p(\mathbf{x} = 172 \mid \boldsymbol{\theta}) = 0.0442 + 0.0135 = \mathbf{0.0577}$</div>
+      </div>
+
+      <!-- Rule 9d: Interpretation -->
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this value means</strong>
+          <p>
+            A density of <strong>0.0577</strong> means that near $\mathbf{x} = 172$, the model
+            expects about 5.8% of the probability mass per unit of $\mathbf{x}$. If the density
+            were <strong>larger</strong> (say $0.15$), the point would be more plausible under
+            this model. If <strong>smaller</strong> (say $0.001$), it would be in a low-density
+            region — possibly between clusters or far from all means.
+            <br><br>
+            <strong>Changing each variable:</strong> Increasing $\pi_1$ to $0.8$ raises the final
+            density to $0.0737 \cdot 0.8 + 0.0135 = \mathbf{0.0725}$. Moving $\mu_1$ from $170$
+            to $172$ raises the first component's density to its maximum $(0.0798)$, giving
+            $0.0798 \cdot 0.6 + 0.0135 = \mathbf{0.0614}$.
+          </p>
+        </div>
+      </div>
+
+      <!-- Rule 9e: Common Mistakes -->
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Multiplying instead of adding:</strong> A GMM is a <em>sum</em> of
+            weighted Gaussians, not a product. $p(\mathbf{x}) = \sum \pi_k \mathcal{N}_k(\mathbf{x})$,
+            not $\prod \pi_k \mathcal{N}_k(\mathbf{x})$.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting that the weights sum to 1:</strong> $\sum \pi_k = 1$.
+            If you use $\pi_1 = 0.7$ and $\pi_2 = 0.7$, the density is no longer a valid
+            probability distribution.
+          </p>
+          <p>
+            &#x2716; <strong>Confusing marginal with conditional:</strong> $p(\mathbf{x}_i \mid \boldsymbol{\theta})$
+            averages over $z$ (the latent component). It is NOT $p(\mathbf{x}_i \mid z=k, \boldsymbol{\theta})$
+            — that would be just a single Gaussian.
+          </p>
+        </div>
+      </div>
+
+      <!-- Applications -->
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Real-World Applications</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Anomaly Detection</strong>
+            Points with very low $p(\mathbf{x} \mid \boldsymbol{\theta})$ are anomalies — they don't fit any component well.
+          </div>
+          <div class="ap-item">
+            <strong>Speech Recognition</strong>
+            Each phoneme is a Gaussian component; the marginal density scores how likely an audio frame is.
+          </div>
+          <div class="ap-item">
+            <strong>Image Segmentation</strong>
+            Each color cluster is a Gaussian; $p(\mathbf{x})$ tells how well a pixel belongs to the overall model.
+          </div>
+          <div class="ap-item">
+            <strong>Customer Segmentation</strong>
+            Each customer segment has its own spending distribution; $p(\mathbf{x})$ gives the likelihood of a purchase pattern.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: FULL LIKELIHOOD
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>The full likelihood over all data</h2>
+      </div>
+      <p class="sec-intro">
+        Since observations are <strong>independent and identically distributed (i.i.d.)</strong>,
+        the joint likelihood of the entire dataset is the <strong>product</strong> of every
+        point's marginal density.
+      </p>
+
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel" id="eq-likelihood">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Full Likelihood</div>
+        $$\mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^{N} \left[ \sum_{k=1}^{K}
+        \pi_k \, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right]$$
+        <div class="eq-caption">A product over $N$ data points — each term is itself a sum over $K$ components</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The likelihood of the parameters $\boldsymbol{\theta}$ given all data is the
+          <strong>product</strong> over $i$ from $1$ to $N$ of [the <strong>sum</strong> over
+          $k$ from $1$ to $K$ of $\pi_k$ times the Gaussian density of $\mathbf{x}_i$ with
+          mean $\boldsymbol{\mu}_k$ and variance $\sigma_k^2$].&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; What's New vs. Equation (1)</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\displaystyle\prod_{i=1}^{N}$</td>
+              <td class="leg-meaning">Product over all $N$ data points</td>
+              <td class="leg-example">$N = 100 \implies$ multiply 100 terms</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathcal{L}(\boldsymbol{\theta})$</td>
+              <td class="leg-meaning">Likelihood function — probability of seeing ALL the data</td>
+              <td class="leg-example">$p(\mathbf{x}_1, \mathbf{x}_2, \dots, \mathbf{x}_N \mid \boldsymbol{\theta})$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          If you flip a coin twice, the probability of seeing <strong>[Heads, Tails]</strong> is
+          $P(\text{Heads}) \times P(\text{Tails})$. The likelihood works the same way: because
+          each data point is independent of the others, the overall probability of seeing
+          <strong>all $N$ points</strong> together is simply the
+          <span class="highlight">product of their individual probabilities</span>.
+          <br><br>
+          The catch is that each individual probability is <em>itself</em> a sum over $K$
+          components — so instead of a product of simple terms, we get a
+          <strong>product of sums</strong>. This nested structure is what makes GMM
+          optimization hard.
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step Construction</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Compute the marginal density for <strong>each</strong> data point</div>
+          <div class="dt-formula">$p(\mathbf{x}_i \mid \boldsymbol{\theta}) = \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Repeat for $i = 1, 2, \dots, N$ — giving $N$ separate values</div>
+          <div class="dt-formula">$p(\mathbf{x}_1), p(\mathbf{x}_2), \dots, p(\mathbf{x}_N)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text"><strong>Multiply</strong> all $N$ values together (i.i.d. assumption)</div>
+          <div class="dt-formula">$\displaystyle \mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^N p(\mathbf{x}_i \mid \boldsymbol{\theta})$</div>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example ($N = 3$ points, $K = 2$)</div>
+        <div class="num-setup">
+          <strong>Setup:</strong> Three data points: $\mathbf{x} = [170, 175, 165]$.
+          Same GMM as before ($\boldsymbol{\pi} = [0.6, 0.4]$, $\boldsymbol{\mu} = [170, 165]$,
+          $\boldsymbol{\sigma}^2 = [25, 36]$).
+        </div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Point $\mathbf{x}_i$</th><th>$p(\mathbf{x}_i \mid \boldsymbol{\theta})$</th><th>Calculation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">$170$</td>
+              <td>$0.0798$</td>
+              <td style="font-size:13px;">$0.6 \cdot 0.0798 + 0.4 \cdot 0.0337 = 0.0479 + 0.0135$</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">$175$</td>
+              <td>$0.0528$</td>
+              <td style="font-size:13px;">$0.6 \cdot 0.0514 + 0.4 \cdot 0.0236 = 0.0308 + 0.0118$</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">$165$</td>
+              <td>$0.0469$</td>
+              <td style="font-size:13px;">$0.6 \cdot 0.0337 + 0.4 \cdot 0.0665 = 0.0202 + 0.0266$</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \mathcal{L}(\boldsymbol{\theta}) = 0.0798 \times 0.0528 \times 0.0469 = \mathbf{0.000198}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What the likelihood value means</strong>
+          <p>
+            A likelihood of <strong>0.000198</strong> is very small — but that's expected when
+            multiplying many densities (each can be $< 1$). What matters is
+            <strong>relative</strong> comparison: a different set of parameters
+            $\boldsymbol{\theta}'$ that gives $\mathcal{L}(\boldsymbol{\theta}') = 0.0005$
+            is a <strong>2.5&times; better</strong> fit. In practice we work with
+            log-likelihood (next section) to avoid numerical underflow from multiplying
+            many small numbers.
+          </p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Adding instead of multiplying:</strong> For i.i.d. data, the joint
+            probability is the <em>product</em> of individual probabilities, not the sum.
+            $\mathcal{L}(\boldsymbol{\theta}) = \prod p(\mathbf{x}_i \mid \boldsymbol{\theta})$,
+            not $\sum p(\mathbf{x}_i \mid \boldsymbol{\theta})$.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting that each term is a sum:</strong> The product is over
+            $N$ terms, and each term is already a sum over $K$ components. This is
+            <strong>not</strong> the same as $\prod_i \sum_k = \sum_k \prod_i$ — you can't
+            swap the order.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: LOG-LIKELIHOOD & BOTTLENECK
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>The log-likelihood bottleneck</h2>
+      </div>
+      <p class="sec-intro">
+        Taking the log usually turns a product into a sum — easy to differentiate.
+        But for GMMs, the sum <em>inside</em> each term survives the log, blocking the
+        simplification.
+      </p>
+
+      <!-- EQUATION PANEL with multi-line (Rule 2) -->
+      <div class="eq-panel multiline" id="eq-loglik">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Log-Likelihood</div>
+        $$\log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N}
+        \log\!\left[ \sum_{k=1}^{K} \pi_k \,
+        \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right]$$
+        <div class="eq-caption">The log moves past the product but <strong>cannot enter</strong> the inner sum</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The log-likelihood of $\boldsymbol{\theta}$ is the <strong>sum</strong> over
+          $i$ from $1$ to $N$ of the <strong>log</strong> of [the <strong>sum</strong> over
+          $k$ from $1$ to $K$ of $\pi_k$ times the Gaussian density of $\mathbf{x}_i$ with
+          mean $\boldsymbol{\mu}_k$ and variance $\sigma_k^2$].&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Key Difference from Single Gaussian</div>
+        <table>
+          <thead>
+            <tr><th>Case</th><th>Log-likelihood form</th><th>Can we isolate parameters?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">Single Gaussian $(K=1)$</td>
+              <td class="leg-sym">$\displaystyle\sum_i \log \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}, \sigma^2)$</td>
+              <td style="color:var(--teal);font-weight:600;">&#x2714; Yes</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">GMM $(K > 1)$</td>
+              <td class="leg-sym">$\displaystyle\sum_i \log\!\left( \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right)$</td>
+              <td style="color:var(--rust);font-weight:600;">&#x2718; No</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The log has a superpower: <span class="highlight">$\log(a \times b) = \log a + \log b$</span>.
+          This turns products into sums, which are easy to take derivatives of.
+          <br><br>
+          But the log <strong>does not</strong> help with sums:
+          <span class="highlight">$\log(a + b) \neq \log a + \log b$</span>.
+          Inside the GMM log-likelihood, the sum over components is
+          <strong>trapped</strong> inside the log, making it impossible to separate one
+          component's parameters from another's by taking derivatives.
+        </div>
+      </div>
+
+      <!-- Rule 3: Vertical derivation -->
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step Derivation: Likelihood &rarr; Log-Likelihood</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with the likelihood (product over points)</div>
+          <div class="dt-formula">$\displaystyle \mathcal{L}(\boldsymbol{\theta}) = \prod_{i=1}^N \bigl[ \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr]$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);"> Take $\log$ of both sides</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Apply the log rule: $\log(\prod a_i) = \sum \log a_i$</div>
+          <div class="dt-formula">$\displaystyle \log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^N \log\!\bigl[ \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr]$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);"> We <strong>want</strong> to push $\log$ inside the sum ...</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">But $\log(a + b) \neq \log a + \log b$ — blocked!</div>
+          <div class="dt-formula" style="color:var(--rust);">$\displaystyle \log\!\bigl( \sum_k \pi_k \mathcal{N}_k \bigr) \neq \sum_k \log(\pi_k \mathcal{N}_k)$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);"> The inner sum <strong>survives</strong> the log</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Result: a log-likelihood with a trapped inner sum</div>
+          <div class="dt-formula" style="color:var(--rust);font-weight:600;">$\displaystyle \log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^N \log\!\bigl( \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr) \longleftarrow \text{bottleneck}$</div>
+        </div>
+      </div>
+
+      <!-- Rule 12: SVG for the bottleneck -->
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: The Log-Sum Bottleneck</div>
+        <svg viewBox="0 0 860 180" xmlns="http://www.w3.org/2000/svg">
+          <!-- Single Gaussian path (left) -->
+          <rect x="20" y="10" width="200" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="120" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Single Gaussian</text>
+
+          <line x1="220" y1="30" x2="300" y2="30" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <rect x="310" y="10" width="160" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="390" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44">$\log \prod_i \mathcal{N}_i$</text>
+
+          <line x1="470" y1="30" x2="550" y2="30" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <rect x="560" y="10" width="180" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="650" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44">$\sum_i \log \mathcal{N}_i$</text>
+
+          <text x="650" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">&#x2714; Clean, solvable</text>
+
+          <!-- GMM path (right) -->
+          <rect x="20" y="100" width="200" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="120" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">GMM (K &gt; 1)</text>
+
+          <line x1="220" y1="120" x2="300" y2="120" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <rect x="310" y="100" width="200" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="410" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e">$\log \prod_i [\sum_k \pi_k \mathcal{N}_k]$</text>
+
+          <line x1="510" y1="120" x2="590" y2="120" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <rect x="600" y="100" width="200" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="700" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e">$\sum_i \log [\sum_k \pi_k \mathcal{N}_k]$</text>
+
+          <text x="700" y="150" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">&#x2718; Log can't enter the sum</text>
+
+          <!-- Blocking X -->
+          <line x1="620" y1="100" x2="700" y2="70" stroke="#a8482a" stroke-width="3" opacity="0.4"/>
+          <line x1="700" y1="100" x2="620" y2="70" stroke="#a8482a" stroke-width="3" opacity="0.4"/>
+        </svg>
+        <div class="svg-caption">The log glides through the product but slams into the inner sum — this is the core difficulty of GMM optimization.</div>
+      </div>
+
+      <!-- Interactive Demo -->
+      <div class="compare-wrap">
+        <div class="cp-label">&#9654; Interactive: Try to push the log inside</div>
+        <div class="compare-grid">
+
+          <div class="compare-card ok" id="cardSingle">
+            <span class="cc-tag">$K = 1$ &middot; single Gaussian</span>
+            <div class="cc-line" id="lineSingle1">$\displaystyle \log \prod_i \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}, \sigma^2)$</div>
+            <div class="cc-line cc-step2" id="lineSingle2">&nbsp;</div>
+            <div class="cc-result" id="resultSingle">&#x2714; becomes $\displaystyle \sum_i \log \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}, \sigma^2)$ &mdash; clean, solvable</div>
+          </div>
+
+          <div class="compare-card blocked" id="cardMix">
+            <span class="cc-tag">$K > 1$ &middot; mixture</span>
+            <div class="cc-line" id="lineMix1">$\displaystyle \log \prod_i \bigl[ \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr]$</div>
+            <div class="cc-line cc-step2" id="lineMix2">&nbsp;</div>
+            <div class="cc-result" id="resultMix">&#x2718; stuck at $\displaystyle \sum_i \log\!\bigl( \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr)$ &mdash; log can't enter</div>
+          </div>
+
+        </div>
+        <div class="cp-btn-row">
+          <button class="cp-btn" id="tryBtn" onclick="trySimplify()">&#9654; try to simplify both</button>
+          <button class="cp-reset" onclick="resetCompare()">reset</button>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="co-icon">!</div>
+        <div class="co-body">
+          <strong>Why this blocks everything downstream</strong>
+          <p>
+            $\log(a + b) \neq \log a + \log b$. The mixture's inner sum survives the log
+            untouched, so the neat term-by-term derivative that worked for a single Gaussian
+            no longer isolates any single $\boldsymbol{\mu}_k$, $\sigma_k^2$, or $\pi_k$.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: WHY MLE STALLS
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Why MLE stalls here</h2>
+      </div>
+      <p class="sec-intro">
+        Two compounding difficulties keep the GMM log-likelihood from being solved the way
+        we solved a single Gaussian.
+      </p>
+
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--rust);">
+          <h4>No closed-form solution</h4>
+          <p>
+            Setting $\partial \log \mathcal{L} / \partial \boldsymbol{\theta} = 0$ no longer
+            isolates a clean formula (like the sample mean). Each parameter's equation stays
+            entangled with every other component through the trapped inner sum.
+          </p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <h4>Constrained optimization</h4>
+          <p>
+            The mixing proportions must satisfy $\sum \pi_k = 1$ and $\pi_k \ge 0$.
+            Any optimizer has to respect that constraint on every step, not just find an
+            unconstrained maximum.
+          </p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="cb-label">naive_mle_attempt.py &mdash; what breaks</div>
+        <pre><span class="cm"># works fine for a single Gaussian:</span>
+mu_hat = <span class="fn">sum</span>(x) / n   <span class="cm"># closed form, done</span>
+
+<span class="cm"># for a GMM, the analogous line doesn't exist —</span>
+<span class="cm"># d/d(mu_k) of log( sum_k pi_k * N(x_i | mu_k, sigma_k^2) )</span>
+<span class="cm"># still has EVERY component's mu, sigma, pi tangled together</span>
+mu_k_hat = <span class="er">    <span class="cm"># &lt;- no closed form; can't isolate mu_k</span></span></pre>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Next lecture</strong>
+          <p>
+            Instead of attacking $\log \sum$ head-on, we'll use convexity (Jensen's inequality)
+            to build a tractable <strong>lower bound</strong> on the log-likelihood — the
+            first step toward the <strong>Expectation-Maximization (EM)</strong> algorithm.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
 </main>
 
 <footer>
-  <p>LIKELIHOOD OF GAUSSIAN MIXTURE MODELS · LECTURE NOTES</p>
+  <p>LIKELIHOOD OF GAUSSIAN MIXTURE MODELS &middot; PREMIUM LECTURE NOTES</p>
 </footer>
 
 <script>
-  function trySimplify(){
+  function trySimplify() {
     const btn = document.getElementById('tryBtn');
     btn.disabled = true;
 
-    // single gaussian: log distributes cleanly
     const l1 = document.getElementById('lineSingle2');
-    l1.textContent = '= Σᵢ log 𝒩(x_i | μ, σ²)';
+    l1.innerHTML = '$\\displaystyle \\sum_i \\log \\mathcal{N}(\\mathbf{x}_i \\mid \\boldsymbol{\\mu}, \\sigma^2)$';
+    if (window.renderMathInElement) renderMathInElement(l1, {delimiters: [{left: '$', right: '$', display: false}], throwOnError: false});
     document.getElementById('resultSingle').classList.add('show');
 
-    // mixture: log tries to enter, gets stuck, shakes
     const l2 = document.getElementById('lineMix2');
     setTimeout(() => {
-      l2.textContent = '= Σᵢ log( Σₖ πₖ 𝒩(x_i|μₖ,σₖ²) )';
+      l2.innerHTML = '$\\displaystyle \\sum_i \\log\\!\\bigl( \\sum_k \\pi_k \\mathcal{N}(\\mathbf{x}_i \\mid \\boldsymbol{\\mu}_k, \\sigma_k^2) \\bigr)$';
+      if (window.renderMathInElement) renderMathInElement(l2, {delimiters: [{left: '$', right: '$', display: false}], throwOnError: false});
       l2.classList.add('shake');
       setTimeout(() => {
         document.getElementById('resultMix').classList.add('show');
@@ -445,9 +1652,9 @@ mu_k_hat = <span class="c-err">    # &lt;- no closed form; can't isolate mu_k</s
     setTimeout(() => { btn.disabled = false; }, 600);
   }
 
-  function resetCompare(){
-    document.getElementById('lineSingle2').textContent = '\u00A0';
-    document.getElementById('lineMix2').textContent = '\u00A0';
+  function resetCompare() {
+    document.getElementById('lineSingle2').innerHTML = '&nbsp;';
+    document.getElementById('lineMix2').innerHTML = '&nbsp;';
     document.getElementById('lineMix2').classList.remove('shake');
     document.getElementById('resultSingle').classList.remove('show');
     document.getElementById('resultMix').classList.remove('show');

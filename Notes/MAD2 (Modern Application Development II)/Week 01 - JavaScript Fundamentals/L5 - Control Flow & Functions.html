@@ -1,247 +1,363 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>JavaScript Fundamentals — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L5 – Control Flow &amp; Functions — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
 body{
-  margin:0; background:var(--board); color:var(--chalk);
-  font-family:'Space Mono', monospace; position:relative; overflow-x:hidden;
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:40px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.4rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:600px; margin: 0 auto; }
-
-.unit-banner{
-  display:flex; align-items:center; gap:12px; justify-content:center;
-  font-family:'Caveat', cursive; font-size: 1.25rem; color: var(--chalk-green);
-  background: rgba(159,208,167,0.08); border: 1px dashed var(--chalk-green);
-  border-radius: 6px; padding: 10px 18px; margin-bottom: 50px;
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
-.unit-banner .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:60px; }
-
-/* Code snippet chips */
-.code{
-  display:inline-block; font-family:'Space Mono', monospace; font-size: 12px;
-  background: rgba(0,0,0,0.25); color: var(--chalk-green);
-  padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line);
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
 }
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-/* Cards */
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Versus panel (let vs const, null vs undefined, == vs ===) */
-.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
-@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
-.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
-.duo .panel.a{ --accent: var(--chalk-blue); }
-.duo .panel.b{ --accent: var(--chalk-pink); }
-.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.15rem; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
-.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
-.duo .panel p strong{ color: var(--chalk); }
-
-/* Loop track illustration */
-.track-box{ background: var(--board-alt); border-radius: 8px; padding: 26px; }
-.track-box svg{ max-width:100%; height:auto; display:block; margin:0 auto; }
-.track-box .caption{ text-align:center; font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:10px; }
-
-/* Function style row */
-.func-list{ display:flex; flex-direction:column; gap:14px; }
-.func-row{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius:6px; padding: 16px 20px; display:grid; grid-template-columns: 200px 1fr; gap:18px; align-items:center; }
-@media (max-width:640px){ .func-row{ grid-template-columns:1fr; } }
-.func-row .fname{ font-family:'Kalam', cursive; font-size:1.1rem; color: var(--chalk-yellow); }
-.func-row .fname .code{ display:block; margin-top:6px; }
-.func-row .fdesc{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; }
-.func-row .fdesc .a{ color: var(--chalk-pink); font-style:italic; display:block; margin-top:6px; }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.55rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 05 · Companion Notes</div>
-    <h1>JavaScript Fundamentals<br>Control Flow &amp; Functions</h1>
-    <p class="subhead">— the small decisions in every JS file, made obvious —</p>
-  </header>
-
-  <div class="unit-banner"><span class="tag">New Unit</span> Switching tracks from ML theory to Web Development — same chalkboard, new subject.</div>
-
-  <!-- Data Types & Variables -->
-  <section>
-    <div class="section-head"><h2>Data Types &amp; Variables</h2><div class="rule"></div></div>
-
-    <div class="grid" style="margin-bottom:20px;">
-      <div class="card">
-        <p class="term">Strings &amp; UTF-16</p>
-        <p class="def">JS strings are UTF-16 — some characters (like emoji) take up two "code units," not one.</p>
-        <div class="row"><span class="label">Real Life</span><p>Mailing a letter where most stamps cover one page, but a few thick, glossy pages secretly need two stamps to send.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>If you count "stamps" instead of "pages," a letter with a few glossy inserts looks longer than it visually is — exactly how <span class="code">"😀".length</span> returns 2, not 1.</p></div>
-      </div>
-    </div>
-
-    <div class="duo" style="margin-bottom:20px;">
-      <div class="panel a">
-        <h4><span class="code">undefined</span> vs <span class="code">null</span></h4>
-        <p><strong>undefined:</strong> a survey question the person simply skipped — never answered.</p>
-        <p><strong>null:</strong> a survey question they answered with "Prefer not to say" — deliberately marked as empty.</p>
-      </div>
-      <div class="panel b">
-        <h4><span class="code">let</span> vs <span class="code">const</span></h4>
-        <p><strong>let:</strong> a whiteboard — write a number, erase it, write a new one. Perfect for a loop counter.</p>
-        <p><strong>const:</strong> a labeled moving box. The label ("myBox") never changes hands — but you can still open the box and rearrange what's inside if it's an object.</p>
-      </div>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <p class="term"><span class="code">===</span> Strict Equality</p>
-        <p class="def">Compares both value and type — no silent conversions.</p>
-        <div class="row"><span class="label">Real Life</span><p>A strict border officer who checks that your passport number <em>and</em> document type both match exactly — a driver's license with the right number doesn't count.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Loose equality (<span class="code">==</span>) is the lenient officer who just glances at the number and waves you through, even if the document type doesn't match — how <span class="code">"5" == 5</span> sneaks past but <span class="code">"5" === 5</span> doesn't.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Control Flow -->
-  <section>
-    <div class="section-head"><h2>Control Flow</h2><div class="rule"></div></div>
-
-    <div class="grid" style="margin-bottom:22px;">
-      <div class="card">
-        <p class="term">if / else</p>
-        <div class="row"><span class="label">Real Life</span><p>A fork in a hiking trail with a sign: "If raining, take the covered path. Otherwise, take the scenic route."</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>One condition, one branch taken — exactly how a hiker (or the program) commits to a single path based on a check.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">switch</p>
-        <div class="row"><span class="label">Real Life</span><p>A restaurant's fixed combo menu: "Combo 1," "Combo 2," "Combo 3" — pick a number, get a whole pre-set meal.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Cleaner than a long chain of "if you want this, or this, or this" — one clear menu of named cases instead of nested forks.</p></div>
-      </div>
-    </div>
-
-    <div class="track-box">
-      <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
-        <!-- mailbox row analogy for for/for-in/for-of -->
-        <g font-family="Space Mono, monospace" font-size="10" fill="#c9d1c3">
-          <rect x="30" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <rect x="110" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <rect x="190" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <rect x="270" y="30" width="60" height="45" rx="3" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <text x="60" y="53" text-anchor="middle" fill="#e8c468">0</text>
-          <text x="140" y="53" text-anchor="middle" fill="#e8c468">1</text>
-          <text x="220" y="53" text-anchor="middle" fill="#e8c468">2</text>
-          <text x="300" y="53" text-anchor="middle" fill="#e8c468">3</text>
-          <text x="60" y="68" text-anchor="middle" fill="#f4f1e6">"pen"</text>
-          <text x="140" y="68" text-anchor="middle" fill="#f4f1e6">"cup"</text>
-          <text x="220" y="68" text-anchor="middle" fill="#f4f1e6">"map"</text>
-          <text x="300" y="68" text-anchor="middle" fill="#f4f1e6">"key"</text>
-          <text x="60" y="100" text-anchor="middle" fill="#8fb8c9">for-in →</text>
-          <text x="60" y="115" text-anchor="middle" fill="#8fb8c9">reads box #</text>
-          <text x="300" y="100" text-anchor="middle" fill="#d98fa0">← for-of</text>
-          <text x="300" y="115" text-anchor="middle" fill="#d98fa0">reads contents</text>
-        </g>
-      </svg>
-      <p class="caption"><span class="code">for...in</span> reads the mailbox numbers (indices/keys). <span class="code">for...of</span> opens each mailbox and reads what's inside (the values).</p>
-    </div>
-
-    <div class="grid" style="margin-top:20px;">
-      <div class="card">
-        <p class="term">for (classic)</p>
-        <div class="row"><span class="label">Real Life</span><p>An assembly line moving down a numbered row of stations, one at a time, until the last one.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>You control exactly where to start, when to stop, and how far to step — just like setting the loop's start, condition, and increment.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Functions -->
-  <section>
-    <div class="section-head"><h2>Functions</h2><div class="rule"></div></div>
-    <p class="section-intro">Functions are just recipes — the differences are in how they're written down and handed out.</p>
-
-    <div class="func-list">
-      <div class="func-row">
-        <div class="fname">Standard Declaration<span class="code">function add(){}</span></div>
-        <div class="fdesc">A recipe published in a cookbook under its own name — anyone can look it up by title and use it.<span class="a">Real life: a named recipe everyone in the kitchen can reference by calling out its name.</span></div>
-      </div>
-      <div class="func-row">
-        <div class="fname">Anonymous Function<span class="code">let add = function(){}</span></div>
-        <div class="fdesc">A recipe card with no title, handed directly to one specific person (a variable) to hold onto.<span class="a">Real life: an unlabeled index card passed privately, rather than filed in the public cookbook.</span></div>
-      </div>
-      <div class="func-row">
-        <div class="fname">Arrow Function<span class="code">(x, y) => x + y</span></div>
-        <div class="fdesc">A quick sticky note instead of a full recipe card — best for short, simple steps.<span class="a">Real life: scribbling "add butter + sugar" on a Post-it instead of writing a formal recipe card for something that simple.</span></div>
-      </div>
-      <div class="func-row">
-        <div class="fname">IIFE<span class="code">(function(){...})()</span></div>
-        <div class="fdesc">A recipe written and cooked in the very same breath — used once, immediately, then gone.<span class="a">Real life: a firework — built and set off in a single action, never reused. Handy once, but modern kitchens (modules) rarely need this trick anymore.</span></div>
-      </div>
-      <div class="func-row">
-        <div class="fname">Function Objects<span class="code">add.helpText = "..."</span></div>
-        <div class="fdesc">Sticking extra Post-it notes directly onto a kitchen tool itself, rather than writing them in the recipe book.<span class="a">Real life: taping a note onto your whisk instead of writing it in the cookbook — technically works, but clutters the tool and confuses the next cook.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="takeaway">
-    <p>Every JS keyword here is really just a labeling choice — how strict, how permanent, how public you want each piece of data or logic to be.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 5</div>
+  <h1>Control Flow &amp; Functions</h1>
+  <p>Master how JavaScript <b>controls execution</b> through conditionals and loops, then dive deep into the most important concept: <b>functions</b> — declarations, expressions, arrows, parameters, callbacks, and scoping.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span>Conditional Statements</div>
+<div class="card">
+  <h2>Making Decisions in Code</h2>
+
+  <h3>if / else if / else</h3>
+  <pre><code><span class="kw">const</span> score = <span class="dv">85</span>;
+
+<span class="kw">if</span> (score >= <span class="dv">90</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"A"</span>);
+} <span class="kw">else if</span> (score >= <span class="dv">80</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"B"</span>);
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"C or lower"</span>);
+}</code></pre>
+
+  <h3>Ternary Operator</h3>
+  <pre><code><span class="kw">const</span> age = <span class="dv">20</span>;
+<span class="kw">const</span> status = age >= <span class="dv">18</span> ? <span class="str">"Adult"</span> : <span class="str">"Minor"</span>;</code></pre>
+
+  <h3>switch Statement</h3>
+  <pre><code><span class="kw">const</span> day = <span class="str">"Monday"</span>;
+<span class="kw">switch</span> (day) {
+  <span class="kw">case</span> <span class="str">"Saturday"</span>:
+  <span class="kw">case</span> <span class="str">"Sunday"</span>:
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Weekend!"</span>);
+    <span class="kw">break</span>;
+  <span class="kw">default</span>:
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Weekday"</span>);
+}</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Prefer <b>if/else</b> for ranges and complex conditions. Use <b>ternary</b> for simple binary choices. Use <b>switch</b> for many discrete values. Always include <code>break</code> to avoid fall-through.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Loops</div>
+<div class="card">
+  <h2>Iteration in JavaScript</h2>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">for (classic)</div>
+      <div class="c-desc">Index-based. <code>for (let i = 0; i &lt; arr.length; i++)</code>. Most control, most verbose.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">for...of (ES6)</div>
+      <div class="c-desc">Value-based. <code>for (const val of arr)</code>. Clean, no index. Works on any iterable.</div>
+    </div>
+  </div>
+
+  <pre><code><span class="kw">const</span> fruits = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>];
+
+<span class="cmt">// for loop</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="dv">0</span>; i &lt; fruits.<span class="prop">length</span>; i++) {
+  <span class="fn">console</span>.<span class="fn">log</span>(fruits[i]);
+}
+
+<span class="cmt">// for...of (recommended for arrays)</span>
+<span class="kw">for</span> (<span class="kw">const</span> fruit <span class="kw">of</span> fruits) {
+  <span class="fn">console</span>.<span class="fn">log</span>(fruit);
+}
+
+<span class="cmt">// for...in (for object keys, NOT arrays)</span>
+<span class="kw">const</span> user = { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">age</span>: <span class="dv">30</span> };
+<span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">in</span> user) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`<span class="prop">${</span>key<span class="prop">}</span>: <span class="prop">${</span>user[key]<span class="prop">}</span>`</span>);
+}
+
+<span class="cmt">// while / do-while</span>
+<span class="kw">let</span> count = <span class="dv">0</span>;
+<span class="kw">while</span> (count &lt; <span class="dv">3</span>) { <span class="fn">console</span>.<span class="fn">log</span>(count); count++; }
+
+<span class="kw">let</span> n = <span class="dv">0</span>;
+<span class="kw">do</span> { <span class="fn">console</span>.<span class="fn">log</span>(n); n++; } <span class="kw">while</span> (n &lt; <span class="dv">3</span>);</code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using for...in for arrays.</b> <code>for...in</code> iterates over <i>keys</i> (property names), not values. For arrays, keys are "0", "1", "2" (strings!). It also iterates over inherited enumerable properties. Always use <code>for...of</code> or <code>.forEach()</code> for arrays.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Function Declarations vs Expressions</div>
+<div class="card">
+  <h2>Three Ways to Define a Function</h2>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Declaration</div>
+      <div class="c-desc">Hoisted (usable before definition). Named. <code>function add(a, b) { return a + b; }</code></div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Expression</div>
+      <div class="c-desc">NOT hoisted. Can be anonymous or named. <code>const add = function(a, b) { return a + b; };</code></div>
+    </div>
+  </div>
+  <div class="comparison">
+    <div class="comp-card new" style="grid-column:1/-1;">
+      <div class="c-title">Arrow Function (ES6)</div>
+      <div class="c-desc">NOT hoisted. Shorter syntax. Lexical <code>this</code> binding. <code>const add = (a, b) =&gt; a + b;</code> If single expression, implicit return.</div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt">// Declaration — hoisted</span>
+<span class="fn">sayHi</span>(<span class="str">"Alice"</span>);            <span class="cmt">// works! (hoisted)</span>
+<span class="kw">function</span> <span class="fn">sayHi</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hi, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+}
+
+<span class="cmt">// Expression — NOT hoisted</span>
+<span class="kw">const</span> greet = <span class="kw">function</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+};
+
+<span class="cmt">// Arrow function</span>
+<span class="kw">const</span> square = x =&gt; x * x;
+<span class="kw">const</span> add = (a, b) =&gt; a + b;</code></pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A function declaration is like a <b>recipe in a cookbook</b> — the entire book is pre-loaded before you start cooking. A function expression is like a <b>chef writing a recipe on the fly</b> — you cannot use it until written. An arrow function is like a <b>quick shorthand recipe card</b> — great for simple tasks but does not have its own context.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Parameters &amp; Arguments</div>
+<div class="card">
+  <h2>Parameters, Defaults, Rest</h2>
+
+  <h3>Default Parameters (ES6)</h3>
+  <pre><code><span class="kw">function</span> <span class="fn">greet</span>(name = <span class="str">"Guest"</span>, greeting = <span class="str">"Hello"</span>) {
+  <span class="kw">return</span> <span class="str">`<span class="prop">${</span>greeting<span class="prop">}</span>, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+}
+<span class="fn">greet</span>();               <span class="cmt">// "Hello, Guest!"</span>
+<span class="fn">greet</span>(<span class="str">"Bob"</span>);          <span class="cmt">// "Hello, Bob!"</span></code></pre>
+
+  <h3>Rest Parameters (ES6)</h3>
+  <pre><code><span class="kw">function</span> <span class="fn">sum</span>(...numbers) {
+  <span class="kw">return</span> numbers.<span class="fn">reduce</span>((acc, n) =&gt; acc + n, <span class="dv">0</span>);
+}
+<span class="fn">sum</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>);         <span class="cmt">// 6</span>
+<span class="fn">sum</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>); <span class="cmt">// 15</span></code></pre>
+
+  <h3>Parameters vs Arguments</h3>
+  <ul>
+    <li><b>Parameters</b> — the variables listed in function definition (formal parameters)</li>
+    <li><b>Arguments</b> — the actual values passed when calling the function</li>
+  </ul>
+  <pre><code><span class="cmt">// params: a, b     arguments: 3, 7</span>
+<span class="kw">function</span> <span class="fn">multiply</span>(a, b) { <span class="kw">return</span> a * b; }
+<span class="fn">multiply</span>(<span class="dv">3</span>, <span class="dv">7</span>);  <span class="cmt">// 21</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">5</span>IIFE &amp; Callbacks</div>
+<div class="card">
+  <h2>Immediately Invoked &amp; First-Class</h2>
+
+  <h3>IIFE — Immediately Invoked Function Expression</h3>
+  <pre><code><span class="cmt">// Classic IIFE (wrapped in parens, then invoked)</span>
+(<span class="kw">function</span>() {
+  <span class="kw">const</span> msg = <span class="str">"Runs immediately!"</span>;
+  <span class="fn">console</span>.<span class="fn">log</span>(msg);
+})();
+
+<span class="cmt">// Arrow IIFE</span>
+(<span class="kw">const</span> result = (<span class="kw">const</span> x = <span class="dv">5</span>; x * x) => x)();
+
+<span class="cmt">// Modern equivalent: block scope</span>
+{
+  <span class="kw">const</span> msg = <span class="str">"Block-scoped!"</span>;
+  <span class="fn">console</span>.<span class="fn">log</span>(msg);
+}</code></pre>
+
+  <h3>Callbacks (Functions as First-Class Citizens)</h3>
+  <pre><code><span class="cmt">// Passing a function as argument</span>
+<span class="kw">function</span> <span class="fn">processUser</span>(userId, callback) {
+  <span class="kw">const</span> user = { <span class="prop">id</span>: userId, <span class="prop">name</span>: <span class="str">"Alice"</span> };
+  <span class="fn">callback</span>(user);
+}
+
+<span class="fn">processUser</span>(<span class="dv">1</span>, <span class="kw">function</span>(user) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`User: <span class="prop">${</span>user.<span class="prop">name</span><span class="prop">}</span>`</span>);
+});
+
+<span class="cmt">// With arrow function</span>
+<span class="fn">processUser</span>(<span class="dv">2</span>, user =&gt; <span class="fn">console</span>.<span class="fn">log</span>(user.<span class="prop">name</span>));</code></pre>
+
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">The callback pattern was <b>the first async pattern in JavaScript</b>. However, deeply nested callbacks ("callback hell") led to Promises (ES6) and async/await (ES2017). In 2024, callbacks are still widely used in event handlers (<code>.addEventListener</code>) and Node.js APIs (<code>fs.readFile</code>), but most modern async code uses <code>async/await</code>. Understanding callbacks is essential because Promises and async/await are built on top of them.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Scoping</div>
+<div class="card">
+  <h2>Global, Function, Block Scope</h2>
+  <div class="def">Scope determines <b>where</b> variables are accessible. Functions create scope, and blocks (<code>{}</code>) create scope for <code>let</code>/<code>const</code>.</div>
+  <pre><code><span class="kw">const</span> globalVar = <span class="str">"global"</span>;
+
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">const</span> outerVar = <span class="str">"outer"</span>;
+
+  <span class="kw">function</span> <span class="fn">inner</span>() {
+    <span class="kw">const</span> innerVar = <span class="str">"inner"</span>;
+    <span class="fn">console</span>.<span class="fn">log</span>(globalVar);  <span class="cmt">// "global"</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(outerVar);   <span class="cmt">// "outer"</span>
+  }
+
+  <span class="cmt">// console.log(innerVar); // ReferenceError!</span>
+}</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Keep functions small and focused. Avoid deeply nested scopes. Use <b>const</b> by default. Prefer <b>pure functions</b> (same input always produces same output, no side effects).</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between a function declaration and a function expression?</div>
+    <div class="a">A: A <b>function declaration</b> is hoisted — usable before its definition. A <b>function expression</b> is not hoisted — it behaves like a variable assignment. Declarations must have a name; expressions can be anonymous.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is an IIFE and why was it used?</div>
+    <div class="a">A: IIFE (Immediately Invoked Function Expression) runs as soon as it is defined. Before ES6 modules and <code>let</code>/<code>const</code> block scoping, IIFEs were the primary way to create private scopes and avoid polluting the global namespace.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is "callback hell" and how do you avoid it?</div>
+    <div class="a">A: Callback hell is deeply nested callbacks that become unreadable. Solutions: break into named functions, use Promises with <code>.then()</code> chains, or use <code>async/await</code> for sequential async operations.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: How do arrow functions differ from regular functions?</div>
+    <div class="a">A: Arrow functions: (1) shorter syntax, (2) implicit return for single-expression bodies, (3) no <code>this</code> binding (lexical this from surrounding scope), (4) cannot be used as constructors, (5) no <code>arguments</code> object.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>if/else</b> ranges and complex conditions</div>
+    <div class="rev-item"><b>Ternary</b> <code>? :</code> inline binary choice</div>
+    <div class="rev-item"><b>switch</b> many discrete values</div>
+    <div class="rev-item"><b>for...of</b> iterate arrays (values)</div>
+    <div class="rev-item"><b>for...in</b> iterate object keys</div>
+    <div class="rev-item"><b>Declaration</b> hoisted, named</div>
+    <div class="rev-item"><b>Expression</b> not hoisted, variable</div>
+    <div class="rev-item"><b>Arrow</b> concise, lexical this</div>
+    <div class="rev-item"><b>Default params</b> <code>fn(a = 1)</code></div>
+    <div class="rev-item"><b>Rest params</b> <code>...args</code></div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

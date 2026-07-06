@@ -1,436 +1,321 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Paradigms of Machine Learning — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L2 – JavaScript Origins &amp; Overview — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-lilac: #b3a4d6;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
-
 *{box-sizing:border-box;}
-
 body{
   margin:0;
-  background:var(--board);
-  color:var(--chalk);
-  font-family:'Space Mono', monospace;
-  position:relative;
-  overflow-x:hidden;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px;
-  z-index:1;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-
-.wrap{
-  max-width: 1000px;
-  margin:0 auto;
-  padding: 56px 28px 100px;
-  position:relative;
-  z-index:2;
-}
-
-header{
-  text-align:center;
-  margin-bottom:56px;
-  padding-bottom:36px;
-  border-bottom: 2px dashed var(--board-line);
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
 .eyebrow{
-  font-size:12px;
-  letter-spacing:4px;
-  text-transform:uppercase;
-  color: var(--chalk-yellow);
-  margin-bottom:18px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
 }
-h1{
-  font-family:'Kalam', cursive;
-  font-weight:700;
-  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
-  margin:0 0 14px;
-  line-height:1.1;
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
 }
-.subhead{
-  font-family:'Caveat', cursive;
-  font-size: 1.5rem;
-  color: var(--chalk-blue);
-  max-width:620px;
-  margin: 0 auto;
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
 }
-
-/* ---------- Paradigm block header ---------- */
-.paradigm{ margin-bottom: 72px; }
-.paradigm-head{
-  display:flex;
-  align-items:center;
-  gap:18px;
-  margin-bottom: 10px;
-}
-.paradigm-num{
-  font-family:'Kalam', cursive;
-  font-size: 2.2rem;
-  font-weight:700;
-  color: var(--accent, var(--chalk-yellow));
-  line-height:1;
-  min-width:44px;
-}
-.paradigm-head h2{
-  font-family:'Kalam', cursive;
-  font-size: 2rem;
-  margin:0;
-  color: var(--chalk);
-}
-.paradigm-desc{
-  font-family:'Caveat', cursive;
-  font-size:1.3rem;
-  color: var(--chalk-dim);
-  max-width:720px;
-  margin: 0 0 26px 62px;
-}
-@media (max-width:600px){ .paradigm-desc{ margin-left:0; } }
-
-.paradigm.supervised{ --accent: var(--chalk-yellow); }
-.paradigm.unsupervised{ --accent: var(--chalk-blue); }
-.paradigm.sequential{ --accent: var(--chalk-pink); }
-
-/* ---------- Cards ---------- */
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 18px;
-}
-
 .card{
-  background: var(--board-alt);
-  border: 1px solid var(--board-line);
-  border-top: 3px solid var(--accent, var(--chalk-yellow));
-  border-radius: 6px;
-  padding: 20px 20px 18px;
-  transition: transform .25s ease, border-color .25s ease;
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
 }
-.card:hover{ transform: translateY(-3px); }
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-.card .term{
-  font-family:'Kalam', cursive;
-  font-size: 1.25rem;
-  color: var(--chalk);
-  margin: 0 0 12px;
-}
-.card .def{
-  font-size:12.5px;
-  color:var(--chalk-dim);
-  line-height:1.5;
-  margin:0 0 14px;
-  font-style:italic;
-}
-.row{ margin-bottom: 10px; }
-.row .label{
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--accent, var(--chalk-blue));
-  display:block;
-  margin-bottom: 4px;
-}
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{
-  margin:0;
-  font-size: 13px;
-  line-height:1.55;
-  color: var(--chalk-dim);
-}
-.card .link-line{
-  width: 100%;
-  height: 12px;
-  margin: 0 0 6px;
-}
-.card .link-line path{
-  fill:none;
-  stroke: var(--accent, var(--chalk-yellow));
-  stroke-width:1.4;
-  stroke-linecap:round;
-  stroke-dasharray: 200;
-  stroke-dashoffset: 200;
-  transition: stroke-dashoffset .6s ease;
-  opacity:0.7;
-}
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* ---------- Note banner for "not covered" ---------- */
-.note-banner{
-  background: rgba(217,143,160,0.08);
-  border: 1px dashed var(--chalk-pink);
-  border-radius: 6px;
-  padding: 12px 18px;
-  margin-bottom: 22px;
-  font-family:'Caveat', cursive;
-  font-size: 1.2rem;
-  color: var(--chalk-pink);
-}
-
-/* ---------- Prerequisites ---------- */
-.prereq-grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px,1fr));
-  gap:18px;
-}
-.prereq-card{
-  background: var(--board-alt);
-  border: 1px solid var(--board-line);
-  border-radius: 6px;
-  padding: 20px;
-  text-align:center;
-}
-.prereq-card .icon{
-  font-size:1.8rem;
-  margin-bottom:10px;
-  display:block;
-}
-.prereq-card h4{
-  font-family:'Kalam', cursive;
-  color: var(--chalk-yellow);
-  margin: 0 0 10px;
-  font-size:1.15rem;
-}
-.prereq-card p{
-  font-size:12.5px;
-  color: var(--chalk-dim);
-  line-height:1.55;
-  margin:0 0 8px;
-}
-.prereq-card p.analogy{ color: var(--chalk-blue); font-style:italic; }
-
-/* ---------- Roadmap ---------- */
-.roadmap{
-  display:flex;
-  align-items:center;
-  gap:0;
-  flex-wrap:wrap;
-  justify-content:center;
-  margin-top: 20px;
-}
-.roadmap .stop{
-  font-family:'Kalam', cursive;
-  font-size:1.1rem;
-  background: var(--board-alt);
-  border:1px solid var(--board-line);
-  border-radius: 20px;
-  padding: 10px 20px;
-  color: var(--chalk);
-}
-.roadmap .stop:nth-child(1){ color: var(--chalk-blue); }
-.roadmap .stop:nth-child(3){ color: var(--chalk-yellow); }
-.roadmap .stop:nth-child(5){ color: var(--chalk-pink); }
-.roadmap .sep{
-  font-family:'Kalam', cursive;
-  font-size:1.4rem;
-  color: var(--board-line);
-  padding: 0 14px;
-}
-
-.section-head{
-  display:flex;
-  align-items:baseline;
-  gap:16px;
-  margin-bottom: 24px;
-}
-.section-head h2{
-  font-family:'Kalam', cursive;
-  font-size: 1.9rem;
-  color: var(--chalk-yellow);
-  margin:0;
-  white-space:nowrap;
-}
-.section-head .rule{
-  flex:1;
-  height:1px;
-  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
-}
-
-footer{
-  text-align:center;
-  margin-top: 60px;
-  font-size:11px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color: var(--board-line);
-}
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 02 · Companion Notes</div>
-    <h1>Paradigms of<br>Machine Learning</h1>
-    <p class="subhead">— the three frameworks that organize everything else in this course —</p>
-  </header>
-
-  <!-- 1. Supervised -->
-  <div class="paradigm supervised">
-    <div class="paradigm-head">
-      <span class="paradigm-num">01</span>
-      <h2>Supervised Learning</h2>
-    </div>
-    <p class="paradigm-desc">Data arrives with labels from a teacher — the model learns to map inputs to known answers.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Classification</p>
-        <p class="def">Predicts a label from a finite set.</p>
-        <div class="row"><span class="label">Real Life</span><p>An email inbox sorting spam from non-spam.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A teacher marking papers pass/fail using a fixed answer key.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Regression</p>
-        <p class="def">Predicts a continuous numerical value.</p>
-        <div class="row"><span class="label">Real Life</span><p>Forecasting tomorrow's rainfall in millimeters.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A doctor estimating your age from an X-ray — not a category, a number on a sliding scale.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Ranking</p>
-        <p class="def">Orders a set of items by relevance.</p>
-        <div class="row"><span class="label">Real Life</span><p>A search engine ordering web pages by relevance to your query.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A talent-show judge ranking contestants from best to worst, not just picking one winner.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Structure Learning</p>
-        <p class="def">Predicts complex outputs like trees or structures.</p>
-        <div class="row"><span class="label">Real Life</span><p>Predicting a sentence's grammatical parse tree, or a molecule's 3D shape.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>An architect predicting a full blueprint from a client's requirements — not one number, a whole structure.</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 2. Unsupervised -->
-  <div class="paradigm unsupervised">
-    <div class="paradigm-head">
-      <span class="paradigm-num">02</span>
-      <h2>Unsupervised Learning</h2>
-    </div>
-    <p class="paradigm-desc">No labels, no teacher — the model has to find the hidden structure on its own.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Clustering</p>
-        <p class="def">Groups objects automatically based on similarity.</p>
-        <div class="row"><span class="label">Real Life</span><p>Your phone grouping photos of the same person, without ever being told their name.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Sorting a mixed basket of fruit by type — no labels needed, similarity does the sorting.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Representation Learning</p>
-        <p class="def">Learns the most efficient way to represent data.</p>
-        <div class="row"><span class="label">Real Life</span><p>Image compression that keeps a photo recognizable at a fraction of the file size.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>An artist's quick sketch that captures the essence of a subject in five lines instead of a full portrait.</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 3. Sequential -->
-  <div class="paradigm sequential">
-    <div class="paradigm-head">
-      <span class="paradigm-num">03</span>
-      <h2>Sequential Learning</h2>
-    </div>
-    <p class="paradigm-desc">Learning unfolds over time, through a chain of decisions and feedback.</p>
-    <div class="note-banner">Not covered in this course — included here for context only.</div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Online Learning</p>
-        <p class="def">Learns from feedback across a stream of predictions.</p>
-        <div class="row"><span class="label">Real Life</span><p>A stock-prediction model updating itself after every trading day.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A trader adjusting strategy after every single trade, based on how it played out.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Multi-Armed Bandits</p>
-        <p class="def">Deals with partial feedback — you only learn about the action you took.</p>
-        <div class="row"><span class="label">Real Life</span><p>An app A/B-testing which button color gets more clicks.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Trying restaurants in a new city — you only find out how good tonight's pick was, never the ones you skipped.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Reinforcement Learning</p>
-        <p class="def">An agent learns a policy through interaction with an environment.</p>
-        <div class="row"><span class="label">Real Life</span><p>A robot learning to navigate a room, avoiding obstacles through trial and error.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A dog learning tricks through treats and corrections — no instructions, just consequences.</p></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Prerequisites -->
-  <section>
-    <div class="section-head">
-      <h2>Prerequisites</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="prereq-grid">
-      <div class="prereq-card">
-        <span class="icon">📐</span>
-        <h4>Linear Algebra</h4>
-        <p>Understanding the geometry of data — vectors, matrices, spaces.</p>
-        <p class="analogy">Like reading architectural blueprints: knowing how dimensions and structure relate before you build anything.</p>
-      </div>
-      <div class="prereq-card">
-        <span class="icon">🎲</span>
-        <h4>Probability</h4>
-        <p>The mathematical foundation for handling noise and uncertainty.</p>
-        <p class="analogy">Like a weather forecaster giving a percentage chance of rain instead of a flat yes or no.</p>
-      </div>
-      <div class="prereq-card">
-        <span class="icon">📈</span>
-        <h4>Optimization</h4>
-        <p>Making data-driven decisions by minimizing or maximizing a metric.</p>
-        <p class="analogy">Like a hiker choosing the most efficient trail to the summit, out of dozens of possible paths.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Roadmap -->
-  <section>
-    <div class="section-head">
-      <h2>Course Roadmap</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="roadmap">
-      <span class="stop">Unsupervised &amp; Clustering</span>
-      <span class="sep">→</span>
-      <span class="stop">Supervised Techniques</span>
-      <span class="sep">→</span>
-      <span class="stop">Advanced Topics &amp; Practice</span>
-    </div>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 2</div>
+  <h1>JavaScript Origins &amp; Overview</h1>
+  <p>A deep dive into the <b>history</b> of JavaScript, its <b>standardization</b> through ECMAScript, the engines that power it, and the process that shapes its future.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span>The Birth of JavaScript</div>
+<div class="card">
+  <h2>From 10 Days to a World Language</h2>
+  <div class="def">
+    In <b>May 1995</b>, Brendan Eich was hired by Netscape to embed the Scheme programming language into their browser. Instead, he created a new language in just <b>10 days</b> — initially called <b>Mocha</b>, then <b>LiveScript</b>, and finally <b>JavaScript</b>.
+  </div>
+  <h3>Timeline</h3>
+  <ul>
+    <li><b>1995</b> — Brendan Eich creates Mocha/LiveScript at Netscape</li>
+    <li><b>1996</b> — Netscape ships JavaScript in Netscape Navigator 2.0</li>
+    <li><b>1996</b> — Microsoft reverse-engineers JS as JScript for IE3</li>
+    <li><b>1997</b> — ECMA International standardizes as ECMAScript (ES1)</li>
+    <li><b>1998</b> — ES2, minor updates for ISO conformance</li>
+    <li><b>1999</b> — ES3: regex, try/catch, do-while, switch improvements</li>
+    <li><b>2009</b> — ES5: strict mode, JSON, Array methods (forEach, map, filter)</li>
+    <li><b>2015</b> — ES6/ES2015: let/const, arrow functions, classes, modules, promises, template literals, destructuring</li>
+    <li><b>2016+</b> — Yearly release cycle: ES2016, ES2017 (async/await), ES2018, ES2019, ES2020 (optional chaining, nullish coalescing), ES2021, ES2022, ES2023 — incremental improvements every year</li>
+  </ul>
+
+  <svg viewBox="0 0 600 140" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="140" fill="#12161F" rx="10"/>
+    <text x="300" y="25" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="13" font-weight="700">ECMAScript Evolution Timeline</text>
+    <rect x="20" y="45" width="70" height="40" rx="6" fill="#3E3320"/>
+    <text x="55" y="65" text-anchor="middle" fill="#F0B450" font-family="JetBrains Mono,monospace" font-size="10">ES3</text>
+    <text x="55" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">1999</text>
+    <rect x="100" y="45" width="70" height="40" rx="6" fill="#234436"/>
+    <text x="135" y="65" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="10">ES5</text>
+    <text x="135" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">2009</text>
+    <rect x="180" y="45" width="100" height="40" rx="6" fill="#26264A"/>
+    <text x="230" y="65" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono,monospace" font-size="10">ES6/ES2015</text>
+    <text x="230" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">2015 (Major)</text>
+    <rect x="290" y="45" width="70" height="40" rx="6" fill="#1A3A4A"/>
+    <text x="325" y="65" text-anchor="middle" fill="#7DD3FC" font-family="JetBrains Mono,monospace" font-size="10">ES2017</text>
+    <text x="325" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">async/await</text>
+    <rect x="370" y="45" width="90" height="40" rx="6" fill="#3A1A1A"/>
+    <text x="415" y="65" text-anchor="middle" fill="#F05050" font-family="JetBrains Mono,monospace" font-size="10">ES2020</text>
+    <text x="415" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">?., ??</text>
+    <rect x="470" y="45" width="110" height="40" rx="6" fill="#234436"/>
+    <text x="525" y="65" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="10">ES2023</text>
+    <text x="525" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">toSpliced, findLast</text>
+    <line x1="20" y1="105" x2="585" y2="105" stroke="#232A38" stroke-width="2"/>
+    <polygon points="580,105 590,100 590,110" fill="#232A38"/>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">2</span>JavaScript Engines</div>
+<div class="card">
+  <h2>The Engines That Run the Web</h2>
+  <div class="def">
+    A JavaScript engine is a program that <b>executes JavaScript code</b>. Modern engines use JIT (Just-In-Time) compilation to achieve near-native performance.
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);">
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Engine</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Browser</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Written In</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Other Runtimes</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>V8</b></td>
+      <td style="padding:8px;">Chrome, Edge, Opera</td>
+      <td style="padding:8px;">C++</td>
+      <td style="padding:8px;">Node.js, Deno, Electron</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>SpiderMonkey</b></td>
+      <td style="padding:8px;">Firefox</td>
+      <td style="padding:8px;">C++, Rust</td>
+      <td style="padding:8px;">GNOME Shell</td>
+    </tr>
+    <tr>
+      <td style="padding:8px;"><b>JavaScriptCore</b></td>
+      <td style="padding:8px;">Safari</td>
+      <td style="padding:8px;">C++</td>
+      <td style="padding:8px;">Bun, React Native</td>
+    </tr>
+  </table>
+
+  <h3>How a JS Engine Works</h3>
+  <ol>
+    <li><b>Parsing</b> — source code → Abstract Syntax Tree (AST)</li>
+    <li><b>Interpretation</b> — baseline compiler produces bytecode quickly</li>
+    <li><b>Profiling</b> — monitor hot functions (frequently executed)</li>
+    <li><b>Optimization</b> — JIT recompiles hot paths to optimized machine code</li>
+    <li><b>Deoptimization</b> — if assumptions fail, fall back to interpreted bytecode</li>
+  </ol>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A JS engine is like a <b>simultaneous translator</b> at the UN. The interpreter translates on the fly (slow but immediately usable). The JIT compiler is like the translator who learns the speaker's patterns and pre-writes the translation for common phrases — much faster, but needs to backtrack if the speaker says something unexpected.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>The TC39 Process</div>
+<div class="card">
+  <h2>How JavaScript Gets New Features</h2>
+  <div class="def">
+    <b>TC39</b> (Technical Committee 39) is the committee that evolves the ECMAScript specification. It includes representatives from all major browser vendors, companies, and the community.
+  </div>
+  <h3>The 5-stage Proposal Process</h3>
+  <ul>
+    <li><b>Stage 0 — Strawman:</b> Any idea submitted by a TC39 member. No requirements.</li>
+    <li><b>Stage 1 — Proposal:</b> A champion identified, problem described, API shape sketched. Polyfills and demos expected.</li>
+    <li><b>Stage 2 — Draft:</b> Formal spec text. Committee has committed to reviewing and eventually including (if it progresses).</li>
+    <li><b>Stage 3 — Candidate:</b> Spec complete, implementations needed. Browser vendors begin experimental implementation.</li>
+    <li><b>Stage 4 — Finished:</b> At least two independent implementations pass test suites. Feature is included in the next ECMAScript release.</li>
+  </ul>
+
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">The TC39 process is one of the most <b>open and transparent</b> language specification processes. Anyone can follow proposals on GitHub (tc39/proposals). Features like <b>optional chaining</b> (obj?.prop) and <b>nullish coalescing</b> (a ?? b) went from Stage 0 to Stage 4 over ~2 years. <b>Records &amp; Tuples</b> (immutable data structures) are currently at Stage 2 as of 2024.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Strict Mode</div>
+<div class="card">
+  <h2>"use strict" — Cleaner, Safer JS</h2>
+  <div class="def">
+    Introduced in ES5, strict mode opts into a <b>restricted variant</b> of JavaScript that eliminates silent errors and prevents dangerous patterns.
+  </div>
+  <pre><code><span class="cmt">// Global strict mode (file-level)</span>
+<span class="str">"use strict"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"This file runs in strict mode"</span>);
+
+<span class="cmt">// Function-level strict mode</span>
+<span class="kw">function</span> <span class="fn">strictFn</span>() {
+  <span class="str">"use strict"</span>;
+  <span class="cmt">// only this function is strict</span>
+}
+
+<span class="cmt">// What changes in strict mode:</span>
+x = <span class="dv">5</span>;           <span class="cmt">// ❌ ReferenceError (undeclared var)</span>
+<span class="kw">delete</span> <span class="fn">Array</span>;     <span class="cmt">// ❌ TypeError (can't delete non-configurable)</span>
+<span class="kw">arguments</span>.<span class="fn">callee</span>; <span class="cmt">// ❌ TypeError (deprecated)</span></code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Always use strict mode in modern JavaScript. ES6 modules are <b>strict by default</b> — no need for explicit <code>"use strict"</code> when using modules.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Browser vs Node.js APIs</div>
+<div class="card">
+  <h2>Two Runtimes, Two API Sets</h2>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Browser APIs</div>
+      <div class="c-desc">DOM (document, element, events), window, fetch, localStorage, console, setTimeout, Canvas, WebSockets, Web Workers, History API, Geolocation</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Node.js APIs</div>
+      <div class="c-desc">fs, path, http, process, os, crypto, stream, buffer, child_process, cluster, readline</div>
+    </div>
+  </div>
+  <h3>Shared APIs (Both Environments)</h3>
+  <ul>
+    <li><b>console</b> — log, error, warn, table, time</li>
+    <li><b>setTimeout / setInterval</b> — timer functions</li>
+    <li><b>fetch</b> — HTTP requests (Node 18+)</li>
+    <li><b>TextEncoder / TextDecoder</b> — encoding utilities</li>
+    <li><b>URL / URLSearchParams</b> — URL handling</li>
+  </ul>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using browser APIs in Node.js.</b> <code>document</code>, <code>window</code>, <code>localStorage</code> are not available in Node.js. Similarly, <code>require('fs')</code> does not exist in the browser. Always check the runtime environment before using platform-specific APIs.</div>
+  </div>
+
+  <div class="tip-box">
+    <div class="t-label">Quick Tip</div>
+    <div class="t-text">To check if code is running in a browser: <code>typeof window !== "undefined"</code>. For Node.js: <code>typeof process !== "undefined" && process.release.name === "node"</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: Why is JavaScript called JavaScript if it's not related to Java?</div>
+    <div class="a">A: Marketing. Netscape wanted to capitalize on Java's popularity. The language was originally named Mocha, then LiveScript. Just before release, they rebranded to JavaScript. The official standard name is ECMAScript.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between V8 and Node.js?</div>
+    <div class="a">A: V8 is the <b>JavaScript engine</b> that compiles and executes JS code. Node.js is a <b>runtime</b> built on top of V8 that adds APIs like fs, http, and path. Think of V8 as the car engine and Node.js as the entire car.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the "TC39" and what does it do?</div>
+    <div class="a">A: TC39 (Technical Committee 39) is the committee under ECMA International that maintains and evolves the ECMAScript specification. They review proposals, provide feedback, and vote on feature inclusion through a 5-stage process (Stage 0 → Stage 4).</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What does JIT compilation mean for JavaScript?</div>
+    <div class="a">A: JIT (Just-In-Time) compilation means the engine compiles hot functions to native machine code at runtime, achieving near-native performance. This is why JavaScript can be 50-100x faster today than in 1995, enabling complex applications like Figma, VS Code, and Google Docs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>1995</b> Brendan Eich, 10 days</div>
+    <div class="rev-item"><b>ES3 (1999)</b> regex, try/catch</div>
+    <div class="rev-item"><b>ES5 (2009)</b> strict mode, JSON</div>
+    <div class="rev-item"><b>ES6/2015</b> let/const, arrow, class</div>
+    <div class="rev-item"><b>V8</b> Chrome, Node, Deno, Edge</div>
+    <div class="rev-item"><b>SpiderMonkey</b> Firefox</div>
+    <div class="rev-item"><b>JSC</b> Safari, Bun</div>
+    <div class="rev-item"><b>TC39</b> 5 stages (0→4)</div>
+    <div class="rev-item"><b>Strict mode</b> safer JS, opt-in</div>
+    <div class="rev-item"><b>Yearly releases</b> since 2015</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

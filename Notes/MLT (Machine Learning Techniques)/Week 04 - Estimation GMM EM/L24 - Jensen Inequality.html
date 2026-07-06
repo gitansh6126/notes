@@ -3,529 +3,1118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Convexity, Concavity &amp; Jensen's Inequality — Lecture Notes</title>
+<title>Convexity, Concavity &amp; Jensen's Inequality — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  :root{
-    --bg: #eef1f6;
+  :root {
+    --bg: #f4f5f9;
     --surface: #ffffff;
-    --ink: #191e2b;
-    --ink-soft: #545c72;
-    --ink-faint: #8890a3;
-    --line: #dcdfe8;
-    --indigo: #33418e;
-    --indigo-soft: #e9ebf7;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
     --gold: #b5872a;
-    --gold-deep: #8f6a1c;
     --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
     --rust: #a8482a;
     --rust-soft: #f7e6df;
     --teal: #2c6b5d;
     --teal-soft: #e2efec;
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
-  }
-  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
-  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
-  code, .mono{ font-family:'JetBrains Mono', monospace; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  /* ---------- HERO ---------- */
-  .hero{
-    background:
-      radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
-      radial-gradient(circle at 10% 110%, rgba(51,65,142,0.22), transparent 50%),
-      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
-    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
-  .hero::after{
-    content:""; position:absolute; inset:0;
+
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size:34px 34px; pointer-events:none;
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
   }
-  .hero .wrap{ position:relative; z-index:1; }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
-    color:#d9b872; margin-bottom:22px;
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
-  .hero h1{
-    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
-    font-size:clamp(30px, 5vw, 48px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
   }
-  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
-  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
-  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
-  .pill{
-    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
-    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
   }
 
-  /* ---------- SCAFFOLD ---------- */
-  main{ padding:54px 0 90px; }
-  section.chapter{ margin-bottom:64px; }
-  section.chapter:last-of-type{ margin-bottom:0; }
-  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
-  .chapter-num{
-    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
-    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
-  }
-  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
-  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
+  main { padding: 56px 0 90px; }
 
-  /* ---------- CARDS ---------- */
-  .card{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:22px 24px;
-  }
-  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
-  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
 
-  /* ---------- MATH CARD ---------- */
-  .math-card{
-    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:24px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
   }
-  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
-  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:17px; color:#dbe0ef; white-space:nowrap; }
-  .math-card .expr .hi{ color:#d9b872; }
-  .math-card .expr .hi2{ color:#7fc4b0; }
-  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
 
-  /* ---------- MINI STATIC DIAGRAMS (special cases) ---------- */
-  .mini-diagram{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:16px 16px 12px; text-align:center;
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
   }
-  .mini-diagram svg{ width:100%; height:auto; display:block; }
-  .mini-diagram .mini-title{ font-family:'JetBrains Mono', monospace; font-size:11.5px; font-weight:600; margin-top:8px; }
-  .mini-diagram .mini-sub{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
 
-  /* ---------- CALLOUT ---------- */
-  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
-  .callout .icon{
-    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
-    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
   }
-  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
-  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
-  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
-  .callout.info .icon{ background:var(--indigo); color:#fff; }
-  .callout.info b{ color:var(--indigo); }
-  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
-  .callout.warn .icon{ background:var(--rust); color:#fff; }
-  .callout.warn b{ color:var(--rust); }
-  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
-  .callout.good .icon{ background:var(--teal); color:#fff; }
-  .callout.good b{ color:var(--teal); }
 
-  /* ---------- SIGNATURE: CONVEXITY EXPLORER ---------- */
-  .explorer-wrap{
-    background:linear-gradient(180deg, #1b2030, #12151f);
-    border-radius:18px; padding:26px 24px 24px; box-shadow:var(--shadow);
-    position:relative; overflow:hidden;
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
   }
-  .explorer-wrap::before{
-    content:""; position:absolute; inset:0;
-    background: radial-gradient(circle at 10% 0%, rgba(181,135,42,0.14), transparent 50%),
-                radial-gradient(circle at 95% 100%, rgba(51,65,142,0.22), transparent 50%);
-    pointer-events:none;
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
   }
-  .explorer-top{
-    display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
-    position:relative; z-index:1; margin-bottom:14px;
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
   }
-  .explorer-label{
-    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:0.1em; text-transform:uppercase; color:#8891a8;
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
-  .mode-toggle{
-    display:flex; background:#0d0f17; border:1px solid #2a3046; border-radius:9px; padding:3px; gap:3px;
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
   }
-  .mode-btn{
-    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:600;
-    background:none; border:none; color:#8891a8; padding:8px 14px; border-radius:6px; cursor:pointer;
-    transition: background 0.15s ease, color 0.15s ease;
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
   }
-  .mode-btn.active{ background:#d9b872; color:#1b1607; }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
 
-  .explorer-plot{ position:relative; z-index:1; background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:10px; }
-  .explorer-plot svg{ width:100%; height:auto; display:block; }
-
-  .explorer-controls{ position:relative; z-index:1; margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
-  .explorer-controls input[type=range]{ flex:1; min-width:160px; accent-color:#d9b872; }
-  .explorer-controls .lam-val{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#c2c6d6; min-width:96px; }
-
-  .explorer-readout{
-    position:relative; z-index:1; margin-top:16px;
-    background:#0d0f17; border:1px solid #2a3046; border-radius:10px; padding:14px 18px;
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;
-    font-family:'JetBrains Mono', monospace; font-size:12.5px;
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
   }
-  .explorer-readout .r-item{ color:#8891a8; }
-  .explorer-readout .r-item b{ display:block; font-size:14.5px; margin-top:2px; }
-  .explorer-readout .r-item.curve b{ color:#7fc4b0; }
-  .explorer-readout .r-item.chord b{ color:#d9b872; }
-  .explorer-readout .r-item.ineq b{ color:#f2f3f8; }
-
-  .legend{ display:flex; gap:16px; justify-content:center; margin-top:14px; flex-wrap:wrap; position:relative; z-index:1; }
-  .legend .item{ display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono', monospace; font-size:11px; color:#c2c6d6; }
-  .legend .dot{ width:9px; height:9px; border-radius:50%; }
-  .legend .dash{ width:16px; height:0; border-top:2px dashed #4a5270; }
-
-  /* ---------- TABLE ---------- */
-  table.spec{
-    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
-    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
   }
-  table.spec th{
-    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
-    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
   }
-  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
-  table.spec tr:last-child td{ border-bottom:none; }
-  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
 
-  /* ---------- CODE BLOCK ---------- */
-  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
-  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
-  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
-  .codeblock .c-comment{ color:#7d859c; }
-  .codeblock .c-kw{ color:#e2a25c; }
-  .codeblock .c-fn{ color:#7fb0e8; }
-  .codeblock .c-num{ color:#d9b872; }
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
 
-  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
-  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
 
-  @media (max-width: 720px){
-    .grid-3, .grid-2{ grid-template-columns:1fr; }
-    .hero{ padding:48px 0 40px; }
-    .chapter-head h2{ font-size:22px; }
-    .explorer-readout{ flex-direction:column; }
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <div class="wrap">
-    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+  <div class="container">
+    <div class="tag">Unsupervised Learning &middot; Lecture Notes</div>
     <h1>Convexity, concavity &amp;<br><em>Jensen's</em> inequality</h1>
-    <p class="lede">Last time, the log-likelihood of a GMM got stuck behind a sum trapped inside a logarithm. The fix starts with a simple geometric fact about curves and the straight lines drawn between their points.</p>
-    <div class="hero-meta">
-      <span class="pill">§1 Convex functions</span>
-      <span class="pill">§2 Concave functions</span>
-      <span class="pill">§3 Special cases</span>
-      <span class="pill">§4 Jensen's inequality</span>
-      <span class="pill">§5 Back to GMMs</span>
+    <p>Last time, the log-likelihood of a GMM got stuck behind a sum trapped inside a logarithm. The fix starts with a simple geometric fact about curves and the straight lines drawn between their points.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Convex Functions</a>
+      <a href="#s2" class="nav-pill">&sect;2 Concave Functions</a>
+      <a href="#s3" class="nav-pill">&sect;3 Jensen's Inequality</a>
+      <a href="#s4" class="nav-pill">&sect;4 Special Cases</a>
+      <a href="#s5" class="nav-pill">&sect;5 The GMM Bottleneck</a>
     </div>
   </div>
 </header>
 
-<main class="wrap">
+<main>
+  <div class="container">
 
-  <!-- SECTION 1 + 2 + EXPLORER -->
-  <section class="chapter" id="s1">
-    <div class="chapter-head">
-      <span class="chapter-num">01</span>
-      <h2>Convex vs. concave</h2>
-    </div>
-    <p class="chapter-intro">Pick any two points <span class="mono">a</span> and <span class="mono">b</span> on a curve, and draw the straight chord between them. Where that chord sits, relative to the curve, is the entire definition.</p>
-
-    <div class="grid-2">
-      <div class="card">
-        <h3 style="color:var(--teal);">Convex</h3>
-        <p>The chord lies <b>on or above</b> the curve. Like a bowl: interpolating between two points never underestimates how low the function actually dips.</p>
+    <!-- ================================================================
+         SECTION 1: CONVEX FUNCTIONS
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Convex functions</h2>
       </div>
-      <div class="card">
-        <h3 style="color:var(--gold-deep);">Concave</h3>
-        <p>The chord lies <b>on or below</b> the curve. Like a dome: interpolating between two points never overestimates the peak.</p>
+      <p class="sec-intro">
+        Pick any two points $a$ and $b$ on a curve, and draw the straight chord between them.
+        Where that chord sits, relative to the curve, is the entire definition.
+      </p>
+
+      <div class="eq-panel" id="eq-convex">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Definition of a Convex Function</div>
+        $$f(\lambda a + (1 - \lambda) b) \leq \lambda f(a) + (1 - \lambda) f(b) \quad \forall \lambda \in [0, 1]$$
+        <div class="eq-caption">The chord lies <strong>on or above</strong> the curve</div>
       </div>
-    </div>
 
-    <div class="math-card" style="margin-top:16px;">
-      <div class="math-label">convex</div>
-      <div class="expr">f(λa + (1−λ)b) <span class="hi2">≤</span> λf(a) + (1−λ)f(b)</div>
-    </div>
-    <div class="math-card">
-      <div class="math-label">concave</div>
-      <div class="expr">f(λa + (1−λ)b) <span class="hi">≥</span> λf(a) + (1−λ)f(b)</div>
-      <div class="sub">for any λ ∈ [0, 1]</div>
-    </div>
-
-    <!-- SIGNATURE INTERACTIVE: convexity explorer -->
-    <div class="explorer-wrap">
-      <div class="explorer-top">
-        <span class="explorer-label">// drag λ, watch the gap</span>
-        <div class="mode-toggle">
-          <button class="mode-btn active" id="btnConvex" onclick="setMode('convex')">convex · x²</button>
-          <button class="mode-btn" id="btnConcave" onclick="setMode('concave')">concave · log(x)</button>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;For a convex function $f$, the function value at any weighted average of $a$ and $b$ is less than or equal to the weighted average of the function values. The function at the interpolation point is never above the straight line connecting $f(a)$ and $f(b)$.&rdquo;
         </div>
       </div>
 
-      <div class="explorer-plot">
-        <svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" id="plotSvg">
-          <path id="curvePath" fill="none" stroke-width="2.5" />
-          <line id="chordLine" stroke="#d9b872" stroke-width="2" stroke-dasharray="1 0" />
-          <line id="dropLine" stroke="#4a5270" stroke-width="1.5" stroke-dasharray="4 4" />
-          <circle id="ptA" r="4.5" fill="#c2c6d6" />
-          <circle id="ptB" r="4.5" fill="#c2c6d6" />
-          <circle id="ptChord" r="6.5" fill="#d9b872" stroke="#12151f" stroke-width="1.5" />
-          <circle id="ptCurve" r="6.5" fill="#7fc4b0" stroke="#12151f" stroke-width="1.5" />
-          <text id="labelA" font-family="JetBrains Mono, monospace" font-size="12" fill="#8891a8">a</text>
-          <text id="labelB" font-family="JetBrains Mono, monospace" font-size="12" fill="#8891a8">b</text>
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$a, b$</td>
+              <td class="leg-meaning">Any two points in the domain of $f$</td>
+              <td class="leg-example">$a = 0$, $b = 4$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda$</td>
+              <td class="leg-meaning">Interpolation weight between 0 and 1</td>
+              <td class="leg-example">$\lambda = 0.5$ gives midpoint</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$f(\lambda a + (1-\lambda) b)$</td>
+              <td class="leg-meaning">Function value at the interpolated point</td>
+              <td class="leg-example">On the curve</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda f(a) + (1-\lambda) f(b)$</td>
+              <td class="leg-meaning">Interpolated function value (on the chord)</td>
+              <td class="leg-example">On the straight line</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          A convex function is shaped like a <span class="highlight">bowl</span> ($f(x) = x^2$).
+          If you pick two points on the bowl and stretch a rubber band between them,
+          the band (the chord) lies <strong>above</strong> the bowl's surface everywhere.
+          The function "sags" below its chords.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Convex Function: $f(x) = x^2$</div>
+        <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="220" x2="620" y2="220" stroke="#dde0e9" stroke-width="1.5"/>
+          <line x1="20" y1="220" x2="20" y2="20" stroke="#dde0e9" stroke-width="1.5"/>
+          <!-- f(x) = x^2 curve -->
+          <path d="M80,220 C320,220 340,20 560,20" fill="none" stroke="#2c6b5d" stroke-width="2.5"/>
+          <!-- chord with a=2, b=5 at x=2 through x=5 -->
+          <line x1="168" y1="195" x2="420" y2="20" stroke="#b5872a" stroke-width="2" stroke-dasharray="4 3"/>
+          <circle cx="168" cy="195" r="5" fill="#1e4f8a"/>
+          <circle cx="420" cy="20" r="5" fill="#1e4f8a"/>
+          <circle cx="294" cy="125" r="6" fill="#b5872a" stroke="#fff" stroke-width="2"/>
+          <circle cx="294" cy="104" r="6" fill="#2c6b5d" stroke="#fff" stroke-width="2"/>
+          <text x="168" y="215" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a" text-anchor="middle">$a$</text>
+          <text x="420" y="14" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a" text-anchor="middle">$b$</text>
+          <text x="310" y="118" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">curve $\le$ chord</text>
         </svg>
+        <div class="svg-caption">For a convex function, the chord lies above the curve. The gold dot (on chord) is above the teal dot (on curve).</div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 2: CONCAVE FUNCTIONS
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Concave functions</h2>
+      </div>
+      <p class="sec-intro">
+        A concave function is the mirror image: the chord lies <strong>on or below</strong> the curve.
+        Like a dome.
+      </p>
+
+      <div class="eq-panel" id="eq-concave">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Definition of a Concave Function</div>
+        $$f(\lambda a + (1 - \lambda) b) \geq \lambda f(a) + (1 - \lambda) f(b) \quad \forall \lambda \in [0, 1]$$
+        <div class="eq-caption">The chord lies <strong>on or below</strong> the curve</div>
       </div>
 
-      <div class="legend">
-        <div class="item"><span class="dot" style="background:#7fc4b0;"></span>f(λa+(1−λ)b) — on the curve</div>
-        <div class="item"><span class="dot" style="background:#d9b872;"></span>λf(a)+(1−λ)f(b) — on the chord</div>
-        <div class="item"><span class="dash"></span>the gap Jensen's inequality bounds</div>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;For a concave function $f$, the function value at any weighted average of $a$ and $b$ is greater than or equal to the weighted average of the function values. The function at the interpolation point is never below the straight line connecting $f(a)$ and $f(b)$.&rdquo;
+        </div>
       </div>
 
-      <div class="explorer-controls">
-        <span class="lam-val" id="lamLabel">λ = 0.50</span>
-        <input type="range" id="lamSlider" min="0" max="100" value="50" oninput="onSlide(this.value)">
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          A concave function is shaped like a <span class="highlight">dome</span> ($f(x) = \log x$).
+          The chord lies <strong>below</strong> the curve.
+          <br><br>
+          <strong>Critically for GMMs:</strong> the logarithm function $\log(x)$ is concave!
+          This means $ \log(\lambda a + (1-\lambda) b) \geq \lambda \log a + (1-\lambda) \log b$ —
+          the weighted average of logs is <em>less than or equal to</em> the log of the weighted average.
+        </div>
       </div>
 
-      <div class="explorer-readout">
-        <div class="r-item curve">on curve<b id="curveVal">—</b></div>
-        <div class="r-item chord">on chord<b id="chordVal">—</b></div>
-        <div class="r-item ineq">relation<b id="ineqVal">—</b></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 3 -->
-  <section class="chapter" id="s3">
-    <div class="chapter-head">
-      <span class="chapter-num">02</span>
-      <h2>Special cases</h2>
-    </div>
-    <p class="chapter-intro">Two edge cases round out the picture: what happens when the inequality collapses to equality, and what happens when curvature isn't consistent at all.</p>
-
-    <div class="grid-2">
-      <div class="mini-diagram">
-        <svg viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
-          <line x1="20" y1="110" x2="280" y2="30" stroke="#33418e" stroke-width="3"/>
-          <circle cx="70" cy="97" r="4" fill="#8890a3"/>
-          <circle cx="230" cy="43" r="4" fill="#8890a3"/>
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Concave Function: $f(x) = \log(x)$</div>
+        <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+          <line x1="20" y1="220" x2="620" y2="220" stroke="#dde0e9" stroke-width="1.5"/>
+          <line x1="20" y1="220" x2="20" y2="20" stroke="#dde0e9" stroke-width="1.5"/>
+          <path d="M80,220 C220,220 340,100 560,60" fill="none" stroke="#b5872a" stroke-width="2.5"/>
+          <line x1="140" y1="210" x2="500" y2="90" stroke="#2c6b5d" stroke-width="2" stroke-dasharray="4 3"/>
+          <circle cx="140" cy="210" r="5" fill="#1e4f8a"/>
+          <circle cx="500" cy="90" r="5" fill="#1e4f8a"/>
+          <circle cx="320" cy="120" r="6" fill="#2c6b5d" stroke="#fff" stroke-width="2"/>
+          <circle cx="320" cy="134" r="6" fill="#b5872a" stroke="#fff" stroke-width="2"/>
+          <text x="140" y="228" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a" text-anchor="middle">$a$</text>
+          <text x="500" y="84" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a" text-anchor="middle">$b$</text>
+          <text x="330" y="110" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">curve $\ge$ chord</text>
         </svg>
-        <div class="mini-title" style="color:var(--indigo);">Linear — both at once</div>
-        <div class="mini-sub">Chord and curve coincide: f(λa+(1−λ)b) = λf(a)+(1−λ)f(b)</div>
+        <div class="svg-caption">For a concave function like $\log(x)$, the chord lies below the curve. The curve (gold) is above the chord (teal).</div>
       </div>
-      <div class="mini-diagram">
-        <svg viewBox="0 0 300 140" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20,80 C70,20 110,130 160,60 C210,10 250,110 280,70" fill="none" stroke="#a8482a" stroke-width="2.5"/>
-          <line x1="45" y1="63" x2="255" y2="82" stroke="#8890a3" stroke-width="2" stroke-dasharray="4 3"/>
-          <circle cx="45" cy="63" r="4" fill="#8890a3"/>
-          <circle cx="255" cy="82" r="4" fill="#8890a3"/>
-        </svg>
-        <div class="mini-title" style="color:var(--rust);">Neither — curvature flips</div>
-        <div class="mini-sub">An oscillating curve crosses its own chords, so no global inequality holds</div>
+
+      <div class="eq-panel" id="eq-log-concave">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Why Log Is Concave</div>
+        $$\frac{d^2}{dx^2} \log x = -\frac{1}{x^2} < 0 \quad\Longrightarrow\quad \text{$\log$ is concave}$$
+        <div class="eq-caption">A function is concave if its second derivative is everywhere non-positive</div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 4 -->
-  <section class="chapter" id="s4">
-    <div class="chapter-head">
-      <span class="chapter-num">03</span>
-      <h2>Jensen's inequality</h2>
-    </div>
-    <p class="chapter-intro">Convexity and concavity were defined for two points. Jensen's inequality is the same idea stretched to any number of points <span class="mono">a₁, …, a_K</span>, weighted by <span class="mono">λ₁, …, λ_K</span> that sum to 1.</p>
-
-    <div class="math-card">
-      <div class="math-label">jensen's inequality — concave f</div>
-      <div class="expr">f( <span class="hi">Σᵢ λᵢ aᵢ</span> ) ≥ <span class="hi2">Σᵢ λᵢ f(aᵢ)</span></div>
-      <div class="sub">Σ λᵢ = 1, λᵢ ≥ 0 — the same "chord below the curve" idea, for K points at once</div>
-    </div>
-
-    <div class="card">
-      <h3>Convex hull, in one line</h3>
-      <p><span class="mono">Σᵢ λᵢ aᵢ</span> is just a weighted average — geometrically, it's guaranteed to land inside the convex hull of <span class="mono">a₁, …, a_K</span>. Jensen's inequality compares the function's value <i>there</i> to the weighted average of the function's values <i>at each point individually</i>.</p>
-    </div>
-
-    <table class="spec" style="margin-top:16px;">
-      <thead><tr><th>Function type</th><th>Two-point form</th><th>K-point (Jensen) form</th></tr></thead>
-      <tbody>
-        <tr><td><b>Convex</b></td><td class="formula">f(λa+(1−λ)b) ≤ λf(a)+(1−λ)f(b)</td><td class="formula">f(Σλᵢaᵢ) ≤ Σλᵢf(aᵢ)</td></tr>
-        <tr><td><b>Concave</b></td><td class="formula">f(λa+(1−λ)b) ≥ λf(a)+(1−λ)f(b)</td><td class="formula">f(Σλᵢaᵢ) ≥ Σλᵢf(aᵢ)</td></tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- SECTION 5 -->
-  <section class="chapter" id="s5">
-    <div class="chapter-head">
-      <span class="chapter-num">04</span>
-      <h2>Back to the GMM bottleneck</h2>
-    </div>
-    <p class="chapter-intro">The log function is concave. That single fact is the key that unlocks the log-sum problem from last lecture.</p>
-
-    <div class="codeblock">
-      <div class="filename">why_log_is_concave_matters.txt</div>
-      <pre><span class="c-comment">// last lecture, we got stuck here:</span>
-log( Σₖ πₖ · 𝒩(x_i | μₖ, σₖ²) )
-
-<span class="c-comment">// log is concave, and πₖ are weights that sum to 1 —</span>
-<span class="c-comment">// exactly the setup Jensen's inequality needs:</span>
-log( Σₖ πₖ · 𝒩ₖ ) <span class="c-num">≥</span> Σₖ πₖ · log( 𝒩ₖ )
-
-<span class="c-comment">// the sum has moved OUTSIDE the log</span></pre>
-    </div>
-
-    <div class="callout good" style="margin-top:18px;">
-      <div class="icon">✓</div>
-      <div class="body">
-        <b>Why a lower bound is enough</b>
-        <p>We don't get equality — but we get a tractable <b>lower bound</b> on the log-likelihood that we <i>can</i> differentiate cleanly. Maximizing that bound, instead of the true log-likelihood directly, is the core idea behind the algorithm we cover next.</p>
+    <!-- ================================================================
+         SECTION 3: JENSEN'S INEQUALITY
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Jensen's inequality</h2>
       </div>
-    </div>
-    <div class="callout info">
-      <div class="icon">→</div>
-      <div class="body">
-        <b>Next lecture</b>
-        <p>We'll formalize this bound and turn it into an iterative procedure — the Expectation-Maximization (EM) algorithm.</p>
-      </div>
-    </div>
-  </section>
+      <p class="sec-intro">
+        Convexity and concavity were defined for two points. Jensen's inequality is the same idea
+        stretched to any number of points $a_1, \dots, a_K$, weighted by $\lambda_1, \dots, \lambda_K$
+        that sum to 1.
+      </p>
 
+      <div class="eq-panel multiline" id="eq-jensen">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Jensen's Inequality — General Form</div>
+        $$\text{If $f$ is concave:} \qquad f\!\left( \sum_{i=1}^{K} \lambda_i a_i \right) \geq \sum_{i=1}^{K} \lambda_i f(a_i)$$
+        $$\text{If $f$ is convex:} \qquad f\!\left( \sum_{i=1}^{K} \lambda_i a_i \right) \leq \sum_{i=1}^{K} \lambda_i f(a_i)$$
+        $$\text{where}\quad \sum_{i=1}^{K} \lambda_i = 1, \quad \lambda_i \geq 0$$
+        <div class="eq-caption">The same chord-vs-curve idea, now for $K$ points at once with weights summing to 1</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;For a <strong>concave</strong> function, the function value at the <strong>weighted average</strong> of the inputs is at least the weighted average of the function values at each input. For a <strong>convex</strong> function, the opposite holds.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$a_i$</td>
+              <td class="leg-meaning">Input points</td>
+              <td class="leg-example">$a_1 = 2, a_2 = 5, a_3 = 8$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda_i$</td>
+              <td class="leg-meaning">Weights that sum to 1 (can be interpreted as probabilities)</td>
+              <td class="leg-example">$\lambda_1 = 0.5, \lambda_2 = 0.3, \lambda_3 = 0.2$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sum \lambda_i a_i$</td>
+              <td class="leg-meaning">Weighted average — lies in convex hull of $\{a_i\}$</td>
+              <td class="leg-example">$0.5 \cdot 2 + 0.3 \cdot 5 + 0.2 \cdot 8 = 4.1$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          $\sum_i \lambda_i a_i$ is just a <strong>weighted average</strong> — geometrically, it's guaranteed to land
+          inside the convex hull of $a_1, \dots, a_K$.
+          Jensen's inequality compares the function's value <em>there</em> to the weighted average
+          of the function's values <em>at each point individually</em>.
+          <br><br>
+          For a <span class="highlight">concave</span> function like $\log$, the function of the average
+          is <strong>larger</strong> than the average of the function values.
+        </div>
+      </div>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Two-Point vs. $K$-Point Forms</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Convex (two-point)</strong>
+            $f(\lambda a + (1-\lambda)b) \leq \lambda f(a) + (1-\lambda)f(b)$
+          </div>
+          <div class="ap-item">
+            <strong>Convex (Jensen)</strong>
+            $f(\sum \lambda_i a_i) \leq \sum \lambda_i f(a_i)$
+          </div>
+          <div class="ap-item">
+            <strong>Concave (two-point)</strong>
+            $f(\lambda a + (1-\lambda)b) \geq \lambda f(a) + (1-\lambda)f(b)$
+          </div>
+          <div class="ap-item">
+            <strong>Concave (Jensen)</strong>
+            $f(\sum \lambda_i a_i) \geq \sum \lambda_i f(a_i)$
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: SPECIAL CASES
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Special cases</h2>
+      </div>
+      <p class="sec-intro">
+        Two edge cases round out the picture: what happens when the inequality collapses to equality,
+        and what happens when curvature isn't consistent at all.
+      </p>
+
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <span class="p-sym">$\text{Linear}$</span>
+          <h4>Equality holds</h4>
+          <p>If $f$ is linear ($f(x) = mx + c$), the chord and curve coincide exactly: $f(\lambda a + (1-\lambda)b) = \lambda f(a) + (1-\lambda) f(b)$ for all $\lambda, a, b$.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$\text{Affine}$</span>
+          <h4>Both convex and concave</h4>
+          <p>An affine function satisfies the definitions of both convexity and concavity simultaneously. It is the only class of functions that does so.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--rust);">
+          <span class="p-sym">$\text{Oscillating}$</span>
+          <h4>Neither — curvature flips</h4>
+          <p>An oscillating curve (like $\sin x$) crosses its own chords, so no global convexity or concavity holds — Jensen's inequality cannot be applied globally.</p>
+        </div>
+      </div>
+
+      <div class="eq-panel" id="eq-linear">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Linear Function — Equality Case</div>
+        $$\text{If } f(x) = mx + c, \text{ then } f(\lambda a + (1-\lambda)b) = \lambda f(a) + (1-\lambda) f(b)$$
+        <div class="eq-caption">Linear functions are both convex and concave — Jensen's inequality becomes equality</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Why equality matters</strong>
+          <p>When we apply Jensen's inequality to bound the GMM log-likelihood, we get an inequality — not equality. The gap between the two sides is exactly what the EM algorithm tries to close iteratively.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: GMM BOTTLENECK
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Back to the GMM bottleneck</h2>
+      </div>
+      <p class="sec-intro">
+        The log function is concave. That single fact is the key that unlocks the log-sum problem from the previous lecture.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-gmm-bottleneck">
+        <span class="eq-num">Equation (6)</span>
+        <div class="eq-label">Applying Jensen to the GMM Log-Likelihood</div>
+        $$\log\!\left( \sum_{k=1}^{K} \pi_k \, \N(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right) \geq \sum_{k=1}^{K} \pi_k \, \log\!\left( \N(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right)$$
+        <div class="eq-caption">Because $\log$ is concave and $\pi_k$ are valid weights ($\sum \pi_k = 1$, $\pi_k \ge 0$)</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The log of the weighted sum of Gaussian densities is at least the weighted sum of the logs of each Gaussian density. This swaps the order: the sum moves <em>outside</em> the log, where we can differentiate it term-by-term — at the cost of only having a lower bound.&rdquo;
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; From Intractable to Tractable</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with the intractable GMM log-likelihood</div>
+          <div class="dt-formula">$\displaystyle \ell(\boldsymbol{\theta}) = \sum_i \log\!\bigl( \sum_k \pi_k \N_k \bigr)$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Apply Jensen — $\log$ is concave, $\pi_k$ is a valid weight</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">A tractable lower bound emerges</div>
+          <div class="dt-formula">$\displaystyle \ell(\boldsymbol{\theta}) \geq \sum_i \sum_k \pi_k \log \N_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Now each component's parameters are separable</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Maximize the bound instead of the true log-likelihood</div>
+          <div class="dt-formula">$\displaystyle \text{EM algorithm}$</div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="cb-label">why_log_is_concave_matters.txt</div>
+        <pre><span class="cm">// last lecture, we got stuck here:</span>
+log( &#931;&#8323; &#960;&#8323; &#183; &#120001;(x_i | &#956;&#8323;, &#963;&#8323;&#178;) )
+
+<span class="cm">// log is concave, and &#960;&#8323; are weights that sum to 1 —</span>
+<span class="cm">// exactly the setup Jensen's inequality needs:</span>
+log( &#931;&#8323; &#960;&#8323; &#183; &#120001;&#8323; ) <span class="fn">&#8805;</span> &#931;&#8323; &#960;&#8323; &#183; log( &#120001;&#8323; )
+
+<span class="cm">// the sum has moved OUTSIDE the log — tracktable!</span></pre>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#x2714;</div>
+        <div class="co-body">
+          <strong>Why a lower bound is enough</strong>
+          <p>We don't get equality — but we get a tractable <strong>lower bound</strong> on the log-likelihood that we <em>can</em> differentiate cleanly. Maximizing that bound, instead of the true log-likelihood directly, is the core idea behind the Expectation-Maximization (EM) algorithm.</p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Next lecture</strong>
+          <p>We'll formalize this bound and turn it into an iterative procedure — the EM algorithm — which alternates between computing responsibilities (E-step) and maximizing parameters (M-step).</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Forgetting the direction:</strong> For concave $f$, Jensen says $f(\text{average}) \ge \text{average of } f$. Since $\log$ is concave, $\log(\sum \pi_k \N_k) \ge \sum \pi_k \log \N_k$. The bound is a <em>lower</em> bound.
+          </p>
+          <p>
+            &#x2716; <strong>Assuming the bound is tight:</strong> Jensen gives an inequality, not equality. The gap between the two sides depends on how "spread out" the $\N_k$ values are. The EM algorithm works by iteratively tightening this bound.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
 </main>
 
 <footer>
-  <p>CONVEXITY, CONCAVITY &amp; JENSEN'S INEQUALITY · LECTURE NOTES</p>
+  <p>CONVEXITY, CONCAVITY &amp; JENSEN'S INEQUALITY &middot; PREMIUM LECTURE NOTES</p>
 </footer>
-
-<script>
-  // ---- plot geometry ----
-  const X0 = 60, X1 = 640, Y0 = 250, Y1 = 40; // plot box in svg coords (Y inverted)
-  const domain = { min: 0.6, max: 5.8 };
-  const A = 1.3, B = 5.1;
-
-  const fns = {
-    convex: {
-      f: x => 0.16*(x-3)*(x-3) + 0.4,
-      color: '#7fc4b0',
-      symbol: '≤',
-      title: 'x²-type (convex)'
-    },
-    concave: {
-      f: x => 1.25*Math.log(x),
-      color: '#7fc4b0',
-      symbol: '≥',
-      title: 'log(x) (concave)'
-    }
-  };
-
-  let mode = 'convex';
-  let lambda = 0.5;
-  let yMin, yMax;
-
-  function toSvgX(x){ return X0 + (x - domain.min)/(domain.max - domain.min) * (X1 - X0); }
-  function toSvgY(y){ return Y0 - (y - yMin)/(yMax - yMin) * (Y0 - Y1); }
-
-  function computeRange(f){
-    let mn = Infinity, mx = -Infinity;
-    for(let i=0;i<=80;i++){
-      const x = domain.min + (domain.max-domain.min)*i/80;
-      const y = f(x);
-      mn = Math.min(mn,y); mx = Math.max(mx,y);
-    }
-    const pad = (mx-mn)*0.12;
-    yMin = mn - pad; yMax = mx + pad;
-  }
-
-  function drawCurve(f){
-    let d = '';
-    for(let i=0;i<=80;i++){
-      const x = domain.min + (domain.max-domain.min)*i/80;
-      const y = f(x);
-      const sx = toSvgX(x), sy = toSvgY(y);
-      d += (i===0 ? 'M' : 'L') + sx.toFixed(1) + ',' + sy.toFixed(1) + ' ';
-    }
-    document.getElementById('curvePath').setAttribute('d', d);
-  }
-
-  function render(){
-    const cfg = fns[mode];
-    computeRange(cfg.f);
-    drawCurve(cfg.f);
-    document.getElementById('curvePath').setAttribute('stroke', cfg.color);
-
-    const fa = cfg.f(A), fb = cfg.f(B);
-    const axA = toSvgX(A), ayA = toSvgY(fa);
-    const axB = toSvgX(B), ayB = toSvgY(fb);
-    document.getElementById('ptA').setAttribute('cx', axA);
-    document.getElementById('ptA').setAttribute('cy', ayA);
-    document.getElementById('ptB').setAttribute('cx', axB);
-    document.getElementById('ptB').setAttribute('cy', ayB);
-    document.getElementById('labelA').setAttribute('x', axA - 6);
-    document.getElementById('labelA').setAttribute('y', ayA + 20);
-    document.getElementById('labelB').setAttribute('x', axB - 6);
-    document.getElementById('labelB').setAttribute('y', ayB - 12);
-
-    const chordLine = document.getElementById('chordLine');
-    chordLine.setAttribute('x1', axA); chordLine.setAttribute('y1', ayA);
-    chordLine.setAttribute('x2', axB); chordLine.setAttribute('y2', ayB);
-
-    updateMarkers();
-  }
-
-  function updateMarkers(){
-    const cfg = fns[mode];
-    const x = lambda*A + (1-lambda)*B;
-    const curveY = cfg.f(x);
-    const chordY = lambda*cfg.f(A) + (1-lambda)*cfg.f(B);
-
-    const sx = toSvgX(x);
-    const scy = toSvgY(curveY);
-    const sch = toSvgY(chordY);
-
-    document.getElementById('ptCurve').setAttribute('cx', sx);
-    document.getElementById('ptCurve').setAttribute('cy', scy);
-    document.getElementById('ptChord').setAttribute('cx', sx);
-    document.getElementById('ptChord').setAttribute('cy', sch);
-
-    const dropLine = document.getElementById('dropLine');
-    dropLine.setAttribute('x1', sx); dropLine.setAttribute('y1', scy);
-    dropLine.setAttribute('x2', sx); dropLine.setAttribute('y2', sch);
-
-    document.getElementById('lamLabel').textContent = 'λ = ' + lambda.toFixed(2);
-    document.getElementById('curveVal').textContent = curveY.toFixed(3);
-    document.getElementById('chordVal').textContent = chordY.toFixed(3);
-
-    const symbol = curveY >= chordY ? '≥' : '≤';
-    document.getElementById('ineqVal').textContent = 'curve ' + symbol + ' chord';
-  }
-
-  function onSlide(v){
-    lambda = v/100;
-    updateMarkers();
-  }
-
-  function setMode(m){
-    mode = m;
-    document.getElementById('btnConvex').classList.toggle('active', m==='convex');
-    document.getElementById('btnConcave').classList.toggle('active', m==='concave');
-    render();
-  }
-
-  render();
-</script>
 
 </body>
 </html>

@@ -1,237 +1,361 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>JavaScript Collections — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Collections Arrays — Study Notes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.4rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:600px; margin: 0 auto; }
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:60px; }
-
-.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
-
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Array-as-drawer diagram */
-.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
-.diagram-box svg{ max-width:100%; height:auto; }
-.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.2rem; color: var(--chalk-blue); margin-top:12px; }
-
-/* Duo for null vs length */
-.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
-@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
-.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
-.duo .panel.a{ --accent: var(--chalk-blue); }
-.duo .panel.b{ --accent: var(--chalk-pink); }
-.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.15rem; margin:0 0 10px; }
-.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
-.duo .panel p strong{ color: var(--chalk); }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.55rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 07 · Companion Notes</div>
-    <h1>JavaScript Collections</h1>
-    <p class="subhead">— arrays, and the tools built to walk through them —</p>
-  </header>
-
-  <div class="thread"><span class="tag">Continuing from L06</span> Same functions and arrow syntax from DOM work — now applied to processing whole collections at once.</div>
-
-  <!-- Arrays overview -->
-  <section>
-    <div class="section-head"><h2>Arrays: Not Like C</h2><div class="rule"></div></div>
-    <div class="diagram-box" style="margin-bottom:20px;">
-      <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg">
-        <g font-family="Space Mono, monospace" font-size="10">
-          <text x="130" y="20" text-anchor="middle" fill="#8fb8c9">C-style array (egg carton)</text>
-          <rect x="30" y="30" width="200" height="40" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <line x1="70" y1="30" x2="70" y2="70" stroke="#8fb8c9" stroke-width="1"/>
-          <line x1="110" y1="30" x2="110" y2="70" stroke="#8fb8c9" stroke-width="1"/>
-          <line x1="150" y1="30" x2="150" y2="70" stroke="#8fb8c9" stroke-width="1"/>
-          <line x1="190" y1="30" x2="190" y2="70" stroke="#8fb8c9" stroke-width="1"/>
-          <text x="50" y="54" text-anchor="middle" fill="#f4f1e6">🥚</text>
-          <text x="90" y="54" text-anchor="middle" fill="#f4f1e6">🥚</text>
-          <text x="130" y="54" text-anchor="middle" fill="#f4f1e6">🥚</text>
-          <text x="170" y="54" text-anchor="middle" fill="#f4f1e6">🥚</text>
-          <text x="210" y="54" text-anchor="middle" fill="#f4f1e6">🥚</text>
-          <text x="130" y="90" text-anchor="middle" fill="#c9d1c3" font-size="9">fixed size, one type only</text>
-
-          <text x="480" y="20" text-anchor="middle" fill="#e8c468">JS array (junk drawer)</text>
-          <rect x="360" y="30" width="240" height="40" rx="4" fill="none" stroke="#e8c468" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="390" y="54" text-anchor="middle" fill="#f4f1e6" font-size="14">42</text>
-          <text x="440" y="54" text-anchor="middle" fill="#f4f1e6" font-size="14">"hi"</text>
-          <text x="500" y="54" text-anchor="middle" fill="#f4f1e6" font-size="14">ƒ()</text>
-          <text x="560" y="54" text-anchor="middle" fill="#f4f1e6" font-size="14">true</text>
-          <text x="480" y="90" text-anchor="middle" fill="#c9d1c3" font-size="9">grows freely, holds anything</text>
-        </g>
-      </svg>
-      <p class="caption">A C array is an egg carton — fixed slots, one kind of item. A JS array is a junk drawer — grows as needed, holds anything.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Arrays Are Objects</p>
-        <div class="row"><span class="label">Real Life</span><p>That junk drawer is really a labeled storage box — each item's "location" (0, 1, 2...) is just a label, the same way a box lid might say "left compartment" or "right compartment."</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Array indices are property names in disguise — <span class="code">arr[0]</span> works a lot like <span class="code">obj.zero</span>, because underneath, an array <em>is</em> an object.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Iteration & helpers -->
-  <section>
-    <div class="section-head"><h2>Iteration &amp; Functional Helpers</h2><div class="rule"></div></div>
-    <p class="section-intro">Instead of manually walking through a collection, hand the whole thing to a helper that already knows how to walk.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term"><span class="code">.map()</span></p>
-        <p class="def">Transforms every item, returning a new array of the same length.</p>
-        <div class="row"><span class="label">Real Life</span><p>A photo booth that stamps every ID photo onto a badge — one badge per photo, same order, same count.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Every input gets processed into an output — nothing is skipped, nothing is added.</p></div>
-      </div>
-      <div class="card">
-        <p class="term"><span class="code">.filter()</span></p>
-        <p class="def">Keeps only the items that pass a test.</p>
-        <div class="row"><span class="label">Real Life</span><p>A bouncer at a club entrance, letting in only guests who meet the dress code.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The line goes in; a smaller line comes out — everyone who didn't pass the test is simply turned away.</p></div>
-      </div>
-      <div class="card">
-        <p class="term"><span class="code">.find()</span></p>
-        <p class="def">Returns the first item that matches, then stops looking.</p>
-        <div class="row"><span class="label">Real Life</span><p>A search dog sniffing down a row of suitcases and sitting at the very first one that matches the scent.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>No need to check every remaining suitcase once a match is found — <span class="code">find</span> stops the instant it succeeds.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Advanced -->
-  <section>
-    <div class="section-head"><h2>Advanced Concepts</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Destructuring</p>
-        <p class="def">Extracts multiple values from an array into named variables in one line.</p>
-        <div class="row"><span class="label">Real Life</span><p>Unpacking a grocery bag directly into labeled jars on the counter — milk into the milk jug, eggs into the egg tray — instead of leaving everything jumbled in the bag and reaching in each time.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">const [a, b] = arr</span> is that unpacking step — one motion, everything lands where it's named.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Generators (<span class="code">yield</span>)</p>
-        <p class="def">Functions that pause mid-execution and resume later, remembering exactly where they left off.</p>
-        <div class="row"><span class="label">Real Life</span><p>A chef who hands you one course at a time — pausing after each dish, remembering exactly where they left off, ready to continue the moment you ask for the next course.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Nobody's stuck waiting for the whole seven-course meal to finish cooking before the first plate arrives — that's cooperative concurrency in a kitchen.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Manipulating arrays -->
-  <section>
-    <div class="section-head"><h2>Emptying &amp; Resizing Arrays</h2><div class="rule"></div></div>
-    <div class="duo" style="margin-bottom:20px;">
-      <div class="panel a">
-        <h4><span class="code">arr = null</span></h4>
-        <p>Like closing down the store entirely — the shelf, the sign, the whole location is gone. Nothing left to reference.</p>
-      </div>
-      <div class="panel b">
-        <h4><span class="code">arr.length = 0</span></h4>
-        <p>Like keeping the store open but clearing every shelf — the array itself still exists, just empty and ready to be refilled.</p>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Manually Setting Length (Holes)</p>
-        <div class="row"><span class="label">Real Life</span><p>A parking garage sign advertising "10 spots," but only 3 cars are actually parked — the other 7 signs are lit up as empty, even though no one ever assigned them.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>If you set <span class="code">arr.length = 10</span> on a 3-item array, slots 3–9 become "holes" — accessing them returns <span class="code">undefined</span>, exactly like peeking into an empty, never-filled parking spot.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Modern JS -->
-  <section>
-    <div class="section-head"><h2>Modern Collections: Map &amp; Set</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Map</p>
-        <p class="def">Stores key–value pairs, cleanly.</p>
-        <div class="row"><span class="label">Real Life</span><p>A coat check counter — you hand over your coat, get a numbered ticket, and that exact ticket retrieves your exact coat later.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Any value can be a "ticket" (key) in a Map — not just plain strings, the way older object-based workarounds required.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Set</p>
-        <p class="def">Stores only unique values — duplicates are automatically ignored.</p>
-        <div class="row"><span class="label">Real Life</span><p>A guest list at the door — writing the same name down twice doesn't get anyone in twice; the list just has one entry per person.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Adding a duplicate to a Set is a no-op — the guest list simply doesn't grow.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="takeaway">
-    <p>Arrays are junk drawers, not egg cartons — and map, filter, and find are just different-shaped hands reaching into that drawer for you.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 01</div>
+  <h1>Collections &amp; Arrays</h1>
+  <p>JavaScript provides three built-in collections — <b>Array</b>, <b>Map</b>, and <b>Set</b> — each designed for different data access patterns. Master when to use which.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span> Arrays — The Workhorse Collection</div>
+<div class="card">
+  <h2>Array Literal &amp; Indexing</h2>
+  <div class="def">Arrays are ordered, integer-indexed collections that can hold any type. Created with square brackets.</div>
+<pre><code><span class="cmt">// Array literal syntax</span>
+<span class="kw">const</span> fruits <span class="kw">=</span> [<span class="str">'apple'</span>, <span class="str">'banana'</span>, <span class="str">'cherry'</span>];
+<span class="kw">const</span> mixed <span class="kw">=</span> [<span class="num">42</span>, <span class="str">'hello'</span>, <span class="kw">true</span>, <span class="kw">null</span>, { <span class="prop">a</span>: <span class="num">1</span> }];
+
+<span class="cmt">// Indexing — zero based</span>
+console.log(fruits[<span class="num">0</span>]);        <span class="cmt">// "apple"</span>
+console.log(fruits[fruits.length <span class="kw">-</span> <span class="num">1</span>]); <span class="cmt">// "cherry"</span>
+
+<span class="cmt">// Length property — automatically tracked</span>
+console.log(fruits.length); <span class="cmt">// 3</span>
+
+<span class="cmt">// Setting length truncates or extends</span>
+fruits.length <span class="kw">=</span> <span class="num">2</span>;
+console.log(fruits); <span class="cmt">// ["apple", "banana"]</span></code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">An array is like a numbered locker row — each locker has an index (0, 1, 2…), you can put anything inside any locker, and the sign at the end tells you how many lockers exist.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Mutating Arrays — Stack &amp; Queue Operations</h2>
+  <div class="def">JavaScript arrays double as stacks (LIFO) and queues (FIFO) through built-in methods.</div>
+<pre><code><span class="kw">const</span> arr <span class="kw">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+
+<span class="cmt">// Push — add to end (stack push)</span>
+arr.push(<span class="num">4</span>);           <span class="cmt">// [1, 2, 3, 4]</span>
+
+<span class="cmt">// Pop — remove from end (stack pop)</span>
+arr.pop();              <span class="cmt">// [1, 2, 3], returns 4</span>
+
+<span class="cmt">// Unshift — add to front</span>
+arr.unshift(<span class="num">0</span>);        <span class="cmt">// [0, 1, 2, 3]</span>
+
+<span class="cmt">// Shift — remove from front (queue dequeue)</span>
+arr.shift();            <span class="cmt">// [1, 2, 3], returns 0</span>
+
+<span class="cmt">// Splice — general purpose insert/remove/replace</span>
+arr.splice(<span class="num">1</span>, <span class="num">1</span>);        <span class="cmt">// remove 1 item at index 1 → [1, 3]</span>
+arr.splice(<span class="num">1</span>, <span class="num">0</span>, <span class="num">99</span>);    <span class="cmt">// insert 99 at index 1 → [1, 99, 3]</span>
+arr.splice(<span class="num">1</span>, <span class="num">1</span>, <span class="num">42</span>);    <span class="cmt">// replace index 1 with 42 → [1, 42, 3]</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">2</span> Iteration Methods</div>
+<div class="card">
+  <h2>Transforming &amp; Querying Arrays</h2>
+  <div class="def">Modern JS favors declarative iteration helpers over manual <code>for</code> loops. Each method returns a predictable result.</div>
+<pre><code><span class="kw">const</span> nums <span class="kw">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+
+<span class="cmt">// forEach — side effects, no return value</span>
+nums.forEach(<span class="fn">n</span> <span class="kw">=></span> console.log(n));
+
+<span class="cmt">// map — transform every element, returns new array</span>
+<span class="kw">const</span> doubled <span class="kw">=</span> nums.map(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">*</span> <span class="num">2</span>);
+<span class="cmt">// doubled → [2, 4, 6, 8, 10]</span>
+
+<span class="cmt">// filter — keep elements passing a test</span>
+<span class="kw">const</span> evens <span class="kw">=</span> nums.filter(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">%</span> <span class="num">2</span> <span class="kw">===</span> <span class="num">0</span>);
+<span class="cmt">// evens → [2, 4]</span>
+
+<span class="cmt">// reduce — accumulate a single value</span>
+<span class="kw">const</span> sum <span class="kw">=</span> nums.reduce(<span class="fn">(acc, n)</span> <span class="kw">=></span> acc <span class="kw">+</span> n, <span class="num">0</span>);
+<span class="cmt">// sum → 15</span>
+
+<span class="cmt">// find — first element matching predicate</span>
+<span class="kw">const</span> found <span class="kw">=</span> nums.find(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">></span> <span class="num">3</span>);
+<span class="cmt">// found → 4</span>
+
+<span class="cmt">// findIndex — index of first match</span>
+<span class="kw">const</span> idx <span class="kw">=</span> nums.findIndex(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">===</span> <span class="num">3</span>);
+<span class="cmt">// idx → 2</span>
+
+<span class="cmt">// some — any element passes the test?</span>
+nums.some(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">></span> <span class="num">4</span>);   <span class="cmt">// true</span>
+
+<span class="cmt">// every — all elements pass?</span>
+nums.every(<span class="fn">n</span> <span class="kw">=></span> n <span class="kw">></span> <span class="num">0</span>);   <span class="cmt">// true</span></code></pre>
+  <div class="industry-box">
+    <div class="i-label">Industry Usage</div>
+    <div class="i-text">React's <code>useState</code> + <code>map</code>/<code>filter</code> is the standard pattern for rendering lists. Redux reducers rely heavily on <code>.reduce()</code> and the spread operator for immutable updates. In production code, <code>for</code> loops are rarely seen — these declarative methods are the norm.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Spread &amp; Destructuring</div>
+<div class="card">
+  <h2>Spreading Arrays</h2>
+  <div class="def">The spread operator (<code>...</code>) expands an array into individual elements — essential for immutability.</div>
+<pre><code><span class="kw">const</span> a <span class="kw">=</span> [<span class="num">1</span>, <span class="num">2</span>];
+<span class="kw">const</span> b <span class="kw">=</span> [<span class="num">3</span>, <span class="num">4</span>];
+
+<span class="cmt">// Concatenate (immutable)</span>
+<span class="kw">const</span> merged <span class="kw">=</span> [...a, ...b];  <span class="cmt">// [1, 2, 3, 4]</span>
+
+<span class="cmt">// Copy (shallow)</span>
+<span class="kw">const</span> copy <span class="kw">=</span> [...a];
+
+<span class="cmt">// Prepend / insert</span>
+<span class="kw">const</span> withHead <span class="kw">=</span> [<span class="num">0</span>, ...a];    <span class="cmt">// [0, 1, 2]</span>
+
+<span class="cmt">// Pass to function arguments</span>
+Math.max(...a);  <span class="cmt">// 2</span></code></pre>
+</div>
+
+<div class="card">
+  <h2>Destructuring Arrays</h2>
+  <div class="def">Unpack values from arrays into distinct variables in a single expression.</div>
+<pre><code><span class="kw">const</span> rgb <span class="kw">=</span> [<span class="num">255</span>, <span class="num">128</span>, <span class="num">64</span>];
+
+<span class="cmt">// Basic destructuring</span>
+<span class="kw">const</span> [red, green, blue] <span class="kw">=</span> rgb;
+console.log(red);   <span class="cmt">// 255</span>
+
+<span class="cmt">// Skipping with holes</span>
+<span class="kw">const</span> [first, , third] <span class="kw">=</span> rgb;
+console.log(third); <span class="cmt">// 64</span>
+
+<span class="cmt">// Rest pattern</span>
+<span class="kw">const</span> [head, ...tail] <span class="kw">=</span> rgb;
+<span class="cmt">// head → 255, tail → [128, 64]</span>
+
+<span class="cmt">// Default values</span>
+<span class="kw">const</span> [r <span class="kw">=</span> <span class="num">0</span>, g <span class="kw">=</span> <span class="num">0</span>, b <span class="kw">=</span> <span class="num">0</span>] <span class="kw">=</span> [];
+
+<span class="cmt">// Nested destructuring</span>
+<span class="kw">const</span> matrix <span class="kw">=</span> [[<span class="num">1</span>, <span class="num">2</span>], [<span class="num">3</span>, <span class="num">4</span>]];
+<span class="kw">const</span> [[a11, a12], [a21, a22]] <span class="kw">=</span> matrix;</code></pre>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Map — Keyed Collections</div>
+<div class="card">
+  <h2>Map: Beyond Plain Objects</h2>
+  <div class="def">Map holds key-value pairs where keys can be <strong>any type</strong> (objects, functions, primitives). Maintains insertion order.</div>
+<pre><code><span class="kw">const</span> userMap <span class="kw">=</span> <span class="kw">new</span> Map();
+
+<span class="cmt">// Set — add or update a key-value pair</span>
+userMap.set(<span class="str">'alice'</span>, { <span class="prop">age</span>: <span class="num">30</span> });
+userMap.set(<span class="str">'bob'</span>, { <span class="prop">age</span>: <span class="num">25</span> });
+
+<span class="cmt">// Get — retrieve by key</span>
+userMap.get(<span class="str">'alice'</span>);  <span class="cmt">// { age: 30 }</span>
+
+<span class="cmt">// Has — check for key existence</span>
+userMap.has(<span class="str">'charlie'</span>); <span class="cmt">// false</span>
+
+<span class="cmt">// Delete — remove a key</span>
+userMap.delete(<span class="str">'bob'</span>);
+
+<span class="cmt">// Size — count entries (not available on objects)</span>
+userMap.size;  <span class="cmt">// 1</span>
+
+<span class="cmt">// Clear — remove all entries</span>
+userMap.clear();
+
+<span class="cmt">// Iteration — keys(), values(), entries()</span>
+<span class="kw">for</span> (<span class="kw">const</span> [k, v] <span class="kw">of</span> userMap) { <span class="cmt">/* … */</span> }
+
+<span class="cmt">// Objects as keys — impossible with plain objects</span>
+<span class="kw">const</span> btn <span class="kw">=</span> document.getElementById(<span class="str">'submit'</span>);
+clickMap.set(btn, { <span class="prop">count</span>: <span class="num">0</span> });</code></pre>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Using <code>for...in</code> on a Map — <code>for...in</code> iterates enumerable properties, not Map entries. Always use <code>for...of</code> or the <code>.forEach()</code> method on Maps.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">Object as Map</div>
+    <div class="c-desc">Keys coerced to strings; no <code>.size</code>; no iteration order guarantee; prototype pollution risk; object keys not supported.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">Map</div>
+    <div class="c-desc">Keys any type; <code>.size</code> property; insertion order preserved; no prototype keys; built-in iteration with <code>for...of</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Set — Unique Values</div>
+<div class="card">
+  <h2>Set: Automatic Uniqueness</h2>
+  <div class="def">Set stores unique values of any type. Duplicates are silently ignored. Perfect for deduplication.</div>
+<pre><code><span class="kw">const</span> tags <span class="kw">=</span> <span class="kw">new</span> Set();
+
+<span class="cmt">// Add — duplicates are ignored</span>
+tags.add(<span class="str">'js'</span>);
+tags.add(<span class="str">'react'</span>);
+tags.add(<span class="str">'js'</span>);        <span class="cmt">// ignored — already present</span>
+
+<span class="cmt">// Has — fast membership check</span>
+tags.has(<span class="str">'react'</span>);     <span class="cmt">// true</span>
+
+<span class="cmt">// Delete — remove a value</span>
+tags.delete(<span class="str">'react'</span>);
+
+<span class="cmt">// Size</span>
+console.log(tags.size); <span class="cmt">// 1</span>
+
+<span class="cmt">// Clear</span>
+tags.clear();
+
+<span class="cmt">// Deduplicate an array</span>
+<span class="kw">const</span> dupes <span class="kw">=</span> [<span class="num">1</span>, <span class="num">2</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">3</span>, <span class="num">3</span>];
+<span class="kw">const</span> unique <span class="kw">=</span> [...<span class="kw">new</span> Set(dupes)];
+<span class="cmt">// unique → [1, 2, 3]</span>
+
+<span class="cmt">// Iteration</span>
+<span class="kw">for</span> (<span class="kw">const</span> val <span class="kw">of</span> tags) { <span class="cmt">/* … */</span> }
+tags.forEach(<span class="fn">v</span> <span class="kw">=></span> console.log(v));</code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A Set is like a VIP guest list: you can try to add a name a hundred times, but the list only ever holds one entry per person. Checking if someone is on the list is instant.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> When would you choose a Map over a plain object?</div>
+  <div class="a"><strong>A:</strong> When you need keys that aren't strings (e.g., DOM elements as keys), when you need reliable iteration order, when you need <code>.size</code>, or when you want to avoid prototype pollution risks. Plain objects are fine for simple string-keyed dictionaries with static shape.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What's the difference between <code>map</code> and <code>forEach</code>?</div>
+  <div class="a"><strong>A:</strong> <code>map</code> returns a new array of the same length (transformation). <code>forEach</code> returns <code>undefined</code> and is used solely for side effects. If you need the result, use <code>map</code> — it's declarative and chainable.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> How does <code>reduce</code> work and when is it appropriate?</div>
+  <div class="a"><strong>A:</strong> <code>reduce(fn, initialValue)</code> iterates through the array, passing an accumulated value and current element to the callback. It's appropriate whenever you need to derive a single value (sum, product, grouped object, flattened array) from a collection.</div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>Array literal</b> — <code>[1, 2, 3]</code></div>
+  <div class="rev-item"><b>push/pop</b> — stack (LIFO) at end</div>
+  <div class="rev-item"><b>shift/unshift</b> — queue (FIFO) at front</div>
+  <div class="rev-item"><b>splice</b> — insert/remove/replace</div>
+  <div class="rev-item"><b>map</b> — transform every element</div>
+  <div class="rev-item"><b>filter</b> — keep matching elements</div>
+  <div class="rev-item"><b>reduce</b> — accumulate to single value</div>
+  <div class="rev-item"><b>find</b> — first matching element</div>
+  <div class="rev-item"><b>some/every</b> — boolean queries</div>
+  <div class="rev-item"><b>Spread (...)</b> — expand array inline</div>
+  <div class="rev-item"><b>Destructuring</b> — unpack into variables</div>
+  <div class="rev-item"><b>Map</b> — any-type keys, insertion order</div>
+  <div class="rev-item"><b>Set</b> — unique values, auto-dedup</div>
+  <div class="rev-item"><b>size</b> — Map/Set entry count</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

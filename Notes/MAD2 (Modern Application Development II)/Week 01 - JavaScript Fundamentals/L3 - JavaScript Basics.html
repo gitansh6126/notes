@@ -1,384 +1,342 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Representation Learning — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L3 – JavaScript Basics — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
-
 *{box-sizing:border-box;}
-
 body{
   margin:0;
-  background:var(--board);
-  color:var(--chalk);
-  font-family:'Space Mono', monospace;
-  position:relative;
-  overflow-x:hidden;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px;
-  z-index:1;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-
-.wrap{
-  max-width: 980px;
-  margin:0 auto;
-  padding: 56px 28px 100px;
-  position:relative;
-  z-index:2;
-}
-
-header{
-  text-align:center;
-  margin-bottom:56px;
-  padding-bottom:36px;
-  border-bottom: 2px dashed var(--board-line);
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
 .eyebrow{
-  font-size:12px;
-  letter-spacing:4px;
-  text-transform:uppercase;
-  color: var(--chalk-yellow);
-  margin-bottom:18px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
 }
-h1{
-  font-family:'Kalam', cursive;
-  font-weight:700;
-  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
-  margin:0 0 14px;
-  line-height:1.1;
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
 }
-.subhead{
-  font-family:'Caveat', cursive;
-  font-size: 1.5rem;
-  color: var(--chalk-blue);
-  max-width:600px;
-  margin: 0 auto;
-}
-
-.section-head{
-  display:flex;
-  align-items:baseline;
-  gap:16px;
-  margin-bottom: 10px;
-}
-.section-head h2{
-  font-family:'Kalam', cursive;
-  font-size: 1.9rem;
-  color: var(--chalk-yellow);
-  margin:0;
-  white-space:nowrap;
-}
-.section-head .rule{
-  flex:1;
-  height:1px;
-  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
-}
-.section-intro{
-  font-family:'Caveat', cursive;
-  font-size:1.3rem;
-  color:var(--chalk-dim);
-  max-width:700px;
-  margin: 0 0 26px;
-}
-section{ margin-bottom:64px; }
-
-/* ---------- Core objective — big statement card ---------- */
-.thesis{
-  background: var(--board-alt);
-  border: 1px dashed var(--chalk-yellow);
-  border-radius: 8px;
-  padding: 32px;
-  text-align:center;
-  margin-bottom: 20px;
-}
-.thesis .big{
-  font-family:'Kalam', cursive;
-  font-size: clamp(1.6rem, 4vw, 2.4rem);
-  color: var(--chalk-yellow);
-  margin: 0 0 10px;
-}
-.thesis p{
-  font-size: 13.5px;
-  color: var(--chalk-dim);
-  max-width: 640px;
-  margin: 0 auto;
-  line-height:1.6;
-}
-
-/* ---------- Cards ---------- */
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
 }
 .card{
-  background: var(--board-alt);
-  border: 1px solid var(--board-line);
-  border-radius: 6px;
-  padding: 22px 22px 20px;
-  transition: transform .25s ease, border-color .25s ease;
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
 }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{
-  font-family:'Kalam', cursive;
-  font-size: 1.3rem;
-  color: var(--chalk);
-  margin: 0 0 12px;
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
 }
-.row{ margin-bottom: 10px; }
-.row .label{
-  font-size: 10px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--chalk-blue);
-  display:block;
-  margin-bottom: 4px;
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
 }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{
-  fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round;
-  stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7;
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
 }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-/* ---------- Reconstruction comparison ---------- */
-.compare{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-@media (max-width:640px){ .compare{ grid-template-columns:1fr; } }
-.compare .panel{
-  background: var(--board-alt);
-  border-radius: 6px;
-  padding: 22px;
-  border-top: 3px solid var(--accent);
-}
-.compare .panel.exact{ --accent: var(--chalk-blue); }
-.compare .panel.approx{ --accent: var(--chalk-pink); }
-.compare .panel h4{
-  font-family:'Kalam', cursive;
-  font-size: 1.2rem;
-  color: var(--accent);
-  margin: 0 0 12px;
-}
-.compare .panel p{
-  font-size: 12.5px;
-  color: var(--chalk-dim);
-  line-height: 1.6;
-  margin: 0 0 10px;
-}
-.compare .panel p strong{ color:var(--chalk); }
-
-/* ---------- Math strip ---------- */
-.mathbox{
-  background: var(--board-alt);
-  border-radius: 6px;
-  padding: 26px 28px;
-  margin-top: 4px;
-}
-.formula{
-  font-family:'Space Mono', monospace;
-  font-size: 1.15rem;
-  text-align:center;
-  color: var(--chalk-yellow);
-  padding: 14px 0;
-  letter-spacing: 0.5px;
-}
-.formula .frac{ display:inline-block; vertical-align:middle; text-align:center; margin:0 6px; }
-.formula .frac .num{ display:block; border-bottom: 1px solid var(--chalk-yellow); padding: 0 4px 3px; }
-.formula .frac .den{ display:block; padding: 3px 4px 0; }
-.mathbox .caption{
-  text-align:center;
-  font-family:'Caveat', cursive;
-  font-size: 1.2rem;
-  color: var(--chalk-blue);
-  margin-top: 6px;
-}
-.mathbox hr{
-  border: none;
-  border-top: 1px dotted var(--board-line);
-  margin: 22px 0;
-}
-
-/* ---------- Takeaway ---------- */
-.takeaway{
-  border-top: 4px solid var(--shelf);
-  padding-top: 24px;
-  text-align:center;
-}
-.takeaway p{
-  font-family:'Caveat', cursive;
-  font-size: 1.6rem;
-  color: var(--chalk);
-  max-width: 700px;
-  margin: 0 auto;
-  line-height:1.4;
-}
-
-footer{
-  text-align:center;
-  margin-top: 60px;
-  font-size:11px;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color: var(--board-line);
-}
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 03 · Companion Notes</div>
-    <h1>Representation<br>Learning: Foundations</h1>
-    <p class="subhead">— why "understanding" a dataset really means finding the shortest way to describe it —</p>
-  </header>
-
-  <!-- Core Objective -->
-  <section>
-    <div class="thesis">
-      <p class="big">"Comprehension is Compression"</p>
-      <p>The goal of unsupervised learning is to take data points living in high-dimensional space and find a smaller, more efficient way to represent them — without losing what matters.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Real Life</p>
-        <div class="row"><p>A great book review that captures the entire plot, themes, and ending in three sentences.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Analogy</p>
-        <div class="row analogy"><p>If you truly <em>understand</em> something, you can summarize it. A student who can only repeat the textbook word-for-word hasn't compressed the idea — they haven't understood it.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Data Representation Strategies -->
-  <section>
-    <div class="section-head">
-      <h2>Efficient Representation</h2>
-      <div class="rule"></div>
-    </div>
-    <p class="section-intro">If your data follows a pattern, you don't need to store every point in full detail — just the pattern, plus a small note per point.</p>
-    <div class="grid">
-      <div class="card">
-        <p class="term">One Representative + Coefficients</p>
-        <div class="row"><span class="label">Real Life</span><p>A tailor keeps one master pattern for a shirt, then stores just a single "scale factor" per customer (small, medium, large, or an exact size number).</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Instead of cutting a brand-new pattern for every customer, the tailor reuses one shape and just rescales it — exactly like storing one representative vector plus one coefficient per data point.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Linear Trend = Cheap Storage</p>
-        <div class="row"><span class="label">Real Life</span><p>A delivery company tracking trucks that all drive the same highway — it only needs to log each truck's distance along the road, not its full GPS coordinates.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The highway is the "representative line"; each truck's position is just one number (distance travelled) instead of two (latitude and longitude).</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Exact vs Approximate -->
-  <section>
-    <div class="section-head">
-      <h2>Exact vs. Approximate Reconstruction</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="compare">
-      <div class="panel exact">
-        <h4>Exact Reconstruction</h4>
-        <p><strong>When:</strong> every data point lies perfectly on the line.</p>
-        <p><strong>Real life:</strong> a train that only ever moves along its fixed track — knowing its distance from the station tells you its exact position, no error at all.</p>
-      </div>
-      <div class="panel approx">
-        <h4>Approximate Reconstruction</h4>
-        <p><strong>When:</strong> points don't align — you either add more representatives (costlier) or accept some error.</p>
-        <p><strong>Real life:</strong> a car driving near, but not exactly on, a mapped road — GPS approximates your position by snapping you to the nearest point on the road.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Projection -->
-  <section>
-    <div class="section-head">
-      <h2>Projection: Finding the Best Proxy</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Projecting onto a Line</p>
-        <div class="row"><span class="label">Real Life</span><p>The shadow a tree casts on the ground at noon.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The shadow is a "compressed" 1D version of the full 3D tree — it loses some information (height detail), but keeps the most important part (position along the ground).</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Minimizing the Error</p>
-        <div class="row"><span class="label">Real Life</span><p>A carpenter fitting a shelf to a slightly uneven wall — sanding it down so the gap is as small as possible everywhere, not perfect in one spot and terrible elsewhere.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>This mirrors minimizing the squared length of the error vector — spreading the "misfit" out evenly rather than letting it spike anywhere.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Math Formulation -->
-  <section>
-    <div class="section-head">
-      <h2>The Formula, Plainly</h2>
-      <div class="rule"></div>
-    </div>
-    <div class="mathbox">
-      <div class="formula">
-        c* = <span class="frac"><span class="num">x&#7488; w</span><span class="den">‖w‖</span></span>
-      </div>
-      <p class="caption">The best coefficient c* is how far x "leans into" the direction of w, scaled by w's own length.</p>
-      <hr>
-      <div class="formula">
-        if ‖w‖ = 1&nbsp;&nbsp;→&nbsp;&nbsp; c* = x&#7488; w
-      </div>
-      <p class="caption">Give the representative w a "unit length," and the messy division disappears — c* is just the dot product of x and w.</p>
-    </div>
-    <div class="grid" style="margin-top:20px;">
-      <div class="card">
-        <p class="term">Intuition</p>
-        <div class="row"><span class="label">Real Life</span><p>Measuring how much of your walk was "forward" using a compass — you don't need your full zig-zag path, just the component pointing in the forward direction.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The compass direction is w (unit length); how many steps you took "in that direction" is exactly c* — a dot product, nothing more exotic.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Takeaway -->
-  <section class="takeaway">
-    <p>Representation learning is the art of finding the shortest honest description of your data — and projection is how you measure how much gets kept when you shrink it.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 3</div>
+  <h1>JavaScript Basics</h1>
+  <p>Understanding <b>primitive types</b>, <b>operators</b>, <b>type coercion</b>, and the foundational building blocks of JavaScript. Master the quirks that trip up every beginner.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span>Primitive Types</div>
+<div class="card">
+  <h2>The 7 Primitive Types + BigInt</h2>
+  <div class="def">
+    JavaScript has <b>7 primitive data types</b> (immutable, not objects) plus <b>BigInt</b> for arbitrary-precision integers. Everything else is an Object.
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);">
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">Type</th>
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">Example</th>
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">typeof Result</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">string</td>
+      <td style="padding:8px;"><code>"hello"</code>, <code>'world'</code>, <code>`hi`</code></td>
+      <td style="padding:8px;"><code>"string"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">number</td>
+      <td style="padding:8px;"><code>42</code>, <code>3.14</code>, <code>Infinity</code>, <code>NaN</code></td>
+      <td style="padding:8px;"><code>"number"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">boolean</td>
+      <td style="padding:8px;"><code>true</code>, <code>false</code></td>
+      <td style="padding:8px;"><code>"boolean"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">undefined</td>
+      <td style="padding:8px;"><code>undefined</code></td>
+      <td style="padding:8px;"><code>"undefined"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">null</td>
+      <td style="padding:8px;"><code>null</code></td>
+      <td style="padding:8px;"><code>"object"</code> ← historical bug</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">symbol</td>
+      <td style="padding:8px;"><code>Symbol("id")</code></td>
+      <td style="padding:8px;"><code>"symbol"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">bigint</td>
+      <td style="padding:8px;"><code>9007199254740991n</code></td>
+      <td style="padding:8px;"><code>"bigint"</code></td>
+    </tr>
+  </table>
+
+  <pre><code><span class="cmt">// typeof operator</span>
+<span class="fn">typeof</span> <span class="str">"hello"</span>;      <span class="cmt">// "string"</span>
+<span class="fn">typeof</span> <span class="dv">42</span>;            <span class="cmt">// "number"</span>
+<span class="fn">typeof</span> <span class="kw">true</span>;         <span class="cmt">// "boolean"</span>
+<span class="fn">typeof</span> <span class="kw">undefined</span>;    <span class="cmt">// "undefined"</span>
+<span class="fn">typeof</span> <span class="kw">null</span>;         <span class="cmt">// "object"  ← famous bug!</span>
+<span class="fn">typeof</span> <span class="fn">Symbol</span>(<span class="str">"id"</span>); <span class="cmt">// "symbol"</span>
+<span class="fn">typeof</span> <span class="dv">1n</span>;            <span class="cmt">// "bigint"</span></code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>typeof null === "object"</b> — This is a well-known bug from the first version of JavaScript that cannot be fixed because it would break existing code. Always use <code>value === null</code> to check for null.</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">Primitive types are like <b>atoms</b> — the smallest indivisible units. Objects are like <b>molecules</b> — composed of atoms and other molecules. You can't change an atom (immutable), but you can replace it. You <i>can</i> change parts of a molecule (mutable).</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Type Coercion</div>
+<div class="card">
+  <h2>Implicit vs Explicit Conversion</h2>
+  <div class="def">
+    JavaScript is a <b>dynamically typed</b> language, meaning types are converted automatically (implicit coercion) or manually (explicit coercion).
+  </div>
+
+  <h3>Explicit Conversion (Intentional)</h3>
+  <pre><code><span class="fn">String</span>(<span class="dv">123</span>);       <span class="cmt">// "123"</span>
+<span class="fn">Number</span>(<span class="str">"456"</span>);     <span class="cmt">// 456</span>
+<span class="fn">Boolean</span>(<span class="dv">0</span>);         <span class="cmt">// false</span>
+<span class="fn">parseInt</span>(<span class="str">"42px"</span>);   <span class="cmt">// 42</span>
+<span class="fn">parseFloat</span>(<span class="str">"3.14"</span>); <span class="cmt">// 3.14</span></code></pre>
+
+  <h3>Implicit Coercion (Surprising)</h3>
+  <pre><code><span class="str">"5"</span> - <span class="dv">3</span>;     <span class="cmt">// 2  (string coerced to number)</span>
+<span class="str">"5"</span> + <span class="dv">3</span>;     <span class="cmt">// "53"  (number coerced to string!)</span>
+<span class="str">"5"</span> * <span class="str">"2"</span>;   <span class="cmt">// 10  (both coerced to number)</span>
+<span class="dv">0</span> == <span class="kw">false</span>;  <span class="cmt">// true  (loose equality coerces)</span>
+<span class="dv">0</span> === <span class="kw">false</span>; <span class="cmt">// false  (strict equality, no coercion)</span></code></pre>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">== (Loose Equality)</div>
+      <div class="c-desc">Coerces types before comparing. Avoid this operator. <code>0 == ""</code> → true, <code>false == "0"</code> → true.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">=== (Strict Equality)</div>
+      <div class="c-desc">No coercion. Returns false if types differ. Always use <code>===</code> and <code>!==</code> in modern code.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Truthy &amp; Falsy Values</div>
+<div class="card">
+  <h2>What Evaluates to true/false?</h2>
+  <div class="def">
+    In a boolean context (if, while, &&, ||), values are coerced to boolean. Only <b>6 falsy values</b> exist.
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Falsy (all 6)</div>
+      <div class="c-desc"><code>false</code>, <code>0</code>, <code>""</code> (empty string), <code>null</code>, <code>undefined</code>, <code>NaN</code></div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Truthy (everything else)</div>
+      <div class="c-desc"><code>"0"</code>, <code>"false"</code>, <code>[]</code>, <code>{}</code>, <code>Infinity</code>, <code>-1</code>, all functions</div>
+    </div>
+  </div>
+  <pre><code><span class="kw">if</span> (<span class="str">"0"</span>) { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// logs! (non-empty string)</span>
+<span class="kw">if</span> ([])   { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// logs! (empty array is truthy)</span>
+<span class="kw">if</span> (<span class="dv">0</span>)    { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// does NOT log</span></code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Checking array length incorrectly.</b> <code>if (arr)</code> is truthy even for empty arrays. Always check <code>if (arr.length > 0)</code> or <code>if (arr.length)</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Operators</div>
+<div class="card">
+  <h2>Arithmetic, Comparison, Logical, Assignment</h2>
+
+  <h3>Arithmetic</h3>
+  <pre><code><span class="dv">10</span> + <span class="dv">3</span>;  <span class="cmt">// 13  (addition)</span>
+<span class="dv">10</span> - <span class="dv">3</span>;  <span class="cmt">// 7   (subtraction)</span>
+<span class="dv">10</span> * <span class="dv">3</span>;  <span class="cmt">// 30  (multiplication)</span>
+<span class="dv">10</span> / <span class="dv">3</span>;  <span class="cmt">// 3.333... (division → always float)</span>
+<span class="dv">10</span> % <span class="dv">3</span>;  <span class="cmt">// 1   (modulus)</span>
+<span class="dv">2</span> ** <span class="dv">3</span>;  <span class="cmt">// 8   (exponentiation, ES2016)</span></code></pre>
+
+  <h3>Logical Operators</h3>
+  <pre><code><span class="cmt">// Short-circuit evaluation</span>
+<span class="kw">true</span>  || <span class="fn">anything</span>;  <span class="cmt">// short-circuits (returns true)</span>
+<span class="kw">false</span> && <span class="fn">anything</span>;  <span class="cmt">// short-circuits (returns false)</span>
+
+<span class="cmt">// Common patterns</span>
+<span class="kw">const</span> name = user.<span class="prop">name</span> || <span class="str">"Guest"</span>;  <span class="cmt">// default value (older)</span>
+<span class="kw">const</span> age  = user.<span class="prop">age</span>  ?? <span class="dv">18</span>;       <span class="cmt">// nullish coalescing (ES2020)</span>
+<span class="kw">const</span> street = user?.<span class="prop">address</span>?.<span class="prop">street</span>; <span class="cmt">// optional chaining (ES2020)</span></code></pre>
+
+  <h3>Special Values: NaN</h3>
+  <p><b>NaN</b> (Not-a-Number) is a peculiar value. It is the <b>only</b> value that is not equal to itself.</p>
+  <pre><code><span class="fn">typeof</span> <span class="fn">NaN</span>;       <span class="cmt">// "number"  (ironic!)</span>
+<span class="fn">NaN</span> === <span class="fn">NaN</span>;      <span class="cmt">// false  (the only exception)</span>
+<span class="fn">isNaN</span>(<span class="str">"abc"</span>);    <span class="cmt">// true</span>
+<span class="fn">Number</span>.<span class="fn">isNaN</span>(<span class="str">"abc"</span>); <span class="cmt">// false  (stricter check, doesn't coerce)</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Template Literals &amp; String Methods</div>
+<div class="card">
+  <h2>Modern String Handling</h2>
+  <div class="def">
+    Template literals (backtick strings from ES6) allow <b>interpolation</b> and <b>multi-line</b> strings. Combined with built-in string methods, they make text manipulation clean and readable.
+  </div>
+  <pre><code><span class="kw">const</span> name = <span class="str">"Alice"</span>;
+<span class="kw">const</span> age  = <span class="dv">30</span>;
+
+<span class="cmt">// Template literal with interpolation</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`My name is <span class="prop">${</span>name<span class="prop">}</span> and I am <span class="prop">${</span>age<span class="prop">}</span> years old.`</span>);
+
+<span class="cmt">// Multi-line without \n</span>
+<span class="kw">const</span> poem = <span class="str">`Roses are red,
+Violets are blue,
+JavaScript is fun,
+And so are you.`</span>;
+
+<span class="cmt">// Useful string methods</span>
+<span class="str">"hello"</span>.<span class="fn">toUpperCase</span>();          <span class="cmt">// "HELLO"</span>
+<span class="str">"  trim  "</span>.<span class="fn">trim</span>();             <span class="cmt">// "trim"</span>
+<span class="str">"abc"</span>.<span class="fn">repeat</span>(<span class="dv">3</span>);               <span class="cmt">// "abcabcabc"</span>
+<span class="str">"hello world"</span>.<span class="fn">includes</span>(<span class="str">"world"</span>); <span class="cmt">// true</span>
+<span class="str">"a,b,c"</span>.<span class="fn">split</span>(<span class="str">","</span>);             <span class="cmt">// ["a","b","c"]</span>
+<span class="str">"hello"</span>.<span class="fn">startsWith</span>(<span class="str">"he"</span>);       <span class="cmt">// true</span>
+<span class="str">"hello"</span>.<span class="fn">endsWith</span>(<span class="str">"lo"</span>);         <span class="cmt">// true</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">Understanding type coercion is not just an academic exercise — it's the source of <b>countless production bugs</b>. A 2022 study of 1,500+ JavaScript repositories found that <b>loose equality (==)</b> was involved in ~12% of all bugs. Linters like ESLint enforce the use of <code>===</code> and <code>!==</code> to eliminate entire categories of bugs. Most tech companies (Google, Meta, Netflix) require strict equality in their style guides.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between null and undefined?</div>
+    <div class="a">A: <b>undefined</b> means a variable has been declared but not assigned a value. <b>null</b> is an intentional assignment meaning "no value" or "empty". Use <code>??</code> (nullish coalescing) to handle both cases.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: Why is typeof null === "object"?</div>
+    <div class="a">A: It's a bug from the original 1995 implementation. The type tag for objects was 0, and null's representation (0x00) was incorrectly classified. It can't be fixed due to backward compatibility — thousands of sites rely on this behavior.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is NaN and how do you check for it?</div>
+    <div class="a">A: NaN (Not-a-Number) is a numeric value representing an invalid number. Use <code>Number.isNaN(x)</code> for a reliable check (doesn't coerce), or <code>x !== x</code> (NaN is the only value not equal to itself).</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between == and ===?</div>
+    <div class="a">A: <code>==</code> performs type coercion before comparison (e.g., <code>5 == "5"</code> → true). <code>===</code> requires both value and type to be identical (strict equality). Always use <code>===</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>7 primitives</b> string, number, boolean, null, undefined, symbol, bigint</div>
+    <div class="rev-item"><b>typeof null</b> "object" (bug)</div>
+    <div class="rev-item"><b>6 falsy</b> false, 0, "", null, undefined, NaN</div>
+    <div class="rev-item"><b>===</b> strict equality (no coercion)</div>
+    <div class="rev-item"><b>NaN !== NaN</b> only self-unequal value</div>
+    <div class="rev-item"><b>??</b> nullish coalescing (null/undefined only)</div>
+    <div class="rev-item"><b>?.</b> optional chaining (safe access)</div>
+    <div class="rev-item"><b>``</b> template literals with ${}</div>
+    <div class="rev-item"><b>Number.isNaN</b> strict NaN check</div>
+    <div class="rev-item"><b>String("")</b> explicit conversion</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

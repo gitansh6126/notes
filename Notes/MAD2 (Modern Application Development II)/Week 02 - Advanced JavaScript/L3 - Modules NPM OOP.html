@@ -1,261 +1,269 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Modules &amp; Object Orientation — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Modules NPM OOP — Study Notes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5vw, 3.2rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.85rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:60px; }
-
-.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
-
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.2rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Timeline for module evolution */
-.timeline{ display:flex; align-items:stretch; gap:0; flex-wrap:wrap; }
-.timeline .stage{ flex:1; min-width:220px; background: var(--board-alt); border-radius:6px; padding:18px 20px; margin:6px; border-top:3px solid var(--accent); }
-.timeline .stage.cjs{ --accent: var(--chalk-blue); }
-.timeline .stage.amd{ --accent: var(--chalk-pink); }
-.timeline .stage.es6{ --accent: var(--chalk-yellow); }
-.timeline .stage h4{ font-family:'Kalam', cursive; color: var(--accent); margin:0 0 8px; font-size:1.1rem; }
-.timeline .stage p{ font-size:12px; color:var(--chalk-dim); line-height:1.5; margin:0 0 8px; }
-.timeline .stage p.a{ color: var(--accent); font-style:italic; }
-
-/* Prototype chain diagram */
-.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
-.diagram-box svg{ max-width:100%; height:auto; }
-.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
-
-/* Duo copying */
-.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
-@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
-.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
-.duo .panel.a{ --accent: var(--chalk-blue); }
-.duo .panel.b{ --accent: var(--chalk-pink); }
-.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.1rem; margin:0 0 10px; }
-.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 08 · Companion Notes</div>
-    <h1>Modules &amp; Object<br>Orientation</h1>
-    <p class="subhead">— how JS code stays organized, and how JS objects actually relate to each other —</p>
-  </header>
-
-  <div class="thread"><span class="tag">Continuing from L07</span> Same collections and functions — now packaged into files, and organized into objects.</div>
-
-  <!-- Modularity -->
-  <section>
-    <div class="section-head"><h2>Evolution of Modules</h2><div class="rule"></div></div>
-    <p class="section-intro">Three generations of "how do I borrow code from another file," each solving the last one's problem.</p>
-    <div class="timeline">
-      <div class="stage cjs">
-        <h4>CommonJS</h4>
-        <p>Server-side (Node.js). Loads synchronously — you wait right there until it's ready.</p>
-        <p class="a">Like ordering at a local counter: you stand and wait until the order is handed to you before doing anything else.</p>
-      </div>
-      <div class="stage amd">
-        <h4>AMD</h4>
-        <p>Client-side, asynchronous — built for browsers that can't afford to freeze and wait.</p>
-        <p class="a">Like ordering delivery: you place the order and keep doing your day, no standing around required.</p>
-      </div>
-      <div class="stage es6">
-        <h4>ES6 Modules</h4>
-        <p>The modern standard — asynchronous, and works in both browser and server.</p>
-        <p class="a">Like a universal courier service that delivers whether you're at home or the office — one system, everywhere.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Working with modules -->
-  <section>
-    <div class="section-head"><h2>Exporting &amp; Importing</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term"><span class="code">export</span> / <span class="code">import</span></p>
-        <p class="def">Expose specific values from a file; pull them into another.</p>
-        <div class="row"><span class="label">Real Life</span><p>An author publishing one chapter publicly (<span class="code">export</span>), while another book's footnotes reference and borrow that exact chapter (<span class="code">import</span>).</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A <span class="code">default export</span> is like the book's title chapter — there's only one, and it's what you get if you don't ask for anything specific by name.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Renaming Imports</p>
-        <div class="row"><span class="label">Real Life</span><p>Giving a nickname to a borrowed tool so it doesn't get confused with a tool you already own with the same name.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">import { add as sum }</span> is exactly that — same borrowed tool, relabeled so it fits cleanly into your own toolbox.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Read-Only Imports</p>
-        <div class="row"><span class="label">Real Life</span><p>A library book — you can read every page, but you can't scribble edits directly into the original copy.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>To actually change something, you have to ask the library itself (call a function the module exports) to make the edit on your behalf.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- NPM -->
-  <section>
-    <div class="grid">
-      <div class="card">
-        <p class="term">NPM + Bundlers</p>
-        <p class="def">A package registry, plus tools (Webpack, Rollup) that package modules for the browser.</p>
-        <div class="row"><span class="label">Real Life</span><p>NPM is a giant warehouse of parts; a bundler is the moving crew that picks only the parts your project actually needs and packs them into one box a delivery truck (the browser) can carry.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The warehouse (npm) was built for backend use; bundlers are what make its contents portable enough for the front end.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- OOP -->
-  <section>
-    <div class="section-head"><h2>Objects &amp; <span class="code">this</span></h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Objects as Dictionaries</p>
-        <div class="row"><span class="label">Real Life</span><p>A filing folder with labeled tabs — "Name," "Age," "Address" — each tab leading straight to its own piece of paper.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>An object literal <span class="code">{ name: "Ana" }</span> is that folder, built instantly by writing the tabs and their contents in one go.</p></div>
-      </div>
-      <div class="card">
-        <p class="term"><span class="code">this</span> in Methods</p>
-        <div class="row"><span class="label">Real Life</span><p>A Swiss Army knife's blade, when unfolded, "knows" it belongs to the same tool as the corkscrew and scissors right next to it.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">this</span> is how a method reaches sideways into the other properties of the exact object it's attached to.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Prototype chain -->
-  <section>
-    <div class="section-head"><h2>Prototype-Based Inheritance</h2><div class="rule"></div></div>
-    <div class="diagram-box">
-      <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
-        <g font-family="Kalam, cursive" font-size="13">
-          <rect x="20" y="55" width="140" height="45" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5"/>
-          <text x="90" y="82" text-anchor="middle" fill="#f4f1e6">Apprentice</text>
-
-          <path d="M160,77 L250,77" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#a1)"/>
-          <text x="205" y="68" text-anchor="middle" fill="#8fb8c9" font-family="Space Mono, monospace" font-size="9">asks</text>
-
-          <rect x="250" y="55" width="140" height="45" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5"/>
-          <text x="320" y="82" text-anchor="middle" fill="#f4f1e6">Mentor</text>
-
-          <path d="M390,77 L480,77" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#a2)"/>
-          <text x="435" y="68" text-anchor="middle" fill="#d98fa0" font-family="Space Mono, monospace" font-size="9">asks</text>
-
-          <rect x="480" y="55" width="140" height="45" rx="6" fill="none" stroke="#d98fa0" stroke-width="1.5"/>
-          <text x="550" y="82" text-anchor="middle" fill="#f4f1e6">Master</text>
-
-          <defs>
-            <marker id="a1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker>
-            <marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d98fa0"/></marker>
-          </defs>
-        </g>
-      </svg>
-      <p class="caption">If the apprentice doesn't know something, they ask their mentor. If the mentor doesn't know either, they ask their own mentor — the prototype chain.</p>
-    </div>
-    <div class="grid" style="margin-top:20px;">
-      <div class="card">
-        <p class="term"><span class="code">class</span> Keyword</p>
-        <div class="row"><span class="label">Real Life</span><p>A clean instruction sheet describing the apprentice-mentor relationship — but underneath, the actual process is still one person asking another up the chain.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">class</span> is syntax sugar over prototypes, not a different mechanism — same chain, tidier paperwork.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Single-Track Inheritance</p>
-        <div class="row"><span class="label">Real Life</span><p>Unlike a family tree with two parents, each apprentice here has exactly one mentor to fall back on — not two mentors merged together.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Every object's prototype chain is a single line going up, never a tree branching from two sources at once.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Copying objects -->
-  <section>
-    <div class="section-head"><h2>Copying Objects</h2><div class="rule"></div></div>
-    <div class="duo" style="margin-bottom:20px;">
-      <div class="panel a">
-        <h4><span class="code">y = x</span> (Reference)</h4>
-        <p>Two remote controls paired to the exact same TV. Press a button on either one, and the same TV changes — there's only ever been one TV.</p>
-      </div>
-      <div class="panel b">
-        <h4><span class="code">{...x}</span> (Shallow Copy)</h4>
-        <p>Photocopying a document. You now hold a second, independent sheet of paper — editing your copy doesn't touch the original.</p>
-      </div>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">The Nested-Object Caveat</p>
-        <div class="row"><span class="label">Real Life</span><p>Your photocopy is independent — but if the original page had a sticky note saying "see the folder in the drawer," your photocopy's sticky note points to that <em>same</em> drawer, not a new one.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A shallow copy only duplicates the top page — nested objects inside still point back to the original, shared drawer.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="takeaway">
-    <p>Modules are how files lend each other tools without tangling; prototypes are how objects lend each other behavior without a rigid class hierarchy.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 03</div>
+  <h1>Modules, NPM &amp; Objects</h1>
+  <p>How JavaScript code is packaged, shared, and organized — from <b>ES6 modules</b> and the <b>npm</b> ecosystem to <b>object</b> fundamentals and the <code>this</code> keyword.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span> ES6 Modules — Export &amp; Import</div>
+<div class="card">
+  <h2>Named &amp; Default Exports</h2>
+  <div class="def">Every file is its own module. You control exactly what is exposed to the outside world.</div>
+<pre><code><span class="cmt">// ------ math.js ------</span>
+<span class="cmt">// Named export — multiple per module</span>
+<span class="kw">export</span> <span class="kw">const</span> PI <span class="kw">=</span> <span class="num">3.14159</span>;
+<span class="kw">export</span> <span class="kw">function</span> add(<span class="fn">a, b</span>) { <span class="kw">return</span> a <span class="kw">+</span> b; }
+
+<span class="cmt">// Default export — one per module</span>
+<span class="kw">export</span> <span class="kw">default</span> <span class="kw">class</span> Calculator { <span class="cmt">/* … */</span> }
+
+<span class="cmt">// ------ app.js ------</span>
+<span class="cmt">// Named import — must use exact name</span>
+<span class="kw">import</span> { PI, add } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Default import — any name you choose</span>
+<span class="kw">import</span> Calc <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Combined import</span>
+<span class="kw">import</span> Calc, { PI, add } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Aliases — rename to avoid conflicts</span>
+<span class="kw">import</span> { add <span class="kw">as</span> sum } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Namespace import — all exports on one object</span>
+<span class="kw">import</span> <span class="kw">*</span> <span class="kw">as</span> math <span class="kw">from</span> <span class="str">'./math.js'</span>;
+console.log(math.PI);     <span class="cmt">// 3.14159</span>
+console.log(math.add(<span class="num">2</span>, <span class="num">3</span>)); <span class="cmt">// 5</span></code></pre>
+  <div class="tip-box">
+    <div class="t-label">Key Insight</div>
+    <div class="t-text">Module scope is <strong>strict mode by default</strong> — no need for <code>"use strict"</code>. All top-level declarations are private unless explicitly exported.</div>
+  </div>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A module is like a toolbox drawer with a label. <code>export</code> is hanging a tool on the pegboard outside the drawer; <code>import</code> is taking that specific tool from the pegboard into your own workspace. Default export is the "main" tool everyone knows the drawer for.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">CommonJS (Node.js)</div>
+    <div class="c-desc">Synchronous <code>require()</code> / <code>module.exports</code>. Dynamic imports allowed anywhere. Not supported in browsers without bundling. Used in legacy Node.js code.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">ES6 Modules (ESM)</div>
+    <div class="c-desc">Static <code>import</code> / <code>export</code> (analyzed at parse time). Async loading by default. Works in browsers with <code>&lt;script type="module"&gt;</code>. The standard for modern JS.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> NPM — The Package Ecosystem</div>
+<div class="card">
+  <h2>package.json, Dependencies &amp; Lockfiles</h2>
+  <div class="def">npm is the default package manager for Node.js. It manages project metadata, scripts, and dependencies.</div>
+<pre><code><span class="cmt">// Initialize a new project</span>
+npm init <span class="kw">-</span>y    <span class="cmt">// creates package.json with defaults</span>
+
+<span class="cmt">// Install a dependency</span>
+npm install lodash    <span class="cmt">// adds to "dependencies"</span>
+npm install <span class="kw">-</span><span class="kw">-</span>save-dev jest  <span class="cmt">// adds to "devDependencies"</span></code></pre>
+  <p><strong>package.json</strong> — stores project name, version, scripts, and dependency lists.</p>
+  <p><strong>node_modules</strong> — where installed packages live. Never commit to version control.</p>
+  <p><strong>package-lock.json</strong> — locks exact version numbers for reproducible installs across machines.</p>
+  <div class="industry-box">
+    <div class="i-label">Industry Best Practice</div>
+    <div class="i-text">Always commit <code>package-lock.json</code> to version control. It ensures every developer and deployment pipeline installs the exact same dependency tree — preventing "works on my machine" bugs caused by minor version drift.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Installing packages globally (<code>npm install -g</code>) when they should be local dev dependencies. Tools like ESLint, Prettier, and bundlers belong in <code>devDependencies</code> so every team member uses the same version.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Objects — Syntax &amp; Patterns</div>
+<div class="card">
+  <h2>Object Literals &amp; Modern Shorthands</h2>
+  <div class="def">Objects are the fundamental data structure in JS. Modern syntax makes them more concise.</div>
+<pre><code><span class="cmt">// Basic literal</span>
+<span class="kw">const</span> user <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Alice'</span>,
+  <span class="prop">age</span>: <span class="num">30</span>
+};
+
+<span class="cmt">// Computed property keys</span>
+<span class="kw">const</span> key <span class="kw">=</span> <span class="str">'dynamicField'</span>;
+<span class="kw">const</span> obj <span class="kw">=</span> {
+  [key]: <span class="str">'value'</span>,         <span class="cmt">// evaluates key at definition time</span>
+  [`${key}<span class="num">2</span>`]: <span class="str">'another'</span>
+};
+
+<span class="cmt">// Property value shorthand</span>
+<span class="kw">const</span> name <span class="kw">=</span> <span class="str">'Bob'</span>;
+<span class="kw">const</span> age <span class="kw">=</span> <span class="num">25</span>;
+<span class="kw">const</span> person <span class="kw">=</span> { name, age }; <span class="cmt">// { name: 'Bob', age: 25 }</span>
+
+<span class="cmt">// Method shorthand</span>
+<span class="kw">const</span> greeter <span class="kw">=</span> {
+  <span class="fn">sayHi</span>() {                 <span class="cmt">// instead of sayHi: function()</span>
+    <span class="kw">return</span> <span class="str">`Hi, I'm ${this.name}`</span>;
+  }
+};</code></pre>
+</div>
+
+<div class="card">
+  <h2>The <code>this</code> Keyword</h2>
+  <div class="def"><code>this</code> is determined by <strong>how a function is called</strong>, not where it's defined. This is a frequent source of confusion.</div>
+<pre><code><span class="cmt">// 1. Method call — 'this' is the object the method is called on</span>
+user.sayHi();  <span class="cmt">// this → user</span>
+
+<span class="cmt">// 2. Standalone call — 'this' is undefined (strict) or global (non-strict)</span>
+<span class="kw">const</span> greet <span class="kw">=</span> user.sayHi;
+greet();       <span class="cmt">// this → undefined (module scope = strict)</span>
+
+<span class="cmt">// 3. Arrow functions — inherit 'this' from surrounding scope</span>
+<span class="kw">const</span> obj <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Obj'</span>,
+  <span class="fn">regular</span>() { <span class="kw">return</span> this.name; },    <span class="cmt">// "Obj"</span>
+  <span class="prop">arrow</span>: <span class="fn">()</span> <span class="kw">=></span> this.name              <span class="cmt">// undefined — inherits from outer scope</span>
+};</code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><code>this</code> is like saying "my" — the meaning depends entirely on who says it. If Alice says "my car," "my" refers to Alice. If Bob borrows Alice's words and says "my car," it now refers to Bob. The same function borrowed by different objects changes what <code>this</code> means.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What's the difference between <code>import { x }</code> and <code>import * as x</code>?</div>
+  <div class="a"><strong>A:</strong> <code>import { x }</code> imports only the specific binding <code>x</code> — tree-shakeable, explicit. <code>import * as x</code> imports all exported bindings as properties of a namespace object — never tree-shakeable, used when you need everything from a module.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What does <code>npm ci</code> do and when should you use it?</div>
+  <div class="a"><strong>A:</strong> <code>npm ci</code> installs dependencies <strong>exactly</strong> from <code>package-lock.json</code> — it fails if the lockfile is out of sync with <code>package.json</code>. Use it in CI/CD pipelines for deterministic, faster installs.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> How does <code>this</code> behave differently in arrow functions vs regular functions?</div>
+  <div class="a"><strong>A:</strong> Regular functions get their own <code>this</code> based on invocation context (method call, standalone, etc.). Arrow functions have no own <code>this</code> — they capture it lexically from the enclosing scope at definition time.</div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>Named export</b> — <code>export const x</code></div>
+  <div class="rev-item"><b>Default export</b> — <code>export default x</code></div>
+  <div class="rev-item"><b>Namespace import</b> — <code>import * as ns</code></div>
+  <div class="rev-item"><b>Alias import</b> — <code>import { x as y }</code></div>
+  <div class="rev-item"><b>Modules are strict</b> — no <code>"use strict"</code> needed</div>
+  <div class="rev-item"><b>npm init</b> — creates package.json</div>
+  <div class="rev-item"><b>dependencies</b> — runtime (lodash, react)</div>
+  <div class="rev-item"><b>devDependencies</b> — dev tools (jest, eslint)</div>
+  <div class="rev-item"><b>lockfile</b> — exact version pinning</div>
+  <div class="rev-item"><b>Computed keys</b> — <code>{ [expr]: val }</code></div>
+  <div class="rev-item"><b>Shorthand</b> — <code>{ name, age }</code></div>
+  <div class="rev-item"><b>Method shorthand</b> — <code>{ foo() {} }</code></div>
+  <div class="rev-item"><b>this</b> — depends on call site</div>
+  <div class="rev-item"><b>Arrow this</b> — lexical, from enclosing scope</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

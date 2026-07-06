@@ -3,194 +3,817 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Time-Complexity Issues with PCA — Lecture Notes</title>
+<title>Time-Complexity Issues with PCA — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  :root{
-    --bg: #eef1f6;
+  :root {
+    --bg: #f4f5f9;
     --surface: #ffffff;
-    --ink: #191e2b;
-    --ink-soft: #545c72;
-    --ink-faint: #8890a3;
-    --line: #dcdfe8;
-    --indigo: #33418e;
-    --indigo-soft: #e9ebf7;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
     --gold: #b5872a;
-    --gold-deep: #8f6a1c;
     --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
     --rust: #a8482a;
     --rust-soft: #f7e6df;
     --teal: #2c6b5d;
     --teal-soft: #e2efec;
-    --radius: 14px;
-    --shadow: 0 1px 2px rgba(25,30,43,0.04), 0 8px 24px -12px rgba(25,30,43,0.14);
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{box-sizing:border-box;}
-  html{scroll-behavior:smooth;}
-  body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family:'Inter', sans-serif; -webkit-font-smoothing:antialiased; line-height:1.6;
-  }
-  ::selection{ background:var(--gold-soft); color:var(--gold-deep); }
-  .wrap{ max-width:920px; margin:0 auto; padding:0 24px; }
-  code, .mono{ font-family:'JetBrains Mono', monospace; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  /* ---------- HERO ---------- */
-  .hero{
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===========================
+     HERO
+  =========================== */
+  .hero {
     background:
       radial-gradient(circle at 85% -10%, rgba(181,135,42,0.16), transparent 55%),
       radial-gradient(circle at 10% 110%, rgba(168,72,42,0.16), transparent 50%),
-      linear-gradient(180deg, var(--ink) 0%, #212842 100%);
-    color:#f2f3f8; padding:64px 0 56px; position:relative; overflow:hidden;
+      linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
   }
-  .hero::after{
-    content:""; position:absolute; inset:0;
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
-    background-size:34px 34px; pointer-events:none;
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
   }
-  .hero .wrap{ position:relative; z-index:1; }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
-    color:#d9b872; margin-bottom:22px;
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .eyebrow .dot{ width:6px; height:6px; border-radius:50%; background:#d9b872; }
-  .hero h1{
-    font-family:'Fraunces', serif; font-optical-sizing:auto; font-weight:600;
-    font-size:clamp(30px, 5vw, 48px); line-height:1.1; margin:0 0 20px; letter-spacing:-0.01em;
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
   }
-  .hero h1 em{ font-style:italic; color:#d9b872; font-weight:500; }
-  .hero p.lede{ font-size:17px; color:#c2c6d6; max-width:60ch; margin:0 0 34px; }
-  .hero-meta{ display:flex; flex-wrap:wrap; gap:10px; }
-  .pill{
-    font-family:'JetBrains Mono', monospace; font-size:12px; padding:7px 13px; border-radius:100px;
-    border:1px solid rgba(255,255,255,0.16); color:#c2c6d6; background:rgba(255,255,255,0.04);
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
   }
-
-  /* ---------- SCAFFOLD ---------- */
-  main{ padding:54px 0 90px; }
-  section.chapter{ margin-bottom:64px; }
-  section.chapter:last-of-type{ margin-bottom:0; }
-  .chapter-head{ display:flex; align-items:baseline; gap:16px; margin-bottom:22px; }
-  .chapter-num{
-    font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600;
-    color:var(--gold-deep); background:var(--gold-soft); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
   }
-  .chapter-head h2{ font-family:'Fraunces', serif; font-weight:600; font-size:26px; margin:0; letter-spacing:-0.01em; }
-  .chapter-intro{ color:var(--ink-soft); font-size:15.5px; max-width:68ch; margin:0 0 24px; }
-
-  /* ---------- CARDS ---------- */
-  .card{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:22px 24px;
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .card + .card{ margin-top:16px; }
-  .card h3{ font-family:'Fraunces', serif; font-size:16.5px; font-weight:600; margin:0 0 8px; }
-  .card p{ margin:0; color:var(--ink-soft); font-size:14.5px; }
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
-
-  /* analogy card variant */
-  .card.analogy{
-    background:linear-gradient(180deg, #fffdf8, #ffffff);
-    border-color:#e3cf9b;
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
   }
-  .card.analogy .a-tag{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em;
-    color:var(--gold-deep); background:var(--gold-soft); padding:3px 9px; border-radius:100px; margin-bottom:10px; display:inline-block;
-  }
-
-  /* ---------- MATH CARD ---------- */
-  .math-card{
-    background:#171b28; border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:24px 26px; text-align:center; margin-bottom:16px; overflow-x:auto;
-  }
-  .math-card .math-label{ font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:#7d859c; margin-bottom:14px; }
-  .math-card .expr{ font-family:'JetBrains Mono', monospace; font-size:17px; color:#dbe0ef; white-space:nowrap; }
-  .math-card .expr .hi{ color:#d9b872; }
-  .math-card .expr .hi2{ color:#7fc4b0; }
-  .math-card .sub{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#7d859c; margin-top:12px; }
-
-  /* ---------- MATRIX SIZE COMPARISON ---------- */
-  .matrix-compare{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:28px 24px; margin-bottom:16px;
-    display:flex; align-items:flex-end; justify-content:center; gap:36px; flex-wrap:wrap;
-  }
-  .matrix-block{ text-align:center; }
-  .matrix-square{
-    background:linear-gradient(160deg, var(--rust-soft), #fff);
-    border:2px solid var(--rust);
-    border-radius:8px;
-    margin:0 auto 10px;
-  }
-  .matrix-square.small{ background:linear-gradient(160deg, var(--teal-soft), #fff); border-color:var(--teal); }
-  .matrix-label{ font-family:'JetBrains Mono', monospace; font-size:13px; font-weight:600; }
-  .matrix-sub{ font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-faint); margin-top:2px; }
-
-  /* ---------- COMBINATION DIAGRAM ---------- */
-  .combo-diagram{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:26px 22px; margin-bottom:16px;
-  }
-  .combo-row{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
-  .combo-chip{
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; font-weight:600;
-    background:var(--indigo-soft); color:var(--indigo); padding:9px 13px; border-radius:9px;
-  }
-  .combo-plus{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-size:14px; }
-  .combo-eq{ font-family:'JetBrains Mono', monospace; color:var(--ink-faint); font-size:16px; margin:0 6px; }
-  .combo-result{
-    font-family:'JetBrains Mono', monospace; font-size:13.5px; font-weight:700;
-    background:var(--gold-soft); color:var(--gold-deep); padding:9px 16px; border-radius:9px;
-  }
-  .combo-caption{ text-align:center; margin-top:18px; font-size:13.5px; color:var(--ink-soft); }
-
-  /* ---------- STEP CARDS ---------- */
-  .steps{ display:flex; flex-direction:column; gap:12px; }
-  .step-card{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:18px 22px; display:flex; gap:16px; align-items:flex-start;
-  }
-  .step-card .step-num{
-    font-family:'JetBrains Mono', monospace; font-size:12px; font-weight:700; color:#fff;
-    background:var(--ink); width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center;
-    flex-shrink:0; margin-top:2px;
-  }
-  .step-card h3{ font-family:'Fraunces', serif; font-size:16px; margin:0 0 4px; }
-  .step-card p{ margin:0; font-size:14px; color:var(--ink-soft); }
-  .step-card .step-formula{
-    font-family:'JetBrains Mono', monospace; font-size:12.5px; color:var(--indigo);
-    background:var(--indigo-soft); border-radius:7px; padding:5px 10px; display:inline-block; margin-top:8px;
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
   }
 
-  /* ---------- CALLOUT ---------- */
-  .callout{ border-radius:12px; padding:18px 20px; margin:16px 0; display:flex; gap:14px; border:1px solid transparent; }
-  .callout .icon{
-    font-family:'JetBrains Mono', monospace; font-weight:700; font-size:13px;
-    width:26px; height:26px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .callout .body b{ display:block; font-size:13.5px; margin-bottom:3px; }
-  .callout .body p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
-  .callout.info{ background:var(--indigo-soft); border-color:#c9cfea; }
-  .callout.info .icon{ background:var(--indigo); color:#fff; }
-  .callout.info b{ color:var(--indigo); }
-  .callout.warn{ background:var(--rust-soft); border-color:#e6c3b3; }
-  .callout.warn .icon{ background:var(--rust); color:#fff; }
-  .callout.warn b{ color:var(--rust); }
-  .callout.good{ background:var(--teal-soft); border-color:#bcdcd3; }
-  .callout.good .icon{ background:var(--teal); color:#fff; }
-  .callout.good b{ color:var(--teal); }
+  /* ===========================
+     MAIN
+  =========================== */
+  main { padding: 56px 0 90px; }
 
-  /* ---------- SIGNATURE: COMPLEXITY CALCULATOR ---------- */
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+
+  /* ===========================
+     RULE 1: EQUATION PANEL
+  =========================== */
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
+  }
+
+  /* ===========================
+     RULE 3 & 8: DERIVATION TIMELINE
+  =========================== */
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+
+  /* ===========================
+     RULE 5: SYMBOL LEGEND
+  =========================== */
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+
+  /* ===========================
+     RULE 9: BELOW-EQUATION COMPONENTS
+  =========================== */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  /* ===========================
+     RULE 12: SVG ILLUSTRATIONS
+  =========================== */
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* ===========================
+     CALLOUTS
+  =========================== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  /* ===========================
+     CODE BLOCK
+  =========================== */
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
+
+  /* ===========================
+     PARAMETER CARDS
+  =========================== */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  /* ===========================
+     INTERACTIVE COMPARE
+  =========================== */
+  .compare-wrap {
+    background: linear-gradient(180deg, #161b2a, #10141f);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 32px 28px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .compare-wrap .cp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7d859c;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .compare-card {
+    background: #0d0f17;
+    border: 1px solid #282e44;
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-align: center;
+  }
+  .compare-card .cc-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .compare-card.ok .cc-tag { background: rgba(44,107,93,0.25); color: #7fc4b0; }
+  .compare-card.blocked .cc-tag { background: rgba(168,72,42,0.25); color: #e0967a; }
+  .compare-card .cc-line {
+    font-size: 14px;
+    margin: 10px 0;
+    min-height: 28px;
+    transition: transform 0.2s, opacity 0.2s;
+    color: #dbe0ef;
+  }
+  .compare-card .cc-line.cc-step2 { color: #8b91a5; font-size: 13px; }
+  .compare-card .cc-result {
+    margin-top: 14px;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 10px;
+    border-radius: 8px;
+    opacity: 0;
+    transition: opacity 0.35s;
+  }
+  .compare-card.ok .cc-result { background: rgba(44,107,93,0.18); color: #7fc4b0; }
+  .compare-card.blocked .cc-result { background: rgba(168,72,42,0.18); color: #e0967a; }
+  .compare-card .cc-result.show { opacity: 1; }
+  .compare-card .cc-line.shake { animation: shake 0.4s ease; }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-6px); }
+    40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); }
+    80% { transform: translateX(4px); }
+  }
+  .cp-btn-row { text-align: center; margin-top: 22px; }
+  .cp-btn {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    background: #d9b872;
+    color: #1b1607;
+    border: none;
+    border-radius: 9px;
+    padding: 13px 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 0 #8f6a1c;
+    transition: transform 0.08s, filter 0.15s;
+  }
+  .cp-btn:hover { filter: brightness(1.05); }
+  .cp-btn:active { transform: translateY(2px); box-shadow: none; }
+  .cp-btn:disabled { opacity: 0.5; cursor: default; }
+  .cp-reset {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #7d859c;
+    background: none;
+    border: 1px solid #282e44;
+    border-radius: 7px;
+    padding: 6px 12px;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  .cp-reset:hover { color: #c2c6d6; border-color: #4a5270; }
+
+  /* ===========================
+     CALCULATOR (L9 SPECIFIC)
+  =========================== */
   .calc-wrap{
     background:linear-gradient(180deg, #1b2030, #12151f);
-    border-radius:18px; padding:28px 26px 26px; box-shadow:var(--shadow);
+    border-radius:18px; padding:28px 26px 26px; box-shadow:var(--shadow-lg);
     position:relative; overflow:hidden;
   }
   .calc-wrap::before{
@@ -211,7 +834,6 @@
   .calc-slider-row label b{ color:#f2f3f8; }
   .calc-slider-row input[type=range]{ flex:1; accent-color:#d9b872; }
   .calc-slider-row .val{ font-family:'JetBrains Mono', monospace; font-size:12.5px; color:#d9b872; width:70px; text-align:right; flex-shrink:0; }
-
   .calc-bars{
     position:relative; z-index:1; display:flex; align-items:flex-end; justify-content:center; gap:60px;
     height:180px; background:#0d0f17; border:1px solid #2a3046; border-radius:12px; padding:16px; margin-bottom:16px;
@@ -225,7 +847,6 @@
   .calc-bar.ncube{ background:linear-gradient(180deg, #7fc4b0, #2c6b5d); }
   .calc-bar span{ font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#12151f; font-weight:700; }
   .calc-bar-caption{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#8891a8; margin-top:8px; }
-
   .calc-readout{
     position:relative; z-index:1;
     background:#0d0f17; border:1px solid #2a3046; border-radius:10px; padding:14px 18px;
@@ -233,286 +854,669 @@
   }
   .calc-readout b{ color:#d9b872; }
 
-  /* ---------- TABLE ---------- */
-  table.spec{
-    width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--line);
-    border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:14.5px;
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
   }
-  table.spec th{
-    text-align:left; background:#f5f6fa; font-family:'JetBrains Mono', monospace; font-size:11px;
-    text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:12px 16px; border-bottom:1px solid var(--line);
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
   }
-  table.spec td{ padding:13px 16px; border-bottom:1px solid var(--line); vertical-align:top; color:var(--ink); }
-  table.spec tr:last-child td{ border-bottom:none; }
-  table.spec td.formula{ font-family:'JetBrains Mono', monospace; font-size:13px; color:var(--indigo); }
 
-  /* ---------- CODE BLOCK ---------- */
-  .codeblock{ background:#171b28; border-radius:var(--radius); padding:20px 22px; box-shadow:var(--shadow); overflow-x:auto; }
-  .codeblock .filename{ font-family:'JetBrains Mono', monospace; font-size:11px; color:#7d859c; margin-bottom:12px; letter-spacing:0.04em; }
-  .codeblock pre{ margin:0; font-family:'JetBrains Mono', monospace; font-size:13.5px; line-height:1.7; color:#dbe0ef; }
-  .codeblock .c-comment{ color:#7d859c; }
-  .codeblock .c-kw{ color:#e2a25c; }
-  .codeblock .c-fn{ color:#7fb0e8; }
-  .codeblock .c-num{ color:#d9b872; }
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
 
-  footer{ border-top:1px solid var(--line); padding:26px 0 40px; text-align:center; }
-  footer p{ font-family:'JetBrains Mono', monospace; font-size:12px; color:var(--ink-faint); margin:0; }
-
-  @media (max-width: 720px){
-    .grid-3, .grid-2{ grid-template-columns:1fr; }
-    .hero{ padding:48px 0 40px; }
-    .chapter-head h2{ font-size:22px; }
-    .matrix-compare{ gap:20px; }
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
     .calc-bars{ gap:28px; }
     .calc-slider-row label{ width:110px; font-size:11.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cc-line.shake { animation: none; }
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <div class="wrap">
-    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture Notes</div>
+  <div class="container">
+    <div class="tag">Unsupervised Learning &middot; Lecture Notes</div>
     <h1>PCA's hidden cost:<br>when <em>features</em> outnumber <em>data</em></h1>
-    <p class="lede">PCA's textbook recipe quietly assumes you can afford to decompose a d×d matrix. The moment your features (d) vastly outnumber your data points (n) — genomics, images, text — that assumption becomes the whole bottleneck.</p>
-    <div class="hero-meta">
-      <span class="pill">§1 The bottleneck</span>
-      <span class="pill">§2 The key trick</span>
-      <span class="pill">§3 The algorithm</span>
-      <span class="pill">§4 Feel the speedup</span>
-      <span class="pill">§5 Toward kernels</span>
+    <p>PCA's textbook recipe quietly assumes you can afford to decompose a $d \times d$ matrix. The moment your features ($d$) vastly outnumber your data points ($n$) — genomics, images, text — that assumption becomes the whole bottleneck.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 The bottleneck</a>
+      <a href="#s2" class="nav-pill">&sect;2 The key trick</a>
+      <a href="#s3" class="nav-pill">&sect;3 The algorithm</a>
+      <a href="#s4" class="nav-pill">&sect;4 Feel the speedup</a>
+      <a href="#s5" class="nav-pill">&sect;5 Toward kernels</a>
     </div>
   </div>
 </header>
 
-<main class="wrap">
+<main>
+  <div class="container">
 
-  <!-- SECTION 1 -->
-  <section class="chapter" id="s1">
-    <div class="chapter-head">
-      <span class="chapter-num">01</span>
-      <h2>The bottleneck: a matrix too big to decompose</h2>
-    </div>
-    <p class="chapter-intro">PCA finds principal components by eigen-decomposing the <b>covariance matrix</b> of the data. That matrix's size is dictated entirely by the number of features — not the number of data points.</p>
-
-    <div class="card analogy">
-      <span class="a-tag">Real-life analogy</span>
-      <p>Imagine describing 5 people using 20,000 medical measurements each (blood markers, genetic variants, scan readings). You'd build a giant 20,000 × 20,000 "how do these measurements relate to each other" matrix — but there are only 5 people's worth of actual information in the room. Most of that giant matrix is structurally redundant before you even start solving it.</p>
-    </div>
-
-    <div class="math-card">
-      <div class="math-label">the covariance matrix</div>
-      <div class="expr">C = <span class="hi">(1/n)</span> X X<sup>T</sup> &nbsp;&nbsp; — &nbsp; X is d × n, so C is <span class="hi2">d × d</span></div>
-    </div>
-
-    <div class="matrix-compare">
-      <div class="matrix-block">
-        <div class="matrix-square" style="width:160px; height:160px;"></div>
-        <div class="matrix-label" style="color:var(--rust);">C — d × d</div>
-        <div class="matrix-sub">eigen-decomposition: O(d³)</div>
+    <!-- ================================================================
+         SECTION 1: THE BOTTLENECK
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>The bottleneck: a matrix too big to decompose</h2>
       </div>
-      <div class="matrix-block">
-        <div class="matrix-square small" style="width:52px; height:52px;"></div>
-        <div class="matrix-label" style="color:var(--teal);">K — n × n</div>
-        <div class="matrix-sub">the size we'd rather work with</div>
+      <p class="sec-intro">
+        PCA finds principal components by eigen-decomposing the <strong>covariance matrix</strong> of the data. That matrix's size is dictated entirely by the number of features — not the number of data points.
+      </p>
+
+      <!-- EQUATION PANEL (Rule 1) -->
+      <div class="eq-panel" id="eq-cov">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Covariance Matrix of the Data</div>
+        $$\mathbf{C} = \frac{1}{n} \mathbf{X} \mathbf{X}^\mathsf{T}, \qquad
+        \mathbf{X} \in \mathbb{R}^{d \times n}, \quad \mathbf{C} \in \mathbb{R}^{d \times d}$$
+        <div class="eq-caption">The covariance matrix is $d \times d$ — its size depends on features, not samples</div>
       </div>
-    </div>
 
-    <div class="callout warn">
-      <div class="icon">!</div>
-      <div class="body">
-        <b>Why this hurts</b>
-        <p>Eigenvalue decomposition of a d×d matrix costs <span class="mono">O(d³)</span>. With <span class="mono">d</span> in the tens of thousands — genes, pixels, vocabulary words — this becomes computationally impossible long before it becomes merely slow.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 2 -->
-  <section class="chapter" id="s2">
-    <div class="chapter-head">
-      <span class="chapter-num">02</span>
-      <h2>The key trick: recycle the data itself</h2>
-    </div>
-    <p class="chapter-intro">The escape route relies on one elegant fact: every principal direction we're searching for is secretly already buildable from the data points we have.</p>
-
-    <div class="card analogy">
-      <span class="a-tag">Real-life analogy</span>
-      <p>Think of mixing paint. You don't need to invent a brand-new pigment to get a new principal direction — you just need to blend the paint samples (data points) you already own, in different proportions. With only <span class="mono">n</span> samples, there are only <span class="mono">n</span> independent ways to blend, no matter how many color channels (features) each sample has.</p>
-    </div>
-
-    <div class="combo-diagram">
-      <div class="combo-row">
-        <span class="combo-chip">α₁ · x₁</span>
-        <span class="combo-plus">+</span>
-        <span class="combo-chip">α₂ · x₂</span>
-        <span class="combo-plus">+</span>
-        <span class="combo-chip">…</span>
-        <span class="combo-plus">+</span>
-        <span class="combo-chip">α_n · x_n</span>
-        <span class="combo-eq">=</span>
-        <span class="combo-result">w_k</span>
-      </div>
-      <p class="combo-caption">Every eigenvector <b>w_k</b> of the covariance matrix is just a weighted combination of the <b>n</b> data points — written compactly as <span class="mono">w_k = Xα_k</span>, with <span class="mono">α_k ∈ ℝⁿ</span>.</p>
-    </div>
-
-    <div class="math-card">
-      <div class="math-label">substituting into the eigenvalue equation</div>
-      <div class="expr">C w_k = λ_k w_k &nbsp;&nbsp;→&nbsp;&nbsp; <span class="hi">K</span> α_k = (n λ_k) α_k</div>
-      <div class="sub">where K = X<sup>T</sup>X &nbsp;is only n × n</div>
-    </div>
-
-    <div class="callout good">
-      <div class="icon">✓</div>
-      <div class="body">
-        <b>The payoff</b>
-        <p>We've traded a d × d eigen-problem for an equivalent n × n one. When <span class="mono">d ≫ n</span>, that's the difference between "impossible" and "instant."</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 3 -->
-  <section class="chapter" id="s3">
-    <div class="chapter-head">
-      <span class="chapter-num">03</span>
-      <h2>The algorithm</h2>
-    </div>
-    <p class="chapter-intro">Four steps take you from raw data to the same principal components PCA would have found the expensive way.</p>
-
-    <div class="steps">
-      <div class="step-card">
-        <div class="step-num">1</div>
-        <div>
-          <h3>Compute K</h3>
-          <p>Build the n × n matrix <span class="mono">K = XᵀX</span> instead of the d × d covariance matrix.</p>
-        </div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">2</div>
-        <div>
-          <h3>Eigen-decompose K</h3>
-          <p>Find K's eigenvectors <span class="mono">β_k</span> and eigenvalues <span class="mono">λ̃_k</span> — an O(n³) operation.</p>
-        </div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">3</div>
-        <div>
-          <h3>Normalize</h3>
-          <p>K's eigenvectors aren't quite the α_k we need — rescale them.</p>
-          <span class="step-formula">α_k = β_k / √(n λ_k)</span>
-        </div>
-      </div>
-      <div class="step-card">
-        <div class="step-num">4</div>
-        <div>
-          <h3>Reconstruct</h3>
-          <p>Map back to the original feature space to recover the actual principal components.</p>
-          <span class="step-formula">w_k = X α_k</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="callout info" style="margin-top:16px;">
-      <div class="icon">i</div>
-      <div class="body">
-        <b>Why this is valid</b>
-        <p>A standard linear-algebra fact underwrites the whole trick: <span class="mono">XXᵀ</span> and <span class="mono">XᵀX</span> share the same non-zero eigenvalues. We never lose any real structure — we just choose to compute it in whichever matrix is smaller.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 4 -->
-  <section class="chapter" id="s4">
-    <div class="chapter-head">
-      <span class="chapter-num">04</span>
-      <h2>Feel the speedup</h2>
-    </div>
-    <p class="chapter-intro">Numbers make this concrete faster than algebra does. Drag <span class="mono">d</span> and <span class="mono">n</span> below and watch the two costs diverge — try d = 20,000 genes measured across n = 200 patients, a real genomics scenario.</p>
-
-    <div class="calc-wrap">
-      <div class="calc-label">// O(d³) vs O(n³), live</div>
-
-      <div class="calc-sliders">
-        <div class="calc-slider-row">
-          <label>features <b>d</b></label>
-          <input type="range" id="dSlider" min="10" max="20000" value="20000" step="10" oninput="updateCalc()">
-          <span class="val" id="dVal">20,000</span>
-        </div>
-        <div class="calc-slider-row">
-          <label>data points <b>n</b></label>
-          <input type="range" id="nSlider" min="5" max="2000" value="200" step="5" oninput="updateCalc()">
-          <span class="val" id="nVal">200</span>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The covariance matrix $\mathbf{C}$ equals $\frac{1}{n}$ times the data matrix $\mathbf{X}$ multiplied by its transpose $\mathbf{X}^\mathsf{T}$. Since $\mathbf{X}$ has $d$ rows (one per feature) and $n$ columns (one per data point), the product $\mathbf{X}\mathbf{X}^\mathsf{T}$ is a $d \times d$ matrix.&rdquo;
         </div>
       </div>
 
-      <div class="calc-bars">
-        <div class="calc-bar-group">
-          <div class="calc-bar dcube" id="dBar" style="height:170px;"></div>
-          <div class="calc-bar-caption">O(d³)</div>
-        </div>
-        <div class="calc-bar-group">
-          <div class="calc-bar ncube" id="nBar" style="height:6px;"></div>
-          <div class="calc-bar-caption">O(n³)</div>
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{C}$</td>
+              <td class="leg-meaning">Covariance matrix — measures how features vary together</td>
+              <td class="leg-example">$d \times d$ matrix</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{X}$</td>
+              <td class="leg-meaning">Data matrix — each column is one data point</td>
+              <td class="leg-example">$d \times n$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$d$</td>
+              <td class="leg-meaning">Number of features (dimensions) per data point</td>
+              <td class="leg-example">$d = 20{,}000$ genes</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Number of data points (samples)</td>
+              <td class="leg-example">$n = 200$ patients</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$O(d^3)$</td>
+              <td class="leg-meaning">Time complexity of eigen-decomposing a $d \times d$ matrix</td>
+              <td class="leg-example">$20{,}000^3 \approx 8 \times 10^{12}$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine describing <strong>5 people</strong> using <strong>20,000 medical measurements</strong> each (blood markers, genetic variants, scan readings). You'd build a giant $20{,}000 \times 20{,}000$ "how do these measurements relate to each other" matrix — but there are only <span class="highlight">5 people's worth of actual information</span> in the room. Most of that giant matrix is structurally redundant before you even start solving it.
         </div>
       </div>
 
-      <div class="calc-readout" id="calcReadout">
-        d³ ≈ <b id="dCubeVal">—</b> operations &nbsp;·&nbsp; n³ ≈ <b id="nCubeVal">—</b> operations &nbsp;·&nbsp; speedup <b id="speedupVal">—</b>
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: $d \times d$ vs $n \times n$ matrix sizes</div>
+        <svg viewBox="0 0 860 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arL9" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+
+          <!-- d x d big box -->
+          <rect x="40" y="20" width="200" height="160" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="2"/>
+          <text x="140" y="100" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#7a321e">$\mathbf{C}$</text>
+          <text x="140" y="122" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">$d \times d$</text>
+          <text x="140" y="145" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">$O(d^3)$ to decompose</text>
+
+          <!-- Arrow -->
+          <text x="260" y="105" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="22" fill="#8b91a5">&#8594;</text>
+
+          <!-- n x n small box -->
+          <rect x="320" y="55" width="90" height="90" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="2"/>
+          <text x="365" y="95" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#1d4e44">$\mathbf{K}$</text>
+          <text x="365" y="115" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">$n \times n$</text>
+          <text x="365" y="135" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">$O(n^3)$</text>
+
+          <!-- Labels -->
+          <text x="140" y="195" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">When $d \gg n$, this is <tspan fill="#a8482a" font-weight="700">intractable</tspan></text>
+          <text x="365" y="195" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">This is the size we prefer</text>
+        </svg>
+        <div class="svg-caption">The covariance matrix $\mathbf{C}$ scales with $d$, the kernel-style matrix $\mathbf{K}$ scales with $n$.</div>
       </div>
-    </div>
-  </section>
 
-  <!-- SECTION 5 -->
-  <section class="chapter" id="s5">
-    <div class="chapter-head">
-      <span class="chapter-num">05</span>
-      <h2>One more observation — the door to Kernel PCA</h2>
-    </div>
-    <p class="chapter-intro">Look closely at what <span class="mono">K = XᵀX</span> actually contains: entry <span class="mono">(i, j)</span> is <span class="mono">xᵢᵀxⱼ</span> — the dot product between data points <span class="mono">i</span> and <span class="mono">j</span>.</p>
+      <div class="callout warn">
+        <div class="co-icon">!</div>
+        <div class="co-body">
+          <strong>Why this hurts</strong>
+          <p>Eigenvalue decomposition of a $d \times d$ matrix costs $O(d^3)$. With $d$ in the tens of thousands — genes, pixels, vocabulary words — this becomes computationally impossible long before it becomes merely slow.</p>
+        </div>
+      </div>
 
-    <div class="card analogy">
-      <span class="a-tag">Real-life analogy</span>
-      <p>It's like judging how similar two songs are just by how they make you feel side by side, rather than comparing every individual audio frequency in each track. K is nothing but a table of pairwise similarities between data points — PCA never actually needs the raw high-dimensional features themselves, only how each point relates to every other point.</p>
-    </div>
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Thinking $d$ and $n$ are interchangeable:</strong> The covariance matrix size depends on $d$ (features), not $n$ (samples). Even with $n = 10$ points and $d = 10{,}000$ features, the matrix is $10{,}000 \times 10{,}000$.
+          </p>
+          <p>
+            &#x2716; <strong>Ignoring the $O(d^3)$ scaling:</strong> Doubling $d$ increases decomposition cost by $8\times$. With $d = 1000$, that's $10^9$ operations — feasible. With $d = 100{,}000$, that's $10^{15}$ — infeasible.
+          </p>
+        </div>
+      </div>
+    </section>
 
-    <div class="codeblock">
-      <div class="filename">why_this_matters.txt</div>
-      <pre><span class="c-comment">// K only ever needs pairwise dot products:</span>
+    <!-- ================================================================
+         SECTION 2: THE KEY TRICK
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>The key trick: recycle the data itself</h2>
+      </div>
+      <p class="sec-intro">
+        The escape route relies on one elegant fact: every principal direction we're searching for is secretly already buildable from the data points we have.
+      </p>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of mixing paint. You don't need to invent a brand-new pigment to get a new principal direction — you just need to <strong>blend the paint samples (data points)</strong> you already own, in different proportions. With only $n$ samples, there are only <span class="highlight">$n$ independent ways to blend</span>, no matter how many color channels (features) each sample has.
+        </div>
+      </div>
+
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel" id="eq-eigenvec">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Eigenvector as Linear Combination of Data Points</div>
+        $$\mathbf{w}_k = \sum_{i=1}^{n} \alpha_{ki} \, \mathbf{x}_i
+        = \mathbf{X} \boldsymbol{\alpha}_k, \qquad
+        \boldsymbol{\alpha}_k \in \mathbb{R}^n$$
+        <div class="eq-caption">Every eigenvector $\mathbf{w}_k$ of the covariance matrix is just a weighted combination of the $n$ data points</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The $k$-th principal direction $\mathbf{w}_k$ equals the sum over $i$ from $1$ to $n$ of weight $\alpha_{ki}$ times the $i$-th data point $\mathbf{x}_i$. In matrix form, $\mathbf{w}_k = \mathbf{X} \boldsymbol{\alpha}_k$ where $\boldsymbol{\alpha}_k$ is a vector of $n$ scalar weights.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{w}_k$</td>
+              <td class="leg-meaning">$k$-th principal direction (eigenvector of $\mathbf{C}$)</td>
+              <td class="leg-example">Direction of max variance</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{x}_i$</td>
+              <td class="leg-meaning">$i$-th data point (column of $\mathbf{X}$)</td>
+              <td class="leg-example">A patient's gene expression vector</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\alpha}_k$</td>
+              <td class="leg-meaning">Coefficient vector — the blend weights for $\mathbf{w}_k$</td>
+              <td class="leg-example">$n$ scalars, one per data point</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{X}$</td>
+              <td class="leg-meaning">Data matrix ($d \times n$)</td>
+              <td class="leg-example">$20{,}000 \times 200$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step: Trading $d \times d$ for $n \times n$</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with the eigenvalue equation for the covariance matrix</div>
+          <div class="dt-formula">$\mathbf{C} \mathbf{w}_k = \lambda_k \mathbf{w}_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Substitute $\mathbf{C} = \frac{1}{n} \mathbf{X} \mathbf{X}^\mathsf{T}$ and $\mathbf{w}_k = \mathbf{X} \boldsymbol{\alpha}_k$</div>
+          <div class="dt-formula">$\frac{1}{n} \mathbf{X} \mathbf{X}^\mathsf{T} \mathbf{X} \boldsymbol{\alpha}_k = \lambda_k \mathbf{X} \boldsymbol{\alpha}_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Multiply both sides on the left by $\mathbf{X}^\mathsf{T}$</div>
+          <div class="dt-formula">$\frac{1}{n} \mathbf{X}^\mathsf{T} \mathbf{X} \mathbf{X}^\mathsf{T} \mathbf{X} \boldsymbol{\alpha}_k = \lambda_k \mathbf{X}^\mathsf{T} \mathbf{X} \boldsymbol{\alpha}_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Define $\mathbf{K} = \mathbf{X}^\mathsf{T} \mathbf{X}$ (the $n \times n$ Gram matrix) — it emerges naturally</div>
+          <div class="dt-formula">$\frac{1}{n} \mathbf{K} \mathbf{K} \boldsymbol{\alpha}_k = \lambda_k \mathbf{K} \boldsymbol{\alpha}_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">5</div>
+          <div class="dt-text">Simplify: $\mathbf{K} \boldsymbol{\alpha}_k = n \lambda_k \boldsymbol{\alpha}_k$ — an $n \times n$ eigenvalue problem!</div>
+          <div class="dt-formula">$\displaystyle \mathbf{K} \boldsymbol{\alpha}_k = \tilde{\lambda}_k \boldsymbol{\alpha}_k, \quad \tilde{\lambda}_k = n \lambda_k$</div>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#x2714;</div>
+        <div class="co-body">
+          <strong>The payoff</strong>
+          <p>We've traded a $d \times d$ eigen-problem for an equivalent $n \times n$ one. When $d \gg n$, that's the difference between "impossible" and "instant."</p>
+        </div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this means</strong>
+          <p>
+            The matrices $\mathbf{X}\mathbf{X}^\mathsf{T}$ (size $d \times d$) and $\mathbf{X}^\mathsf{T}\mathbf{X}$ (size $n \times n$) share the same <strong>non-zero eigenvalues</strong>. We never lose any real structure — we just choose to compute it in whichever matrix is smaller. This is a standard linear-algebra fact that underwrites the entire trick.
+          </p>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example: Size Comparison</div>
+        <div class="num-setup"><strong>Setup:</strong> A genomics dataset with $d = 20{,}000$ genes and $n = 200$ patients.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Matrix</th><th>Dimensions</th><th>Storage</th><th>Decomposition cost</th><th>Feasible?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;color:var(--rust)">$\mathbf{C} = \frac{1}{n}\mathbf{X}\mathbf{X}^\mathsf{T}$</td>
+              <td>$20{,}000 \times 20{,}000$</td>
+              <td>~3.2 GB (float64)</td>
+              <td>$O(8 \times 10^{12})$ ops</td>
+              <td style="color:var(--rust);font-weight:600;">&#x2718; No</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:var(--teal)">$\mathbf{K} = \mathbf{X}^\mathsf{T}\mathbf{X}$</td>
+              <td>$200 \times 200$</td>
+              <td>~320 KB</td>
+              <td>$O(8 \times 10^6)$ ops</td>
+              <td style="color:var(--teal);font-weight:600;">&#x2714; Yes</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">Speedup factor: $\displaystyle \frac{d^3}{n^3} = \frac{20{,}000^3}{200^3} = 1{,}000{,}000\times$ faster</div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: THE ALGORITHM
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>The algorithm</h2>
+      </div>
+      <p class="sec-intro">
+        Four steps take you from raw data to the same principal components PCA would have found the expensive way.
+      </p>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; The Efficient PCA Algorithm</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Compute <strong>$\mathbf{K} = \mathbf{X}^\mathsf{T} \mathbf{X}$</strong> — the $n \times n$ Gram matrix, not the $d \times d$ covariance</div>
+          <div class="dt-formula">$\mathbf{K}_{ij} = \mathbf{x}_i^\mathsf{T} \mathbf{x}_j$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text"><strong>Eigen-decompose</strong> $\mathbf{K}$ to get eigenvectors $\boldsymbol{\beta}_k$ and eigenvalues $\tilde{\lambda}_k$</div>
+          <div class="dt-formula">$\mathbf{K} \boldsymbol{\beta}_k = \tilde{\lambda}_k \boldsymbol{\beta}_k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text"><strong>Normalize</strong> — $\mathbf{K}$'s eigenvectors need rescaling to be the true PCA coefficients</div>
+          <div class="dt-formula">$\displaystyle \boldsymbol{\alpha}_k = \frac{\boldsymbol{\beta}_k}{\sqrt{n \lambda_k}}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text"><strong>Reconstruct</strong> the principal components in the original feature space</div>
+          <div class="dt-formula">$\mathbf{w}_k = \mathbf{X} \boldsymbol{\alpha}_k$</div>
+        </div>
+      </div>
+
+      <!-- EQUATION PANEL for normalization -->
+      <div class="eq-panel" id="eq-reconstruct">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Reconstruction of Principal Components</div>
+        $$\mathbf{w}_k = \mathbf{X} \boldsymbol{\alpha}_k
+        = \frac{1}{\sqrt{n \lambda_k}} \mathbf{X} \boldsymbol{\beta}_k$$
+        <div class="eq-caption">Map back from $n$-dimensional coefficient space to $d$-dimensional feature space</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;To recover the $k$-th principal direction $\mathbf{w}_k$ in the original $d$-dimensional space, take the data matrix $\mathbf{X}$, multiply by the normalized eigenvector $\boldsymbol{\alpha}_k$ from the $n \times n$ problem. The result is a $d$-dimensional vector — the same one you'd get from decomposing the $d \times d$ covariance matrix directly.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Algorithm Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{K}$</td>
+              <td class="leg-meaning">Gram matrix of pairwise dot products</td>
+              <td class="leg-example">$\mathbf{K} = \mathbf{X}^\mathsf{T}\mathbf{X}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\beta}_k$</td>
+              <td class="leg-meaning">Eigenvector of $\mathbf{K}$ (unit length in $\mathbb{R}^n$)</td>
+              <td class="leg-example">$\|\boldsymbol{\beta}_k\| = 1$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\tilde{\lambda}_k$</td>
+              <td class="leg-meaning">Eigenvalue of $\mathbf{K}$</td>
+              <td class="leg-example">$\tilde{\lambda}_k = n \lambda_k$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\alpha}_k$</td>
+              <td class="leg-meaning">Normalized coefficient vector</td>
+              <td class="leg-example">$\boldsymbol{\alpha}_k = \boldsymbol{\beta}_k / \sqrt{\tilde{\lambda}_k}$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of $\boldsymbol{\beta}_k$ as a set of <strong>instructions</strong> in the "data-point space" (which points to emphasize), and $\mathbf{X}$ as the <strong>dictionary</strong> that translates those instructions back to the original feature space. Step 3 (normalization) ensures each translated direction has <span class="highlight">unit length</span> in the feature space — without it, the scaling would be arbitrary.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Algorithm Flow: From Data to Principal Components</div>
+        <svg viewBox="0 0 860 140" xmlns="http://www.w3.org/2000/svg">
+          <rect x="30" y="30" width="120" height="50" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="90" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8f6a1c" font-weight="600">Data $\mathbf{X}$</text>
+
+          <text x="175" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+
+          <rect x="210" y="30" width="120" height="50" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="270" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1d4e44" font-weight="600">$\mathbf{K} = \mathbf{X}^\mathsf{T}\mathbf{X}$</text>
+          <text x="270" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2c6b5d">$n \times n$ Gram</text>
+
+          <text x="355" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+
+          <rect x="390" y="30" width="120" height="50" rx="8" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+          <text x="450" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1e4f8a" font-weight="600">Eigen-decompose</text>
+          <text x="450" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#1e4f8a">$\boldsymbol{\beta}_k, \tilde{\lambda}_k$</text>
+
+          <text x="535" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+
+          <rect x="570" y="30" width="120" height="50" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="630" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#7a321e" font-weight="600">Normalize</text>
+          <text x="630" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#a8482a">$\boldsymbol{\alpha}_k = \boldsymbol{\beta}_k / \sqrt{\tilde{\lambda}_k}$</text>
+
+          <text x="715" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+
+          <rect x="750" y="30" width="100" height="50" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="800" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1d4e44" font-weight="600">$\mathbf{w}_k$</text>
+          <text x="800" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2c6b5d">PCs!</text>
+        </svg>
+        <div class="svg-caption">The data flows through four stages: Gram matrix, eigen-decomposition, normalization, and reconstruction — all $O(n^3)$ instead of $O(d^3)$.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Why this is valid</strong>
+          <p>A standard linear-algebra fact underwrites the whole trick: $\mathbf{X}\mathbf{X}^\mathsf{T}$ and $\mathbf{X}^\mathsf{T}\mathbf{X}$ share the same non-zero eigenvalues. We never lose any real structure — we just choose to compute it in whichever matrix is smaller.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Forgetting normalization:</strong> The eigenvectors $\boldsymbol{\beta}_k$ of $\mathbf{K}$ are not directly the PCA coefficients. Without dividing by $\sqrt{n\lambda_k}$, the reconstructed $\mathbf{w}_k$ will not have unit length.
+          </p>
+          <p>
+            &#x2716; <strong>Confusing $\mathbf{K}$ with the covariance:</strong> $\mathbf{K} = \mathbf{X}^\mathsf{T}\mathbf{X}$ is the Gram matrix (unnormalized, uncentered). The covariance is $\frac{1}{n}\mathbf{X}\mathbf{X}^\mathsf{T}$, which is $d \times d$ and different.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: SPEEDUP CALCULATOR
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Feel the speedup</h2>
+      </div>
+      <p class="sec-intro">
+        Numbers make this concrete faster than algebra does. Drag $d$ and $n$ below and watch the two costs diverge — try $d = 20{,}000$ genes measured across $n = 200$ patients, a real genomics scenario.
+      </p>
+
+      <div class="calc-wrap">
+        <div class="calc-label">// O(d&sup3;) vs O(n&sup3;), live</div>
+
+        <div class="calc-sliders">
+          <div class="calc-slider-row">
+            <label>features <b>d</b></label>
+            <input type="range" id="dSlider" min="10" max="20000" value="20000" step="10" oninput="updateCalc()">
+            <span class="val" id="dVal">20,000</span>
+          </div>
+          <div class="calc-slider-row">
+            <label>data points <b>n</b></label>
+            <input type="range" id="nSlider" min="5" max="2000" value="200" step="5" oninput="updateCalc()">
+            <span class="val" id="nVal">200</span>
+          </div>
+        </div>
+
+        <div class="calc-bars">
+          <div class="calc-bar-group">
+            <div class="calc-bar dcube" id="dBar" style="height:170px;"></div>
+            <div class="calc-bar-caption">O(d&sup3;)</div>
+          </div>
+          <div class="calc-bar-group">
+            <div class="calc-bar ncube" id="nBar" style="height:6px;"></div>
+            <div class="calc-bar-caption">O(n&sup3;)</div>
+          </div>
+        </div>
+
+        <div class="calc-readout" id="calcReadout">
+          d&sup3; &asymp; <b id="dCubeVal">8.0T</b> ops &nbsp;&middot;&nbsp; n&sup3; &asymp; <b id="nCubeVal">8.0M</b> ops &nbsp;&middot;&nbsp; speedup <b id="speedupVal">1,000,000&times;</b>
+        </div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this means in practice</strong>
+          <p>
+            A $d = 20{,}000$ eigen-decomposition takes roughly <strong>hours</strong> on a modern CPU (and may crash from memory). The $n = 200$ equivalent takes <strong>milliseconds</strong>. The speedup of $1{,}000{,}000\times$ isn't a metaphor — it's the literal ratio of $(20{,}000/200)^3$. This trick turns infeasible problems into routine computations.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: TOWARD KERNEL PCA
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>One more observation — the door to Kernel PCA</h2>
+      </div>
+      <p class="sec-intro">
+        Look closely at what $\mathbf{K} = \mathbf{X}^\mathsf{T}\mathbf{X}$ actually contains: entry $(i, j)$ is $\mathbf{x}_i^\mathsf{T} \mathbf{x}_j$ — the <strong>dot product</strong> between data points $i$ and $j$.
+      </p>
+
+      <div class="eq-panel" id="eq-gram">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Gram Matrix Entry</div>
+        $$\mathbf{K}_{ij} = \mathbf{x}_i^\mathsf{T} \mathbf{x}_j$$
+        <div class="eq-caption">Only pairwise dot products — the raw data vectors themselves are never needed individually after $\mathbf{K}$ is built</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The entry in row $i$, column $j$ of the Gram matrix $\mathbf{K}$ is simply the dot product of the $i$-th and $j$-th data points. That's it — a single scalar that summarizes how aligned those two points are.&rdquo;
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          It's like judging how similar two songs are just by how they <strong>make you feel side by side</strong>, rather than comparing every individual audio frequency in each track. $\mathbf{K}$ is nothing but a table of <span class="highlight">pairwise similarities between data points</span> — PCA never actually needs the raw high-dimensional features themselves, only how each point relates to every other point.
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="cb-label">why_this_matters.txt</div>
+        <pre><span class="cm">// K only ever needs pairwise dot products:</span>
 K[i][j] = x_i . x_j
 
-<span class="c-comment">// swap the dot product for any valid "similarity" function,</span>
-<span class="c-comment">// and the whole algorithm still works — even for data where</span>
-<span class="c-comment">// no straight-line relationship exists at all</span>
+<span class="cm">// swap the dot product for any valid "similarity" function,</span>
+<span class="cm">// and the whole algorithm still works — even for data where</span>
+<span class="cm">// no straight-line relationship exists at all</span>
 K[i][j] = kernel(x_i, x_j)</pre>
-    </div>
-
-    <div class="callout good">
-      <div class="icon">→</div>
-      <div class="body">
-        <b>This is the seed of Kernel PCA</b>
-        <p>Once PCA is rewritten purely in terms of pairwise similarities, replacing the dot product with a kernel function lets PCA uncover non-linear structure — without ever explicitly building the giant feature vectors.</p>
       </div>
-    </div>
 
-    <table class="spec" style="margin-top:16px;">
-      <thead><tr><th>Setting</th><th>Features (d)</th><th>Data points (n)</th><th>Why this trick is essential</th></tr></thead>
-      <tbody>
-        <tr><td><b>Genomics</b></td><td>~20,000 genes</td><td>~200 patients</td><td>d/n ratio of 100:1 — the d×d matrix is never feasible</td></tr>
-        <tr><td><b>Text mining</b></td><td>~50,000 vocabulary terms</td><td>~1,000 documents</td><td>Sparse, huge feature space per document</td></tr>
-        <tr><td><b>Small-sample imaging</b></td><td>~1,000,000 pixels</td><td>~50 images</td><td>Extreme d≫n; only the n×n route is tractable</td></tr>
-      </tbody>
-    </table>
-  </section>
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>This is the seed of Kernel PCA</strong>
+          <p>Once PCA is rewritten purely in terms of pairwise similarities, replacing the dot product with a kernel function lets PCA uncover non-linear structure — without ever explicitly building the giant feature vectors.</p>
+        </div>
+      </div>
 
+      <div class="svg-card">
+        <div class="svg-label">&#9654; From Gram Matrix to Kernel Matrix</div>
+        <svg viewBox="0 0 860 120" xmlns="http://www.w3.org/2000/svg">
+          <!-- Linear path -->
+          <rect x="30" y="15" width="180" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="120" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">$\mathbf{K}_{ij} = \mathbf{x}_i^\mathsf{T} \mathbf{x}_j$</text>
+          <text x="120" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">Linear PCA (this lecture)</text>
+
+          <text x="235" y="38" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="22" fill="#8b91a5">&#8594;</text>
+
+          <!-- Kernel path -->
+          <rect x="290" y="15" width="220" height="40" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="400" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">$\mathbf{K}_{ij} = k(\mathbf{x}_i, \mathbf{x}_j)$</text>
+          <text x="400" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">Kernel PCA (next lecture)</text>
+
+          <!-- Arrow to "any kernel" -->
+          <text x="535" y="38" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="22" fill="#8b91a5">&#8594;</text>
+
+          <rect x="590" y="15" width="200" height="40" rx="8" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+          <text x="690" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1e4f8a" font-weight="600">RBF, polynomial, ...</text>
+          <text x="690" y="70" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1e4f8a">non-linear structure found</text>
+        </svg>
+        <div class="svg-caption">The dot product is just one specific kernel. Replace it with any valid kernel function, and the algorithm discovers non-linear structure.</div>
+      </div>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Real-World Applications</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Genomics</strong>
+            ~20,000 genes, ~200 patients — $d/n$ ratio of 100:1, the $d \times d$ matrix is never feasible
+          </div>
+          <div class="ap-item">
+            <strong>Text mining</strong>
+            ~50,000 vocabulary terms, ~1,000 documents — sparse, huge feature space per document
+          </div>
+          <div class="ap-item">
+            <strong>Small-sample imaging</strong>
+            ~1,000,000 pixels, ~50 images — extreme $d \gg n$; only the $n \times n$ route is tractable
+          </div>
+          <div class="ap-item">
+            <strong>Collaborative filtering</strong>
+            Millions of items, thousands of users — pairwise similarity matrix avoids the item-item covariance
+          </div>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Thinking the trick only works for linear PCA:</strong> Every PCA step — variance, covariance, projections — can be rewritten using only dot products. Replacing the dot product with a kernel is a seamless upgrade, not a new algorithm.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting to center in kernel space:</strong> When using a kernel, centering must be done algebraically on $\mathbf{K}$ (via $\mathbf{K}_c = \mathbf{K} - \mathbf{1}_n\mathbf{K} - \mathbf{K}\mathbf{1}_n + \mathbf{1}_n\mathbf{K}\mathbf{1}_n$), since the feature space may be implicit.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </div>
 </main>
 
 <footer>
-  <p>TIME-COMPLEXITY ISSUES WITH PCA · LECTURE NOTES</p>
+  <p>TIME-COMPLEXITY ISSUES WITH PCA &middot; PREMIUM LECTURE NOTES</p>
 </footer>
 
 <script>
   function formatNum(n){
-    if(n >= 1e9) return (n/1e9).toFixed(2) + 'B';
-    if(n >= 1e6) return (n/1e6).toFixed(2) + 'M';
+    if(n >= 1e9) return (n/1e9).toFixed(2) + 'T';
+    if(n >= 1e6) return (n/1e6).toFixed(1) + 'M';
     if(n >= 1e3) return (n/1e3).toFixed(1) + 'K';
     return Math.round(n).toString();
   }
@@ -531,10 +1535,9 @@ K[i][j] = kernel(x_i, x_j)</pre>
 
     const speedup = dCube / nCube;
     document.getElementById('speedupVal').textContent = speedup >= 1
-      ? (speedup >= 1000 ? formatNum(speedup) + '×' : speedup.toFixed(1) + '×')
-      : (1/speedup).toFixed(1) + '× slower';
+      ? (speedup >= 1000 ? formatNum(speedup) + '\u00D7' : speedup.toFixed(1) + '\u00D7')
+      : (1/speedup).toFixed(1) + '\u00D7 slower';
 
-    // bar heights on a log scale, capped at 170px
     const maxH = 170, minH = 4;
     const logD = Math.log10(dCube + 1);
     const logN = Math.log10(nCube + 1);

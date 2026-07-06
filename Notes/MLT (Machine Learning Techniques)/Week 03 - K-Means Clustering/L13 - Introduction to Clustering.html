@@ -3,517 +3,1134 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Introduction to Clustering — Finding Groups Without Labels</title>
+<title>Introduction to Clustering — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  :root{
-    --paper:        #FBF8F1;
-    --paper-line:   #E3DCC8;
-    --paper-edge:   #D8CFB4;
-    --ink:          #232323;
-    --ink-soft:     #5B5647;
-    --ink-faint:    #948C74;
-    --pen-blue:     #1F4E8C;
-    --pen-blue-soft:#E7EEF8;
-    --pen-red:      #A32B2B;
-    --pen-red-soft: #F8E9E7;
-    --marker:       #E3A320;
-    --marker-soft:  #FBF0D6;
-    --green:        #4B6B43;
-    --green-soft:   #EFF3EC;
-    --card:         #FFFDF8;
-    --card-shadow:  rgba(60, 50, 20, 0.14);
-    --radius-sm:    6px;
-    --radius-md:    10px;
-    --serif: 'Fraunces', serif;
-    --sans:  'Inter', sans-serif;
-    --mono:  'JetBrains Mono', monospace;
-    --c1: #1F4E8C;  /* cluster 1 - blue */
-    --c2: #A32B2B;  /* cluster 2 - red */
-    --c3: #C4901E;  /* cluster 3 - amber */
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{ box-sizing:border-box; }
-  html{ scroll-behavior:smooth; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  body{
-    margin:0;
-    background:
-      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
-      var(--paper);
-    color:var(--ink);
-    font-family:var(--sans);
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
-  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
-  a{ color:var(--pen-blue); }
 
-  .sheet{ max-width:920px; margin:0 auto; padding:0 28px 90px 64px; position:relative; }
-  .sheet::before{ content:""; position:absolute; top:0; bottom:0; left:38px; width:2px; background:var(--pen-red); opacity:0.35; }
-  @media (max-width:640px){ .sheet{ padding:0 18px 70px 34px; } .sheet::before{ left:16px; } }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
 
-  .navbar{ position:sticky; top:0; z-index:50; background:rgba(251,248,241,0.92); backdrop-filter:blur(6px); border-bottom:1px solid var(--paper-edge); }
-  .navwrap{ max-width:920px; margin:0 auto; padding:14px 28px 14px 64px; display:flex; align-items:center; gap:10px; overflow-x:auto; scrollbar-width:none; }
-  .navwrap::-webkit-scrollbar{ display:none; }
-  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
-  .nav-tag{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-faint); white-space:nowrap; margin-right:6px; }
-  .nav-link{ font-family:var(--sans); font-weight:600; font-size:13px; color:var(--ink-soft); text-decoration:none; padding:6px 12px; border-radius:20px; white-space:nowrap; border:1px solid transparent; transition:all .15s ease; }
-  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
 
-  .hero{ padding:64px 0 40px; }
-  .eyebrow{ font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--pen-red); text-transform:uppercase; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:18px; }
-  .eyebrow::before{ content:"§"; font-size:15px; }
-  h1.title{ font-family:var(--serif); font-weight:600; font-size:clamp(34px, 6vw, 54px); line-height:1.08; margin:0 0 14px; color:var(--ink); letter-spacing:-0.01em; }
-  .title em{ font-style:italic; color:var(--pen-blue); font-weight:500; }
-  .subtitle{ font-size:17px; color:var(--ink-soft); max-width:620px; margin:0 0 26px; }
-  .meta-row{ display:flex; gap:22px; flex-wrap:wrap; font-family:var(--mono); font-size:12px; color:var(--ink-faint); border-top:1px dashed var(--paper-edge); padding-top:16px; }
-  .meta-row b{ color:var(--ink-soft); }
-
-  .section{ margin-top:62px; }
-  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:22px; }
-  .sec-num{ font-family:var(--mono); font-size:13px; color:var(--pen-red); font-weight:600; border:1px solid var(--pen-red); border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-  .sec-head h2{ font-family:var(--serif); font-size:clamp(22px,3.4vw,29px); font-weight:600; margin:0; color:var(--ink); }
-
-  .card{ background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-md); box-shadow:0 3px 0 var(--card-shadow); padding:26px 28px; margin-bottom:22px; position:relative; }
-  .card h3{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 10px; color:var(--ink); }
-  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
-  .card p:last-child{ margin-bottom:0; }
-  .card ul{ margin:0 0 12px; padding-left:20px; }
-  .card li{ margin-bottom:7px; font-size:15.5px; }
-  .card-label{ position:absolute; top:-11px; left:24px; background:var(--marker-soft); color:#7A5A0A; font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em; padding:3px 10px; border-radius:20px; border:1px solid #E8CE86; }
-
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
-  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  @media (max-width:760px){ .grid-3{ grid-template-columns:1fr; } }
-
-  .analogy{ background:var(--pen-blue-soft); border-left:4px solid var(--pen-blue); border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:18px 22px; margin:18px 0; }
-  .analogy .tag{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--pen-blue); text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
-  .analogy .tag::before{ content:"💭"; font-size:13px; }
-  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
-
-  .callout{ border-radius:var(--radius-sm); padding:18px 22px; margin:20px 0; border:1.5px dashed; }
-  .callout .tag{ font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
-  .callout p{ margin:0; font-size:15px; }
-  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
-  .callout.key .tag{ color:#8A6510; } .callout.key .tag::before{ content:"★"; }
-  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
-  .callout.warn .tag{ color:var(--pen-red); } .callout.warn .tag::before{ content:"⚠"; }
-  .callout.note{ background:var(--green-soft); border-color:#7A9B6E; }
-  .callout.note .tag{ color:var(--green); } .callout.note .tag::before{ content:"✎"; }
-
-  .formula{ display:inline-block; font-family:var(--mono); font-size:14.5px; background:#EEF2FA; color:var(--pen-blue); border:1px solid #C9D8EF; padding:3px 10px; border-radius:5px; margin:2px 0; }
-  .formula-block{ font-family:var(--mono); font-size:15px; background:#20242C; color:#DCE6F7; border-radius:var(--radius-sm); padding:18px 22px; margin:16px 0; overflow-x:auto; line-height:1.9; text-align:center; }
-  .formula-block .hl{ color:#F2C868; }
-  .formula-block .hl2{ color:#7FD9B8; }
-  .formula-block small{ display:block; font-family:var(--sans); font-size:12px; color:#8FA0BE; margin-top:8px; }
-
-  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
-  table{ width:100%; border-collapse:collapse; min-width:480px; background:var(--card); }
-  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
-  th{ font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; background:#F1ECDD; color:var(--ink-soft); font-weight:600; }
-  tr:last-child td{ border-bottom:none; }
-  td.mono{ font-family:var(--mono); color:var(--pen-blue); }
-  .swatch{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:7px; vertical-align:middle; }
-  tr.danger{ background:var(--pen-red-soft); }
-  tr.danger td.mono{ color:var(--pen-red); }
-
-  .diagram{ background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-md); padding:28px 20px 22px; margin:20px 0; }
-  .diagram-title{ text-align:center; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px; }
-  .diagram-caption{ text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:480px; margin:14px auto 0; font-style:italic; }
-
-  /* Scatter / partition diagram */
-  .scatter{ position:relative; width:100%; max-width:460px; height:260px; margin:0 auto; border:1px dashed var(--paper-edge); border-radius:8px; background:#fff; }
-  .scatter .pt{ position:absolute; width:11px; height:11px; border-radius:50%; box-shadow:0 0 0 2px #fff; margin:-5.5px 0 0 -5.5px; }
-  .scatter .mean{
-    position:absolute; width:16px; height:16px; margin:-8px 0 0 -8px;
-    border:2.5px solid #fff; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-    box-shadow:0 0 0 1.5px rgba(0,0,0,0.25);
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
   }
-  .scatter .mean::before, .scatter .mean::after{
-    content:""; position:absolute; background:#fff;
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
   }
-  .scatter .boundary{
-    position:absolute; border-radius:50%; border:1.5px dashed;
-    opacity:.45;
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .legend-row{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px; font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
 
-  /* Combinatorial bar chart (reused pattern) */
-  .bar-chart{ display:flex; align-items:flex-end; gap:14px; height:190px; padding:0 6px; margin-top:10px; overflow-x:auto; }
-  .bar-col{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; min-width:64px; }
-  .bar-track{ width:100%; height:190px; display:flex; align-items:flex-end; }
-  .bar{ width:100%; max-width:46px; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg, #3E76C4, var(--pen-blue)); margin:0 auto; }
-  .bar.blow{ background:linear-gradient(180deg, #D65C5C, var(--pen-red)); }
-  .bar-val{ font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--ink); white-space:nowrap; }
-  .bar-label{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-align:center; }
+  main { padding: 56px 0 90px; }
 
-  .code-wrap{ position:relative; margin:18px 0; }
-  .code-block{ font-family:var(--mono); font-size:13.5px; line-height:1.75; background:#20242C; color:#D9E1EE; border-radius:var(--radius-sm); padding:18px 20px; overflow-x:auto; }
-  .code-block .ln{ color:#5C6577; margin-right:14px; user-select:none; }
-  .code-block .cm{ color:#7FD9B8; font-style:italic; }
-  .code-block .hl{ color:#F2C868; }
-  .code-block .kw{ color:#7FA8D9; }
-  .annot-list{ margin:14px 0 0; padding-left:0; list-style:none; }
-  .annot-list li{ font-size:14px; color:var(--ink-soft); margin-bottom:8px; padding-left:22px; position:relative; }
-  .annot-list li::before{ content:attr(data-n); position:absolute; left:0; top:0; font-family:var(--mono); font-size:11px; font-weight:700; color:#fff; background:var(--pen-blue); width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
 
-  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
-  .takeaway{ background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:16px 18px; display:flex; gap:12px; align-items:flex-start; }
-  .takeaway .num{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue); flex-shrink:0; line-height:1; }
-  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
 
-  .footer{ margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge); font-family:var(--mono); font-size:12px; color:var(--ink-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display { margin: 0; }
+  .eq-panel .katex-display > .katex { font-size: 1.35em; }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
 
-  ::selection{ background:var(--marker-soft); color:var(--ink); }
+  .eq-panel.multiline .katex-display > .katex { font-size: 1.1em; }
+
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula { flex-shrink: 0; }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 { font-weight: 600; font-size: 16px; margin: 0 0 6px; }
+  .param-card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
+  .param-card.gold .p-sym .katex { color: var(--gold); }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
 </style>
 </head>
 <body>
 
-<nav class="navbar">
-  <div class="navwrap">
-    <span class="nav-tag">JUMP TO</span>
-    <a class="nav-link" href="#s1">01 · Motivation</a>
-    <a class="nav-link" href="#s2">02 · The Goal</a>
-    <a class="nav-link" href="#s3">03 · Measuring Goodness</a>
-    <a class="nav-link" href="#s4">04 · Algorithmic Challenges</a>
-    <a class="nav-link" href="#s5">Takeaways</a>
+<header class="hero">
+  <div class="container">
+    <div class="tag">Unsupervised Learning &middot; Lecture 13</div>
+    <h1>Introduction to<br><em>Clustering</em></h1>
+    <p>PCA and Kernel PCA both asked "what directions or surfaces does this data lie along?" Clustering asks a completely different question: forget directions — where are the natural <em>groups</em>?</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Overview</a>
+      <a href="#s2" class="nav-pill">&sect;2 Setup</a>
+      <a href="#s3" class="nav-pill">&sect;3 Performance Measure</a>
+      <a href="#s4" class="nav-pill">&sect;4 Challenges</a>
+      <a href="#s5" class="nav-pill">&sect;5 Takeaways</a>
+    </div>
   </div>
-</nav>
+</header>
 
-<div class="sheet">
+<main>
+  <div class="container">
 
-  <header class="hero">
-    <div class="eyebrow">Unsupervised Learning Series · Part 3</div>
-    <h1 class="title">Introduction to<br><em>Clustering</em></h1>
-    <p class="subtitle">
-      PCA and Kernel PCA both asked "what directions or surfaces does this data
-      lie along?" Clustering asks a completely different question: forget
-      directions — where are the natural <em>groups</em>?
-    </p>
-    <div class="meta-row">
-      <span><b>Paradigm</b> · Unsupervised learning</span>
-      <span><b>Core idea</b> · Partition data into homogeneous groups</span>
-      <span><b>Hard part</b> · Exponentially many possible partitions</span>
-    </div>
-  </header>
-
-  <!-- SECTION 1 -->
-  <section class="section" id="s1">
-    <div class="sec-head"><div class="sec-num">1</div><h2>Overview &amp; Motivation</h2></div>
-    <div class="card">
-      <span class="card-label">A DIFFERENT QUESTION</span>
-      <h3>Not "which direction," but "which group"</h3>
-      <p>
-        PCA and Kernel PCA are forms of <strong>representation learning</strong> —
-        they look for linear subspaces, or directions of maximum variance, that
-        summarize the data. <strong>Clustering</strong> asks something else
-        entirely: even data that already lies neatly within a subspace often
-        forms distinct <em>clumps</em> within it. Those clumps carry structural
-        information that variance-hunting alone will never reveal.
-      </p>
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Imagine a jar of mixed candy — all roughly the same size and shape
-          (so no "direction of variance" separates them), but clearly made up
-          of a few different flavors sitting in loose piles. Nobody labeled the
-          piles for you. Clustering is the act of sorting the jar by flavor
-          using nothing but how the candies look and taste next to their
-          neighbors — no labels, no instructions, just noticing what's alike.
-        </p>
+    <!-- ================================================================
+         SECTION 1: OVERVIEW
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Overview &amp; Motivation</h2>
       </div>
-    </div>
-  </section>
-
-  <!-- SECTION 2 -->
-  <section class="section" id="s2">
-    <div class="sec-head"><div class="sec-num">2</div><h2>The Goal of Clustering</h2></div>
-    <div class="card">
-      <span class="card-label">THE SETUP</span>
-      <h3>Partition n points into K boxes</h3>
-      <p>
-        Given <span class="formula">n</span> data points
-        <span class="formula">x₁, ..., xₙ</span> living in
-        <span class="formula">d</span>-dimensional space, the goal is to sort
-        them into <span class="formula">K</span> distinct groups — think of it
-        as assigning each point to one of <span class="formula">K</span> labeled
-        boxes.
+      <p class="sec-intro">
+        Clustering finds group structure, not directions of variance — a fundamentally different unsupervised goal than PCA.
       </p>
 
-      <div class="diagram">
-        <div class="diagram-title">n points, sorted into K = 3 boxes</div>
-        <div class="scatter" id="scatterDiagram"></div>
-        <div class="legend-row">
-          <span><span class="swatch" style="background:var(--c1);"></span>Cluster 1</span>
-          <span><span class="swatch" style="background:var(--c2);"></span>Cluster 2</span>
-          <span><span class="swatch" style="background:var(--c3);"></span>Cluster 3</span>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; A Different Question</div>
+        <div class="ex-text">
+          PCA and Kernel PCA are forms of <strong>representation learning</strong> — they look for linear subspaces, or directions of maximum variance, that summarize the data. <strong>Clustering</strong> asks something else entirely: even data that already lies neatly within a subspace often forms distinct <em>clumps</em> within it. Those clumps carry structural information that variance-hunting alone will never reveal.
         </div>
-        <p class="diagram-caption">
-          Solid dots are data points; the ringed markers are each cluster's
-          mean. There's no rule handed to us for where the boundaries go — we
-          have to infer them from how the points naturally clump.
-        </p>
       </div>
 
-      <div class="callout warn">
-        <div class="tag">Combinatorial complexity</div>
-        <p>
-          Assigning <span class="formula">n</span> points to
-          <span class="formula">K</span> groups has roughly
-          <span class="formula">K<sup>n</sup></span> possible outcomes — each of
-          the <span class="formula">n</span> points independently could go into
-          any of <span class="formula">K</span> boxes. This makes finding the
-          <em>best</em> partition by checking every option <strong>NP-hard</strong>:
-          computationally infeasible once <span class="formula">n</span> grows
-          past a tiny handful of points.
-        </p>
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Real-Life Analogy</div>
+        <div class="in-text">
+          Imagine a jar of mixed candy — all roughly the same size and shape (so no "direction of variance" separates them), but clearly made up of a few different flavors sitting in loose piles. Nobody labeled the piles for you. Clustering is the act of sorting the jar by flavor using nothing but how the candies look and taste next to their neighbors — no labels, no instructions, just noticing what's alike.
+        </div>
       </div>
 
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Picture a wedding planner seating <span class="formula">n</span>
-          guests at <span class="formula">K</span> tables, free to put any guest
-          at any table. With just 10 guests and 3 tables, there are already
-          <span class="formula">3<sup>10</sup></span> ≈ 59,000 possible seating
-          charts. Checking every single one to find the "best" arrangement by
-          brute force stops being realistic almost immediately — and real
-          datasets have far more than 10 points.
-        </p>
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <span class="p-sym">$\mathbf{x}_1, \dots, \mathbf{x}_n$</span>
+          <h4>Data Points</h4>
+          <p>$n$ unlabeled observations in $\mathbb{R}^d$.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$K$</span>
+          <h4>Number of Clusters</h4>
+          <p>The target number of groups to partition into.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--rust);">
+          <span class="p-sym">$z_i \in \{1,\dots,K\}$</span>
+          <h4>Cluster Assignment</h4>
+          <p>Each point gets a label indicating its group.</p>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- SECTION 3 -->
-  <section class="section" id="s3">
-    <div class="sec-head"><div class="sec-num">3</div><h2>Defining a Performance Measure</h2></div>
-
-    <div class="card">
-      <span class="card-label">HOW DO WE SCORE A PARTITION?</span>
-      <h3>Cluster indicators, and the homogeneity idea</h3>
-      <p>
-        Since we can't check every partition, we need a numeric score to tell
-        a good partition from a bad one — something we can eventually search
-        for efficiently. We introduce <strong>cluster indicator variables</strong>
-        <span class="formula">z₁, ..., zₙ</span>, where
-        <span class="formula">zᵢ ∈ {1, ..., K}</span> records which cluster
-        point <span class="formula">xᵢ</span> is assigned to.
-      </p>
-      <p>
-        A good partition is <strong>homogeneous</strong>: points inside a
-        cluster should look alike. We measure "alikeness" indirectly — by how
-        close each point sits to its cluster's own center.
+    <!-- ================================================================
+         SECTION 2: THE GOAL
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>The Goal of Clustering</h2>
+      </div>
+      <p class="sec-intro">
+        Given $n$ data points $\mathbf{x}_1, \dots, \mathbf{x}_n \in \mathbb{R}^d$, the goal is to sort them into $K$ distinct groups — assigning each point to one of $K$ labeled boxes.
       </p>
 
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Think of a group of friends scattered across a city trying to pick
-          one meeting spot each for a few separate hangouts. A "good" choice
-          of meeting spots is one where everyone in each hangout group lives
-          reasonably close to their group's chosen spot — not one where people
-          have to trek across town. The meeting spot is the cluster's center;
-          the total walking distance is exactly the kind of thing we're about
-          to define mathematically.
-        </p>
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel" id="eq-partition">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Partitioning Problem</div>
+        $$\text{Find } z_1, \dots, z_n \in \{1, \dots, K\} \text{ that optimize a scoring function}$$
+        <div class="eq-caption">The cluster assignment variables $z_i$ encode which group each point belongs to</div>
       </div>
 
-      <h3 style="margin-top:22px;">The cluster mean</h3>
-      <p>
-        The center of cluster <span class="formula">k</span> is just the
-        average of every point currently assigned to it:
-      </p>
-      <div class="formula-block">
-        μ<sub>k</sub> &nbsp;=&nbsp;
-        <span class="hl2">Σᵢ xᵢ · 𝟙(zᵢ = k)</span> &nbsp;⁄&nbsp; <span class="hl">Σᵢ 𝟙(zᵢ = k)</span>
-        <small>numerator: sum of points currently in cluster k · denominator: how many points that is — an ordinary average</small>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Setup in English</div>
+        <div class="ex-text">
+          &ldquo;We have $n$ points. We want to assign each one a label $z_i$ from $1$ to $K$. The assignment should make points <strong>within</strong> each label look alike and points <strong>across</strong> labels look different.&rdquo;
+        </div>
       </div>
 
-      <div class="table-wrap">
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
         <table>
-          <thead><tr><th>Point</th><th>Assignment (z<sub>i</sub>)</th><th>Distance to its mean</th></tr></thead>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
           <tbody>
-            <tr><td>x₁</td><td class="mono"><span class="swatch" style="background:var(--c1);"></span>1</td><td>0.42</td></tr>
-            <tr><td>x₂</td><td class="mono"><span class="swatch" style="background:var(--c2);"></span>2</td><td>0.71</td></tr>
-            <tr><td>x₃</td><td class="mono"><span class="swatch" style="background:var(--c1);"></span>1</td><td>0.35</td></tr>
-            <tr><td>x₄</td><td class="mono"><span class="swatch" style="background:var(--c3);"></span>3</td><td>0.58</td></tr>
-            <tr><td>x₅</td><td class="mono"><span class="swatch" style="background:var(--c2);"></span>2</td><td>0.63</td></tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Number of data points</td>
+              <td class="leg-example">$n = 100$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$d$</td>
+              <td class="leg-meaning">Dimensionality of each point</td>
+              <td class="leg-example">$d = 3$ (height, width, depth)</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$K$</td>
+              <td class="leg-meaning">Number of clusters to find</td>
+              <td class="leg-example">$K = 3$ groups</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$z_i$</td>
+              <td class="leg-meaning">Cluster indicator for point $i$</td>
+              <td class="leg-example">$z_5 = 2$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{x}_i$</td>
+              <td class="leg-meaning">The $i$-th data point</td>
+              <td class="leg-example">$\mathbf{x}_1 = [1.2, 3.4]^T$</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <h3 style="margin-top:22px;">The objective function</h3>
-      <p>
-        Putting it together: we want to choose assignments
-        <span class="formula">z₁, ..., zₙ</span> that <strong>minimize the total
-        squared distance</strong> from every point to its own cluster's mean —
-        this total is often called the within-cluster sum of squares:
-      </p>
-      <div class="formula-block">
-        Minimize &nbsp; <span class="hl2">Σᵢ₌₁<sup>n</sup></span> ||x<sub>i</sub> − μ<sub>z<sub>i</sub></sub>||<sup>2</sup>
-        <small>sum, over every point, of its squared distance to whichever cluster mean it's currently assigned to</small>
-      </div>
-
-      <div class="callout key">
-        <div class="tag">Key insight</div>
-        <p>
-          This objective quietly does two things at once: it depends on
-          <em>where</em> the means are, and on <em>which</em> points are
-          assigned where — and each of those depends on the other. That
-          circularity is exactly what future algorithms (like k-means) are
-          built to untangle.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SECTION 4 -->
-  <section class="section" id="s4">
-    <div class="sec-head"><div class="sec-num">4</div><h2>Algorithmic Challenges</h2></div>
-
-    <div class="card">
-      <span class="card-label">WHY WE CAN'T JUST CHECK EVERYTHING</span>
-      <h3>The search space explodes long before n gets "large"</h3>
-      <p>
-        Because the number of candidate partitions grows like
-        <span class="formula">K<sup>n</sup></span>, exhaustive search is only
-        ever an option for toy-sized problems. The chart below fixes
-        <span class="formula">K = 3</span> clusters and shows how fast the
-        count of possible partitions runs away as <span class="formula">n</span>
-        grows.
-      </p>
-
-      <div class="diagram">
-        <div class="diagram-title">Possible partitions of n points into K = 3 clusters</div>
-        <div class="bar-chart">
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:6%;"></div></div>
-            <div class="bar-val">3⁵ = 243</div>
-            <div class="bar-label">n = 5</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:16%;"></div></div>
-            <div class="bar-val">3¹⁰ ≈ 59K</div>
-            <div class="bar-label">n = 10</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:42%;"></div></div>
-            <div class="bar-val">3²⁰ ≈ 3.5B</div>
-            <div class="bar-label">n = 20</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar blow" style="height:96%;"></div></div>
-            <div class="bar-val">3⁵⁰ ≈ 7.2×10²³</div>
-            <div class="bar-label">n = 50</div>
-          </div>
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Picture a wedding planner seating <strong>$n$ guests</strong> at <strong>$K$ tables</strong>, free to put any guest at any table. With just 10 guests and 3 tables, there are already $3^{10} \approx 59{,}000$ possible seating charts. Checking every single one to find the "best" arrangement by brute force stops being realistic almost immediately — and real datasets have far more than 10 points.
         </div>
-        <p class="diagram-caption">
-          Bars are compressed to fit the page — by n = 50, the true count of
-          possible partitions is comparable to the number of molecules in a
-          handful of table salt. No computer checks all of those one by one.
-        </p>
       </div>
 
-      <div class="callout note">
-        <div class="tag">Worth noting</div>
-        <p>
-          "NP-hard" doesn't mean impossible — it means there's no known method
-          that finds the guaranteed-best partition quickly for all inputs. It
-          doesn't stop us from finding <em>very good</em> partitions efficiently;
-          it just rules out brute-force certainty.
-        </p>
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Schematic: Partitioning $n$ Points Into $K$ Groups</div>
+        <svg viewBox="0 0 860 200" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aG2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+          <!-- Points (left) -->
+          <rect x="20" y="50" width="160" height="80" rx="10" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+          <text x="100" y="95" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#1e4f8a" font-weight="600">$n$ points</text>
+          <text x="100" y="115" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">$\mathbf{x}_1, \dots, \mathbf{x}_n$</text>
+
+          <!-- Arrow -->
+          <line x1="180" y1="90" x2="260" y2="90" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG2)"/>
+
+          <!-- Assignments -->
+          <rect x="270" y="20" width="180" height="140" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="360" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Assign $z_i \in \{1,\dots,K\}$</text>
+          <text x="360" y="75" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">$z_1 = 2, z_2 = 1, z_3 = 3, \dots$</text>
+          <line x1="310" y1="95" x2="410" y2="95" stroke="#b5872a" stroke-width="0.5"/>
+          <text x="360" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">Goal: points with same $z_i$</text>
+          <text x="360" y="138" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">are similar/dense/close</text>
+
+          <!-- Arrow -->
+          <line x1="450" y1="90" x2="530" y2="90" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG2)"/>
+
+          <!-- Output -->
+          <rect x="540" y="30" width="160" height="120" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="620" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">$K$ Clusters</text>
+          <text x="620" y="85" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">Cluster 1: $\{i : z_i = 1\}$</text>
+          <text x="620" y="105" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">Cluster 2: $\{i : z_i = 2\}$</text>
+          <text x="620" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#505770">Cluster 3: $\{i : z_i = 3\}$</text>
+        </svg>
+        <div class="svg-caption">The clustering pipeline: raw points $\rightarrow$ assignment variables $\rightarrow$ partitioned groups</div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: PERFORMANCE MEASURE
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Defining a Performance Measure</h2>
+      </div>
+      <p class="sec-intro">
+        Since we can't check every partition, we need a numeric score to tell a good partition from a bad one — something we can eventually search for efficiently.
+      </p>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Cluster Indicators &amp; Homogeneity</div>
+        <div class="ex-text">
+          A good partition is <strong>homogeneous</strong>: points inside a cluster should look alike. We measure "alikeness" indirectly — by how close each point sits to its cluster's own center.
+        </div>
       </div>
 
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          It's the same wall a delivery driver hits trying to find the
-          absolute shortest route through 50 stops: checking every possible
-          order is hopeless, but a sensible heuristic — like always driving to
-          the nearest unvisited stop next — gets you a route that's very good,
-          very fast, even without a guarantee it's the mathematical best.
-        </p>
+      <!-- Cluster Mean Equation -->
+      <div class="eq-panel" id="eq-mean">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Cluster Mean</div>
+        $$\boldsymbol{\mu}_k = \frac{1}{n_k} \sum_{i : z_i = k} \mathbf{x}_i \quad \text{where} \quad n_k = \bigl|\{i : z_i = k\}\bigr|$$
+        <div class="eq-caption">The center of cluster $k$ is the arithmetic mean of all points assigned to it</div>
       </div>
 
-      <div class="callout key" style="margin-top:20px;">
-        <div class="tag">Looking ahead</div>
-        <p>
-          Since exhaustive search is off the table, the next lecture
-          introduces <strong>k-means</strong> — a heuristic algorithm that
-          alternates between assigning points to their nearest mean and
-          recomputing the means, converging quickly to a good (if not always
-          globally optimal) partition.
-        </p>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The mean $\boldsymbol{\mu}_k$ of cluster $k$ equals the sum of all points assigned to cluster $k$, divided by $n_k$, the number of points in that cluster.&rdquo;
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- TAKEAWAYS -->
-  <section class="section" id="s5">
-    <div class="sec-head"><div class="sec-num">✓</div><h2>Key Takeaways</h2></div>
-    <div class="takeaway-grid">
-      <div class="takeaway"><div class="num">1</div><p>Clustering finds group structure, not directions of variance — a fundamentally different unsupervised goal than PCA.</p></div>
-      <div class="takeaway"><div class="num">2</div><p>Partitioning n points into K clusters has ~K^n possible outcomes, making exhaustive search NP-hard.</p></div>
-      <div class="takeaway"><div class="num">3</div><p>Cluster indicators z_i and cluster means μ_k let us score any given partition by within-cluster squared distance.</p></div>
-      <div class="takeaway"><div class="num">4</div><p>Because we can't search exhaustively, upcoming lectures turn to heuristics like k-means for a fast, good-enough solution.</p></div>
-    </div>
-  </section>
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\mu}_k$</td>
+              <td class="leg-meaning">Mean (centroid) of cluster $k$</td>
+              <td class="leg-example">$\boldsymbol{\mu}_1 = [1.5, 2.3]^T$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n_k$</td>
+              <td class="leg-meaning">Number of points in cluster $k$</td>
+              <td class="leg-example">$n_1 = 42$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\displaystyle\sum_{i : z_i = k}$</td>
+              <td class="leg-meaning">Sum over points assigned to cluster $k$</td>
+              <td class="leg-example">Sum of 42 vectors</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-  <div class="footer">
-    <span>Lecture Notes · Introduction to Clustering</span>
-    <span>Unsupervised Learning Series · Part 3</span>
+      <!-- WCSS Equation -->
+      <div class="eq-panel multiline" id="eq-wcss">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Within-Cluster Sum of Squares (WCSS)</div>
+        $$\text{WCSS} = \sum_{i=1}^{n} \|\mathbf{x}_i - \boldsymbol{\mu}_{z_i}\|^2$$
+        <div class="eq-caption">The total squared distance from every point to its own cluster's mean — the objective to minimize</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The within-cluster sum of squares is the <strong>sum</strong> over each point of the <strong>squared distance</strong> between that point and the mean of the cluster it's assigned to. This is the total cost we want to minimize.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\|\mathbf{x}_i - \boldsymbol{\mu}_{z_i}\|^2$</td>
+              <td class="leg-meaning">Squared Euclidean distance from point $i$ to its cluster's mean</td>
+              <td class="leg-example">$\|x - \mu\|^2 = 4.2$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\displaystyle\sum_{i=1}^{n}$</td>
+              <td class="leg-meaning">Sum over all $n$ data points</td>
+              <td class="leg-example">$n = 100$ terms</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of a group of friends scattered across a city trying to pick one meeting spot each for a few separate hangouts. A "good" choice of meeting spots is one where everyone in each hangout group lives reasonably close to their group's chosen spot — not one where people have to trek across town. The meeting spot is the cluster's center; the total walking distance is exactly the WCSS.
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step Construction of WCSS</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Assign each point to a cluster — get <strong>$z_i$</strong> for each $i$</div>
+          <div class="dt-formula">$z_i \in \{1,\dots,K\}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Compute the <strong>mean</strong> of each cluster</div>
+          <div class="dt-formula">$\displaystyle \boldsymbol{\mu}_k = \frac{1}{n_k} \sum_{i:z_i=k} \mathbf{x}_i$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Measure each point's <strong>squared distance</strong> to its own mean</div>
+          <div class="dt-formula">$\|\mathbf{x}_i - \boldsymbol{\mu}_{z_i}\|^2$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text"><strong>Sum</strong> over all points to get the total cost</div>
+          <div class="dt-formula" style="color:var(--rust);font-weight:600;">$\displaystyle \text{WCSS} = \sum_{i=1}^n \|\mathbf{x}_i - \boldsymbol{\mu}_{z_i}\|^2$</div>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example ($n = 5$, $d = 2$, $K = 3$)</div>
+        <div class="num-setup"><strong>Setup:</strong> Five 2D points with assignments and means.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>$i$</th><th>$\mathbf{x}_i$</th><th>$z_i$</th><th>$\boldsymbol{\mu}_{z_i}$</th><th>$\|\mathbf{x}_i - \boldsymbol{\mu}_{z_i}\|^2$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$[1.0, 2.0]$</td><td style="font-weight:600;color:var(--blue);">1</td><td>$[1.2, 1.9]$</td><td>$0.05$</td></tr>
+            <tr><td>2</td><td>$[1.5, 1.5]$</td><td style="font-weight:600;color:var(--blue);">1</td><td>$[1.2, 1.9]$</td><td>$0.25$</td></tr>
+            <tr><td>3</td><td>$[1.0, 2.5]$</td><td style="font-weight:600;color:var(--blue);">1</td><td>$[1.2, 1.9]$</td><td>$0.40$</td></tr>
+            <tr><td>4</td><td>$[5.0, 1.0]$</td><td style="font-weight:600;color:var(--gold);">2</td><td>$[4.8, 1.2]$</td><td>$0.08$</td></tr>
+            <tr><td>5</td><td>$[4.5, 1.5]$</td><td style="font-weight:600;color:var(--gold);">2</td><td>$[4.8, 1.2]$</td><td>$0.18$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \text{WCSS} = 0.05 + 0.25 + 0.40 + 0.08 + 0.18 = \mathbf{0.96}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What WCSS measures</strong>
+          <p>
+            A <strong>lower</strong> WCSS means points are tightly packed around their means — a good clustering. But WCSS always decreases as $K$ increases (more clusters = tighter fit), which is why we can't just minimize WCSS alone. That's the topic of choosing $K$.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Key insight</strong>
+          <p>
+            This objective quietly does two things at once: it depends on <em>where</em> the means are, and on <em>which</em> points are assigned where — and each of those depends on the other. That circularity is exactly what future algorithms (like K-Means) are built to untangle.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: CHALLENGES
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Algorithmic Challenges</h2>
+      </div>
+      <p class="sec-intro">
+        The number of candidate partitions grows like $K^n$, making exhaustive search NP-hard.
+      </p>
+
+      <div class="eq-panel" id="eq-complexity">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Combinatorial Explosion</div>
+        $$\# \text{partitions} = K^{\,n}$$
+        <div class="eq-caption">Each of $n$ points can independently go into any of $K$ clusters — exponential growth</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Why Exhaustive Search Is Impossible</div>
+        <div class="ex-text">
+          With $K = 3$ and $n = 50$, there are $3^{50} \approx 7.2 \times 10^{23}$ possible partitions — comparable to the number of molecules in a handful of table salt. No computer can check them all.
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Growth of $K^n$ for $K = 3$</div>
+        <table>
+          <thead>
+            <tr><th>$n$</th><th>$3^n$</th><th>Feasibility</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$5$</td><td>$243$</td><td style="color:var(--teal);font-weight:600;">Trivial</td></tr>
+            <tr><td>$10$</td><td>$\approx 59{,}000$</td><td style="color:var(--gold);font-weight:600;">Tractable</td></tr>
+            <tr><td>$20$</td><td>$\approx 3.5 \times 10^9$</td><td style="color:var(--rust);font-weight:600;">Infeasible</td></tr>
+            <tr><td>$50$</td><td>$\approx 7.2 \times 10^{23}$</td><td style="color:var(--rust);font-weight:600;">Impossible</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          "NP-hard" doesn't mean impossible — it means there's no known method that finds the guaranteed-best partition quickly for all inputs. It doesn't stop us from finding <strong>very good</strong> partitions efficiently; it just rules out brute-force certainty. It's the same wall a delivery driver hits trying to find the absolute shortest route through 50 stops: checking every possible order is hopeless, but a sensible heuristic — like always driving to the nearest unvisited stop next — gets you a route that's very good, very fast.
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Looking ahead</strong>
+          <p>
+            Since exhaustive search is off the table, the next lecture introduces <strong>K-Means (Lloyd's algorithm)</strong> — a heuristic algorithm that alternates between assigning points to their nearest mean and recomputing the means, converging quickly to a good (if not always globally optimal) partition.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: TAKEAWAYS
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Key Takeaways</h2>
+      </div>
+
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <h4>Clustering ≠ PCA</h4>
+          <p>Clustering finds group structure, not directions of variance — a fundamentally different unsupervised goal.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <h4>NP-Hard</h4>
+          <p>Partitioning $n$ points into $K$ clusters has $\sim K^n$ possible outcomes, making exhaustive search hopeless.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <h4>WCSS Objective</h4>
+          <p>Cluster indicators $z_i$ and cluster means $\boldsymbol{\mu}_k$ let us score any given partition by within-cluster squared distance.</p>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Next up</strong>
+          <p>
+            Because we can't search exhaustively, upcoming lectures turn to heuristics like K-Means (Lloyd's algorithm) for a fast, good-enough solution.
+          </p>
+        </div>
+      </div>
+    </section>
+
   </div>
+</main>
 
-</div>
-
-<script>
-  // Scatter diagram: 3 clusters of points with means + boundary rings
-  (function(){
-    var el = document.getElementById('scatterDiagram');
-    var clusters = [
-      { color:'var(--c1)', cx:110, cy:90,  r:55, n:9 },
-      { color:'var(--c2)', cx:300, cy:70,  r:50, n:8 },
-      { color:'var(--c3)', cx:220, cy:190, r:50, n:9 }
-    ];
-    clusters.forEach(function(cl){
-      // boundary ring
-      var ring = document.createElement('div');
-      ring.className = 'boundary';
-      ring.style.width = (cl.r*2)+'px';
-      ring.style.height = (cl.r*2)+'px';
-      ring.style.left = (cl.cx - cl.r)+'px';
-      ring.style.top = (cl.cy - cl.r)+'px';
-      ring.style.borderColor = cl.color;
-      el.appendChild(ring);
-
-      // points scattered pseudo-randomly within radius
-      for(var i=0;i<cl.n;i++){
-        var angle = (Math.PI*2/cl.n)*i + (i*0.7);
-        var rad = cl.r * (0.25 + 0.6*((i*37)%10)/10);
-        var dot = document.createElement('div');
-        dot.className = 'pt';
-        dot.style.background = cl.color;
-        dot.style.left = (cl.cx + rad*Math.cos(angle)) + 'px';
-        dot.style.top  = (cl.cy + rad*0.75*Math.sin(angle)) + 'px';
-        el.appendChild(dot);
-      }
-
-      // mean marker (a ringed dot with a plus sign via two lines)
-      var mean = document.createElement('div');
-      mean.className = 'mean';
-      mean.style.left = cl.cx+'px';
-      mean.style.top = cl.cy+'px';
-      mean.style.background = cl.color;
-      el.appendChild(mean);
-    });
-  })();
-</script>
+<footer>
+  <p>INTRODUCTION TO CLUSTERING &middot; PREMIUM LECTURE NOTES</p>
+</footer>
 
 </body>
 </html>

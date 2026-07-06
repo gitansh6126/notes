@@ -2,217 +2,420 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Async, Promises &amp; Error Handling — Chalkboard Notes</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Async Await — Study Notes</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --chalk-green: #9fd0a7;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
-body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-.wrap{ max-width: 1000px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-green); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2rem, 4.8vw, 3.1rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
-
-.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-green); background: rgba(159,208,167,0.07); border: 1px dashed var(--chalk-green); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-green); border:1px solid var(--chalk-green); border-radius:10px; padding:3px 8px; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:56px; }
-
-.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
-
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 8px; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Tracking receipt diagram */
-.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
-.diagram-box svg{ max-width:100%; height:auto; }
-.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
-
-/* Promise states */
-.states{ display:flex; gap:0; flex-wrap:wrap; justify-content:center; }
-.states .state{ font-family:'Kalam', cursive; font-size:1rem; border:1px solid var(--board-line); border-radius:20px; padding:10px 20px; margin:6px; }
-.states .state.pending{ color: var(--chalk-blue); }
-.states .state.fulfilled{ color: var(--chalk-green); }
-.states .state.rejected{ color: var(--chalk-pink); }
-.states .sep{ font-family:'Kalam', cursive; font-size:1.3rem; color: var(--board-line); padding: 10px 6px; }
-
-/* Duo error handling */
-.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
-@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
-.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
-.duo .panel.a{ --accent: var(--chalk-blue); }
-.duo .panel.b{ --accent: var(--chalk-pink); }
-.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.1rem; margin:0 0 10px; }
-.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
-
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="eyebrow">Lecture 13 · Companion Notes</div>
-    <h1>Async, Promises &amp;<br>Error Handling</h1>
-    <p class="subhead">— getting a tracking number now, and dealing with whatever shows up later —</p>
-  </header>
+<div class="hero">
+  <div class="eyebrow">Week 05 · Screencast 5.2</div>
+  <h1>Async / Await</h1>
+  <p>Modern JavaScript's syntax for writing asynchronous code that <b>reads like synchronous code</b>. Built on Promises, <b>async/await</b> eliminates callback hell and makes error handling straightforward with <b>try/catch</b>.</p>
+</div>
 
-  <div class="thread"><span class="tag">Back to Core JS</span> Same event loop from Lecture 10 — now wrapped in the cleaner Promise and async/await syntax.</div>
+<div class="section-tag"><span class="n">1</span> THE <code>async</code> KEYWORD</div>
+<div class="card">
+  <h2>Making a Function Return a Promise</h2>
+  <p class="def">Adding the <b>async</b> keyword before a function declaration makes it always return a Promise. If the function returns a value, that value is wrapped in a resolved promise automatically.</p>
 
-  <!-- Overview -->
-  <section>
-    <div class="section-head"><h2>Sync by Default, Async by Choice</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">JS Is Fundamentally Synchronous</p>
-        <div class="row"><span class="label">Real Life</span><p>Reading a recipe top to bottom, one step fully finished before starting the next.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>Async features are the "place an order and keep cooking" escape hatch for the few steps — like waiting for dough to rise — that would otherwise stall the whole recipe.</p></div>
-      </div>
+  <pre><span class="cmt">// Without async — returns a string directly</span>
+<span class="kw">function</span> <span class="fn">greet</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>
+}
+console.log(<span class="fn">greet</span>(<span class="str">'Alice'</span>))  <span class="cmt">// "Hello, Alice!"</span>
+
+<span class="cmt">// With async — always returns a Promise</span>
+<span class="kw">async function</span> <span class="fn">asyncGreet</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>
+}
+console.log(<span class="fn">asyncGreet</span>(<span class="str">'Alice'</span>))  <span class="cmt">// Promise {&lt;fulfilled&gt;: "Hello, Alice!"}</span>
+<span class="fn">asyncGreet</span>(<span class="str">'Alice'</span>).<span class="fn">then</span>(console.log)  <span class="cmt">// "Hello, Alice!"</span></pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">An <b>async function</b> is like ordering a coffee at a busy café. The barista gives you a receipt (a Promise) immediately. That receipt guarantees you'll get coffee eventually, but you don't stand there waiting — you can chat with friends while they make it. When the coffee's ready, the receipt is "redeemed" for the actual coffee.</div>
+  </div>
+
+  <pre><span class="cmt">// Async arrow function</span>
+<span class="kw">const</span> <span class="fn">fetchData</span> = <span class="kw">async</span> () => {
+  <span class="kw">return</span> { id: <span class="str">1</span>, name: <span class="str">'Item'</span> }
+}
+
+<span class="cmt">// Async as object method</span>
+<span class="kw">const</span> api = {
+  <span class="fn">async get</span>(url) {
+    <span class="kw">return</span> <span class="fn">fetch</span>(url)
+  }
+}</pre>
+
+  <div class="tip-box">
+    <div class="t-label">Key Insight</div>
+    <div class="t-text">The <b>async</b> keyword doesn't make the function asynchronous internally — it enables the use of <b>await</b> inside it and wraps the return value in a Promise. The function body still runs synchronously until it hits an <b>await</b>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> THE <code>await</code> KEYWORD</div>
+<div class="card">
+  <h2>Pausing Execution</h2>
+  <p class="def"><b>await</b> can only be used inside an async function. It pauses the execution of the function until the Promise resolves, then returns the resolved value. The rest of the program continues running — only the async function is "paused."</p>
+
+  <pre><span class="kw">async function</span> <span class="fn">getUser</span>(id) {
+  console.log(<span class="str">'Fetching user...'</span>)
+  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
+  <span class="cmt">// Execution pauses here until fetch resolves</span>
+  <span class="kw">const</span> user = <span class="kw">await</span> response.<span class="fn">json</span>()
+  console.log(<span class="str">'User fetched:'</span>, user.name)
+  <span class="kw">return</span> user
+}
+
+<span class="cmt">// Output:</span>
+<span class="cmt">// "Fetching user..."  (immediately)</span>
+<span class="cmt">// (pause — network request in flight)</span>
+<span class="cmt">// "User fetched: Alice"  (when resolved)</span></pre>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Without await</div>
+      <div class="c-desc><code>const user = fetch('/api/user')</code> — user is a Promise object, not the actual data. You'd need <code>.then()</code> to access the value.</div>
     </div>
-  </section>
-
-  <!-- Promises -->
-  <section>
-    <div class="section-head"><h2>Promises: A Tracking Number, Not the Package</h2><div class="rule"></div></div>
-    <div class="diagram-box" style="margin-bottom:20px;">
-      <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
-        <g font-family="Kalam, cursive" font-size="13">
-          <rect x="20" y="55" width="150" height="50" rx="6" fill="none" stroke="#e8c468" stroke-width="1.5"/>
-          <text x="95" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Place Order</text>
-          <text x="95" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">fetch(...)</text>
-
-          <path d="M170,80 L260,80" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#p1)"/>
-          <text x="215" y="70" text-anchor="middle" fill="#8fb8c9" font-family="Space Mono, monospace" font-size="9">returns</text>
-
-          <rect x="260" y="55" width="150" height="50" rx="6" fill="none" stroke="#8fb8c9" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="335" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Tracking Number</text>
-          <text x="335" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">the Promise</text>
-
-          <path d="M410,80 L500,80" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#p2)"/>
-          <text x="455" y="70" text-anchor="middle" fill="#d98fa0" font-family="Space Mono, monospace" font-size="9">later →</text>
-
-          <rect x="500" y="55" width="120" height="50" rx="6" fill="none" stroke="#9fd0a7" stroke-width="1.5"/>
-          <text x="560" y="78" text-anchor="middle" fill="#f4f1e6" font-size="12">Package</text>
-          <text x="560" y="95" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="9">.then() / .catch()</text>
-
-          <defs>
-            <marker id="p1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker>
-            <marker id="p2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d98fa0"/></marker>
-          </defs>
-        </g>
-      </svg>
-      <p class="caption">Ordering online hands you a tracking number immediately — not the package. The Promise is that tracking number: a placeholder for a value that isn't here yet.</p>
+    <div class="comp-card new">
+      <div class="c-title">With await</div>
+      <div class="c-desc><code>const user = await fetch('/api/user')</code> — execution pauses, then user is the actual Response object. Code reads top-to-bottom like sync.</div>
     </div>
+  </div>
 
-    <div class="states">
-      <span class="state pending">pending — "in transit"</span>
-      <span class="sep">→</span>
-      <span class="state fulfilled">fulfilled — "delivered"</span>
+  <div class="industry-box">
+    <div class="i-label">Industry Context</div>
+    <div class="i-text">Major frameworks (Vue, React, Svelte) all embrace async/await for data fetching. Vue's <code>async mounted()</code>, React's <code>useEffect</code> with async, and Svelte's <code>{#await}</code> block all rely on the same Promise mechanics. Edge functions (Cloudflare Workers, Vercel Edge) use async/await as the default pattern for serverless handlers.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> ERROR HANDLING WITH TRY/CATCH</div>
+<div class="card">
+  <h2>Catching Failures Gracefully</h2>
+  <p class="def">The <b>try/catch</b> block catches any error that occurs inside the <b>try</b> block — including rejected Promises. This is much cleaner than chaining <code>.catch()</code> on every Promise.</p>
+
+  <pre><span class="kw">async function</span> <span class="fn">getUserSafely</span>(id) {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
+    <span class="kw">if</span> (!res.<span class="prop">ok</span>) {
+      <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${res.status}: ${res.statusText}`</span>)
+    }
+    <span class="kw">return await</span> res.<span class="fn">json</span>()
+  } <span class="kw">catch</span> (err) {
+    console.error(<span class="str">'Failed to fetch user:'</span>, err.message)
+    <span class="kw">return</span> { id, name: <span class="str">'Unknown'</span> }  <span class="cmt">// fallback</span>
+  }
+}
+
+<span class="cmt">// .then() equivalent — harder to read with more nesting</span>
+<span class="kw">function</span> <span class="fn">getUserWithThen</span>(id) {
+  <span class="kw">return</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
+    .<span class="fn">then</span>(res => {
+      <span class="kw">if</span> (!res.<span class="prop">ok</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${res.status}`</span>)
+      <span class="kw">return</span> res.<span class="fn">json</span>()
+    })
+    .<span class="fn">catch</span>(err => {
+      console.error(err.message)
+      <span class="kw">return</span> { id, name: <span class="str">'Unknown'</span> }
+    })
+}</pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><b>try/catch</b> is like planning a picnic: you bring a blanket and food (the try block), but you also pack an umbrella just in case it rains (the catch block). If it's sunny, the umbrella stays in the bag. If it rains, you grab the umbrella and the picnic goes on. Without it, rain would ruin everything and you'd have no backup plan.</div>
+  </div>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Forgetting to await inside try/catch</b> — if you forget <code>await</code> on a Promise inside try, the function won't throw synchronously. The Promise rejection becomes an unhandled rejection, and your catch block never fires. Always <code>await</code> Promises you expect to reject.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> SEQUENTIAL VS PARALLEL</div>
+<div class="card">
+  <h2>Order Matters</h2>
+  <p class="def">Using multiple <b>await</b> expressions sequentially waits for each Promise to resolve before starting the next. Use <b>Promise.all</b> when the operations are independent and can run in parallel.</p>
+
+  <h3>Sequential (Slow)</h3>
+  <pre><span class="kw">async function</span> <span class="fn">loadDashboardSequential</span>() {
+  <span class="cmt">// Each fetch waits for the previous one — 300ms + 300ms + 300ms = 900ms</span>
+  <span class="kw">const</span> users = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/users'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+  <span class="kw">const</span> comments = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/comments'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+  <span class="kw">return</span> { users, posts, comments }
+}</pre>
+
+  <h3>Parallel (Fast)</h3>
+  <pre><span class="kw">async function</span> <span class="fn">loadDashboardParallel</span>() {
+  <span class="cmt">// All three fetch at the same time — max(300, 300, 300) = 300ms</span>
+  <span class="kw">const</span> [users, posts, comments] = <span class="kw">await</span> <span class="fn">Promise.all</span>([
+    <span class="fn">fetch</span>(<span class="str">'/api/users'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()),
+    <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()),
+    <span class="fn">fetch</span>(<span class="str">'/api/comments'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+  ])
+  <span class="kw">return</span> { users, posts, comments }
+}</pre>
+
+  <div class="tip-box">
+    <div class="t-label">Performance Tip</div>
+    <div class="t-text">Use <b>Promise.allSettled</b> when you need all results even if some fail — it never rejects, returning an array of <code>{status, value/reason}</code> objects. Use <b>Promise.race</b> when you only need the fastest result (e.g., timeout logic).</div>
+  </div>
+
+  <h3>Promise.allSettled Example</h3>
+  <pre><span class="kw">async function</span> <span class="fn">loadWithPartialFailure</span>() {
+  <span class="kw">const</span> results = <span class="kw">await</span> <span class="fn">Promise.allSettled</span>([
+    <span class="fn">fetch</span>(<span class="str">'/api/users'</span>),
+    <span class="fn">fetch</span>(<span class="str">'/api/invalid-endpoint'</span>),
+    <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>)
+  ])
+  results.<span class="fn">forEach</span>((r, i) => {
+    <span class="kw">if</span> (r.<span class="prop">status</span> === <span class="str">'fulfilled'</span>) {
+      console.log(<span class="str">`Request ${i} succeeded`</span>)
+    } <span class="kw">else</span> {
+      console.log(<span class="str">`Request ${i} failed:`</span>, r.<span class="prop">reason</span>)
+    }
+  })
+}</pre>
+</div>
+
+<div class="section-tag"><span class="n">5</span> COMPARISON: THEN VS ASYNC/AWAIT</div>
+<div class="card">
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">.then() Chains</div>
+      <div class="c-desc>Nested callbacks, hard to read with multiple sequential operations. Error handling via separate <code>.catch()</code>. Mixing sync and async logic is awkward.</div>
     </div>
-    <div class="states">
-      <span class="state pending">pending — "in transit"</span>
-      <span class="sep">→</span>
-      <span class="state rejected">rejected — "lost in transit"</span>
+    <div class="comp-card new">
+      <div class="c-title">async/await</div>
+      <div class="c-desc">Linear, top-to-bottom reading. Single try/catch for all errors. Easy to mix with sync logic. Debugging works naturally (step over works).</div>
     </div>
-  </section>
+  </div>
 
-  <!-- then/catch -->
-  <section>
-    <div class="grid">
-      <div class="card">
-        <p class="term"><span class="code">.then()</span></p>
-        <p class="def">Runs once the Promise resolves successfully.</p>
-        <div class="row"><span class="label">Real Life</span><p>Opening the box the moment it's delivered and actually using what's inside.</p></div>
-      </div>
-      <div class="card">
-        <p class="term"><span class="code">.catch()</span></p>
-        <p class="def">Runs if the Promise rejects — something went wrong.</p>
-        <div class="row"><span class="label">Real Life</span><p>Filing a damage claim if the package arrives broken, or never arrives at all.</p></div>
-      </div>
-    </div>
-  </section>
+  <pre><span class="cmt">// .then() — multiple sequential fetches get nested</span>
+<span class="fn">fetch</span>(<span class="str">'/api/user'</span>)
+  .<span class="fn">then</span>(res => res.<span class="fn">json</span>())
+  .<span class="fn">then</span>(user => {
+    <span class="kw">return</span> <span class="fn">fetch</span>(<span class="str">`/api/orders/${user.id}`</span>)
+  })
+  .<span class="fn">then</span>(res => res.<span class="fn">json</span>())
+  .<span class="fn">then</span>(orders => console.log(orders))
+  .<span class="fn">catch</span>(err => console.error(err))
 
-  <!-- await -->
-  <section>
-    <div class="section-head"><h2>await: A Scoped Pause</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">await Pauses Just This Function</p>
-        <div class="row"><span class="label">Real Life</span><p>Standing at the pickup counter waiting for your specific package to be called — you're paused, but the rest of the store keeps serving other customers just fine.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">await</span> only blocks the <span class="code">async</span> function it's written in — it doesn't freeze the whole call stack the way a long synchronous loop does.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Only Inside <span class="code">async</span></p>
-        <div class="row"><span class="label">Real Life</span><p>You can only stand at "the pickup counter" if you're actually the customer with an order in the system — bystanders can't just wait there for nothing.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p><span class="code">await</span> needs an <span class="code">async</span> function's context to make sense — with rare top-level exceptions in some environments.</p></div>
-      </div>
-    </div>
-  </section>
+<span class="cmt">// async/await — linear and clear</span>
+<span class="kw">async function</span> <span class="fn">getUserOrders</span>() {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/user'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+    <span class="kw">const</span> orders = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/orders/${user.id}`</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
+    console.log(orders)
+  } <span class="kw">catch</span> (err) {
+    console.error(err)
+  }
+}</pre>
+</div>
 
-  <!-- Error handling comparison -->
-  <section>
-    <div class="section-head"><h2>Two Styles of Error Handling</h2><div class="rule"></div></div>
-    <div class="duo">
-      <div class="panel a">
-        <h4>Promise-Based: <span class="code">.catch()</span></h4>
-        <p>A damage-claim form attached directly to that one specific order — chained right onto the delivery you're tracking.</p>
-      </div>
-      <div class="panel b">
-        <h4>Async/Await: <span class="code">try...catch</span></h4>
-        <p>A general safety net wrapped around the whole counter visit — if anything goes wrong while you're waiting, the <span class="code">catch</span> block steps in immediately, same as handling errors in ordinary synchronous code.</p>
-      </div>
-    </div>
-  </section>
+<div class="section-tag"><span class="n">6</span> COMMON MISTAKES</div>
+<div class="card">
+  <div class="mistake-box">
+    <div class="m-label">Mistake 1: await in a loop</div>
+    <div class="m-text"><b>Using <code>await</code> inside a <code>for</code> or <code>forEach</code> loop</b> makes it sequential when it should be parallel. <code>forEach</code> doesn't respect <code>await</code> at all — it fires all Promises concurrently without waiting.</div>
+  </div>
 
-  <section class="takeaway">
-    <p>A Promise is a receipt for something not here yet; await is choosing to wait for that one receipt without shutting down everything else going on.</p>
-  </section>
+  <pre><span class="cmt">// ❌ BAD — forEach doesn't await</span>
+<span class="kw">async function</span> <span class="fn">badLoop</span>(ids) {
+  ids.<span class="fn">forEach</span>(<span class="kw">async</span> id => {
+    <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>)
+    console.log(data)  <span class="cmt">// fires immediately, logs undefined</span>
+  })
+  console.log(<span class="str">'Done'</span>)  <span class="cmt">// prints BEFORE any fetch completes</span>
+}
 
-  <footer>Hover any card to connect the dots</footer>
+<span class="cmt">// ✅ GOOD — for...of is sequential (use when order matters)</span>
+<span class="kw">async function</span> <span class="fn">goodSequentialLoop</span>(ids) {
+  <span class="kw">for</span> (<span class="kw">const</span> id <span class="kw">of</span> ids) {
+    <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>)
+    console.log(data)  <span class="cmt">// one at a time, in order</span>
+  }
+}
 
+<span class="cmt">// ✅ BEST — Promise.all for independent parallel requests</span>
+<span class="kw">async function</span> <span class="fn">bestParallel</span>(ids) {
+  <span class="kw">const</span> results = <span class="kw">await</span> <span class="fn">Promise.all</span>(
+    ids.<span class="fn">map</span>(id => <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()))
+  )
+  console.log(results)  <span class="cmt">// all at once, fastest total time</span>
+}</pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Mistake 2: Forgetting await</div>
+    <div class="m-text"><b>Calling an async function without <code>await</code></b> gives you a Promise instead of the actual value. This is especially common in Vue lifecycle hooks and event handlers.</div>
+  </div>
+
+  <pre><span class="cmt">// ❌ BAD — forgetting await</span>
+<span class="fn">mounted</span>() {
+  <span class="kw">this</span>.<span class="fn">user</span> = <span class="fn">fetchUser</span>(<span class="str">'123'</span>)   <span class="cmt">// this.user = Promise, not the user object!</span>
+}
+
+<span class="cmt">// ✅ GOOD — await the async function</span>
+<span class="kw">async function</span> <span class="fn">mounted</span>() {
+  <span class="kw">this</span>.<span class="fn">user</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="str">'123'</span>)  <span class="cmt">// this.user = actual user object ✅</span>
+}</pre>
+</div>
+
+<div class="section-tag"><span class="n">7</span> TOP-LEVEL AWAIT</div>
+<div class="card">
+  <h2>await Outside async Functions</h2>
+  <p class="def">In modern JavaScript (ES2022+), you can use <b>await</b> at the top level of modules without wrapping it in an async function. This works in browsers (with <code>&lt;script type="module"&gt;</code>), Node.js ESM, and Deno.</p>
+
+  <pre><span class="cmt">// top-level-await.js — ES module</span>
+<span class="kw">import</span> { <span class="fn">fetch</span> } <span class="kw">from</span> <span class="str">'node:http'</span>
+
+console.log(<span class="str">'Loading config...'</span>)
+<span class="kw">const</span> config = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/config'</span>)
+console.log(<span class="str">'Config loaded:'</span>, config)
+
+<span class="kw">export</span> <span class="kw">default</span> config  <span class="cmt">// modules that import this will wait</span></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Warning</div>
+    <div class="t-text"><b>Top-level await blocks module execution</b> — any module that imports from a module with top-level await will wait for it to resolve. Use it sparingly for initialization code (config loading, DB connections) and never in a hot-path import chain.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> INTERVIEW Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What happens when you use <code>await</code> on a non-Promise value?</div>
+    <div class="a">A: It works fine — <code>await</code> wraps non-Promise values in <code>Promise.resolve()</code>. <code>await 42</code> becomes <code>await Promise.resolve(42)</code>, which resolves to 42. It's a no-op for non-Promise values.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: How does async/await relate to the event loop?</div>
+    <div class="a">A: When execution hits an <code>await</code>, the async function yields control back to the event loop. The microtask queue handles the Promise resolution, and when resolved, the function is placed back on the call stack at the <code>await</code> point. This is why async/await doesn't block the main thread.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: Can you use <code>await</code> inside a <code>map()</code> or <code>filter()</code>?</div>
+    <div class="a">A: No — <code>await</code> inside <code>map()</code> returns an array of Promises, not values. Use <code>Promise.all(array.map(async ...))</code> instead. Similarly, <code>filter</code> won't work directly — filter the resolved values afterward.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> QUICK REVISION</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>async</b> — makes a function return a Promise, enables <code>await</code></div>
+    <div class="rev-item"><b>await</b> — pauses execution until Promise resolves, returns value</div>
+    <div class="rev-item"><b>try/catch</b> — catches rejected Promises and thrown errors</div>
+    <div class="rev-item"><b>Promise.all</b> — parallel execution, fails fast on any rejection</div>
+    <div class="rev-item"><b>Promise.allSettled</b> — parallel, waits for all to complete regardless</div>
+    <div class="rev-item"><b>Top-level await</b> — <code>await</code> in module scope, blocks importing modules</div>
+    <div class="rev-item"><b>Never use</b> — <code>await</code> in <code>forEach()</code>, forgetting <code>await</code> on calls</div>
+    <div class="rev-item"><b>Debugging</b> — async/await works with breakpoints, step-over works naturally</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · Vue.js — study card</div>
 </div>
 </body>
 </html>

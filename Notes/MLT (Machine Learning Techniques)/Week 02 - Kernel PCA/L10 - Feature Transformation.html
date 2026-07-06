@@ -3,918 +3,1329 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Feature Transformation &amp; the Limits of PCA</title>
+<title>Feature Transformation &amp; the Limits of PCA — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid',
+      '\\ind}{\\mathbb{1}'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  /* ========================================================
-     TOKENS
-  ======================================================== */
-  :root{
-    --paper:        #FBF8F1;
-    --paper-line:   #E3DCC8;
-    --paper-edge:   #D8CFB4;
-    --ink:          #232323;
-    --ink-soft:     #5B5647;
-    --ink-faint:    #948C74;
-    --pen-blue:     #1F4E8C;
-    --pen-blue-soft:#E7EEF8;
-    --pen-red:      #A32B2B;
-    --pen-red-soft: #F8E9E7;
-    --marker:       #E3A320;
-    --marker-soft:  #FBF0D6;
-    --card:         #FFFDF8;
-    --card-shadow:  rgba(60, 50, 20, 0.14);
-    --radius-sm:    6px;
-    --radius-md:    10px;
-    --serif: 'Fraunces', serif;
-    --sans:  'Inter', sans-serif;
-    --mono:  'JetBrains Mono', monospace;
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{ box-sizing:border-box; }
-  html{ scroll-behavior:smooth; }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  body{
-    margin:0;
-    background:
-      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
-      var(--paper);
-    color:var(--ink);
-    font-family:var(--sans);
-    line-height:1.6;
-    -webkit-font-smoothing:antialiased;
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
 
-  @media (prefers-reduced-motion: reduce){
-    *{ animation:none !important; transition:none !important; }
-  }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
 
-  a{ color:var(--pen-blue); }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
 
-  /* ========================================================
-     LAYOUT SHELL — notebook margin rule
-  ======================================================== */
-  .sheet{
-    max-width:920px;
-    margin:0 auto;
-    padding:0 28px 90px 64px;
-    position:relative;
-  }
-  .sheet::before{ /* red margin rule, classic school notebook */
-    content:"";
-    position:absolute;
-    top:0; bottom:0; left:38px;
-    width:2px;
-    background:var(--pen-red);
-    opacity:0.35;
-  }
-  @media (max-width:640px){
-    .sheet{ padding:0 18px 70px 34px; }
-    .sheet::before{ left:16px; }
-  }
-
-  /* ========================================================
-     TOP NAV — tab strip
-  ======================================================== */
-  .navbar{
-    position:sticky; top:0; z-index:50;
-    background:rgba(251,248,241,0.92);
-    backdrop-filter:blur(6px);
-    border-bottom:1px solid var(--paper-edge);
-  }
-  .navwrap{
-    max-width:920px; margin:0 auto;
-    padding:14px 28px 14px 64px;
-    display:flex; align-items:center; gap:10px;
-    overflow-x:auto;
-    scrollbar-width:none;
-  }
-  .navwrap::-webkit-scrollbar{ display:none; }
-  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
-
-  .nav-tag{
-    font-family:var(--mono); font-size:11px; letter-spacing:.06em;
-    color:var(--ink-faint); white-space:nowrap; margin-right:6px;
-  }
-  .nav-link{
-    font-family:var(--sans); font-weight:600; font-size:13px;
-    color:var(--ink-soft); text-decoration:none;
-    padding:6px 12px; border-radius:20px; white-space:nowrap;
-    border:1px solid transparent;
-    transition:all .15s ease;
-  }
-  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
-
-  /* ========================================================
+  /* ===========================
      HERO
-  ======================================================== */
-  .hero{ padding:64px 0 40px; }
-  .eyebrow{
-    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
-    color:var(--pen-red); text-transform:uppercase; font-weight:600;
-    display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  =========================== */
+  .hero {
+    background: linear-gradient(165deg, #20242f 0%, #2d344a 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
   }
-  .eyebrow::before{ content:"§"; font-size:15px; }
-
-  h1.title{
-    font-family:var(--serif); font-weight:600;
-    font-size:clamp(34px, 6vw, 54px);
-    line-height:1.08; margin:0 0 14px;
-    color:var(--ink);
-    letter-spacing:-0.01em;
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
   }
-  .title em{
-    font-style:italic; color:var(--pen-blue); font-weight:500;
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-  .subtitle{
-    font-size:17px; color:var(--ink-soft); max-width:600px; margin:0 0 26px;
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
   }
-  .meta-row{
-    display:flex; gap:22px; flex-wrap:wrap;
-    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
-    border-top:1px dashed var(--paper-edge); padding-top:16px;
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
   }
-  .meta-row b{ color:var(--ink-soft); }
-
-  /* ========================================================
-     SECTION HEADERS
-  ======================================================== */
-  .section{ margin-top:62px; }
-  .sec-head{
-    display:flex; align-items:baseline; gap:14px; margin-bottom:22px;
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
   }
-  .sec-num{
-    font-family:var(--mono); font-size:13px; color:var(--pen-red);
-    font-weight:600; border:1px solid var(--pen-red); border-radius:50%;
-    width:26px; height:26px; display:flex; align-items:center; justify-content:center;
-    flex-shrink:0;
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
-  .sec-head h2{
-    font-family:var(--serif); font-size:clamp(22px,3.4vw,29px);
-    font-weight:600; margin:0; color:var(--ink);
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
   }
-
-  /* ========================================================
-     CARDS
-  ======================================================== */
-  .card{
-    background:var(--card);
-    border:1px solid var(--paper-edge);
-    border-radius:var(--radius-md);
-    box-shadow:0 3px 0 var(--card-shadow);
-    padding:26px 28px;
-    margin-bottom:22px;
-    position:relative;
-  }
-  .card h3{
-    font-family:var(--serif); font-size:19px; font-weight:600;
-    margin:0 0 10px; color:var(--ink);
-  }
-  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
-  .card p:last-child{ margin-bottom:0; }
-  .card ul{ margin:0 0 12px; padding-left:20px; }
-  .card li{ margin-bottom:7px; font-size:15.5px; }
-
-  .card-label{
-    position:absolute; top:-11px; left:24px;
-    background:var(--marker-soft); color:#7A5A0A;
-    font-family:var(--mono); font-size:11px; font-weight:600;
-    letter-spacing:.04em; padding:3px 10px; border-radius:20px;
-    border:1px solid #E8CE86;
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
   }
 
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+  /* ===========================
+     MAIN
+  =========================== */
+  main { padding: 56px 0 90px; }
 
-  /* ========================================================
-     ANALOGY BOX
-  ======================================================== */
-  .analogy{
-    background:var(--pen-blue-soft);
-    border-left:4px solid var(--pen-blue);
-    border-radius:0 var(--radius-sm) var(--radius-sm) 0;
-    padding:18px 22px;
-    margin:18px 0;
-  }
-  .analogy .tag{
-    font-family:var(--mono); font-size:11px; font-weight:700;
-    letter-spacing:.08em; color:var(--pen-blue); text-transform:uppercase;
-    display:flex; align-items:center; gap:6px; margin-bottom:8px;
-  }
-  .analogy .tag::before{ content:"💭"; font-size:13px; }
-  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
 
-  /* ========================================================
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+
+  /* ===========================
+     RULE 1: EQUATION PANEL
+  =========================== */
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
+  }
+
+  /* ===========================
+     RULE 3 & 8: DERIVATION TIMELINE
+  =========================== */
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+
+  /* ===========================
+     RULE 5: SYMBOL LEGEND
+  =========================== */
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+
+  /* ===========================
+     RULE 9: BELOW-EQUATION COMPONENTS
+  =========================== */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  /* ===========================
+     RULE 12: SVG ILLUSTRATIONS
+  =========================== */
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* ===========================
      CALLOUTS
-  ======================================================== */
-  .callout{
-    border-radius:var(--radius-sm);
-    padding:18px 22px;
-    margin:20px 0;
-    border:1.5px dashed;
+  =========================== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
   }
-  .callout .tag{
-    font-family:var(--mono); font-size:11px; font-weight:700;
-    letter-spacing:.08em; text-transform:uppercase;
-    display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
-  .callout p{ margin:0; font-size:15px; }
-  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
-  .callout.key .tag{ color:#8A6510; }
-  .callout.key .tag::before{ content:"★"; }
-  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
-  .callout.warn .tag{ color:var(--pen-red); }
-  .callout.warn .tag::before{ content:"⚠"; }
-  .callout.note{ background:#EFF3EC; border-color:#7A9B6E; }
-  .callout.note .tag{ color:#4B6B43; }
-  .callout.note .tag::before{ content:"✎"; }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
 
-  /* ========================================================
-     FORMULA CHIP
-  ======================================================== */
-  .formula{
-    display:inline-block;
-    font-family:var(--mono); font-size:14.5px;
-    background:#EEF2FA; color:var(--pen-blue);
-    border:1px solid #C9D8EF;
-    padding:3px 10px; border-radius:5px;
-    margin:2px 0;
+  /* ===========================
+     CODE BLOCK
+  =========================== */
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
   }
-  .formula-block{
-    font-family:var(--mono); font-size:15px;
-    background:#20242C; color:#DCE6F7;
-    border-radius:var(--radius-sm);
-    padding:16px 20px;
-    margin:16px 0;
-    overflow-x:auto;
-    line-height:1.7;
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
   }
-  .formula-block .c1{ color:#7FD9B8; }   /* comment green */
-  .formula-block .c2{ color:#F2C868; }   /* highlight amber */
-  .formula-block .c3{ color:#EF9393; }   /* warn red */
-  .formula-block .op{ color:#9DB4D4; }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
 
-  /* ========================================================
-     TABLES
-  ======================================================== */
-  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
-  table{ width:100%; border-collapse:collapse; min-width:480px; background:var(--card); }
-  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
-  th{
-    font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
-    background:#F1ECDD; color:var(--ink-soft); font-weight:600;
+  /* ===========================
+     PARAMETER CARDS
+  =========================== */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
   }
-  tr:last-child td{ border-bottom:none; }
-  td.num{ font-family:var(--mono); font-weight:600; color:var(--pen-blue); }
-  td.flag{ font-family:var(--mono); font-size:13px; }
-  tr.danger td.num{ color:var(--pen-red); }
-  tr.danger{ background:var(--pen-red-soft); }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 { font-weight: 600; font-size: 16px; margin: 0 0 6px; }
+  .param-card p { margin: 0; font-size: 14px; color: var(--ink-soft); }
 
-  /* ========================================================
-     DIAGRAM 1 — Circle / PCA confusion
-  ======================================================== */
-  .diagram{
-    background:#FCFAF3;
-    border:1px solid var(--paper-edge);
-    border-radius:var(--radius-md);
-    padding:28px 20px 22px;
-    margin:20px 0;
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
   }
-  .diagram-title{
-    text-align:center; font-family:var(--mono); font-size:11.5px;
-    letter-spacing:.06em; color:var(--ink-faint); text-transform:uppercase;
-    margin-bottom:18px;
-  }
-  .circle-diagram{
-    position:relative;
-    width:220px; height:220px;
-    margin:0 auto 10px;
-  }
-  .circle-ring{
-    position:absolute; inset:0;
-    border:2px dashed var(--ink-faint);
-    border-radius:50%;
-    opacity:.5;
-  }
-  .dot-orbit{
-    position:absolute; inset:0;
-  }
-  .dot{
-    position:absolute; top:50%; left:50%;
-    width:9px; height:9px; border-radius:50%;
-    background:var(--pen-blue);
-    transform-origin:0 0;
-    margin:-4.5px 0 0 -4.5px;
-  }
-  .axis{
-    position:absolute; top:50%; left:50%;
-    background:var(--pen-red);
-    transform-origin:0 50%;
-    height:2px;
-  }
-  .axis-label{
-    position:absolute;
-    font-family:var(--mono); font-size:11px; font-weight:700; color:var(--pen-red);
-  }
-  .center-dot{
-    position:absolute; top:50%; left:50%; width:6px; height:6px;
-    background:var(--ink); border-radius:50%; margin:-3px 0 0 -3px;
-  }
-  .diagram-caption{
-    text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:420px;
-    margin:14px auto 0; font-style:italic;
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
   }
 
-  /* ========================================================
-     DIAGRAM 2 — Lifting map (flat -> lifted)
-  ======================================================== */
-  .lift-wrap{
-    display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:14px;
-  }
-  @media (max-width:640px){
-    .lift-wrap{ grid-template-columns:1fr; }
-    .lift-arrow{ transform:rotate(90deg); margin:6px auto; }
-  }
-  .lift-panel{
-    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
-    padding:16px; text-align:center;
-  }
-  .lift-panel .panel-title{
-    font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-transform:uppercase;
-    letter-spacing:.05em; margin-bottom:10px;
-  }
-  .flat-plane{
-    position:relative; width:140px; height:70px; margin:0 auto;
-    border:2px solid var(--ink-faint); border-radius:6px;
-    background:repeating-linear-gradient(90deg, transparent, transparent 13px, #EFE9D8 13px, #EFE9D8 14px);
-  }
-  .flat-plane .dot{ background:var(--pen-blue); box-shadow:0 0 0 2px #fff; }
-  .lifted-plane{
-    position:relative; width:150px; height:100px; margin:8px auto 0;
-    perspective:340px;
-  }
-  .lifted-inner{
-    position:absolute; inset:0;
-    transform:rotateX(52deg) rotateZ(-4deg);
-    border:2px solid var(--pen-blue);
-    border-radius:6px;
-    background:linear-gradient(180deg, #E7EEF8, #F6F9FD);
-  }
-  .lifted-inner .dot{ background:var(--pen-red); box-shadow:0 0 0 2px #fff; }
-  .cut-plane{
-    position:absolute; left:6%; right:6%; top:38%;
-    height:3px; background:var(--marker);
-    transform:rotateX(52deg) rotateZ(-4deg) translateZ(1px);
-  }
-  .lift-arrow{
-    font-family:var(--mono); font-size:12px; color:var(--pen-blue); font-weight:700;
-    display:flex; flex-direction:column; align-items:center; gap:3px;
-  }
-  .lift-arrow .arrow-glyph{ font-size:26px; line-height:1; animation:pulse-x 2.6s ease-in-out infinite; }
-  @keyframes pulse-x{ 0%,100%{ transform:translateX(0); opacity:.75;} 50%{ transform:translateX(5px); opacity:1;} }
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
 
-  /* ========================================================
-     DIAGRAM 3 — Exponential blow-up bars
-  ======================================================== */
-  .bar-chart{
-    display:flex; align-items:flex-end; gap:14px; height:190px;
-    padding:0 6px 0; margin-top:10px; overflow-x:auto;
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
   }
-  .bar-col{ display:flex; flex-direction:column; align-items:center; gap:8px; flex:1; min-width:56px; }
-  .bar{
-    width:100%; max-width:46px; border-radius:5px 5px 2px 2px;
-    background:linear-gradient(180deg, #3E76C4, var(--pen-blue));
-    position:relative;
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
   }
-  .bar.blow{
-    background:linear-gradient(180deg, #D65C5C, var(--pen-red));
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
-  .bar-val{
-    font-family:var(--mono); font-size:11.5px; font-weight:700; color:var(--ink);
-    white-space:nowrap;
-  }
-  .bar.blow + .bar-val, .bar-col:last-child .bar-val{ color:var(--pen-red); }
-  .bar-label{ font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-align:center; }
-  .bar-track{ width:100%; height:190px; display:flex; align-items:flex-end; }
-
-  /* ========================================================
-     ANNOTATED CODE
-  ======================================================== */
-  .code-wrap{ position:relative; margin:18px 0; }
-  .code-block{
-    font-family:var(--mono); font-size:13.5px; line-height:1.75;
-    background:#20242C; color:#D9E1EE;
-    border-radius:var(--radius-sm); padding:18px 20px;
-    overflow-x:auto;
-  }
-  .code-block .ln{ color:#5C6577; margin-right:14px; user-select:none; }
-  .code-block .kw{ color:#7FA8D9; }
-  .code-block .fn{ color:#F2C868; }
-  .code-block .cm{ color:#7FD9B8; font-style:italic; }
-  .code-block .st{ color:#EF9393; }
-  .annot-list{ margin:14px 0 0; padding-left:0; list-style:none; }
-  .annot-list li{
-    font-size:14px; color:var(--ink-soft); margin-bottom:8px;
-    padding-left:22px; position:relative;
-  }
-  .annot-list li::before{
-    content:attr(data-n); position:absolute; left:0; top:0;
-    font-family:var(--mono); font-size:11px; font-weight:700;
-    color:#fff; background:var(--pen-blue);
-    width:16px; height:16px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
-  }
-
-  /* ========================================================
-     TAKEAWAYS
-  ======================================================== */
-  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
-  .takeaway{
-    background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm);
-    padding:16px 18px; display:flex; gap:12px; align-items:flex-start;
-  }
-  .takeaway .num{
-    font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue);
-    flex-shrink:0; line-height:1;
-  }
-  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
-
-  /* ========================================================
-     FOOTER
-  ======================================================== */
-  .footer{
-    margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge);
-    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
-    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
-  }
-
-  ::selection{ background:var(--marker-soft); color:var(--ink); }
 </style>
 </head>
 <body>
 
-<nav class="navbar">
-  <div class="navwrap">
-    <span class="nav-tag">JUMP TO</span>
-    <a class="nav-link" href="#s1">01 · PCA's Blind Spot</a>
-    <a class="nav-link" href="#s2">02 · Feature Mapping</a>
-    <a class="nav-link" href="#s3">03 · The Kernel Shortcut</a>
-    <a class="nav-link" href="#s4">04 · The Bottleneck</a>
-    <a class="nav-link" href="#s5">Takeaways</a>
+<header class="hero">
+  <div class="container">
+    <div class="tag">Dimensionality Reduction Series &middot; Lecture Notes</div>
+    <h1>Feature Transformation &amp;<br>the Limits of <em>PCA</em></h1>
+    <p>PCA is brilliant at untangling straight-line relationships — and lost the moment your data curves. This lecture unpacks why, and how a clever trick called <strong>feature mapping</strong> rescues it — plus the price you pay for that rescue.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 PCA's Blind Spot</a>
+      <a href="#s2" class="nav-pill">&sect;2 Feature Mapping</a>
+      <a href="#s3" class="nav-pill">&sect;3 The Kernel Shortcut</a>
+      <a href="#s4" class="nav-pill">&sect;4 The Bottleneck</a>
+      <a href="#s5" class="nav-pill">&sect;5 Takeaways</a>
+    </div>
   </div>
-</nav>
+</header>
 
-<div class="sheet">
+<main>
+  <div class="container">
 
-  <!-- ================= HERO ================= -->
-  <header class="hero">
-    <div class="eyebrow">Dimensionality Reduction Series</div>
-    <h1 class="title">Feature Transformation &amp;<br>the Limits of <em>PCA</em></h1>
-    <p class="subtitle">
-      PCA is brilliant at untangling straight-line relationships — and lost the moment
-      your data curves. This lecture unpacks why, and how a clever trick called
-      <strong>feature mapping</strong> rescues it — plus the price you pay for that rescue.
-    </p>
-    <div class="meta-row">
-      <span><b>Prereqs</b> · Eigenvectors, variance, covariance matrices</span>
-      <span><b>Core idea</b> · Non-linear → linear via higher dimensions</span>
-      <span><b>Watch for</b> · The dimensionality explosion trap</span>
-    </div>
-  </header>
-
-  <!-- ================= SECTION 1 ================= -->
-  <section class="section" id="s1">
-    <div class="sec-head">
-      <div class="sec-num">1</div>
-      <h2>Where PCA Gets Lost: Non-Linear Data</h2>
-    </div>
-
-    <div class="card">
-      <span class="card-label">THE CORE PROBLEM</span>
-      <h3>PCA only knows how to look in straight lines</h3>
-      <p>
-        PCA works by rotating the axes of your data to point toward the directions
-        of <strong>maximum variance</strong> — the directions along which points are
-        most spread out. That works beautifully when the "shape" of your data is
-        an elongated cloud, like a cigar. But it has no concept of a <em>curve</em>.
-      </p>
-      <p>
-        Give it a dataset shaped like a <strong>circle</strong>, and something breaks:
-        the variance is spread out <em>evenly in every direction</em>. There is no
-        "long axis" to find, so PCA reports that both dimensions matter roughly
-        equally — even though every point on a circle can actually be described
-        by a <em>single number</em>: its angle. The true structure is
-        one-dimensional; PCA sees two.
-      </p>
-
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Imagine you're standing at the very center of a circular running track,
-          looking outward. No matter which direction you turn, the track is
-          exactly the same distance away. If someone asked you "which direction
-          is the track <em>mainly</em> in?", you couldn't answer — it's equally in
-          every direction. Yet the track itself is a simple, one-dimensional loop;
-          a runner's entire position is described by one number (how far around
-          they've gone). Standing at the center, staring outward in straight
-          lines, is exactly the vantage point PCA is stuck with.
-        </p>
+    <!-- ================================================================
+         SECTION 1: PCA'S BLIND SPOT
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Where PCA Gets Lost: Non-Linear Data</h2>
       </div>
+      <p class="sec-intro">
+        PCA works by rotating the axes to point toward <strong>maximum variance</strong> — the directions along which points are most spread out. That works beautifully when the "shape" of your data is an elongated cloud. But it has no concept of a <em>curve</em>.
+      </p>
 
-      <div class="diagram">
-        <div class="diagram-title">Points on a circle — as PCA sees them</div>
-        <div class="circle-diagram" id="circleDiagram">
-          <div class="circle-ring"></div>
-          <div class="dot-orbit" id="dotOrbit"></div>
-          <div class="axis" style="width:100px; left:calc(50% - 100px);"></div>
-          <div class="axis" style="width:100px;"></div>
-          <div class="axis" style="width:100px; top:calc(50% - 100px); transform:rotate(90deg);"></div>
-          <div class="center-dot"></div>
-          <div class="axis-label" style="top:44%; left:74%;">PC1</div>
-          <div class="axis-label" style="top:18%; left:53%;">PC2</div>
+      <div class="callout warn">
+        <div class="co-icon">!</div>
+        <div class="co-body">
+          <strong>The core problem</strong>
+          <p>Give PCA a dataset shaped like a <strong>circle</strong>, and something breaks: the variance is spread out evenly in every direction. There is no "long axis" to find, so PCA reports that both dimensions matter equally — even though every point on a circle can actually be described by a <em>single number</em>: its angle.</p>
         </div>
-        <p class="diagram-caption">
-          12 points spaced evenly around a circle. PC1 and PC2 (red) capture
-          <strong>almost identical variance</strong> — PCA has no reason to
-          prefer one over the other, so it can't compress the circle down to 1
-          dimension, even though the data only has one true degree of freedom
-          (the angle).
-        </p>
       </div>
 
-      <div class="table-wrap">
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine you're standing at the very center of a circular running track, looking outward. No matter which direction you turn, the track is exactly the same distance away. If someone asked you "which direction is the track <strong>mainly</strong> in?", you couldn't answer — it's equally in every direction. Yet the track itself is a simple, <span class="highlight">one-dimensional loop</span>; a runner's entire position is described by one number (how far around they've gone). Standing at the center, staring outward in straight lines, is exactly the vantage point PCA is stuck with.
+        </div>
+      </div>
+
+      <!-- EQUATION PANEL for the circle -->
+      <div class="eq-panel" id="eq-circle">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Circle Equation — Non-Linear Structure</div>
+        $$x_1^2 + x_2^2 = r^2$$
+        <div class="eq-caption">This relationship is non-linear in $x$ — PCA can't find it because it has no straight direction of maximum curvature</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;A point $(x_1, x_2)$ lies on a circle of radius $r$ when the sum of its squared coordinates equals $r^2$. This is a quadratically non-linear relationship — no straight line through the origin can capture it.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
         <table>
           <thead>
-            <tr><th>Aspect</th><th>Linear cloud (PCA's comfort zone)</th><th>Circle (non-linear)</th></tr>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
           </thead>
           <tbody>
-            <tr><td>Variance distribution</td><td>Concentrated along 1–2 directions</td><td>Spread evenly in all directions</td></tr>
-            <tr><td>PC1 vs PC2 variance</td><td>PC1 ≫ PC2</td><td>PC1 ≈ PC2</td></tr>
-            <tr><td>True degrees of freedom</td><td>Matches number of "big" PCs</td><td>Just 1 (the angle) — hidden inside 2D</td></tr>
-            <tr><td>PCA's verdict</td><td>✅ Correctly compresses dimensions</td><td>❌ Says "keep both dimensions"</td></tr>
+            <tr>
+              <td class="leg-sym">$x_1, x_2$</td>
+              <td class="leg-meaning">Two coordinates of a data point in $\mathbb{R}^2$</td>
+              <td class="leg-example">$(3, 4)$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$r$</td>
+              <td class="leg-meaning">Radius of the circle</td>
+              <td class="leg-example">$r = 5$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$(x_1, x_2)$ space</td>
+              <td class="leg-meaning">Original 2D input space</td>
+              <td class="leg-example">$\mathbb{R}^2$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\theta$ (angle)</td>
+              <td class="leg-meaning">True 1D intrinsic coordinate</td>
+              <td class="leg-example">$\theta = \arctan(x_2/x_1)$</td>
+            </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="callout key">
-        <div class="tag">Key insight</div>
-        <p>
-          PCA isn't "wrong" — it's doing exactly what it's designed to do
-          (maximize captured variance along <em>straight</em> directions). The
-          circle simply has no straight direction to find. We need to change
-          the space the data lives in, not the algorithm.
-        </p>
-      </div>
-    </div>
-  </section>
+      <div class="svg-card">
+        <div class="svg-label">&#9654; PCA on Circular Data — Both Axes Look Equally Important</div>
+        <svg viewBox="0 0 860 260" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aL10" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
 
-  <!-- ================= SECTION 2 ================= -->
-  <section class="section" id="s2">
-    <div class="sec-head">
-      <div class="sec-num">2</div>
-      <h2>The Fix: Feature Mapping φ</h2>
-    </div>
+          <!-- Circle with points -->
+          <circle cx="220" cy="130" r="90" fill="none" stroke="#8b91a5" stroke-width="1.5" stroke-dasharray="4,4"/>
+          <line x1="130" y1="130" x2="310" y2="130" stroke="#a8482a" stroke-width="2" opacity="0.7"/>
+          <line x1="220" y1="40" x2="220" y2="220" stroke="#a8482a" stroke-width="2" opacity="0.7"/>
+          <text x="315" y="134" font-family="'JetBrains Mono', monospace" font-size="12" fill="#a8482a">PC1</text>
+          <text x="224" y="36" font-family="'JetBrains Mono', monospace" font-size="12" fill="#a8482a">PC2</text>
 
-    <div class="card">
-      <span class="card-label">THE STRATEGY</span>
-      <h3>Lift the data somewhere the curve becomes straight</h3>
-      <p>
-        The trick is to stop looking at the data in its original, low-dimensional
-        space <span class="formula">ℝ<sup>d</sup></span> and instead pass every
-        point through a <strong>feature map</strong>
-        <span class="formula">φ(x)</span> that sends it into a much
-        higher-dimensional space <span class="formula">ℝ<sup>D</sup></span>,
-        where <span class="formula">D &gt; d</span>. Done well, the curve that
-        was hopelessly non-linear "down here" becomes a flat, linear surface
-        "up there."
-      </p>
-      <p>
-        Concretely: the equation of a circle, <span class="formula">x₁² + x₂² = r²</span>,
-        is non-linear in <span class="formula">x</span>. But if we map each point
-        to include the term <span class="formula">x₁² + x₂²</span> as one of its
-        new coordinates, that same relationship becomes a
-        <strong>linear constraint</strong> in the new space:
-        <span class="formula">φ(x)ᵀu = 0</span>. The curvy 1D circle is now sitting
-        flat inside a linear subspace of the bigger space — exactly what PCA
-        knows how to find.
-      </p>
+          <!-- Dots on circle -->
+          <circle cx="220" cy="40" r="5" fill="#1e4f8a"/>
+          <circle cx="310" cy="130" r="5" fill="#1e4f8a"/>
+          <circle cx="220" cy="220" r="5" fill="#1e4f8a"/>
+          <circle cx="130" cy="130" r="5" fill="#1e4f8a"/>
+          <circle cx="283.6" cy="66.4" r="5" fill="#1e4f8a"/>
+          <circle cx="156.4" cy="66.4" r="5" fill="#1e4f8a"/>
+          <circle cx="156.4" cy="193.6" r="5" fill="#1e4f8a"/>
+          <circle cx="283.6" cy="193.6" r="5" fill="#1e4f8a"/>
+          <circle cx="220" cy="130" r="3" fill="#1a1e2b"/>
 
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Think of pizza dough dusted with pepper flakes and shaped into a ring
-          on a flat tray — a "circle" from above. From directly overhead, no flat
-          cut ever separates the ring's pepper flakes from the empty middle;
-          any straight line through the tray clips through both. Now push up
-          the center of the dough like a small volcano, so height depends on
-          distance from the middle. Look at the dough from the <em>side</em> now:
-          the ring of pepper flakes sits along a slanted rim, and a single flat
-          knife-cut easily separates it from the peak. Nothing about the
-          pepper flakes changed — you just gave the problem one more dimension
-          (height) to live in, and the "impossible" curve became an easy
-          straight cut.
-        </p>
+          <!-- Arrow to comparison -->
+          <text x="370" y="138" font-family="'JetBrains Mono', monospace" font-size="24" fill="#8b91a5">&#8594;</text>
+
+          <!-- Variance comparison bars -->
+          <rect x="440" y="95" width="60" height="50" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <rect x="440" y="145" width="58" height="50" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="470" y="113" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">PC1</text>
+          <text x="470" y="133" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">~50%</text>
+          <text x="469" y="163" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">PC2</text>
+          <text x="469" y="183" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">~50%</text>
+
+          <text x="550" y="138" font-family="'JetBrains Mono', monospace" font-size="24" fill="#8b91a5">&#8594;</text>
+
+          <!-- What we actually want -->
+          <rect x="620" y="90" width="200" height="90" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="720" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">True structure:</text>
+          <text x="720" y="140" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#2c6b5d">1 dimension (angle $\theta$)</text>
+          <text x="720" y="162" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">PCA can't find it</text>
+        </svg>
+        <div class="svg-caption">12 points on a circle: PC1 and PC2 capture almost identical variance, so PCA says "keep both" — missing the 1-D angular structure entirely.</div>
       </div>
 
-      <div class="diagram">
-        <div class="diagram-title">Feature mapping: flat &amp; tangled → lifted &amp; linear</div>
-        <div class="lift-wrap">
-          <div class="lift-panel">
-            <div class="panel-title">Before · ℝ<sup>d</sup></div>
-            <div class="flat-plane" id="flatPlane"></div>
-            <p style="font-size:12px;color:var(--ink-faint);margin:10px 0 0;">Points ringed together — no straight cut separates them</p>
-          </div>
-          <div class="lift-arrow">
-            <span>φ(x)</span>
-            <span class="arrow-glyph">➜</span>
-            <span>maps up</span>
-          </div>
-          <div class="lift-panel">
-            <div class="panel-title">After · ℝ<sup>D</sup></div>
-            <div class="lifted-plane">
-              <div class="lifted-inner" id="liftedInner"></div>
-              <div class="cut-plane"></div>
-            </div>
-            <p style="font-size:12px;color:var(--ink-faint);margin:10px 0 0;">Same points, now separable by one flat cut (amber line)</p>
-          </div>
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this means</strong>
+          <p>
+            PCA isn't "wrong" — it's doing exactly what it's designed to do (maximize captured variance along <em>straight</em> directions). The circle simply has no straight direction to find. We need to change <strong>the space the data lives in</strong>, not the algorithm.
+          </p>
         </div>
       </div>
 
-      <div class="callout note">
-        <div class="tag">Worth noting</div>
-        <p>
-          The new coordinate <span class="formula">x₁² + x₂²</span> isn't magic —
-          it's just one extra "ingredient" computed from the originals. Feature
-          mapping is really the systematic version of the trick you've probably
-          already used: adding <span class="formula">x²</span> as a feature so a
-          straight-line model can fit a parabola.
-        </p>
-      </div>
-    </div>
-
-    <div class="card">
-      <span class="card-label">THE COMPLICATION</span>
-      <h3>Now D might be enormous — and bigger than n</h3>
-      <p>
-        Because mapping <em>increases</em> dimensionality (<span class="formula">D &gt; d</span>),
-        we can quickly land in a regime where <span class="formula">D ≫ n</span>
-        — far more feature dimensions than we have data samples. Computing a
-        full <span class="formula">D × D</span> covariance matrix of
-        <span class="formula">φ(X)</span> for PCA becomes expensive or outright
-        infeasible.
-      </p>
-      <p>
-        The fix: instead of eigen-decomposing the huge covariance matrix
-        <span class="formula">φ(X)ᵀφ(X)/n</span> (size <span class="formula">D×D</span>),
-        we can work with the much smaller matrix
-        <span class="formula">φ(X)φ(X)ᵀ</span> (size <span class="formula">n×n</span>),
-        whose non-zero eigenvalues/eigenvectors correspond exactly to the ones
-        we need. This is the seed of what's known as the <strong>kernel trick</strong>.
-      </p>
-    </div>
-  </section>
-
-  <!-- ================= SECTION 3 ================= -->
-  <section class="section" id="s3">
-    <div class="sec-head">
-      <div class="sec-num">3</div>
-      <h2>The Kernel Shortcut, Annotated</h2>
-    </div>
-
-    <div class="card">
-      <span class="card-label">WHY THIS MATTERS</span>
-      <h3>Swap a D×D problem for an n×n problem</h3>
-      <p>
-        Here's the same idea expressed as pseudocode, with the reasoning behind
-        each line called out below.
-      </p>
-
-      <div class="code-wrap">
-        <pre class="code-block"><span class="ln">1</span><span class="cm"># X: n samples, each originally in R^d</span>
-<span class="ln">2</span><span class="kw">phi_X</span> = <span class="fn">feature_map</span>(X)            <span class="cm"># shape: (n, D)  — D can be huge</span>
-<span class="ln">3</span>
-<span class="ln">4</span><span class="cm"># Expensive route (avoid): D x D covariance</span>
-<span class="ln">5</span>cov = (phi_X.T @ phi_X) / n     <span class="cm"># shape: (D, D)  -- can be 10^15!</span>
-<span class="ln">6</span>
-<span class="ln">7</span><span class="cm"># Efficient route: n x n Gram matrix instead</span>
-<span class="ln">8</span><span class="kw">gram</span> = phi_X @ phi_X.T        <span class="op">#</span> shape: (n, n)  <span class="c1">← tiny by comparison</span>
-<span class="ln">9</span>eigvals, eigvecs = <span class="fn">eigh</span>(gram)   <span class="cm"># solve the small problem</span>
-<span class="ln">10</span><span class="c2"># eigvecs of gram map back to the eigvecs of cov</span>
-<span class="ln">11</span><span class="c2"># we actually needed — same information, far less work</span></pre>
-      </div>
-
-      <ul class="annot-list">
-        <li data-n="1">Feature mapping happens first — every point balloons from <span class="formula">d</span> to <span class="formula">D</span> coordinates.</li>
-        <li data-n="2">The "obvious" covariance route scales with <span class="formula">D²</span> — this is where things blow up.</li>
-        <li data-n="3">The Gram matrix route scales with <span class="formula">n²</span> instead — and in most real datasets, <span class="formula">n ≪ D</span>.</li>
-        <li data-n="4">Both matrices share the same non-zero eigenvalues, so we lose nothing by solving the smaller one.</li>
-      </ul>
-
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          It's like being asked to compare every pair of ingredients across
-          10,000 possible recipes versus comparing your 40 actual dinner guests
-          to each other. Both comparisons can reveal the same insight about who
-          likes what — but one involves a 10,000-row table and the other a
-          40-row table. You always solve the smaller table if it tells you the
-          same story.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ================= SECTION 4 ================= -->
-  <section class="section" id="s4">
-    <div class="sec-head">
-      <div class="sec-num">4</div>
-      <h2>The Catch: Exponential Growth</h2>
-    </div>
-
-    <div class="card">
-      <span class="card-label">THE BOTTLENECK</span>
-      <h3>Even the "efficient" route has a limit</h3>
-      <p>
-        The Gram-matrix shortcut helps with the <em>n×n</em> computation, but it
-        doesn't rescue us from the underlying problem: if we want our feature map
-        to capture <strong>all interactions up to the p-th power</strong> among
-        <span class="formula">d</span> original features, the number of resulting
-        dimensions grows roughly as
-      </p>
-
-      <div class="formula-block">D  ≈  O( d<sup style="color:#F2C868">p</sup> )</div>
-
-      <p>
-        That "p" in the exponent is brutal. Small increases in the degree of
-        interaction you want to model cause the dimensionality to rocket upward
-        — long before you get anywhere near a useful degree like 15.
-      </p>
-
-      <div class="analogy">
-        <div class="tag">Real-life analogy</div>
-        <p>
-          Picture a pizza place with just <strong>10 toppings</strong> on the
-          menu. Choosing single toppings, or even pairs, is manageable — a
-          handful of combinations. But if a "specialty pizza" has to consider
-          every possible combination of <strong>up to 15 toppings at once</strong>
-          (including toppings repeated, order mattering the way polynomial terms
-          do), the menu of possible specialty pizzas explodes into the
-          quadrillions. The kitchen — no matter how efficient — cannot prep for
-          that menu.
-        </p>
-      </div>
-
-      <div class="diagram">
-        <div class="diagram-title">Dimensions needed as interaction degree (p) grows — 10 original features</div>
-        <div class="bar-chart">
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:14%;"></div></div>
-            <div class="bar-val">~55</div>
-            <div class="bar-label">p = 2</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:26%;"></div></div>
-            <div class="bar-val">~3,003</div>
-            <div class="bar-label">p = 5</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar" style="height:46%;"></div></div>
-            <div class="bar-val">~184,756</div>
-            <div class="bar-label">p = 10</div>
-          </div>
-          <div class="bar-col">
-            <div class="bar-track"><div class="bar blow" style="height:96%;"></div></div>
-            <div class="bar-val">~10<sup>15</sup></div>
-            <div class="bar-label">p = 15</div>
-          </div>
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Thinking PCA is always the right tool:</strong> PCA finds linear structure. If your data has curves, circles, or manifolds, PCA's variance-maximization will miss the true underlying dimensionality.
+          </p>
+          <p>
+            &#x2716; <strong>Interpreting equal eigenvalues as "both dimensions matter":</strong> Equal eigenvalues on a circle don't mean 2-D structure — they mean the 1-D angular structure is invisible to straight-line thinking.
+          </p>
         </div>
-        <p class="diagram-caption">
-          Bar heights are on a compressed scale just to fit the page — the real
-          jump from p&nbsp;=&nbsp;10 to p&nbsp;=&nbsp;15 is several orders of magnitude larger
-          than the bars can show. That's the point.
-        </p>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 2: THE FIX — FEATURE MAPPING
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>The Fix: Feature Mapping $\varphi$</h2>
+      </div>
+      <p class="sec-intro">
+        The trick is to stop looking at the data in its original, low-dimensional space $\mathbb{R}^d$ and instead pass every point through a <strong>feature map</strong> $\varphi(x)$ that sends it into a much higher-dimensional space $\mathbb{R}^D$, where $D \gg d$. Done well, the curve that was hopelessly non-linear "down here" becomes a flat, linear surface "up there."
+      </p>
+
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel" id="eq-phi">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Feature Map Definition</div>
+        $$\varphi : \mathbb{R}^d \to \mathbb{R}^D, \qquad
+        \mathbf{x} \mapsto \varphi(\mathbf{x})$$
+        <div class="eq-caption">A function that lifts each point from $d$-dimensional input space to $D$-dimensional feature space</div>
       </div>
 
-      <div class="table-wrap">
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The feature map $\varphi$ is a function that takes a $d$-dimensional input vector $\mathbf{x}$ and returns a $D$-dimensional vector $\varphi(\mathbf{x})$. The output space is typically much larger than the input space ($D \gg d$), giving the data more room to unfold into a linear arrangement.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
         <table>
           <thead>
-            <tr><th>d (features)</th><th>p (degree)</th><th>Approx. D (dimensions)</th><th>Feasible?</th></tr>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
           </thead>
           <tbody>
-            <tr><td>10</td><td>2</td><td class="num">~55</td><td class="flag">✅ trivial</td></tr>
-            <tr><td>10</td><td>5</td><td class="num">~3,003</td><td class="flag">✅ manageable</td></tr>
-            <tr><td>10</td><td>10</td><td class="num">~184,756</td><td class="flag">⚠️ heavy</td></tr>
-            <tr class="danger"><td>10</td><td>15</td><td class="num">~10<sup>15</sup></td><td class="flag">❌ unfeasible</td></tr>
+            <tr>
+              <td class="leg-sym">$\varphi$</td>
+              <td class="leg-meaning">Feature map — lifts data to higher dimension</td>
+              <td class="leg-example">$(x_1, x_2) \mapsto (x_1, x_2, x_1^2 + x_2^2)$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbb{R}^d$</td>
+              <td class="leg-meaning">Original (input) space — $d$ dimensions</td>
+              <td class="leg-example">$d = 2$ for the circle</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbb{R}^D$</td>
+              <td class="leg-meaning">Feature (output) space — $D$ dimensions</td>
+              <td class="leg-example">$D = 3$ for the circle map above</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$D \gg d$</td>
+              <td class="leg-meaning">Feature space much larger than input space</td>
+              <td class="leg-example">$D$ could be millions</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Circle Example: Making Non-Linear Structure Linear</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with the circle: <strong>$x_1^2 + x_2^2 = r^2$</strong> — non-linear in $\mathbf{x}$</div>
+          <div class="dt-formula">$(x_1, x_2) \in \mathbb{R}^2$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Define $\varphi$ that adds the squared-radius as a third coordinate</div>
+          <div class="dt-formula">$\varphi(x_1, x_2) = (x_1, x_2, x_1^2 + x_2^2)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">In $\mathbb{R}^3$, the circle's constraint becomes <strong>linear</strong>: $z = r^2$ — a flat plane</div>
+          <div class="dt-formula">$\varphi(x)^\mathsf{T} \mathbf{u} = 0$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">PCA in $\mathbb{R}^3$ now sees a flat, linear structure — and finds it easily</div>
+          <div class="dt-formula" style="color:var(--teal);font-weight:600;">&#x2714; Linear subspace found!</div>
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of pizza dough dusted with pepper flakes and shaped into a ring on a flat tray — a "circle" from above. From directly overhead, no flat cut ever separates the ring's pepper flakes from the empty middle. Now push up the center of the dough like a small volcano, so height depends on distance from the middle. Look at the dough from the <strong>side</strong>: the ring of pepper flakes sits along a slanted rim, and a single flat knife-cut easily separates it from the peak. Nothing about the pepper flakes changed — you just gave the problem <span class="highlight">one more dimension (height)</span> to live in, and the "impossible" curve became an easy straight cut.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Feature Mapping: Flat &amp; Tangled $\to$ Lifted &amp; Linear</div>
+        <svg viewBox="0 0 860 240" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left: original space -->
+          <rect x="30" y="20" width="200" height="170" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="130" y="48" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Original $\mathbb{R}^d$</text>
+          <circle cx="130" cy="110" r="50" fill="none" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <circle cx="130" cy="60" r="4" fill="#1e4f8a"/>
+          <circle cx="180" cy="110" r="4" fill="#1e4f8a"/>
+          <circle cx="130" cy="160" r="4" fill="#1e4f8a"/>
+          <circle cx="80" cy="110" r="4" fill="#1e4f8a"/>
+          <circle cx="165" cy="75" r="4" fill="#1e4f8a"/>
+          <circle cx="95" cy="75" r="4" fill="#1e4f8a"/>
+          <circle cx="95" cy="145" r="4" fill="#1e4f8a"/>
+          <circle cx="165" cy="145" r="4" fill="#1e4f8a"/>
+          <text x="130" y="210" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">No straight cut separates points</text>
+
+          <!-- Arrow -->
+          <text x="265" y="115" font-family="'JetBrains Mono', monospace" font-size="24" fill="#8b91a5">&#8594;</text>
+          <text x="265" y="140" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#b5872a">$\varphi(x)$</text>
+
+          <!-- Right: lifted space -->
+          <rect x="320" y="20" width="320" height="170" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="480" y="48" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Feature Space $\mathbb{R}^D$</text>
+
+          <!-- Lifted ellipse with cut plane -->
+          <ellipse cx="480" cy="120" rx="100" ry="30" fill="none" stroke="#1e4f8a" stroke-width="1.5" transform="rotate(-12, 480, 120)"/>
+          <circle cx="480" cy="90" r="4" fill="#1e4f8a"/>
+          <circle cx="530" cy="115" r="4" fill="#1e4f8a"/>
+          <circle cx="430" cy="115" r="4" fill="#1e4f8a"/>
+          <circle cx="480" cy="150" r="4" fill="#1e4f8a"/>
+          <circle cx="510" cy="100" r="4" fill="#1e4f8a"/>
+          <circle cx="450" cy="100" r="4" fill="#1e4f8a"/>
+          <circle cx="450" cy="140" r="4" fill="#1e4f8a"/>
+          <circle cx="510" cy="140" r="4" fill="#1e4f8a"/>
+
+          <!-- The separating plane (gold line) -->
+          <line x1="360" y1="100" x2="600" y2="140" stroke="#b5872a" stroke-width="3" opacity="0.8"/>
+          <text x="610" y="128" font-family="'JetBrains Mono', monospace" font-size="11" fill="#b5872a">Flat cut (linear)</text>
+
+          <text x="480" y="210" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">&#x2714; Now separable by one flat cut (gold line)</text>
+        </svg>
+        <div class="svg-caption">The same data, lifted by $\varphi$: the circular loop in $\mathbb{R}^2$ becomes a linearly separable surface in $\mathbb{R}^D$.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>The new coordinate isn't magic</strong>
+          <p>The new coordinate $x_1^2 + x_2^2$ is just one extra "ingredient" computed from the originals. Feature mapping is the systematic version of the trick you've probably already used: adding $x^2$ as a feature so a straight-line model can fit a parabola.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Thinking $\varphi$ needs to be known explicitly:</strong> As we'll see with the kernel trick, we often only need the dot products $\varphi(x_i)^\mathsf{T}\varphi(x_j)$, not $\varphi(x)$ itself.
+          </p>
+          <p>
+            &#x2716; <strong>Assuming $D$ is small:</strong> A polynomial map of degree $p$ with $d$ features produces $D = \binom{d+p}{p}$ dimensions. For $d = 1000, p = 4$, that's roughly $4 \times 10^{13}$ dimensions — completely infeasible to materialize.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: THE KERNEL SHORTCUT
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>The Kernel Shortcut</h2>
+      </div>
+      <p class="sec-intro">
+        Because mapping <em>increases</em> dimensionality ($D \gg d$), we quickly land in a regime where $D \gg n$ — far more feature dimensions than data samples. Computing a full $D \times D$ covariance matrix of $\varphi(\mathbf{X})$ for PCA becomes infeasible.
+      </p>
+
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel" id="eq-gram-vs-cov">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Avoiding the $D \times D$ Covariance: Gram Matrix</div>
+        $$\mathbf{C}_\varphi = \frac{1}{n} \varphi(\mathbf{X}) \varphi(\mathbf{X})^\mathsf{T}
+        \;\; (D \times D) \quad\longrightarrow\quad
+        \mathbf{K} = \varphi(\mathbf{X})^\mathsf{T} \varphi(\mathbf{X}) \;\; (n \times n)$$
+        <div class="eq-caption">Solve the small $n \times n$ Gram matrix instead — same non-zero eigenvalues</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The covariance matrix $\mathbf{C}_\varphi$ in the feature space is $D \times D$, which can be astronomically large. But the Gram matrix $\mathbf{K}$ — whose entries are pairwise dot products $\varphi(x_i)^\mathsf{T}\varphi(x_j)$ — is only $n \times n$. Crucially, both matrices share the same non-zero eigenvalues and corresponding eigenvectors.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\varphi(\mathbf{X})$</td>
+              <td class="leg-meaning">Mapped data matrix ($D \times n$)</td>
+              <td class="leg-example">Each column is $\varphi(x_i)$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{C}_\varphi$</td>
+              <td class="leg-meaning">Covariance in feature space ($D \times D$)</td>
+              <td class="leg-example">Often impossible to store</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{K}$</td>
+              <td class="leg-meaning">Gram (kernel) matrix ($n \times n$)</td>
+              <td class="leg-example">Always small and tractable</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Number of data points</td>
+              <td class="leg-example">$n = 200$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          It's like being asked to compare every pair of ingredients across 10,000 possible recipes versus comparing your <strong>40 actual dinner guests</strong> to each other. Both comparisons can reveal the same insight about who likes what — but one involves a 10,000-row table and the other a 40-row table. <span class="highlight">You always solve the smaller table</span> if it tells you the same story.
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="cb-label">kernel_shortcut.py</div>
+        <pre><span class="cm"># X: n samples, each originally in R^d</span>
+phi_X = <span class="fn">feature_map</span>(X)            <span class="cm"># shape: (n, D)  — D can be huge</span>
+
+<span class="cm"># Expensive route (avoid): D x D covariance</span>
+cov = (phi_X.T @ phi_X) / n     <span class="cm"># shape: (D, D)  — can be 10^15!</span>
+
+<span class="cm"># Efficient route: n x n Gram matrix</span>
+<span class="kw">gram</span> = phi_X @ phi_X.T        <span class="cm"># shape: (n, n)  — tiny by comparison</span>
+eigvals, eigvecs = <span class="fn">eigh</span>(<span class="kw">gram</span>)   <span class="cm"># solve the small problem</span>
+<span class="cm"># eigvecs of gram map back to the eigvecs of cov</span>
+<span class="cm"># we actually needed — same information, far less work</span></pre>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#x2714;</div>
+        <div class="co-body">
+          <strong>The kernel trick in a nutshell</strong>
+          <p>Instead of computing $\varphi(x)$ explicitly (which may be infinite-dimensional), compute $K(x_i, x_j) = \varphi(x_i)^\mathsf{T}\varphi(x_j)$ directly — a single number. This gives us all the power of the high-dimensional space at $O(n^2)$ cost.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: THE EXPONENTIAL GROWTH PROBLEM
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>The Catch: Exponential Growth</h2>
+      </div>
+      <p class="sec-intro">
+        The Gram-matrix shortcut helps with the $n \times n$ computation, but it doesn't rescue us from the underlying problem: if we want our feature map to capture <strong>all interactions up to the $p$-th power</strong> among $d$ original features, the number of resulting dimensions grows roughly as $O(d^p)$.
+      </p>
+
+      <!-- EQUATION PANEL -->
+      <div class="eq-panel multiline" id="eq-blowup">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Dimensional Explosion for Polynomial Features</div>
+        $$D = \binom{d + p}{p}
+        = \frac{(d + p)!}{p! \, d!}
+        = O(d^{\,p})$$
+        <div class="eq-caption">The number of feature dimensions grows as a $p$-th degree polynomial in $d$ — the exponent $p$ is the killer</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The number of dimensions $D$ needed to capture all polynomial interactions up to degree $p$ among $d$ original features is the binomial coefficient $\binom{d+p}{p}$. For fixed $d$, this grows roughly as $d^p$ — each increase in $p$ multiplies the exponent.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$d$</td>
+              <td class="leg-meaning">Original number of features</td>
+              <td class="leg-example">$d = 10$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$p$</td>
+              <td class="leg-meaning">Maximum degree of interaction</td>
+              <td class="leg-example">$p = 3$ for cubic</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$D$</td>
+              <td class="leg-meaning">Resulting feature space dimension</td>
+              <td class="leg-example">$\binom{10+3}{3} = 286$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\binom{d+p}{p}$</td>
+              <td class="leg-meaning">Number of combinations with repetition</td>
+              <td class="leg-example">Combinations of $d$ items taken $p$ at a time</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Dimensions Needed as Interaction Degree $p$ Grows ($d = 10$)</div>
+        <svg viewBox="0 0 860 240" xmlns="http://www.w3.org/2000/svg">
+          <!-- Bars for p=2,5,10,15 -->
+          <rect x="120" y="185" width="80" ry="6" height="30" fill="#2c6b5d" opacity="0.8"/>
+          <text x="160" y="178" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">~55</text>
+          <text x="160" y="228" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">$p = 2$</text>
+
+          <rect x="260" y="150" width="80" ry="6" height="65" fill="#1e4f8a" opacity="0.8"/>
+          <text x="300" y="143" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a">~3,003</text>
+          <text x="300" y="228" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">$p = 5$</text>
+
+          <rect x="400" y="100" width="80" ry="6" height="115" fill="#b5872a" opacity="0.8"/>
+          <text x="440" y="93" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#b5872a">~184,756</text>
+          <text x="440" y="228" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">$p = 10$</text>
+
+          <rect x="540" y="10" width="80" ry="6" height="205" fill="#a8482a" opacity="0.8"/>
+          <text x="580" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#f2f3f8" font-weight="600">$10^{15}$</text>
+          <text x="580" y="228" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8b91a5">$p = 15$</text>
+
+          <!-- Y-axis label -->
+          <text x="20" y="130" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5" transform="rotate(-90, 20, 130)">Dimensions (log scale)</text>
+        </svg>
+        <div class="svg-caption">Bar heights are on a compressed scale — the real jump from $p=10$ to $p=15$ is several orders of magnitude larger than the bars can show. That's the point.</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example: Dimensional Explosion</div>
+        <div class="num-setup"><strong>Setup:</strong> $d = 10$ original features, varying interaction degree $p$.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>$d$ (features)</th><th>$p$ (degree)</th><th>$D$ (dimensions)</th><th>Feasible?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>$10$</td><td>$2$</td>
+              <td style="font-weight:600;">$\binom{12}{2} = 66$</td>
+              <td style="color:var(--teal);font-weight:600;">&#x2714; trivial</td>
+            </tr>
+            <tr>
+              <td>$10$</td><td>$5$</td>
+              <td style="font-weight:600;">$\binom{15}{5} = 3{,}003$</td>
+              <td style="color:var(--teal);font-weight:600;">&#x2714; manageable</td>
+            </tr>
+            <tr>
+              <td>$10$</td><td>$10$</td>
+              <td style="font-weight:600;">$\binom{20}{10} = 184{,}756$</td>
+              <td style="color:var(--gold);font-weight:600;">&#x26A0; heavy</td>
+            </tr>
+            <tr>
+              <td>$10$</td><td>$15$</td>
+              <td style="font-weight:600;">$\binom{25}{15} \approx 4.9 \times 10^{15}$</td>
+              <td style="color:var(--rust);font-weight:600;">&#x2718; unfeasible</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">$D$ grows from $66$ to $4.9 \times 10^{15}$ when $p$ goes from $2$ to $15$ — an astronomically impossible feature space</div>
       </div>
 
       <div class="callout warn">
-        <div class="tag">Watch out</div>
-        <p>
-          This is precisely why brute-force feature mapping is rarely used
-          directly in practice. Even the "smaller" n×n trick from Section 3
-          doesn't save you here — it avoids building the <em>D×D</em> covariance
-          matrix, but computing <span class="formula">φ(x)</span> itself still
-          requires materializing all <span class="formula">D</span> coordinates
-          for every point, unless the kernel function lets us skip that step
-          entirely (a preview of where kernel methods go next).
-        </p>
+        <div class="co-icon">!</div>
+        <div class="co-body">
+          <strong>The real problem</strong>
+          <p>Even the "smaller" $n \times n$ trick doesn't save you here — it avoids building the $D \times D$ covariance matrix, but computing $\varphi(x)$ itself still requires materializing all $D$ coordinates for every point, unless the kernel function lets us skip that step entirely.</p>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ================= TAKEAWAYS ================= -->
-  <section class="section" id="s5">
-    <div class="sec-head">
-      <div class="sec-num">✓</div>
-      <h2>Key Takeaways</h2>
-    </div>
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this means for practice</strong>
+          <p>
+            Brute-force feature mapping is rarely used directly. The polynomial kernel $K(x, y) = (x^\mathsf{T}y + c)^p$ computes the dot product in the $O(d^p)$-dimensional space <strong>without ever visiting it</strong> — a preview of where kernel methods go next. This is what makes Kernel PCA possible: it gets the benefit of the high-dimensional space at $O(n^3)$ cost.
+          </p>
+        </div>
+      </div>
+    </section>
 
-    <div class="takeaway-grid">
-      <div class="takeaway">
-        <div class="num">1</div>
-        <p>PCA only finds straight-line structure. Data shaped like a circle or curve fools it into thinking every direction matters equally.</p>
+    <!-- ================================================================
+         SECTION 5: TAKEAWAYS
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Key Takeaways</h2>
       </div>
-      <div class="takeaway">
-        <div class="num">2</div>
-        <p>Feature mapping φ lifts data into a higher-dimensional space where non-linear relationships become linear constraints PCA can find.</p>
-      </div>
-      <div class="takeaway">
-        <div class="num">3</div>
-        <p>When D ≫ n, solve the small n×n Gram matrix instead of the huge D×D covariance matrix — same eigen-information, far less compute.</p>
-      </div>
-      <div class="takeaway">
-        <div class="num">4</div>
-        <p>Capturing all interactions up to degree p makes dimensions grow like O(d^p) — a fast route to an unmanageable feature space.</p>
-      </div>
-    </div>
 
-    <div class="callout key" style="margin-top:20px;">
-      <div class="tag">Looking ahead</div>
-      <p>
-        The natural next question: can we get the benefit of a huge feature
-        space <em>without ever computing φ(x) explicitly</em>? That's exactly
-        the problem kernel functions are built to solve — the subject of the
-        next lecture.
-      </p>
-    </div>
-  </section>
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--rust);">
+          <h4>PCA only finds straight lines</h4>
+          <p>Data shaped like a circle or curve fools PCA into thinking every direction matters equally — the true 1-D structure is invisible.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <h4>Feature mapping lifts data</h4>
+          <p>$\varphi$ maps $\mathbb{R}^d \to \mathbb{R}^D$ where non-linear relationships become linear constraints PCA can find.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <h4>Solve the $n \times n$ Gram matrix</h4>
+          <p>When $D \gg n$, solve $\mathbf{K} = \varphi(\mathbf{X})^\mathsf{T}\varphi(\mathbf{X})$ instead of the $D \times D$ covariance — same eigen-information, far less compute.</p>
+        </div>
+      </div>
 
-  <div class="footer">
-    <span>Lecture Notes · Feature Transformation &amp; PCA</span>
-    <span>Dimensionality Reduction Series</span>
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Looking ahead</strong>
+          <p>The natural next question: can we get the benefit of a huge feature space <em>without ever computing $\varphi(x)$ explicitly</em>? That's exactly the problem kernel functions are built to solve — the subject of the next lecture on <strong>Kernel PCA</strong>.</p>
+        </div>
+      </div>
+    </section>
+
   </div>
+</main>
 
-</div>
-
-<script>
-  // Place 12 dots evenly around the circle diagram using rotate+translate
-  (function(){
-    var orbit = document.getElementById('dotOrbit');
-    var n = 12, r = 100;
-    for(var i=0;i<n;i++){
-      var angle = (360/n)*i;
-      var dot = document.createElement('div');
-      dot.className = 'dot';
-      dot.style.transform = 'rotate('+angle+'deg) translate('+r+'px)';
-      orbit.appendChild(dot);
-    }
-  })();
-
-  // Scatter a ring of dots in the "flat" panel (top-down, all same layer)
-  (function(){
-    var flat = document.getElementById('flatPlane');
-    var n = 8, cx = 70, cy = 35, r = 24;
-    for(var i=0;i<n;i++){
-      var a = (Math.PI*2/n)*i;
-      var dot = document.createElement('div');
-      dot.className = 'dot';
-      dot.style.position='absolute';
-      dot.style.left = (cx + r*Math.cos(a)) + 'px';
-      dot.style.top  = (cy + r*0.5*Math.sin(a)) + 'px';
-      flat.appendChild(dot);
-    }
-  })();
-
-  // Scatter the same ring in the "lifted" panel, now along a slanted rim
-  (function(){
-    var lifted = document.getElementById('liftedInner');
-    var n = 8, cx = 65, cy = 45, r = 26;
-    for(var i=0;i<n;i++){
-      var a = (Math.PI*2/n)*i;
-      var dot = document.createElement('div');
-      dot.className = 'dot';
-      dot.style.position='absolute';
-      dot.style.left = (cx + r*Math.cos(a)) + 'px';
-      dot.style.top  = (cy + r*0.5*Math.sin(a)) + 'px';
-      lifted.appendChild(dot);
-    }
-  })();
-</script>
+<footer>
+  <p>FEATURE TRANSFORMATION &amp; THE LIMITS OF PCA &middot; PREMIUM LECTURE NOTES</p>
+</footer>
 
 </body>
 </html>

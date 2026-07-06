@@ -1,221 +1,359 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>PCA &amp; Eigenvectors — Chalkboard Notes</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L4 – Identifiers, Expressions &amp; Variables — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
 :root{
-  --board: #1e2b22;
-  --board-alt: #26362b;
-  --board-line: rgba(244,241,230,0.14);
-  --chalk: #f4f1e6;
-  --chalk-dim: #c9d1c3;
-  --chalk-yellow: #e8c468;
-  --chalk-blue: #8fb8c9;
-  --chalk-pink: #d98fa0;
-  --shelf: #3b2a20;
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
 }
 *{box-sizing:border-box;}
 body{
-  margin:0; background:var(--board); color:var(--chalk);
-  font-family:'Space Mono', monospace; position:relative; overflow-x:hidden;
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
 }
-body::before{
-  content:""; position:fixed; inset:0; pointer-events:none;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
-    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
-    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
-  background-size: 300px 300px; z-index:1;
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
 }
-.wrap{ max-width: 980px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
-header{ text-align:center; margin-bottom:56px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
-.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-yellow); margin-bottom:18px; }
-h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.5rem); margin:0 0 14px; line-height:1.1; }
-.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:620px; margin: 0 auto; }
-
-.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
-.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
-.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
-.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
-section{ margin-bottom:64px; }
-
-/* Thread ribbon connecting to previous lecture */
-.thread{
-  display:flex; align-items:center; gap:10px;
-  font-family:'Caveat', cursive; font-size: 1.15rem; color: var(--chalk-pink);
-  background: rgba(217,143,160,0.07); border: 1px dashed var(--chalk-pink);
-  border-radius: 6px; padding: 10px 16px; margin-bottom: 30px;
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
 }
-.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-pink); border:1px solid var(--chalk-pink); border-radius:10px; padding:3px 8px; }
-
-/* Thesis */
-.thesis{ background: var(--board-alt); border: 1px dashed var(--chalk-yellow); border-radius: 8px; padding: 32px; text-align:center; margin-bottom: 20px; }
-.thesis .big{ font-family:'Kalam', cursive; font-size: clamp(1.4rem, 3.6vw, 2.1rem); color: var(--chalk-yellow); margin: 0 0 10px; }
-.thesis p{ font-size: 13.5px; color: var(--chalk-dim); max-width: 660px; margin: 0 auto; line-height:1.6; }
-
-/* Cards */
-.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
-.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
-.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 12px; }
-.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
-.row{ margin-bottom: 10px; }
-.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
-.row.analogy .label{ color: var(--chalk-pink); }
-.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
-.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
-.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
-.card:hover .link-line path{ stroke-dashoffset: 0; }
-
-/* Diagram: shadow / ellipse illustration */
-.diagram-box{
-  background: var(--board-alt); border-radius: 8px; padding: 30px; text-align:center;
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
 }
-.diagram-box svg{ max-width: 100%; height:auto; }
-.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.2rem; color: var(--chalk-blue); margin-top:12px; }
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
 
-/* Math strip */
-.mathbox{ background: var(--board-alt); border-radius: 6px; padding: 26px 28px; }
-.formula{ font-family:'Space Mono', monospace; font-size: 1.1rem; text-align:center; color: var(--chalk-yellow); padding: 10px 0; letter-spacing: 0.4px; }
-.mathbox .caption{ text-align:center; font-family:'Caveat', cursive; font-size: 1.15rem; color: var(--chalk-blue); margin: 4px 0 18px; }
-.mathbox hr{ border: none; border-top: 1px dotted var(--board-line); margin: 18px 0; }
-
-/* Takeaway */
-.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
-.takeaway p{ font-family:'Caveat', cursive; font-size: 1.6rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
-
-footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
-</style>
-</head>
-<body>
-<div class="wrap">
-
-  <header>
-    <div class="eyebrow">Lecture 04 · Companion Notes</div>
-    <h1>PCA &amp; Eigenvectors</h1>
-    <p class="subhead">— finding the one direction that keeps the most truth about your data —</p>
-  </header>
-
-  <section>
-    <div class="thread"><span class="tag">Continuing from L03</span> Same shadow-and-projection idea — now we ask: which angle for the "light" gives the least distorted shadow?</div>
-
-    <div class="thesis">
-      <p class="big">Real data never sits perfectly on a line.</p>
-      <p>So instead of assuming a perfect fit, we search for the line that loses the <em>least</em> information when every point is squashed onto it — minimizing reconstruction error.</p>
-    </div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Real Life</p>
-        <div class="row"><p>Photographing a handful of scattered marbles on a table. Shoot from directly above and they look like a tight, overlapping blob. Shoot from the angle where they're most spread out, and you can tell them apart.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Analogy</p>
-        <div class="row analogy"><p>The "best angle" photo is the one that keeps the most distinguishing information — exactly what PCA searches for when picking a line to project onto.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head"><h2>Why Minimizing Error = Maximizing Spread</h2><div class="rule"></div></div>
-    <p class="section-intro">These sound like opposite goals, but they're mathematically the same target.</p>
-    <div class="diagram-box">
-      <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
-        <!-- scattered points forming an elongated cloud -->
-        <ellipse cx="320" cy="110" rx="230" ry="60" fill="none" stroke="#8fb8c9" stroke-width="1" stroke-dasharray="4 5" opacity="0.5" transform="rotate(-12 320 110)"/>
-        <line x1="95" y1="150" x2="545" y2="70" stroke="#e8c468" stroke-width="2"/>
-        <g fill="#f4f1e6">
-          <circle cx="140" cy="140" r="4"/>
-          <circle cx="190" cy="120" r="4"/>
-          <circle cx="230" cy="135" r="4"/>
-          <circle cx="270" cy="105" r="4"/>
-          <circle cx="310" cy="118" r="4"/>
-          <circle cx="350" cy="95" r="4"/>
-          <circle cx="390" cy="108" r="4"/>
-          <circle cx="430" cy="85" r="4"/>
-          <circle cx="470" cy="98" r="4"/>
-          <circle cx="500" cy="80" r="4"/>
-        </g>
-        <!-- dashed projection lines -->
-        <g stroke="#d98fa0" stroke-width="1" stroke-dasharray="2 3" opacity="0.7">
-          <line x1="140" y1="140" x2="150" y2="146"/>
-          <line x1="190" y1="120" x2="200" y2="132"/>
-          <line x1="270" y1="105" x2="278" y2="117"/>
-          <line x1="350" y1="95" x2="357" y2="103"/>
-          <line x1="430" y1="85" x2="437" y2="92"/>
-          <line x1="500" y1="80" x2="505" y2="84"/>
-        </g>
-        <text x="320" y="200" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="11">yellow line = direction of max spread (top eigenvector)</text>
-      </svg>
-      <p class="caption">The line that keeps points furthest apart from each other is, automatically, the line closest to every point.</p>
-    </div>
-    <div class="grid" style="margin-top:20px;">
-      <div class="card">
-        <p class="term">Real Life</p>
-        <div class="row"><p>A tailor stretching a single elastic band across a rack of differently-sized shirts so it touches as many shirt shoulders as possible.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>The band that reaches the widest spread of shoulders (max variance) is also, geometrically, the band sitting closest to all of them on average (min error) — same line, two ways of describing it.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head"><h2>The Covariance Matrix</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Covariance Matrix (C)</p>
-        <p class="def">Averages the outer products of every data point — a table of how features move together.</p>
-        <div class="row"><span class="label">Real Life</span><p>An ice cream shop's sales log showing that ice cream sales and sunscreen sales rise and fall together — while ice cream sales and umbrella sales move in opposite directions.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>C is that whole sales log condensed into one grid — every pair of "features" (ice cream, sunscreen, umbrellas) gets a number for how much they co-move.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head"><h2>Eigenvectors &amp; Eigenvalues</h2><div class="rule"></div></div>
-    <div class="grid">
-      <div class="card">
-        <p class="term">Eigenvector (Direction)</p>
-        <p class="def">The direction along which the data spreads out the most.</p>
-        <div class="row"><span class="label">Real Life</span><p>Fitting the smallest oval around a cluster of stars in the night sky — the oval has one long axis and one short axis.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>That long axis is the top eigenvector — the "main direction" the star cluster stretches in, even though individual stars sit off to either side.</p></div>
-      </div>
-      <div class="card">
-        <p class="term">Eigenvalue (Amount)</p>
-        <p class="def">How much variance lies along that eigenvector's direction.</p>
-        <div class="row"><span class="label">Real Life</span><p>How long the oval's long axis actually is, compared to its short axis.</p></div>
-        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
-        <div class="row analogy"><span class="label">Analogy</span><p>A long, thin oval (big eigenvalue) means the data has one dominant direction of spread worth keeping; a nearly circular oval (small eigenvalue) means there's no real "best angle" to project onto.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="section-head"><h2>The Formula, Plainly</h2><div class="rule"></div></div>
-    <div class="mathbox">
-      <div class="formula">maximize&nbsp; w&#7488; C w &nbsp;&nbsp;subject to&nbsp;&nbsp; ‖w‖&sup2; = 1</div>
-      <p class="caption">Find the unit direction w that makes the "spread formula" w&#7488;Cw as large as possible.</p>
-      <hr>
-      <div class="formula">C = (1/n) &sum; x&#7522; x&#7522;&#7488;</div>
-      <p class="caption">C is just the average of every point "multiplied by itself" — the co-movement table above, written in matrix form.</p>
-      <hr>
-      <div class="formula">best w = eigenvector of C with the largest eigenvalue</div>
-      <p class="caption">This optimization has a shortcut: no trial-and-error searching needed — the answer is exactly the top eigenvector of C.</p>
-    </div>
-  </section>
-
-  <section class="takeaway">
-    <p>PCA doesn't guess at the best line by trial and error — it reads it straight off the covariance matrix, as the eigenvector holding the most spread.</p>
-  </section>
-
-  <footer>Hover any card to connect the dots</footer>
-
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 4</div>
+  <h1>Identifiers, Expressions &amp; Variables</h1>
+  <p>A deep look at how JavaScript handles <b>variable declarations</b> (<code>var</code> vs <code>let</code> vs <code>const</code>), <b>hoisting</b>, the <b>Temporal Dead Zone</b>, <b>scoping</b> rules, and the difference between <b>expressions</b> and <b>statements</b>.</p>
 </div>
-</body>
-</html>
+
+<div class="section-tag"><span class="n">1</span>Identifiers</div>
+<div class="card">
+  <h2>Naming Your Variables</h2>
+  <div class="def">
+    An <b>identifier</b> is the name you give to variables, functions, classes, etc. JavaScript has strict naming rules and strong conventions.
+  </div>
+  <h3>Rules</h3>
+  <ul>
+    <li>Must start with: letter (<code>a-z</code>, <code>A-Z</code>), underscore (<code>_</code>), or dollar sign (<code>$</code>)</li>
+    <li>Following characters: letters, digits, <code>_</code>, <code>$</code></li>
+    <li>Case-sensitive: <code>myVar</code> ≠ <code>myvar</code> ≠ <code>MYVAR</code></li>
+    <li>Cannot use <b>reserved keywords</b>: <code>if</code>, <code>for</code>, <code>class</code>, <code>let</code>, <code>const</code>, <code>function</code>, <code>return</code>, etc.</li>
+    <li>Unicode letters are allowed: <code>const π = 3.14;</code> (valid, though uncommon)</li>
+  </ul>
+
+  <h3>Conventions (not enforced by JS)</h3>
+  <pre><code><span class="cmt">// camelCase — standard for variables & functions</span>
+<span class="kw">const</span> userName = <span class="str">"Alice"</span>;
+<span class="kw">function</span> <span class="fn">getUserData</span>() {}
+
+<span class="cmt">// PascalCase — for classes & constructors</span>
+<span class="kw">class</span> <span class="fn">UserProfile</span> {}
+
+<span class="cmt">// UPPER_SNAKE_CASE — for constants (true constants)</span>
+<span class="kw">const</span> <span class="fn">MAX_SIZE</span> = <span class="dv">100</span>;
+<span class="kw">const</span> <span class="fn">API_KEY</span>  = <span class="str">"abc123"</span>;
+
+<span class="cmt">// _prefix — "private" convention (not truly private)</span>
+<span class="kw">const</span> _internalValue = <span class="dv">42</span>;</code></pre>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Expressions vs Statements</div>
+<div class="card">
+  <h2>The Two Categories of Code</h2>
+  <div class="def">
+    Every piece of JavaScript code is either an <b>expression</b> (produces a value) or a <b>statement</b> (performs an action).
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Expression</div>
+      <div class="c-desc">Produces a value. Can be assigned to a variable, logged, or passed as argument. <code>42</code>, <code>"hello"</code>, <code>5 + 3</code>, <code>fn()</code>, <code>a ? b : c</code></div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Statement</div>
+      <div class="c-desc">Performs an action. Cannot be used where a value is expected. <code>if (x) {}</code>, <code>for (;;) {}</code>, <code>return x;</code>, <code>let x = 5;</code></div>
+    </div>
+  </div>
+  <pre><code><span class="cmt">// Expressions (can go anywhere a value is expected)</span>
+<span class="dv">5</span> + <span class="dv">3</span>;              <span class="cmt">// expression → value 8</span>
+<span class="fn">Math</span>.<span class="fn">random</span>();       <span class="cmt">// expression → random number</span>
+<span class="fn">greet</span>(<span class="str">"Alice"</span>);     <span class="cmt">// expression → return value</span>
+
+<span class="cmt">// Statements (do things)</span>
+<span class="kw">let</span> x = <span class="dv">5</span>;            <span class="cmt">// declaration statement</span>
+<span class="kw">if</span> (x > <span class="dv">0</span>) {}         <span class="cmt">// if statement</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="dv">0</span>; i < <span class="dv">10</span>; i++) {} <span class="cmt">// for statement</span>
+
+<span class="cmt">// Special: expression statements (expressions used as statements)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"hi"</span>);  <span class="cmt">// expression statement</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">3</span>var vs let vs const</div>
+<div class="card">
+  <h2>The Three Declaration Keywords</h2>
+  <div class="def">
+    ES6 introduced <code>let</code> and <code>const</code> to fix the design flaws of <code>var</code>. Modern JavaScript <b>strongly prefers</b> <code>const</code> by default, <code>let</code> only when reassignment is needed, and <code>var</code> never.
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);">
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">Feature</th>
+      <th style="text-align:left;padding:8px;color:var(--red);font-weight:600;">var</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">let</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">const</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>Scope</b></td>
+      <td style="padding:8px;">Function-scoped</td>
+      <td style="padding:8px;">Block-scoped</td>
+      <td style="padding:8px;">Block-scoped</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>Hoisting</b></td>
+      <td style="padding:8px;">Yes (initialized as undefined)</td>
+      <td style="padding:8px;">Yes (TDZ — not initialized)</td>
+      <td style="padding:8px;">Yes (TDZ — not initialized)</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>Redeclaration</b></td>
+      <td style="padding:8px;">Yes (same scope)</td>
+      <td style="padding:8px;">❌ SyntaxError</td>
+      <td style="padding:8px;">❌ SyntaxError</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>Reassignment</b></td>
+      <td style="padding:8px;">Yes</td>
+      <td style="padding:8px;">Yes</td>
+      <td style="padding:8px;">❌ TypeError</td>
+    </tr>
+    <tr>
+      <td style="padding:8px;"><b>Global object</b></td>
+      <td style="padding:8px;">Creates window.varName</td>
+      <td style="padding:8px;">No global property</td>
+      <td style="padding:8px;">No global property</td>
+    </tr>
+  </table>
+
+  <pre><code><span class="cmt">// Demonstration</span>
+<span class="kw">var</span> x = <span class="str">"old"</span>;       <span class="cmt">// don't use</span>
+<span class="kw">let</span> y = <span class="str">"mutable"</span>;    <span class="cmt">// use when reassignment needed</span>
+<span class="kw">const</span> z = <span class="str">"fixed"</span>;     <span class="cmt">// use by default!</span>
+
+<span class="cmt">// const ≠ immutable value</span>
+<span class="kw">const</span> arr = [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>];
+arr.<span class="fn">push</span>(<span class="dv">4</span>);         <span class="cmt">// OK!  arr is now [1,2,3,4]</span>
+<span class="cmt">// arr = [5];       // ❌ TypeError: assignment to constant</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Hoisting &amp; Temporal Dead Zone</div>
+<div class="card">
+  <h2>The Most Confusing JS Concept — Explained</h2>
+  <div class="def">
+    <b>Hoisting</b> is JavaScript's behavior of moving declarations to the top of their scope before code execution. <b>But when is the variable initialized?</b> That's the key difference.
+  </div>
+
+  <svg viewBox="0 0 600 200" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="200" fill="#12161F" rx="10"/>
+    <text x="300" y="25" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="13" font-weight="700">Hoisting Memory Diagram</text>
+    <rect x="20" y="45" width="260" height="130" rx="8" fill="#3A1A1A" stroke="#F05050" stroke-width="1.5"/>
+    <text x="150" y="65" text-anchor="middle" fill="#F05050" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700">var a</text>
+    <text x="150" y="85" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">Hoisted &amp; initialized</text>
+    <text x="150" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">→ <b>undefined</b></text>
+    <text x="150" y="125" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="10">Can access before declaration</text>
+    <text x="150" y="145" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="10">(just gets undefined)</text>
+    <rect x="320" y="45" width="260" height="130" rx="8" fill="#1A3A4A" stroke="#7DD3FC" stroke-width="1.5"/>
+    <text x="450" y="65" text-anchor="middle" fill="#7DD3FC" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700">let / const</text>
+    <text x="450" y="85" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">Hoisted but NOT initialized</text>
+    <text x="450" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">→ <b>Temporal Dead Zone</b></text>
+    <text x="450" y="125" text-anchor="middle" fill="#F0B450" font-family="Sora,sans-serif" font-size="10">Access before declaration</text>
+    <text x="450" y="145" text-anchor="middle" fill="#F05050" font-family="Sora,sans-serif" font-size="10">→ <b>ReferenceError!</b></text>
+  </svg>
+
+  <pre><code><span class="cmt">// var hoisting</span>
+<span class="fn">console</span>.<span class="fn">log</span>(a);     <span class="cmt">// undefined (not ReferenceError!)</span>
+<span class="kw">var</span> a = <span class="dv">5</span>;
+
+<span class="cmt">// let hoisting + TDZ</span>
+<span class="fn">console</span>.<span class="fn">log</span>(b);     <span class="cmt">// ❌ ReferenceError: Cannot access 'b' before initialization</span>
+<span class="kw">let</span> b = <span class="dv">10</span>;
+
+<span class="cmt">// TDZ is the zone from the start of the block until the declaration</span>
+{
+  <span class="cmt">// TDZ starts here for 'c'</span>
+  <span class="kw">const</span> fn = () => <span class="fn">console</span>.<span class="fn">log</span>(c);
+  <span class="cmt">// TDZ still active</span>
+  <span class="kw">let</span> c = <span class="dv">3</span>;
+  <span class="cmt">// TDZ ends — c is now safe to access</span>
+  <span class="fn">fn</span>();    <span class="cmt">// ✅ works because c is accessed after declaration</span>
+}</code></pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">Think of <b>var</b> as a reserved table at a restaurant — you know the table exists and it's <i>there</i> (undefined) even before you arrive. <b>let/const</b> are like a table that exists on the reservation list (hoisted) but the restaurant hasn't prepared it yet — if you try to sit before the declaration, the host says "your table isn't ready" (ReferenceError). The TDZ is the time between when you enter the restaurant and when your table is prepared.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Scoping Deep Dive</div>
+<div class="card">
+  <h2>Global, Function, Block Scope</h2>
+  <div class="def">
+    Scope determines <b>where</b> a variable is accessible. JavaScript has three levels of scope, and understanding them is critical.
+  </div>
+  <pre><code><span class="kw">const</span> global = <span class="str">"I'm everywhere"</span>;  <span class="cmt">// global scope</span>
+
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">const</span> funcScope = <span class="str">"Inside outer only"</span>;  <span class="cmt">// function scope</span>
+
+  <span class="kw">if</span> (<span class="kw">true</span>) {
+    <span class="kw">const</span> blockScope = <span class="str">"Inside if block"</span>;  <span class="cmt">// block scope (const/let)</span>
+    <span class="kw">var</span> leaked = <span class="str">"I escape the block!"</span>;    <span class="cmt">// var is function-scoped!</span>
+  }
+
+  <span class="fn">console</span>.<span class="fn">log</span>(leaked);     <span class="cmt">// ✅ "I escape the block!" (var leaks)</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(blockScope); <span class="cmt">// ❌ ReferenceError (block-scoped)</span>
+}</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Use <b>const</b> by default for every variable. Only use <b>let</b> when you know the variable needs to be reassigned. Never use <b>var</b>. This eliminates an entire category of scoping bugs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">In 2024, <b>every major JavaScript style guide</b> (Airbnb, Google, Meta) prohibits <code>var</code> usage. ESLint's <code>no-var</code> rule is one of the most commonly enabled rules. The TC39 committee introduced <code>let</code> and <code>const</code> in ES6 specifically because the function-scoping and hoisting behavior of <code>var</code> was the #1 source of developer confusion and bugs. In a study of 100 large open-source JS projects, replacing <code>var</code> with <code>const</code>/<code>let</code> eliminated 23% of scoping-related bugs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Common Mistakes</div>
+<div class="card">
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using const for objects/arrays and thinking they're immutable.</b> <code>const</code> prevents <i>reassignment</i>, not <i>mutation</i>. <code>const arr = [1,2,3]; arr.push(4);</code> works fine. Use <code>Object.freeze()</code> for shallow immutability.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Redeclaring variables with let/const in the same scope.</b> Unlike var, let/const throw a SyntaxError if redeclared. This is a feature, not a bug — it catches accidental duplicate declarations.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the Temporal Dead Zone (TDZ)?</div>
+    <div class="a">A: The TDZ is the time between entering a scope (where a variable is hoisted) and the variable's declaration. Accessing the variable during TDZ throws a ReferenceError. Only <code>let</code> and <code>const</code> have a TDZ — <code>var</code> does not (it's initialized as <code>undefined</code>).</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: Can you redeclare a let variable? What about a const?</div>
+    <div class="a">A: Neither <code>let</code> nor <code>const</code> can be redeclared in the same scope. Both throw a SyntaxError. <code>var</code> can be redeclared silently, which is one reason it's considered dangerous.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What's the difference between an expression and a statement?</div>
+    <div class="a">A: An <b>expression</b> produces a value (e.g., <code>5 + 3</code>, <code>fn()</code>). A <b>statement</b> performs an action (e.g., <code>if</code>, <code>for</code>, <code>return</code>). Expressions can be used anywhere a value is expected; statements cannot. A function declaration is a statement; a function expression is an expression.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What happens when you assign to a const property?</div>
+    <div class="a">A: <code>const</code> prevents reassignment of the binding (variable), not mutation of the value. If the value is an object, you can modify its properties. Use <code>Object.freeze()</code> for shallow immutability or TypeScript's <code>readonly</code> modifier.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>const</b> use by default, no reassign</div>
+    <div class="rev-item"><b>let</b> use when reassigning</div>
+    <div class="rev-item"><b>var</b> never use (legacy)</div>
+    <div class="rev-item"><b>Block scope</b> let/const inside {}</div>
+    <div class="rev-item"><b>Function scope</b> var inside function</div>
+    <div class="rev-item"><b>Hoisting</b> declarations moved to top</div>
+    <div class="rev-item"><b>TDZ</b> let/const uninitialized zone</div>
+    <div class="rev-item"><b>camelCase</b> standard naming</div>
+    <div class="rev-item"><b>PascalCase</b> class names</div>
+    <div class="rev-item"><b>Expression</b> produces value</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

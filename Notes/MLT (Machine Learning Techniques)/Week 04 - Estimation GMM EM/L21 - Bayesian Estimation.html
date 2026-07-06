@@ -3,373 +3,1168 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bayesian Estimation — Case File</title>
+<title>Bayesian Estimation — Premium Lecture Notes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
 <style>
 
-  :root{
-    --board:#111826;
-    --paper:#F2ECDF;
-    --ink:#221d16;
-    --ink-soft:#5b5346;
-    --gold:#b8863e;
-    --gold-dark:#8f6529;
-    --teal:#2f6f68;
-    --teal-dark:#1f4d47;
-    --red:#a63d34;
-    --line:#c9c0ac;
-    --paper-line: rgba(34,29,22,0.09);
-
-    --display: 'Fraunces', serif;
-    --body: 'Source Serif 4', serif;
-    --mono: 'JetBrains Mono', monospace;
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
   }
 
-  *{box-sizing:border-box;}
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
 
-  html,body{
-    margin:0; padding:0;
-    background:
-      radial-gradient(circle at 15% 8%, rgba(184,134,62,0.08), transparent 40%),
-      radial-gradient(circle at 85% 92%, rgba(47,111,104,0.10), transparent 45%),
-      var(--board);
-    color:var(--ink);
-    font-family:var(--body);
-    -webkit-font-smoothing:antialiased;
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
   }
 
-  .board{ max-width:1120px; margin:0 auto; padding:56px 28px 90px; }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
 
-  .pin{
-    position:absolute; top:-9px; left:50%; transform:translateX(-50%);
-    width:16px; height:16px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, #fff6, transparent 40%), var(--gold);
-    box-shadow:0 3px 5px rgba(0,0,0,0.45); z-index:3;
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
   }
-  .pin.teal{ background:radial-gradient(circle at 35% 30%, #fff6, transparent 40%), var(--teal); }
-  .pin.red{ background:radial-gradient(circle at 35% 30%, #fff6, transparent 40%), var(--red); }
-
-  .card{
-    position:relative; background:var(--paper); border-radius:3px;
-    box-shadow:0 18px 30px -14px rgba(0,0,0,0.55), 0 2px 0 rgba(0,0,0,0.15);
-    padding:34px 32px 30px;
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
     background-image:
-      linear-gradient(var(--paper-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
-    background-size: 24px 24px;
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
   }
 
-  .tab{
-    display:inline-flex; align-items:center; gap:8px;
-    font-family:var(--mono); font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
-    color:var(--paper); background:var(--ink); padding:5px 12px 5px 10px; border-radius:2px; margin-bottom:16px;
+  main { padding: 56px 0 90px; }
+
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
   }
-  .tab.gold{ background:var(--gold-dark); }
-  .tab.teal{ background:var(--teal-dark); }
-  .tab.red{ background:var(--red); }
-
-  h1,h2,h3{ font-family:var(--display); color:var(--ink); margin:0 0 10px; line-height:1.15; }
-
-  .formula{
-    font-family:var(--mono); background:var(--ink); color:#f2e9d0;
-    padding:14px 18px; border-radius:4px; font-size:15px; overflow-x:auto; line-height:1.7;
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.06);
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
   }
-  .formula .op{ color:var(--gold); }
-  .formula .var{ color:#9fd4cd; }
-  .formula .comment{ color:#8a8272; font-style:italic; }
-  .formula .frac{ display:inline-flex; flex-direction:column; align-items:center; vertical-align:middle; margin:0 6px; }
-  .formula .frac .num{ padding-bottom:3px; border-bottom:1px solid #f2e9d0; }
-  .formula .frac .den{ padding-top:3px; }
-
-  .callout{
-    border-left:4px solid var(--teal); background:rgba(47,111,104,0.08);
-    padding:14px 18px; border-radius:0 4px 4px 0; font-size:15px; color:var(--ink);
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
   }
-  .callout.warn{ border-left-color:var(--red); background:rgba(166,61,52,0.08); }
-  .callout strong{ color:var(--ink); }
-
-  p{ line-height:1.65; color:var(--ink); margin:0 0 12px; font-size:15.5px;}
-  p:last-child{margin-bottom:0;}
-
-  .hero{ text-align:center; padding:10px 10px 40px; color:var(--paper); }
-  .hero .kicker{ font-family:var(--mono); letter-spacing:0.3em; text-transform:uppercase; font-size:12px; color:var(--gold); margin-bottom:18px; }
-  .hero h1{ color:var(--paper); font-size:clamp(34px, 6vw, 60px); font-weight:700; letter-spacing:-0.01em; }
-  .hero .sub{ font-family:var(--body); font-style:italic; font-size:18px; color:#c9c2b0; max-width:580px; margin:14px auto 0; line-height:1.6; }
-  .stamp-row{ display:flex; justify-content:center; gap:10px; margin-top:26px; flex-wrap:wrap; }
-  .stamp{ font-family:var(--mono); font-size:11px; letter-spacing:0.1em; text-transform:uppercase; border:1.5px solid var(--gold); color:var(--gold); padding:5px 12px; border-radius:20px; transform:rotate(-1.5deg); }
-  .stamp:nth-child(2){ border-color:var(--teal); color:#7fc7bd; transform:rotate(1deg);}
-  .stamp:nth-child(3){ border-color:var(--red); color:#e08a80; transform:rotate(-1deg);}
-
-  .section-head{ display:flex; align-items:baseline; gap:14px; margin:64px 0 24px; color:var(--paper); }
-  .section-head .num{ font-family:var(--mono); font-size:14px; color:var(--gold); border:1px solid var(--gold); border-radius:50%; width:30px;height:30px; display:flex;align-items:center;justify-content:center; flex:none; }
-  .section-head h2{ color:var(--paper); font-size:clamp(22px,3vw,30px); }
-  .section-head .line{ flex:1; height:1px; background:linear-gradient(90deg, rgba(242,236,223,0.35), transparent); }
-
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:26px; }
-  .grid-2.wide-right{ grid-template-columns: 0.9fr 1.1fr; }
-  @media (max-width:820px){ .grid-2, .grid-2.wide-right{ grid-template-columns:1fr; } }
-
-  .diagram-box{ background:#fbf8f0; border:1px solid var(--paper-line); border-radius:4px; padding:16px; margin-top:12px; }
-  .diagram-caption{ font-family:var(--mono); font-size:11px; color:var(--ink-soft); text-align:center; margin-top:8px; letter-spacing:0.03em; }
-
-  .legend{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:6px; font-family:var(--mono); font-size:11px; color:var(--ink-soft); }
-  .legend span{ display:inline-flex; align-items:center; gap:6px;}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
-
-  /* bayes flow */
-  .flow{
-    display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; padding:10px 0;
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
   }
-  .flow-box{
-    background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:12.5px;
-    padding:14px 16px; border-radius:5px; text-align:center; min-width:110px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.25);
+
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
   }
-  .flow-box .t{ display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin-bottom:4px;}
-  .flow-box.result{ background:var(--gold-dark); }
-  .flow-op{ font-family:var(--mono); font-size:20px; color:var(--ink-soft); }
-
-  /* coin row (ghost data) */
-  .coin-row{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; padding:6px 0; }
-  .coin{ width:32px;height:32px; border-radius:50%; display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono); font-weight:700; font-size:12px; color:#fff;
-    box-shadow:0 2px 4px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.3); flex:none; }
-  .coin.h{ background:linear-gradient(160deg,var(--gold),var(--gold-dark)); }
-  .coin.t{ background:linear-gradient(160deg,#7c7364,#5b5346); }
-  .coin.ghost{ background:transparent; border:1.5px dashed var(--ink-soft); color:var(--ink-soft); box-shadow:none; }
-
-  /* stepper reused for beta update */
-  .kv-row{
-    display:flex; justify-content:space-between; align-items:center;
-    font-family:var(--mono); font-size:14px; padding:9px 0; border-bottom:1px dashed var(--paper-line);
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
   }
-  .kv-row:last-child{ border-bottom:none; }
-  .kv-row .k{ color:var(--ink-soft); }
-  .kv-row .v{ color:var(--teal-dark); font-weight:700; }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
 
-  .table-wrap{ overflow-x:auto; }
-  table{ width:100%; border-collapse:collapse; font-size:14.5px; min-width:520px; }
-  thead th{ font-family:var(--mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; text-align:left; color:var(--paper); background:var(--ink); padding:11px 14px; }
-  thead th:first-child{ border-radius:4px 0 0 0; }
-  thead th:last-child{ border-radius:0 4px 0 0; }
-  tbody td{ padding:12px 14px; border-bottom:1px solid var(--paper-line); vertical-align:top; }
-  tbody tr:nth-child(even){ background:rgba(34,29,22,0.03); }
-  tbody td:first-child{ font-weight:600; color:var(--teal-dark); white-space:nowrap; }
-  .result-pill{ display:inline-block; font-family:var(--mono); font-size:12px; padding:3px 9px; border-radius:20px; background:rgba(184,134,62,0.16); color:var(--gold-dark); font-weight:700; }
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
+  }
 
-  .analogy{ display:flex; gap:16px; align-items:flex-start; background:rgba(184,134,62,0.10); border:1px dashed var(--gold); border-radius:4px; padding:16px 18px; margin-top:16px; }
-  .analogy .icon{ font-size:22px; flex:none; line-height:1; margin-top:2px; }
-  .analogy .label{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold-dark); display:block; margin-bottom:4px; }
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
 
-  .footer{ text-align:center; margin-top:70px; color:#8a8272; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; }
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
 
-  strong.k{ color:var(--teal-dark); }
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
 
-  @media (max-width:600px){
-    .board{ padding:34px 14px 60px; }
-    .card{ padding:26px 20px 24px; }
-    .formula{ font-size:13px; }
-    .flow{ gap:6px; }
-    .flow-box{ min-width:92px; padding:11px 10px; font-size:11px;}
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
   }
 </style>
 </head>
 <body>
-<div class="board">
 
-  <!-- ============ HERO ============ -->
-  <div class="hero">
-    <div class="kicker">Statistics · Case File No. 08</div>
-    <h1>Bayesian<br>Estimation</h1>
-    <p class="sub">MLE only listens to the evidence in front of it. Bayesian estimation lets you walk in with a hunch — and shows you exactly how much the evidence should change your mind.</p>
-    <div class="stamp-row">
-      <span class="stamp">Bayes' Theorem</span>
-      <span class="stamp">Prior → Posterior</span>
-      <span class="stamp">Conjugate Priors</span>
+<header class="hero">
+  <div class="container">
+    <div class="tag">Statistics &middot; Lecture Notes</div>
+    <h1>Bayesian <em>Estimation</em></h1>
+    <p>MLE only listens to the evidence in front of it. Bayesian estimation lets you walk in with a hunch — and shows you exactly how much the evidence should change your mind.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Where MLE Leaves Off</a>
+      <a href="#s2" class="nav-pill">&sect;2 Bayes' Theorem</a>
+      <a href="#s3" class="nav-pill">&sect;3 Beta-Bernoulli</a>
+      <a href="#s4" class="nav-pill">&sect;4 Conjugacy</a>
+      <a href="#s5" class="nav-pill">&sect;5 Point Estimates</a>
     </div>
   </div>
+</header>
 
-  <!-- ============ INTRODUCTION ============ -->
-  <div class="card">
-    <span class="pin"></span>
-    <div class="tab gold">Reopening the Case</div>
-    <h2>Where MLE leaves off</h2>
-    <p>MLE treats the true parameter as fixed and unknown, and lets the data speak entirely for itself. Bayesian estimation takes a different stance: it treats the parameter itself as <strong class="k">uncertain</strong>, and lets you formally combine two sources of information — what you believed <em>before</em> seeing the data, and what the data itself tells you.</p>
-    <div class="analogy">
-      <div class="icon">🕵️</div>
-      <div><span class="label">Detective analogy, continued</span>In the MLE case file, the detective judged suspects purely by how well their story matched the evidence. A Bayesian detective also weighs each suspect's <em>prior reputation</em> — a known conman starts more suspicious than a lifelong monk, even before either says a word.</div>
-    </div>
-  </div>
+<main>
+  <div class="container">
 
-  <!-- ============ KEY CONCEPTS ============ -->
-  <div class="section-head"><span class="num">1</span><h2>Key Concepts</h2><span class="line"></span></div>
-
-  <div class="grid-2">
-    <div class="card">
-      <span class="pin teal"></span>
-      <div class="tab teal">Concept A</div>
-      <h3>θ as a Random Variable</h3>
-      <p>Frequentist methods (like MLE) treat θ as one fixed, unknown constant. Bayesian statistics instead treats θ as a <strong class="k">random variable</strong>, described by its own probability distribution that can be updated as evidence arrives.</p>
-    </div>
-
-    <div class="card">
-      <span class="pin gold"></span>
-      <div class="tab gold">Concept B</div>
-      <h3>Prior, P(θ)</h3>
-      <p>Your belief about θ <em>before</em> seeing any data — domain knowledge, past experience, or a reasonable hunch, encoded as a distribution.</p>
-    </div>
-
-    <div class="card">
-      <span class="pin red"></span>
-      <div class="tab red">Concept C</div>
-      <h3>Likelihood, P(data | θ)</h3>
-      <p>The same quantity from the MLE case file: how probable the observed data is, for a given value of θ.</p>
-    </div>
-
-    <div class="card">
-      <span class="pin teal"></span>
-      <div class="tab teal">Concept D</div>
-      <h3>Posterior, P(θ | data)</h3>
-      <p>Your <strong class="k">updated</strong> belief about θ, after the prior and the likelihood have been formally combined. This is the payoff of the whole method.</p>
-    </div>
-  </div>
-
-  <!-- ============ BAYES THEOREM DIAGRAM ============ -->
-  <div class="card" style="margin-top:26px;">
-    <span class="pin gold"></span>
-    <div class="tab gold">Exhibit A — How the Update Works</div>
-    <h3>Bayes' Theorem, laid out as evidence flow</h3>
-    <p>The prior and the likelihood are multiplied together, then rescaled so everything still sums to a valid probability.</p>
-
-    <div class="diagram-box">
-      <div class="flow">
-        <div class="flow-box"><span class="t">Belief before</span>Prior<br>P(θ)</div>
-        <div class="flow-op">×</div>
-        <div class="flow-box"><span class="t">What data shows</span>Likelihood<br>P(data | θ)</div>
-        <div class="flow-op">÷</div>
-        <div class="flow-box"><span class="t">Normalizer</span>Evidence<br>P(data)</div>
-        <div class="flow-op">=</div>
-        <div class="flow-box result"><span class="t">Belief after</span>Posterior<br>P(θ | data)</div>
+    <!-- ================================================================
+         SECTION 1: WHERE MLE LEAVES OFF
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Where MLE leaves off</h2>
       </div>
-      <div class="diagram-caption">P(data) doesn't depend on θ — it just rescales things so the posterior is a proper distribution.</div>
-    </div>
+      <p class="sec-intro">
+        MLE treats the true parameter as fixed and unknown, and lets the data speak entirely for itself.
+        Bayesian estimation takes a different stance: it treats the parameter itself as <strong>uncertain</strong>,
+        and lets you formally combine two sources of information — what you believed <em>before</em> seeing the data,
+        and what the data itself tells you.
+      </p>
 
-    <div class="formula" style="margin-top:16px;">
-      P(<span class="var">θ</span> | data) <span class="op">=</span>
-      <span class="frac"><span class="num">P(data | <span class="var">θ</span>) · P(<span class="var">θ</span>)</span><span class="den">P(data)</span></span>
-    </div>
-    <div class="callout" style="margin-top:14px;">
-      Since P(data) is constant with respect to θ, we usually work with the simpler proportionality: <strong>P(θ | data) ∝ P(data | θ) · P(θ)</strong>
-    </div>
-  </div>
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$P(\boldsymbol{\theta})$</span>
+          <h4>Prior</h4>
+          <p>Your belief about $\boldsymbol{\theta}$ <em>before</em> seeing any data.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <span class="p-sym">$P(\text{data} \mid \boldsymbol{\theta})$</span>
+          <h4>Likelihood</h4>
+          <p>How probable the data is for a given $\boldsymbol{\theta}$ (same as MLE).</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <span class="p-sym">$P(\boldsymbol{\theta} \mid \text{data})$</span>
+          <h4>Posterior</h4>
+          <p>Your updated belief after combining prior with evidence.</p>
+        </div>
+      </div>
 
-  <!-- ============ CORE EXAMPLE ============ -->
-  <div class="section-head"><span class="num">2</span><h2>Worked Example</h2><span class="line"></span></div>
+      <div class="svg-card">
+        <div class="svg-label">&#9654; MLE vs. Bayesian Philosophy</div>
+        <svg viewBox="0 0 860 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- MLE -->
+          <rect x="20" y="10" width="200" height="40" rx="8" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+          <text x="120" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1e4f8a" font-weight="600">MLE: $\boldsymbol{\theta}$ fixed</text>
+          <text x="255" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+          <rect x="290" y="10" width="200" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="390" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">one point estimate</text>
 
-  <div class="grid-2 wide-right">
-    <div class="card">
-      <span class="pin teal"></span>
-      <div class="tab teal">Exhibit B — The Setup</div>
-      <h3>Bernoulli Trials, Beta Prior</h3>
-      <p>Estimating a coin's bias <strong class="k">p</strong> again — but this time with a starting hunch, encoded as a <strong class="k">Beta(α, β)</strong> distribution over [0, 1].</p>
-      <div class="formula">density(p) <span class="op">∝</span> p<sup>α−1</sup> (1−p)<sup>β−1</sup></div>
-
-      <div class="diagram-box">
-        <svg viewBox="0 0 520 190" width="100%" style="max-width:480px;display:block;margin:0 auto;">
-          <line x1="30" y1="160" x2="490" y2="160" stroke="#c9c0ac" stroke-width="1.5"/>
-          <text x="490" y="176" font-family="JetBrains Mono" font-size="11" fill="#5b5346" text-anchor="end">p = 1</text>
-          <text x="30" y="176" font-family="JetBrains Mono" font-size="11" fill="#5b5346">p = 0</text>
-          <!-- prior: gentle bump near center -->
-          <path d="M 40 145 C 140 145, 190 70, 260 70 C 330 70, 380 145, 480 145" fill="#2f6f68" opacity="0.18" stroke="#2f6f68" stroke-width="2.2"/>
-          <!-- posterior: shifted right, narrower, taller after heads-heavy data -->
-          <path d="M 40 158 C 220 158, 280 25, 340 25 C 400 25, 430 130, 480 158" fill="#b8863e" opacity="0.25" stroke="#b8863e" stroke-width="2.6"/>
+          <!-- Bayesian -->
+          <rect x="20" y="55" width="200" height="40" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="120" y="80" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Bayesian: $\boldsymbol{\theta} \sim P(\boldsymbol{\theta})$</text>
+          <text x="255" y="80" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#8594;</text>
+          <rect x="290" y="55" width="280" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="430" y="80" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">full posterior distribution over $\boldsymbol{\theta}$</text>
         </svg>
-        <div class="legend">
-          <span><span class="dot" style="background:#2f6f68"></span> Prior — belief before data</span>
-          <span><span class="dot" style="background:#b8863e"></span> Posterior — after heads-heavy data</span>
+        <div class="svg-caption">MLE collapses to a single number. Bayesian inference keeps a full distribution, preserving uncertainty.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Detective analogy</strong>
+          <p>In the MLE case, the detective judged suspects purely by how well their story matched the evidence. A Bayesian detective also weighs each suspect's <em>prior reputation</em> — a known conman starts more suspicious than a lifelong monk, even before either says a word.</p>
         </div>
-        <div class="diagram-caption">More heads observed shifts and sharpens the curve toward higher p — the posterior is pulled by the evidence.</div>
       </div>
-    </div>
+    </section>
 
-    <div class="card">
-      <span class="pin gold"></span>
-      <div class="tab gold">Exhibit C — Conjugacy in Action</div>
-      <h3>Beta stays Beta</h3>
-      <p>The Beta prior is <strong class="k">conjugate</strong> to the Bernoulli likelihood — the posterior lands back in the same Beta family, just with updated parameters. No integrals required.</p>
+    <!-- ================================================================
+         SECTION 2: BAYES' THEOREM
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Bayes' theorem</h2>
+      </div>
+      <p class="sec-intro">
+        The mathematical engine of Bayesian inference is Bayes' Theorem. It tells us exactly how to update
+        the prior into the posterior using the likelihood.
+      </p>
 
-      <div class="diagram-box">
-        <div class="kv-row"><span class="k">n<sub>h</sub> (heads observed)</span><span class="v">5</span></div>
-        <div class="kv-row"><span class="k">n<sub>t</sub> (tails observed)</span><span class="v">3</span></div>
-        <div class="kv-row"><span class="k">new α</span><span class="v">α + 5</span></div>
-        <div class="kv-row"><span class="k">new β</span><span class="v">β + 3</span></div>
+      <div class="eq-panel" id="eq-bayes">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Bayes' Theorem</div>
+        $$P(\boldsymbol{\theta} \mid \mathbf{x}) = \frac{P(\mathbf{x} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})}{P(\mathbf{x})}$$
+        <div class="eq-caption">The posterior is proportional to the likelihood times the prior</div>
       </div>
 
-      <div class="formula" style="margin-top:14px;">Posterior <span class="op">=</span> Beta(<span class="var">α</span> + n<sub>h</sub>, <span class="var">β</span> + n<sub>t</sub>)</div>
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The posterior probability of $\boldsymbol{\theta}$ given the data equals the likelihood of the data given $\boldsymbol{\theta}$, multiplied by the prior probability of $\boldsymbol{\theta}$, divided by the marginal probability of the data (which normalizes everything to sum to 1).&rdquo;
+        </div>
+      </div>
 
-      <div class="analogy">
-        <div class="icon">👻</div>
-        <div>
-          <span class="label">Ghost data analogy</span>
-          Treat α and β as "pseudo-observations" — imaginary flips baked into your prior. A Beta(3, 3) prior behaves like having already secretly seen 3 heads and 3 tails before the real experiment even started.
-          <div class="coin-row" style="margin-top:10px;">
-            <div class="coin ghost">H</div><div class="coin ghost">H</div><div class="coin ghost">H</div>
-            <div class="coin ghost">T</div><div class="coin ghost">T</div><div class="coin ghost">T</div>
-            <div class="coin h">H</div><div class="coin h">H</div><div class="coin h">H</div>
-            <div class="coin h">H</div><div class="coin h">H</div><div class="coin t">T</div>
-            <div class="coin t">T</div><div class="coin t">T</div>
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$P(\boldsymbol{\theta})$</td>
+              <td class="leg-meaning">Prior — belief about $\boldsymbol{\theta}$ before data</td>
+              <td class="leg-example">What you knew (or assumed) going in</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$P(\mathbf{x} \mid \boldsymbol{\theta})$</td>
+              <td class="leg-meaning">Likelihood — probability of data given $\boldsymbol{\theta}$</td>
+              <td class="leg-example">Same as MLE's likelihood function</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$P(\boldsymbol{\theta} \mid \mathbf{x})$</td>
+              <td class="leg-meaning">Posterior — updated belief after seeing data</td>
+              <td class="leg-example">The goal of Bayesian inference</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$P(\mathbf{x})$</td>
+              <td class="leg-meaning">Evidence / marginal likelihood — normalizing constant</td>
+              <td class="leg-example">$\int P(\mathbf{x} \mid \boldsymbol{\theta}) P(\boldsymbol{\theta}) \, d\boldsymbol{\theta}$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Since $P(\mathbf{x})$ is constant with respect to $\boldsymbol{\theta}$, we usually work with the simpler proportionality:
+          <span class="highlight">$\text{Posterior} \propto \text{Likelihood} \times \text{Prior}$</span>.
+          <br><br>
+          Think of it as a weighted average: the <strong>prior</strong> is your starting point,
+          and the <strong>likelihood</strong> pulls you toward the data. The more data you have,
+          the more the likelihood dominates. With infinite data, the prior's influence vanishes,
+          and the posterior mode converges to the MLE.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Bayes Flow: Prior &rarr; Posterior</div>
+        <svg viewBox="0 0 860 80" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="20" width="140" height="40" rx="8" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="90" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8f6a1c" font-weight="600">Prior $P(\boldsymbol{\theta})$</text>
+
+          <text x="185" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#x2715;</text>
+
+          <rect x="210" y="20" width="180" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="300" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1d4e44" font-weight="600">Likelihood $P(\mathbf{x} \mid \boldsymbol{\theta})$</text>
+
+          <text x="415" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#x2797;</text>
+
+          <rect x="450" y="20" width="120" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="510" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7a321e" font-weight="600">$P(\mathbf{x})$</text>
+
+          <text x="595" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">=</text>
+
+          <rect x="630" y="20" width="200" height="40" rx="8" fill="#e9eef7" stroke="#1e4f8a" stroke-width="2"/>
+          <text x="730" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1e4f8a" font-weight="600">Posterior $P(\boldsymbol{\theta} \mid \mathbf{x})$</text>
+        </svg>
+        <div class="svg-caption">$P(\mathbf{x})$ is a normalizing constant — it ensures the posterior integrates to 1. The core update is Prior $\times$ Likelihood.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-bayes-prop">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Posterior Proportionality</div>
+        $$P(\boldsymbol{\theta} \mid \mathbf{x}) \propto P(\mathbf{x} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})$$
+        <div class="eq-caption">The denominator $P(\mathbf{x})$ does not depend on $\boldsymbol{\theta}$, so we drop it for optimization</div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: BETA-BERNOULLI
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Worked example — Bernoulli + Beta</h2>
+      </div>
+      <p class="sec-intro">
+        Estimating a coin's bias $p$ again — but this time with a starting hunch, encoded as a
+        <strong>Beta</strong> distribution over $[0, 1]$.
+      </p>
+
+      <div class="eq-panel" id="eq-beta-prior">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Beta Prior</div>
+        $$P(p) = \frac{1}{B(\alpha, \beta)} \, p^{\alpha - 1} (1 - p)^{\beta - 1}$$
+        <div class="eq-caption">The Beta distribution is a flexible prior over $p \in [0, 1]$, parameterized by $\alpha, \beta > 0$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The prior density of $p$ is proportional to $p^{\alpha - 1} (1 - p)^{\beta - 1}$, normalized by the Beta function $B(\alpha, \beta)$. Larger $\alpha$ biases toward $p = 1$; larger $\beta$ biases toward $p = 0$. Equal $\alpha = \beta$ gives a symmetric prior centered at $0.5$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Beta Distribution Parameters</div>
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Meaning</th><th>Effect on Prior</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\alpha$</td>
+              <td class="leg-meaning">Pseudo-count of "heads" before seeing data</td>
+              <td class="leg-example">$\alpha = 3$ means 3 imaginary heads</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\beta$</td>
+              <td class="leg-meaning">Pseudo-count of "tails" before seeing data</td>
+              <td class="leg-example">$\beta = 3$ means 3 imaginary tails</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$B(\alpha, \beta)$</td>
+              <td class="leg-meaning">Beta function — normalizing constant</td>
+              <td class="leg-example">Ensures the density integrates to 1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Beta-Bernoulli Posterior Derivation</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with the prior: $\text{Beta}(\alpha, \beta)$</div>
+          <div class="dt-formula">$P(p) \propto p^{\alpha - 1}(1-p)^{\beta - 1}$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Multiply by Bernoulli likelihood</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Likelihood: $P(\mathbf{x} \mid p) = p^{n_h} (1-p)^{N - n_h}$</div>
+          <div class="dt-formula">$P(p \mid \mathbf{x}) \propto p^{\alpha + n_h - 1} (1-p)^{\beta + N - n_h - 1}$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Recognize the form — it is Beta again!</span></div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Posterior: $\text{Beta}(\alpha + n_h, \beta + N - n_h)$</div>
+          <div class="dt-formula">$P(p \mid \mathbf{x}) \propto p^{\alpha' - 1} (1-p)^{\beta' - 1}$</div>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Prior $\text{Beta}(3, 3)$ (fair prior). 8 flips: 5 heads, 3 tails.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Quantity</th><th>Expression</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">Prior $\alpha, \beta$</td>
+              <td>$(3, 3)$</td>
+              <td>"Ghost" 3 heads, 3 tails</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">Observed heads</td>
+              <td>$n_h = 5$</td>
+              <td>5 real heads</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">Observed tails</td>
+              <td>$n_t = 3$</td>
+              <td>3 real tails</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;color:var(--teal);">Posterior $\alpha', \beta'$</td>
+              <td>$(3+5, 3+3) = (8, 6)$</td>
+              <td style="color:var(--teal);font-weight:700;">$\text{Beta}(8, 6)$</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \text{Posterior} = \text{Beta}(8, 6)$ &mdash; posterior mean $= \frac{8}{8+6} \approx 0.571$</div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The Beta prior can be interpreted as <span class="highlight">"ghost data"</span> — imaginary observations
+          that you've already seen before the real experiment.
+          A $\text{Beta}(3, 3)$ prior behaves like having secretly seen 3 heads and 3 tails already.
+          <br><br>
+          When you add 5 real heads and 3 real tails, the total "evidence" is $3 + 5 = 8$ heads and $3 + 3 = 6$ tails —
+          hence $\text{Beta}(8, 6)$. This is the magic of <strong>conjugacy</strong>: the posterior stays in the same
+          family as the prior, and the update is just adding counts.
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: CONJUGACY
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Conjugacy</h2>
+      </div>
+      <p class="sec-intro">
+        A prior is <strong>conjugate</strong> to a likelihood when the posterior belongs to the same distribution family
+        as the prior. Conjugacy keeps Bayesian updates closed-form and computationally cheap.
+      </p>
+
+      <div class="eq-panel" id="eq-conj">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Conjugate Update Rule</div>
+        $$\text{Prior: } \text{Beta}(\alpha, \beta) \;\longrightarrow\; \text{Posterior: } \text{Beta}(\alpha + n_h, \beta + n_t)$$
+        <div class="eq-caption">For Bernoulli likelihood, the Beta prior is conjugate — posterior is Beta with updated parameters</div>
+      </div>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Common Conjugate Pairs</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Beta &harr; Bernoulli</strong>
+            Prior: $\text{Beta}(\alpha, \beta)$<br>Likelihood: $\text{Bernoulli}(p)$<br>Posterior: $\text{Beta}(\alpha + n_h, \beta + n_t)$
           </div>
-          <div class="diagram-caption">Dashed coins = "ghost" pseudo-observations from the prior. Solid coins = the real 8 flips.</div>
+          <div class="ap-item">
+            <strong>Normal &harr; Normal</strong>
+            Prior: $\N(\mu_0, \sigma_0^2)$<br>Likelihood: $\N(\mu, \sigma^2)$ (known $\sigma^2$)<br>Posterior: $\N(\mu_n, \sigma_n^2)$
+          </div>
+          <div class="ap-item">
+            <strong>Gamma &harr; Poisson</strong>
+            Prior: $\text{Gamma}(\alpha, \beta)$<br>Likelihood: $\text{Poisson}(\lambda)$<br>Posterior: $\text{Gamma}(\alpha + \sum x_i, \beta + N)$
+          </div>
+          <div class="ap-item">
+            <strong>Dirichlet &harr; Multinomial</strong>
+            Prior: $\text{Dirichlet}(\boldsymbol{\alpha})$<br>Likelihood: $\text{Multinomial}(\mathbf{x})$<br>Posterior: $\text{Dirichlet}(\boldsymbol{\alpha} + \mathbf{x})$
+          </div>
         </div>
       </div>
-    </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#x2714;</div>
+        <div class="co-body">
+          <strong>Why conjugacy matters</strong>
+          <p>Without conjugacy, computing the posterior requires expensive numerical integration or sampling (MCMC). With conjugacy, the update is a simple formula — enabling fast, closed-form Bayesian inference.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: POINT ESTIMATES
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Point estimation from the posterior</h2>
+      </div>
+      <p class="sec-intro">
+        A full posterior distribution is the richest answer — but sometimes you need one number.
+        Two standard ways to collapse it:
+      </p>
+
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <span class="p-sym">$\hat{\boldsymbol{\theta}}_{\text{MAP}}$</span>
+          <h4>MAP Estimate</h4>
+          <p>The <strong>mode</strong> of the posterior — the single $\boldsymbol{\theta}$ with the highest posterior density. This is the Bayesian analogue of MLE.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$\mathbb{E}[\boldsymbol{\theta} \mid \mathbf{x}]$</span>
+          <h4>Posterior Mean</h4>
+          <p>The <strong>expected value</strong> of $\boldsymbol{\theta}$ under the posterior. For symmetric unimodal posteriors, this equals the mode.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--blue);">
+          <span class="p-sym">$\text{Credible Interval}$</span>
+          <h4>Uncertainty Quantification</h4>
+          <p>A region containing $95\%$ of the posterior mass — unlike confidence intervals, these have a direct probability interpretation.</p>
+        </div>
+      </div>
+
+      <div class="eq-panel multiline" id="eq-map">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Maximum a Posteriori (MAP)</div>
+        $$\hat{\boldsymbol{\theta}}_{\text{MAP}} = \arg\max_{\boldsymbol{\theta}} P(\boldsymbol{\theta} \mid \mathbf{x}) = \arg\max_{\boldsymbol{\theta}} P(\mathbf{x} \mid \boldsymbol{\theta}) \, P(\boldsymbol{\theta})$$
+        <div class="eq-caption">MAP = MLE with a prior regularizer — the prior pulls the estimate toward its own center</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The MAP estimate is the value of $\boldsymbol{\theta}$ that maximizes the posterior. Because the denominator $P(\mathbf{x})$ does not depend on $\boldsymbol{\theta}$, this is equivalent to maximizing the likelihood times the prior. When the prior is uniform (flat), MAP = MLE.&rdquo;
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Both MAP and expected value are <strong>shortcuts</strong>. The posterior distribution itself is the real result —
+          MAP and the expected value just compress it down to a single verdict when a decision has to be made.
+          <br><br>
+          The real strength of Bayesian methods is carrying a <span class="highlight">full distribution over $\boldsymbol{\theta}$</span>
+          — keeping track of <em>how confident</em> you should be, not just what your best guess is.
+          That uncertainty-awareness is exactly what later gets reused inside probabilistic machine learning methods,
+          including Gaussian Mixture Models.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; MAP vs. Posterior Mean for Beta-Bernoulli</div>
+        <div class="num-setup"><strong>Setup:</strong> $\text{Beta}(8, 6)$ posterior from earlier example.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Estimator</th><th>Formula</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;">MAP (mode)</td>
+              <td>$\displaystyle \frac{\alpha' - 1}{\alpha' + \beta' - 2}$</td>
+              <td>$\displaystyle \frac{8-1}{8+6-2} = \frac{7}{12} \approx 0.583$</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">Posterior Mean</td>
+              <td>$\displaystyle \frac{\alpha'}{\alpha' + \beta'}$</td>
+              <td>$\displaystyle \frac{8}{8+6} = \frac{8}{14} \approx 0.571$</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">MLE</td>
+              <td>$\displaystyle \frac{n_h}{N}$</td>
+              <td>$\displaystyle \frac{5}{8} = 0.625$</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">The prior pulls the MAP and mean away from the MLE toward the prior's center ($0.5$)</div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Next steps</strong>
+          <p>Bayesian methods give a principled way to blend expert knowledge with fresh evidence. By carrying a full distribution over $\boldsymbol{\theta}$ instead of collapsing straight to one number, Bayesian estimation keeps track of <em>how confident</em> you should be — exactly what later gets reused inside GMMs.</p>
+        </div>
+      </div>
+    </section>
+
   </div>
+</main>
 
-  <!-- ============ POINT ESTIMATION ============ -->
-  <div class="section-head"><span class="num">3</span><h2>Point Estimation from the Posterior</h2><span class="line"></span></div>
+<footer>
+  <p>BAYESIAN ESTIMATION &middot; PREMIUM LECTURE NOTES</p>
+</footer>
 
-  <div class="card">
-    <span class="pin red"></span>
-    <div class="tab red">Closing the File to a Single Number</div>
-    <p>A full posterior distribution is the richest answer — but sometimes you need one number. Two standard ways to collapse it:</p>
-
-    <div class="table-wrap" style="margin-top:14px;">
-      <table>
-        <thead>
-          <tr><th>Method</th><th>Definition</th><th>Reads as</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>MAP</td>
-            <td>The mode — the θ with the single highest posterior density</td>
-            <td><span class="result-pill">Most likely value</span></td>
-          </tr>
-          <tr>
-            <td>Expected Value</td>
-            <td>The mean of the posterior distribution</td>
-            <td><span class="result-pill">Average belief</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="callout" style="margin-top:16px;">
-      Both are shortcuts. The posterior distribution itself is the real result — MAP and the expected value just compress it down to a single verdict when a decision has to be made.
-    </div>
-  </div>
-
-  <!-- ============ SUMMARY ============ -->
-  <div class="card" style="margin-top:26px;">
-    <span class="pin"></span>
-    <div class="tab gold">Case Summary</div>
-    <h2>Why keep the whole distribution?</h2>
-    <p>Bayesian methods give a principled way to blend expert knowledge with fresh evidence, rather than treating every estimate as though it arrived from nowhere. By carrying a full distribution over θ — instead of collapsing straight to one number, the way MLE does — Bayesian estimation keeps track of <em>how confident</em> you should be, not just what your best guess is. That uncertainty-awareness is exactly what later gets reused inside probabilistic machine learning methods, including clustering.</p>
-  </div>
-
-  <div class="footer">— End of Case File · Lecture Notes: Bayesian Estimation —</div>
-
-</div>
 </body>
 </html>
