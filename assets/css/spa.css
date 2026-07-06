@@ -4,8 +4,12 @@
 
 :root {
   --sidebar-w: 300px;
-  --sidebar-bg: var(--surface);
+  --sidebar-bg: #f1f5f9;
   --header-h: 60px;
+}
+
+[data-theme="dark"] {
+  --sidebar-bg: #0a0f1a;
 }
 
 body.spa-body {
@@ -43,15 +47,19 @@ body.spa-body {
 
 /* Sidebar Styling */
 .spa-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
   background: var(--sidebar-bg);
   border-right: 1px solid var(--border);
-  height: 100%;
   display: flex;
   flex-direction: column;
   z-index: 999;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+  transform: translateX(-100%);
 }
 
 /* Sidebar Top Brand Header */
@@ -85,6 +93,46 @@ body.spa-body {
   font-size: 1.25rem;
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+/* Edge Toggle Button (desktop sidebar collapse/peek) */
+.sidebar-edge-toggle {
+  position: fixed;
+  top: 50%;
+  left: var(--sidebar-w);
+  transform: translateY(-50%);
+  z-index: 1001;
+  width: 22px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, color 0.2s;
+}
+
+.sidebar-edge-toggle:hover {
+  background: var(--bg);
+  color: var(--accent);
+}
+
+.sidebar-edge-toggle i {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.spa-sidebar.collapsed ~ .sidebar-edge-toggle {
+  left: 0;
+  border: 1px solid var(--border);
+}
+
+.spa-sidebar.collapsed ~ .sidebar-edge-toggle i {
+  transform: rotate(180deg);
 }
 
 /* Sidebar Scrollable Area */
@@ -376,9 +424,32 @@ body.spa-body {
 
 /* Desktop & Laptop Layout Adjustments */
 @media (min-width: 992px) {
-  /* Toggle button is hidden on desktop because sidebar is always visible */
-  .sidebar-toggle-btn {
-    display: none;
+  /* Desktop: sidebar visible by default */
+  .spa-sidebar {
+    transform: translateX(0);
+  }
+
+  /* Collapsed state: sidebar slides out to the left */
+  .spa-sidebar.collapsed {
+    transform: translateX(-100%);
+  }
+
+  /* Peeking: fast hover-preview (overlays content) */
+  .spa-sidebar.peeking {
+    transform: translateX(0);
+    transition-duration: 0.15s;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Main content makes room for the fixed sidebar */
+  .spa-main {
+    margin-left: var(--sidebar-w);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* When sidebar collapsed, main content fills the full width */
+  .spa-sidebar.collapsed ~ .spa-main {
+    margin-left: 0;
   }
 }
 
@@ -410,6 +481,10 @@ body.spa-body {
     color: var(--accent);
   }
 
+  /* Edge toggle hidden on mobile */
+  .sidebar-edge-toggle {
+    display: none;
+  }
 }
 
 /* =========================================

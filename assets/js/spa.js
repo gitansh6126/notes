@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   rebuildFlatLectures();
   initSPATheme();
   renderSidebar();
-  initMobileControls();
+  initSidebarControls();
   initPrevNextControls();
 
   window.addEventListener('hashchange', handleHashChange);
@@ -269,7 +269,7 @@ function renderSidebar() {
 
       item.addEventListener('click', () => {
         window.location.hash = `${encodeURIComponent(week.weekName)}/${encodeURIComponent(lecture.file)}`;
-        closeMobileSidebar();
+        afterLectureClick();
       });
 
       list.appendChild(item);
@@ -452,34 +452,131 @@ function loadLecture(weekName, lectureFileName) {
     });
 }
 
-/* ---------- Mobile Drawer Controls ---------- */
-function initMobileControls() {
+/* ---------- Sidebar Controls (Mobile Drawer + Desktop Collapse/Peek) ---------- */
+function isDesktop() {
+  return window.innerWidth >= 992;
+}
+
+function openSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (isDesktop()) {
+    if (sidebar) {
+      sidebar.classList.remove('collapsed', 'peeking');
+      sidebar.style.transition = '';
+      const et = document.getElementById('sidebarEdgeToggle');
+      if (et) et.querySelector('i').className = 'ph ph-caret-left';
+    }
+  } else {
+    if (sidebar) sidebar.classList.add('open');
+    if (overlay) overlay.classList.add('visible');
+  }
+}
+
+function closeSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+
+  if (isDesktop()) {
+    if (sidebar) {
+      sidebar.classList.add('collapsed');
+      sidebar.classList.remove('peeking');
+      sidebar.style.transition = '';
+      const et = document.getElementById('sidebarEdgeToggle');
+      if (et) et.querySelector('i').className = 'ph ph-caret-right';
+    }
+  } else {
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('visible');
+  }
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (!sidebar) return;
+
+  if (isDesktop()) {
+    const isCollapsed = sidebar.classList.contains('collapsed');
+    if (isCollapsed) {
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+  } else {
+    const isOpen = sidebar.classList.contains('open');
+    if (isOpen) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  }
+}
+
+function afterLectureClick() {
+  const sidebar = document.getElementById('sidebar');
+  if (isDesktop() && sidebar) {
+    sidebar.classList.remove('collapsed', 'peeking');
+    sidebar.style.transition = '';
+    const et = document.getElementById('sidebarEdgeToggle');
+    if (et) et.querySelector('i').className = 'ph ph-caret-left';
+  } else {
+    closeSidebar();
+  }
+}
+
+function initSidebarControls() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebarOverlay');
   const openBtn = document.getElementById('sidebarOpenBtn');
   const closeBtn = document.getElementById('sidebarCloseBtn');
+  const edgeToggle = document.getElementById('sidebarEdgeToggle');
 
-  if (openBtn && sidebar && overlay) {
-    openBtn.addEventListener('click', () => {
-      sidebar.classList.add('open');
-      overlay.classList.add('visible');
-    });
+  // Header toggle button (mobile + desktop)
+  if (openBtn) {
+    openBtn.addEventListener('click', toggleSidebar);
   }
 
-  if (closeBtn && sidebar && overlay) {
-    closeBtn.addEventListener('click', closeMobileSidebar);
+  // Close button (mobile close + desktop collapse)
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeSidebar);
   }
 
+  // Overlay click (mobile)
   if (overlay) {
-    overlay.addEventListener('click', closeMobileSidebar);
+    overlay.addEventListener('click', closeSidebar);
   }
-}
 
-function closeMobileSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (sidebar) sidebar.classList.remove('open');
-  if (overlay) overlay.classList.remove('visible');
+  // Edge toggle (desktop)
+  if (edgeToggle && sidebar) {
+    edgeToggle.addEventListener('click', toggleSidebar);
+
+    let peekTimer = null;
+
+    function startPeek() {
+      if (!isDesktop()) return;
+      if (!sidebar.classList.contains('collapsed')) return;
+      clearTimeout(peekTimer);
+      sidebar.style.transition = 'transform 0.15s cubic-bezier(0.4, 0, 0.2, 1)';
+      sidebar.classList.add('peeking');
+    }
+
+    function stopPeek() {
+      if (!isDesktop()) return;
+      if (!sidebar.classList.contains('collapsed')) return;
+      peekTimer = setTimeout(() => {
+        sidebar.classList.remove('peeking');
+        sidebar.style.transition = '';
+      }, 400);
+    }
+
+    edgeToggle.addEventListener('mouseenter', startPeek);
+    edgeToggle.addEventListener('mouseleave', stopPeek);
+
+    // Keep peek while hovering over the sidebar itself
+    sidebar.addEventListener('mouseenter', startPeek);
+    sidebar.addEventListener('mouseleave', stopPeek);
+  }
 }
 
 /* ---------- Search Functionality ---------- */
