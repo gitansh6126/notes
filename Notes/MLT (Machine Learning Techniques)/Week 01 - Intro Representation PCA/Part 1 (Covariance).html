@@ -853,6 +853,15 @@
 </head>
 <body>
 
+<div class="sidebar" id="sidebar">
+  <div class="sb-head">&#9654; On this page</div>
+  <div class="sb-links"></div>
+</div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+  <span class="arrow">&#9664;</span>
+</button>
+
 <header class="hero">
   <div class="container">
     <div class="tag">IIT Madras &middot; MLT &middot; Week 1</div>
@@ -2095,5 +2104,60 @@
   <p>IIT MADRAS &middot; MLT &middot; WEEK 1 &mdash; COVARIANCE, CENTERING &amp; PCA FOUNDATIONS</p>
 </footer>
 
+<script>
+  const sidebar = document.getElementById('sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+  let peeking = false;
+
+  function toggleSidebar() {
+    const isHidden = sidebar.classList.contains('hidden');
+    sidebar.classList.toggle('hidden');
+    toggle.classList.toggle('hidden');
+    overlay.classList.toggle('show');
+    if (isHidden) peeking = false;
+  }
+
+  toggle.addEventListener('mouseenter', function() {
+    if (sidebar.classList.contains('hidden') && !peeking) {
+      sidebar.classList.add('peeking');
+    }
+  });
+  toggle.addEventListener('mouseleave', function() {
+    if (sidebar.classList.contains('peeking')) {
+      sidebar.classList.remove('peeking');
+    }
+  });
+  sidebar.addEventListener('mouseenter', function() {
+    if (sidebar.classList.contains('peeking')) {
+      peeking = true;
+    }
+  });
+  sidebar.addEventListener('mouseleave', function() {
+    if (peeking) {
+      peeking = false;
+      if (sidebar.classList.contains('hidden')) {
+        sidebar.classList.remove('peeking');
+      }
+    }
+  });
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const links = sidebar.querySelector('.sb-links');
+    if (links) {
+      document.querySelectorAll('.section[id^="s"]').forEach(function(sec) {
+        const h2 = sec.querySelector('h2');
+        const num = sec.querySelector('.sec-num');
+        if (h2 && num) {
+          const a = document.createElement('a');
+          a.className = 'sb-section';
+          a.href = '#' + sec.id;
+          a.innerHTML = '<span class="sb-num">' + num.textContent.trim() + '</span> ' + h2.textContent.trim();
+          links.appendChild(a);
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>
