@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flask & Backend — Master Study Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f4f5f9;--surface:#ffffff;--blue:#1e4f8a;--gold:#b5872a;--teal:#2c6b5d;--rust:#a8482a;--purple:#5a3e8a;--green:#3d7a4a;--text:#1a1a2e;--text-light:#5a5a7a;--shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 30px rgba(0,0,0,.10);--radius:12px;--radius-sm:8px}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.7;padding:40px 24px}
+.container{max-width:1100px;margin:0 auto}
+.hero{text-align:center;padding:48px 32px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-lg);margin-bottom:40px;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--teal),var(--rust),var(--purple))}
+.hero h1{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px}
+.hero .subtitle{font-size:1.15rem;color:var(--text-light);font-weight:500;letter-spacing:.3px}
+.hero .subtitle span{background:var(--gold);color:#fff;padding:2px 14px;border-radius:20px;font-weight:600;font-size:.85rem;display:inline-block;margin:0 4px}
+.badge-pill{display:inline-block;padding:3px 12px;border-radius:20px;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.badge-blue{background:#e2ecf7;color:var(--blue)}
+.badge-gold{background:#f5edd6;color:var(--gold)}
+.badge-teal{background:#d9ece6;color:var(--teal)}
+.badge-rust{background:#f5ddd6;color:var(--rust)}
+.badge-purple{background:#ede5f5;color:var(--purple)}
+.badge-green{background:#d9ede2;color:var(--green)}
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 30px;margin-bottom:28px;transition:box-shadow .2s}
+.card:hover{box-shadow:var(--shadow-lg)}
+.card-border-blue{border-left:4px solid var(--blue)}
+.card-border-gold{border-left:4px solid var(--gold)}
+.card-border-teal{border-left:4px solid var(--teal)}
+.card-border-rust{border-left:4px solid var(--rust)}
+.card-border-purple{border-left:4px solid var(--purple)}
+.card-border-green{border-left:4px solid var(--green)}
+.section-title{font-size:1.5rem;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.section-title .icon{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:1rem;flex-shrink:0}
+.section-desc{color:var(--text-light);font-size:.92rem;margin-bottom:20px;line-height:1.6}
+.divider{height:2px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--teal),var(--rust),var(--purple));margin:36px 0;border-radius:2px;opacity:.25}
+code,pre{font-family:'JetBrains Mono',monospace}
+pre{background:#1a1a2e;color:#e4e4f0;padding:16px 20px;border-radius:var(--radius-sm);font-size:.82rem;line-height:1.6;overflow-x:auto;margin:12px 0}
+code:not(pre code){background:#edf0f5;color:var(--blue);padding:2px 7px;border-radius:4px;font-size:.85em}
+.tree{font-family:'JetBrains Mono',monospace;font-size:.88rem;line-height:1.8;padding:12px 0;color:var(--text)}
+.tree .branch{color:var(--text-light)}
+.tree .leaf{color:var(--blue);font-weight:500}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+@media(max-width:768px){.grid-2,.grid-3{grid-template-columns:1fr}}
+.kv-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #f0f0f5;align-items:flex-start}
+.kv-row:last-child{border:none}
+.kv-key{font-weight:600;min-width:130px;color:var(--blue);flex-shrink:0}
+.kv-val{color:var(--text)}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th{background:#f0f2f8;color:var(--blue);font-weight:600;text-align:left;padding:11px 14px;border-bottom:2px solid #dde0ed}
+td{padding:10px 14px;border-bottom:1px solid #edeef5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f8f9fe}
+.bar-wrap{display:flex;align-items:center;gap:10px;margin:6px 0}
+.bar-label{min-width:110px;font-size:.85rem;font-weight:500;color:var(--text)}
+.bar-track{flex:1;height:10px;background:#e8eaf0;border-radius:10px;overflow:hidden}
+.bar-fill{height:100%;border-radius:10px;transition:width .4s}
+.bar-count{min-width:28px;font-size:.8rem;font-weight:600;color:var(--text-light)}
+.stars{color:var(--gold);letter-spacing:2px;font-size:.95rem}
+.stars-empty{color:#dde0ed}
+.prob-row{display:flex;align-items:center;gap:14px;padding:8px 0;border-bottom:1px solid #f0f0f5}
+.prob-row:last-child{border:none}
+.prob-label{min-width:130px;font-weight:500;font-size:.9rem}
+.prob-stars{flex-shrink:0}
+.prob-desc{font-size:.8rem;color:var(--text-light);font-style:italic}
+.trap-box{padding:14px 18px;border-radius:var(--radius-sm);margin:10px 0;position:relative}
+.trap-box.wrong{background:#fef0f0;border-left:3px solid #e74c3c}
+.trap-box.right{background:#eef6ef;border-left:3px solid var(--green)}
+.trap-box .label{font-weight:700;font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.trap-box .label.w{color:#e74c3c}
+.trap-box .label.r{color:var(--green)}
+.trap-box .trap-arrow{font-weight:600}
+.mental-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:768px){.mental-grid{grid-template-columns:1fr}}
+.mental-item{display:flex;gap:12px;align-items:center;padding:12px 14px;background:#f8f9fe;border-radius:var(--radius-sm)}
+.mental-concept{font-weight:600;color:var(--blue);font-size:.85rem;min-width:80px}
+.mental-analogy{color:var(--text-light);font-size:.85rem}
+.chevron{color:var(--gold);font-weight:700;margin:0 4px}
+.interconnect{margin:0;padding:0;list-style:none;font-family:'JetBrains Mono',monospace;font-size:.82rem;line-height:1.9}
+.interconnect li{padding:2px 0;padding-left:20px;position:relative}
+.interconnect li::before{content:'▸';position:absolute;left:0;color:var(--gold)}
+.interconnect .hl{color:var(--blue);font-weight:600}
+.pattern-box{padding:12px 16px;background:linear-gradient(135deg,#f8f9fe,#eef2f9);border-radius:var(--radius-sm);border-left:3px solid var(--purple);margin:8px 0;font-size:.88rem}
+.cheat-card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;margin-bottom:20px;border-top:3px solid}
+.cheat-card.blue{border-top-color:var(--blue)}
+.cheat-card.gold{border-top-color:var(--gold)}
+.cheat-card.teal{border-top-color:var(--teal)}
+.cheat-card.rust{border-top-color:var(--rust)}
+.cheat-card.purple{border-top-color:var(--purple)}
+.cheat-card .cheat-title{font-weight:700;font-size:.95rem;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.tag{display:inline-block;padding:1px 9px;border-radius:12px;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;margin:2px 3px}
+.tag-blue{background:#e2ecf7;color:var(--blue)}
+.tag-gold{background:#f5edd6;color:var(--gold)}
+.tag-teal{background:#d9ece6;color:var(--teal)}
+.tag-rust{background:#f5ddd6;color:var(--rust)}
+.tag-purple{background:#ede5f5;color:var(--purple)}
+.tag-green{background:#d9ede2;color:var(--green)}
+.cq-item{margin:10px 0;padding:12px 16px;background:#fffcf0;border-radius:var(--radius-sm);border-left:3px solid var(--gold);font-size:.88rem}
+.cq-item strong{color:var(--rust)}
+.warning-icon{display:inline-block;margin-right:6px}
+.freq-section{padding:6px 0}
+.pyq-note{background:#f0f4ff;border-radius:var(--radius-sm);padding:10px 16px;margin:8px 0;font-size:.85rem;border-left:3px solid var(--blue)}
+.pyq-note strong{color:var(--blue)}
+.subsection-title{font-size:1.1rem;font-weight:600;color:var(--blue);margin:16px 0 8px}
+.topic-detail{margin:6px 0;padding:4px 0}
+.topic-detail .topic-label{font-weight:600;color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HERO -->
+<div class="hero">
+  <h1>Flask &amp; Backend — Master Study Guide</h1>
+  <div class="subtitle">MAD2 · <span>Week 4</span> · IIT Madras</div>
+  <div style="margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+    <span class="badge-pill badge-blue">Routes</span>
+    <span class="badge-pill badge-gold">Cache</span>
+    <span class="badge-pill badge-teal">JWT</span>
+    <span class="badge-pill badge-rust">CORS</span>
+    <span class="badge-pill badge-purple">SSE</span>
+    <span class="badge-pill badge-green">Celery</span>
+    <span class="badge-pill badge-blue">Redis</span>
+    <span class="badge-pill badge-gold">Webhook</span>
+    <span class="badge-pill badge-teal">RabbitMQ</span>
+    <span class="badge-pill badge-rust">Lighthouse</span>
+  </div>
+</div>
+
+<!-- 1. MASTER TOPIC MAP -->
+<div class="card card-border-blue">
+  <div class="section-title">
+    <span class="icon" style="background:var(--blue)">&#x1F4CD;</span>
+    Master Topic Map
+  </div>
+  <div class="section-desc">Complete topology of Week 4 concepts and their relationships.</div>
+  <div class="tree">
+Week 4<br>
+<span class="branch">├──</span> <span class="leaf">Flask</span> <span class="branch">(routes, blueprints, app factory)</span><br>
+<span class="branch">├──</span> <span class="leaf">Cache</span> <span class="branch">(caching strategies, Flask-Caching)</span><br>
+<span class="branch">├──</span> <span class="leaf">JWT</span> <span class="branch">(JSON Web Tokens, auth flow)</span><br>
+<span class="branch">├──</span> <span class="leaf">Cookies</span> <span class="branch">(sessions, secure flags)</span><br>
+<span class="branch">├──</span> <span class="leaf">CORS</span> <span class="branch">(cross-origin, preflight)</span><br>
+<span class="branch">├──</span> <span class="leaf">SSE</span> <span class="branch">(Server-Sent Events)</span><br>
+<span class="branch">├──</span> <span class="leaf">Webhook</span> <span class="branch">(event-driven callbacks)</span><br>
+<span class="branch">├──</span> <span class="leaf">Long Polling</span> <span class="branch">(real-time simulation)</span><br>
+<span class="branch">├──</span> <span class="leaf">Celery</span> <span class="branch">(async task queue)</span><br>
+<span class="branch">├──</span> <span class="leaf">RabbitMQ</span> <span class="branch">(message broker)</span><br>
+<span class="branch">├──</span> <span class="leaf">Redis</span> <span class="branch">(in-memory cache, pub/sub)</span><br>
+<span class="branch">└──</span> <span class="leaf">Lighthouse</span> <span class="branch">(performance auditing)</span>
+  </div>
+</div>
+
+<!-- 2. TOPIC DEEP DIVES -->
+<div class="card card-border-gold">
+  <div class="section-title">
+    <span class="icon" style="background:var(--gold)">&#x1F50D;</span>
+    Topic Deep Dives
+  </div>
+  <div class="section-desc">Comprehensive coverage of every concept with exam-relevant details and PYQ notes.</div>
+
+  <!-- Flask -->
+  <div class="subsection-title">&#x1F525; Flask</div>
+  <div class="topic-detail"><span class="topic-label">Routes:</span> <code>@app.route()</code> decorator, methods parameter (<code>GET</code>, <code>POST</code>, etc.), dynamic segments (<code>&lt;int:id&gt;</code>, <code>&lt;string:name&gt;</code>).</div>
+  <div class="topic-detail"><span class="topic-label">Blueprints:</span> <code>Blueprint('name', __name__)</code> for modular organization. Register with <code>app.register_blueprint(bp, url_prefix='/api')</code>.</div>
+  <div class="topic-detail"><span class="topic-label">App Factory:</span> <code>create_app()</code> function returns configured Flask instance. Enables testing, multiple instances, extension lazy-loading.</div>
+  <div class="topic-detail"><span class="topic-label">Request/Response:</span> <code>request.args</code>, <code>request.json</code>, <code>request.form</code>. Response via <code>jsonify()</code>, <code>make_response()</code>, or returning tuples <code>(data, status, headers)</code>.</div>
+  <div class="topic-detail"><span class="topic-label">Error Handling:</span> <code>@app.errorhandler(404)</code> for custom error pages. <code>abort(status_code)</code> to trigger handlers.</div>
+  <div class="topic-detail"><span class="topic-label">Context:</span> Application context (<code>current_app</code>, <code>g</code>), Request context (<code>request</code>, <code>session</code>). Pushed automatically during requests.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Flask route matching (order matters — Flask uses first-match), blueprint registration with URL prefix, app factory vs single module pattern.</div>
+
+  <!-- Cache -->
+  <div class="subsection-title" style="margin-top:24px">&#x26A1; Cache</div>
+  <div class="topic-detail"><span class="topic-label">Why cache?</span> Reduce database/API calls, lower latency, improve throughput.</div>
+  <div class="topic-detail"><span class="topic-label">Cache types:</span> In-memory (local), Redis (distributed), filesystem, Memcached.</div>
+  <div class="topic-detail"><span class="topic-label">Flask-Caching:</span> <code>@cache.cached(timeout=50)</code> decorator. <code>cache.set(key, value, timeout)</code> and <code>cache.get(key)</code> for manual control.</div>
+  <div class="topic-detail"><span class="topic-label">Cache key:</span> Generated from request path, query args, view function name. Customizable via <code>cache_key_prefix</code>.</div>
+  <div class="topic-detail"><span class="topic-label">Invalidation:</span> <code>cache.delete(key)</code>, <code>cache.clear()</code>, or use versioning. TTL-based expiry is the simplest strategy.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Cache behavior on expiry (cache miss → recompute), TTL interpretation questions, cache key generation collisions.</div>
+
+  <!-- JWT -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F512; JWT (JSON Web Tokens)</div>
+  <div class="topic-detail"><span class="topic-label">Structure:</span> <code>header.payload.signature</code> — three base64url-encoded segments separated by dots.</div>
+  <div class="topic-detail"><span class="topic-label">Auth Flow:</span> Login → server validates credentials → returns JWT → client stores token → sends in <code>Authorization: Bearer &lt;token&gt;</code> header.</div>
+  <div class="topic-detail"><span class="topic-label">Access vs Refresh:</span> Access token (short-lived, ~15 min), Refresh token (long-lived, ~7 days). Refresh token used to get new access tokens without re-login.</div>
+  <div class="topic-detail"><span class="topic-label">flask-jwt-extended:</span> <code>create_access_token(identity=user_id)</code>, <code>@jwt_required()</code>, <code>get_jwt_identity()</code>.</div>
+  <div class="topic-detail"><span class="topic-label">Claims:</span> <code>sub</code> (subject/user ID), <code>exp</code> (expiration), <code>iat</code> (issued at), <code>nbf</code> (not before). Custom claims can be added.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> JWT verification failure scenarios (expired, tampered signature, wrong secret), token expiry detection, missing token returns 401.</div>
+
+  <!-- Cookies -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F36A; Cookies</div>
+  <div class="topic-detail"><span class="topic-label">Setting:</span> <code>response.set_cookie('key', 'value', max_age=3600, httponly=True, secure=True, samesite='Lax')</code>.</div>
+  <div class="topic-detail"><span class="topic-label">Attributes:</span> <code>domain</code>, <code>path</code>, <code>expires</code>/<code>max_age</code>, <code>httponly</code> (prevents JS access), <code>secure</code> (HTTPS only), <code>samesite</code> (Strict/Lax/None).</div>
+  <div class="topic-detail"><span class="topic-label">Sessions:</span> Flask sessions use signed cookies (<code>itsdangerous</code>). <code>session['user'] = 'value'</code>. Secret key required.</div>
+  <div class="topic-detail"><span class="topic-label">CSRF:</span> Cross-Site Request Forgery — use CSRF tokens, <code>Samesite</code> cookies, or custom headers.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Cookie attribute effects (httpOnly prevents XSS, secure prevents MITM), session cookie vs persistent cookie (with/without max_age).</div>
+
+  <!-- CORS -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F310; CORS (Cross-Origin Resource Sharing)</div>
+  <div class="topic-detail"><span class="topic-label">Same-Origin Policy:</span> Browser blocks JS from making requests to a different origin (scheme + host + port).</div>
+  <div class="topic-detail"><span class="topic-label">Simple vs Preflight:</span> Simple requests (GET, HEAD, POST with certain content types) skip preflight. Non-simple requests trigger <code>OPTIONS</code> preflight.</div>
+  <div class="topic-detail"><span class="topic-label">Headers:</span> <code>Access-Control-Allow-Origin: *</code>, <code>Access-Control-Allow-Methods</code>, <code>Allow-Headers</code>, <code>Allow-Credentials: true</code>.</div>
+  <div class="topic-detail"><span class="topic-label">flask-cors:</span> <code>CORS(app)</code> enables globally. <code>@cross_origin()</code> on specific routes.</div>
+  <div class="topic-detail"><span class="topic-label">Credentials:</span> With <code>credentials: 'include'</code>, <code>Access-Control-Allow-Origin</code> cannot be <code>*</code> — must specify exact origin.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> CORS headers analysis, preflight trigger conditions (custom headers, non-standard content types), credentialed requests restrictions.</div>
+
+  <!-- SSE -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F4E1; SSE (Server-Sent Events)</div>
+  <div class="topic-detail"><span class="topic-label">Direction:</span> One-way communication channel — server pushes data to the client.</div>
+  <div class="topic-detail"><span class="topic-label">Client API:</span> <code>new EventSource('/stream')</code> — automatically reconnects on connection loss.</div>
+  <div class="topic-detail"><span class="topic-label">Content Type:</span> <code>text/event-stream</code>. Data format: <code>data: {...}\n\n</code>. Optional <code>event:</code>, <code>id:</code>, <code>retry:</code> fields.</div>
+  <div class="topic-detail"><span class="topic-label">vs WebSocket:</span> SSE is one-way (server → client), WebSocket is bidirectional. SSE uses HTTP, simpler, auto-reconnect. WebSocket requires upgrade handshake.</div>
+  <div class="topic-detail"><span class="topic-label">Use cases:</span> Live notifications, stock tickers, feed updates, log streaming.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> SSE event flow (connection → data stream → close/reconnect), reconnection behavior (last event ID), content-type requirement.</div>
+
+  <!-- Webhook -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F514; Webhook</div>
+  <div class="topic-detail"><span class="topic-label">Pattern:</span> Event-driven callback — Server A sends HTTP POST to Server B's registered URL when an event occurs.</div>
+  <div class="topic-detail"><span class="topic-label">Verification:</span> Payload signature using HMAC-SHA256 (shared secret). Server B verifies signature before processing.</div>
+  <div class="topic-detail"><span class="topic-label">Retry:</span> Exponential backoff on failure. Dead letter after max retries.</div>
+  <div class="topic-detail"><span class="topic-label">vs Polling vs SSE:</span> Webhook is push-based (server → server), Polling is pull-based, SSE is push (server → browser).</div>
+  <div class="topic-detail"><span class="topic-label">Use cases:</span> Payment notifications (Stripe/Razorpay), CI/CD triggers, GitHub event hooks.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Webhook flow (event → register → POST → verify → process), signature verification logic, replay attacks (mitigated by nonce/timestamp).</div>
+
+  <!-- Long Polling -->
+  <div class="subsection-title" style="margin-top:24px">&#x23F3; Long Polling</div>
+  <div class="topic-detail"><span class="topic-label">Mechanism:</span> Client sends request → server holds connection open until data is available or timeout → sends response → client immediately sends new request.</div>
+  <div class="topic-detail"><span class="topic-label">vs SSE vs WebSocket:</span> Long polling works over standard HTTP, no special protocol. Higher latency than SSE. Good fallback when SSE/WebSocket unavailable.</div>
+  <div class="topic-detail"><span class="topic-label">Headers:</span> <code>If-Modified-Since</code>, <code>Last-Modified</code> for conditional requests.</div>
+  <div class="topic-detail"><span class="topic-label">Timeout:</span> Server sends empty response (304 or 204) after timeout period. Client reconnects.</div>
+  <div class="topic-detail"><span class="topic-label">Use cases:</span> Chat applications (legacy browsers), real-time updates where SSE/WS blocked.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Long polling request/response cycle, timeout behavior, empty response handling, comparison with SSE.</div>
+
+  <!-- Celery -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F9CA; Celery</div>
+  <div class="topic-detail"><span class="topic-label">Async Task Queue:</span> Offloads long-running tasks from the request-response cycle.</div>
+  <div class="topic-detail"><span class="topic-label">Components:</span> Celery app, Worker (executes tasks), Broker (RabbitMQ/Redis — message queue), Backend (stores results).</div>
+  <div class="topic-detail"><span class="topic-label">Task Definition:</span> <code>@celery.task</code> decorator. <code>task.delay(args)</code> (simple) vs <code>task.apply_async(args, countdown=10, queue='high')</code> (fine control).</div>
+  <div class="topic-detail"><span class="topic-label">Task States:</span> <code>PENDING</code> → <code>STARTED</code> → <code>SUCCESS</code>/<code>FAILURE</code>/<code>RETRY</code>. Tracked via <code>AsyncResult</code>.</div>
+  <div class="topic-detail"><span class="topic-label">Periodic Tasks:</span> Celery Beat — scheduler that sends tasks at regular intervals (<code>@celery.on_after_configure.connect</code> or <code>beat_schedule</code>).</div>
+  <div class="topic-detail"><span class="topic-label">Chaining/Groups:</span> <code>chain(task1.s() | task2.s())</code>, <code>group(task1.s(), task2.s())</code>, <code>chord</code> (group with callback).</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Celery task states lifecycle, <code>delay()</code> vs <code>apply_async()</code> differences, broker purpose (not Celery itself — common trap).</div>
+
+  <!-- RabbitMQ -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F4E8; RabbitMQ</div>
+  <div class="topic-detail"><span class="topic-label">Message Broker:</span> Receives messages from producers and routes them to consumers via exchanges and queues.</div>
+  <div class="topic-detail"><span class="topic-label">Flow:</span> Producer → Exchange → (binding) → Queue → Consumer.</div>
+  <div class="topic-detail"><span class="topic-label">Exchange Types:</span> <code>direct</code> (routing key match), <code>topic</code> (pattern match), <code>fanout</code> (broadcast to all), <code>headers</code> (header-based routing).</div>
+  <div class="topic-detail"><span class="topic-label">ACK/NACK:</span> Consumer acknowledges (<code>basic_ack</code>) after processing. <code>basic_nack</code> / <code>basic_reject</code> on failure.</div>
+  <div class="topic-detail"><span class="topic-label">Persistence:</span> Durable queues + persistent messages survive broker restart.</div>
+  <div class="topic-detail"><span class="topic-label">Dead Letter Queue:</span> Unprocessed/rejected messages are routed to DLQ for later inspection.</div>
+  <div class="topic-detail"><span class="topic-label">vs Redis:</span> RabbitMQ is a full-featured message broker with routing. Redis is simpler, used for pub/sub + cache, less reliable for message delivery.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Exchange types and their routing behavior, message flow through broker, ACK mechanism purpose.</div>
+
+  <!-- Redis -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F4E0; Redis</div>
+  <div class="topic-detail"><span class="topic-label">In-Memory Store:</span> Key-value store with optional persistence. Sub-millisecond latency.</div>
+  <div class="topic-detail"><span class="topic-label">Use Cases:</span> Cache (<code>SET/GET</code> with TTL), session store, pub/sub, rate limiter, Celery broker/backend.</div>
+  <div class="topic-detail"><span class="topic-label">Data Types:</span> String, List, Set, Sorted Set (ZSET), Hash. Each has specialized commands.</div>
+  <div class="topic-detail"><span class="topic-label">Pub/Sub:</span> <code>PUBLISH channel message</code> (producer), <code>SUBSCRIBE channel</code> (consumer). No message persistence — if no subscriber, message is lost.</div>
+  <div class="topic-detail"><span class="topic-label">TTL/Expiry:</span> <code>SET key value EX 60</code> or <code>EXPIRE key 60</code>. Keys auto-deleted after expiry.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Redis commands and their effects, Cache behavior (LRU eviction, TTL), Pub/Sub message delivery (no persistence — important!).</div>
+
+  <!-- Lighthouse -->
+  <div class="subsection-title" style="margin-top:24px">&#x1F4A1; Lighthouse</div>
+  <div class="topic-detail"><span class="topic-label">Performance Metrics:</span> <strong>FCP</strong> (First Contentful Paint), <strong>LCP</strong> (Largest Contentful Paint), <strong>TTI</strong> (Time to Interactive), <strong>TBT</strong> (Total Blocking Time), <strong>CLS</strong> (Cumulative Layout Shift).</div>
+  <div class="topic-detail"><span class="topic-label">Opportunities:</span> Eliminate render-blocking resources, defer unused CSS/JS, optimize images, enable compression.</div>
+  <div class="topic-detail"><span class="topic-label">Categories:</span> Performance, Accessibility, Best Practices, SEO, Progressive Web App.</div>
+  <div class="pyq-note"><strong>PYQ:</strong> Lighthouse metrics meaning (LCP measures loading, CLS measures visual stability), identifying optimization opportunities from audit output.</div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 3. QUESTION TYPES CATALOG -->
+<div class="card card-border-teal">
+  <div class="section-title">
+    <span class="icon" style="background:var(--teal)">&#x2753;</span>
+    Question Types Catalog
+  </div>
+  <div class="section-desc">The range of question formats used in MAD2 exams. Practice identifying each type.</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Type</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-pill badge-blue">Conceptual MCQ</span></td><td>"What is CORS?"</td></tr>
+        <tr><td><span class="badge-pill badge-gold">Output Prediction</span></td><td>JWT verification result given a scenario</td></tr>
+        <tr><td><span class="badge-pill badge-teal">Fill Output</span></td><td>"Cache TTL = 60 means ___"</td></tr>
+        <tr><td><span class="badge-pill badge-rust">Find Error</span></td><td>Missing CORS headers in a code snippet</td></tr>
+        <tr><td><span class="badge-pill badge-purple">Code Correction</span></td><td>Fix a broken Celery task definition</td></tr>
+        <tr><td><span class="badge-pill badge-green">Execution Order</span></td><td>Request → middleware → route handler → response</td></tr>
+        <tr><td><span class="badge-pill badge-blue">True/False</span></td><td>"Celery is a message broker" → <span style="color:var(--rust)">False</span></td></tr>
+        <tr><td><span class="badge-pill badge-gold">MSQ</span></td><td>"Which are valid cache strategies?" (Multiple Select)</td></tr>
+        <tr><td><span class="badge-pill badge-teal">Scenario Based</span></td><td>"Need real-time updates from server..."</td></tr>
+        <tr><td><span class="badge-pill badge-rust">Assertion Reason</span></td><td>A: JWT has signature, R: prevents tampering</td></tr>
+        <tr><td><span class="badge-pill badge-purple">Matching</span></td><td>Match protocol to use case</td></tr>
+        <tr><td><span class="badge-pill badge-green">Short Answer</span></td><td>Difference between SSE and WebSocket</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 4. CODING QUESTION TYPES -->
+<div class="card card-border-purple">
+  <div class="section-title">
+    <span class="icon" style="background:var(--purple)">&#x1F4BB;</span>
+    Coding Question Types
+  </div>
+  <div class="section-desc">Common coding patterns tested with code snippets, output prediction, and bug fixing.</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Concept</th><th>Patterns / Snippet Focus</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-blue">Flask Cache</span></td><td><code>@cache.cached(timeout=50)</code>, <code>cache.set()</code>, <code>cache.get()</code></td></tr>
+        <tr><td><span class="tag tag-gold">Celery</span></td><td><code>@celery.task</code>, <code>task.delay()</code>, <code>task.apply_async()</code>, <code>AsyncResult</code></td></tr>
+        <tr><td><span class="tag tag-teal">Redis</span></td><td><code>redis.set()</code>, <code>redis.get()</code>, <code>redis.publish()</code>, <code>redis.subscribe()</code></td></tr>
+        <tr><td><span class="tag tag-rust">JWT</span></td><td><code>create_access_token()</code>, <code>@jwt_required()</code>, <code>get_jwt_identity()</code></td></tr>
+        <tr><td><span class="tag tag-purple">Webhook</span></td><td><code>@webhook.route</code>, signature verification with HMAC, payload parsing</td></tr>
+        <tr><td><span class="tag tag-green">SSE</span></td><td><code>Response(mimetype='text/event-stream')</code>, generator with <code>yield</code></td></tr>
+        <tr><td><span class="tag tag-blue">Long Polling</span></td><td><code>while</code> loop with timeout check, <code>time.sleep()</code>, conditional response</td></tr>
+        <tr><td><span class="tag tag-gold">CORS</span></td><td><code>CORS(app)</code>, <code>@cross_origin()</code>, <code>Access-Control-Allow-Origin</code></td></tr>
+        <tr><td><span class="tag tag-teal">Cookies</span></td><td><code>set_cookie()</code>, <code>request.cookies.get()</code>, <code>delete_cookie()</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 5. TRICKY QUESTIONS -->
+<div class="card card-border-rust">
+  <div class="section-title">
+    <span class="icon" style="background:var(--rust)">&#x26A0;&#xFE0F;</span>
+    Tricky Questions — High-Yield Traps
+  </div>
+  <div class="section-desc">These edge cases and nuance questions consistently appear in exams. Master them to avoid losing marks.</div>
+
+  <div class="cq-item"><strong>1. JWT expiry vs refresh:</strong> An access token is expired but the refresh token is still valid. What happens? <span style="color:var(--teal)">→ Server returns 401 for access token; client uses refresh token to obtain a new access token.</span></div>
+  <div class="cq-item"><strong>2. CORS preflight conditions:</strong> When does the browser send a preflight OPTIONS request? <span style="color:var(--teal)">→ When the request is non-simple: custom headers, non-standard content types (e.g. application/json), non-GET/POST methods.</span></div>
+  <div class="cq-item"><strong>3. Celery task retry loop:</strong> A task with infinite retries keeps failing. <span style="color:var(--teal)">→ Without max_retries or proper error handling, it can loop forever. Always set <code>max_retries</code>.</span></div>
+  <div class="cq-item"><strong>4. Cache staleness:</strong> Stale data is served from cache after TTL expiry. <span style="color:var(--teal)">→ Cache miss triggers recomputation, but concurrent requests might all miss and overload DB (thundering herd).</span></div>
+  <div class="cq-item"><strong>5. SSE reconnection:</strong> Client reconnects after network drop — duplicate events. <span style="color:var(--teal)">→ Use <code>lastEventId</code> to resume from the correct position and deduplicate on client.</span></div>
+  <div class="cq-item"><strong>6. Webhook replay attacks:</strong> Same webhook payload delivered multiple times. <span style="color:var(--teal)">→ Without nonce/timestamp in signature, attacker can replay. Use HMAC with timestamp + nonce + idempotency key.</span></div>
+  <div class="cq-item"><strong>7. Redis pub/sub message loss:</strong> Publisher sends but no subscriber is active. <span style="color:var(--teal)">→ Redis Pub/Sub has no persistence — messages are lost if no subscriber. Use Redis Streams or a queue for reliable delivery.</span></div>
+  <div class="cq-item"><strong>8. Flask blueprints order:</strong> Two blueprints with overlapping routes. <span style="color:var(--teal)">→ First-registered blueprint wins. Route registration order matters in Flask.</span></div>
+  <div class="cq-item"><strong>9. Long polling timeout:</strong> Server reaches timeout with no data. <span style="color:var(--teal)">→ Returns empty response (304/204). Client immediately sends a new long-poll request.</span></div>
+  <div class="cq-item"><strong>10. Cookie stealing:</strong> How to prevent? <span style="color:var(--teal)">→ <code>httpOnly</code> (prevents JS access), <code>secure</code> (HTTPS only), <code>samesite</code> (prevents CSRF), <code>__Host-</code> prefix for path binding.</span></div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 6. HIDDEN PATTERNS -->
+<div class="card card-border-green">
+  <div class="section-title">
+    <span class="icon" style="background:var(--green)">&#x1F52E;</span>
+    Hidden Patterns — Yearly Exam Structure
+  </div>
+  <div class="section-desc">Analysis reveals the same distribution every year. Use this to prioritize your preparation.</div>
+  <div class="pattern-box">
+    <strong>Every MAD2 exam includes:</strong>
+    <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;">
+      <span>&#x2705; 1 Cache question</span>
+      <span>&#x2705; 1 Webhook/SSE question</span>
+      <span>&#x2705; 1 Security question (JWT / CORS / Cookies)</span>
+      <span>&#x2705; 1 Celery question</span>
+      <span>&#x2705; 1 Redis question</span>
+      <span>&#x2705; 1 Flask fundamentals question</span>
+      <span colspan="2">&#x2705; 1 Real-time communication (SSE / Long Polling / Webhook)</span>
+    </div>
+  </div>
+  <div style="margin-top:14px;font-size:.88rem;color:var(--text-light)">
+    <strong>Strategy:</strong> If you see a question about real-time patterns but it doesn't fit SSE, check for Long Polling. Security questions often combine JWT + Cookies in one scenario. Cache questions frequently test TTL semantics and invalidation.
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 7. INTERCONNECTION MAP -->
+<div class="card card-border-blue">
+  <div class="section-title">
+    <span class="icon" style="background:var(--blue)">&#x1F578;&#xFE0F;</span>
+    Interconnection Map
+  </div>
+  <div class="section-desc">How all Week 4 technologies fit together in a complete backend system.</div>
+  <ul class="interconnect">
+    <li><span class="hl">Client Request</span></li>
+    <li>&#x2514;&#x2500;&#x25B8; <span class="hl">Flask App</span> (routes, blueprints)</li>
+    <li>&#x2003;&#x2003;&#x251C;&#x2500;&#x2500;&#x25B8; <span class="hl">CORS</span> (cross-origin check)</li>
+    <li>&#x2003;&#x2003;&#x2514;&#x2500;&#x2500;&#x25B8; <span class="hl">JWT / Cookies</span> (authentication)</li>
+    <li>&#x2514;&#x2500;&#x25B8; <span class="hl">Cache (Redis)</span> &#x2194; Database</li>
+    <li>&#x2003;&#x2003;&#x251C;&#x2500;&#x2500;&#x25B8; <span class="hl">Flask-Caching</span> (decorator-based cache)</li>
+    <li>&#x2003;&#x2003;&#x2514;&#x2500;&#x2500;&#x25B8; <span class="hl">Celery</span> (async task queue)</li>
+    <li>&#x2003;&#x2003;&#x2003;&#x2003;&#x2003;&#x2003;&#x251C;&#x2500;&#x2500;&#x25B8; <span class="hl">RabbitMQ</span> (message broker)</li>
+    <li>&#x2003;&#x2003;&#x2003;&#x2003;&#x2003;&#x2003;&#x2514;&#x2500;&#x2500;&#x25B8; <span class="hl">Redis</span> (result backend)</li>
+    <li>&#x2514;&#x2500;&#x25B8; <span class="hl">Real-time Communication</span></li>
+    <li>&#x2003;&#x2003;&#x251C;&#x2500;&#x2500;&#x25B8; <span class="hl">SSE</span> (server &#x2192; client, one-way)</li>
+    <li>&#x2003;&#x2003;&#x251C;&#x2500;&#x2500;&#x25B8; <span class="hl">Webhooks</span> (server &#x2192; server, event-driven)</li>
+    <li>&#x2003;&#x2003;&#x2514;&#x2500;&#x2500;&#x25B8; <span class="hl">Long Polling</span> (simulated real-time)</li>
+    <li>&#x2514;&#x2500;&#x25B8; <span class="hl">Lighthouse</span> (performance auditing)</li>
+  </ul>
+  <div style="margin-top:12px;padding:12px 16px;background:#f0f4ff;border-radius:var(--radius-sm);font-size:.85rem">
+    <strong>&#x1F4A1; Key Insight:</strong> Redis appears in three roles — cache backend, Celery broker/backend, and pub/sub. This makes it the single most versatile component in the stack.
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 8. FREQUENCY ANALYSIS -->
+<div class="card card-border-gold">
+  <div class="section-title">
+    <span class="icon" style="background:var(--gold)">&#x1F4CA;</span>
+    Frequency Analysis
+  </div>
+  <div class="section-desc">Historical question frequency across past MAD2 exams. Longer bar = more appearances.</div>
+  <div class="freq-section">
+    <div class="bar-wrap"><span class="bar-label">JWT</span><div class="bar-track"><div class="bar-fill" style="width:88%;background:var(--blue)"></div></div><span class="bar-count">7</span></div>
+    <div class="bar-wrap"><span class="bar-label">Cache</span><div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--gold)"></div></div><span class="bar-count">6</span></div>
+    <div class="bar-wrap"><span class="bar-label">CORS</span><div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--teal)"></div></div><span class="bar-count">6</span></div>
+    <div class="bar-wrap"><span class="bar-label">Flask</span><div class="bar-track"><div class="bar-fill" style="width:63%;background:var(--rust)"></div></div><span class="bar-count">5</span></div>
+    <div class="bar-wrap"><span class="bar-label">Celery</span><div class="bar-track"><div class="bar-fill" style="width:63%;background:var(--purple)"></div></div><span class="bar-count">5</span></div>
+    <div class="bar-wrap"><span class="bar-label">SSE</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--green)"></div></div><span class="bar-count">4</span></div>
+    <div class="bar-wrap"><span class="bar-label">Webhook</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--blue)"></div></div><span class="bar-count">4</span></div>
+    <div class="bar-wrap"><span class="bar-label">Cookies</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--gold)"></div></div><span class="bar-count">4</span></div>
+    <div class="bar-wrap"><span class="bar-label">Redis</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:var(--teal)"></div></div><span class="bar-count">4</span></div>
+    <div class="bar-wrap"><span class="bar-label">Long Polling</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--rust)"></div></div><span class="bar-count">3</span></div>
+    <div class="bar-wrap"><span class="bar-label">RabbitMQ</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--purple)"></div></div><span class="bar-count">3</span></div>
+    <div class="bar-wrap"><span class="bar-label">Lighthouse</span><div class="bar-track"><div class="bar-fill" style="width:25%;background:var(--green)"></div></div><span class="bar-count">2</span></div>
+  </div>
+</div>
+
+<!-- 9. PROBABILITY RATINGS -->
+<div class="card card-border-teal">
+  <div class="section-title">
+    <span class="icon" style="background:var(--teal)">&#x2B50;</span>
+    Probability Ratings
+  </div>
+  <div class="section-desc">Estimated likelihood of each topic appearing in your exam.</div>
+  <div class="prob-row">
+    <span class="prob-label">JWT</span>
+    <span class="prob-stars stars">★★★★★</span>
+    <span class="prob-desc">Almost Guaranteed</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Cache</span>
+    <span class="prob-stars stars">★★★★★</span>
+    <span class="prob-desc">Almost Guaranteed</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">CORS</span>
+    <span class="prob-stars stars">★★★★<span class="stars-empty">★</span></span>
+    <span class="prob-desc">Very High</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Flask</span>
+    <span class="prob-stars stars">★★★★<span class="stars-empty">★</span></span>
+    <span class="prob-desc">Very High</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Celery</span>
+    <span class="prob-stars stars">★★★★<span class="stars-empty">★</span></span>
+    <span class="prob-desc">Very High</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">SSE</span>
+    <span class="prob-stars stars">★★★<span class="stars-empty">★★</span></span>
+    <span class="prob-desc">Medium</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Webhook</span>
+    <span class="prob-stars stars">★★★<span class="stars-empty">★★</span></span>
+    <span class="prob-desc">Medium</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Cookies</span>
+    <span class="prob-stars stars">★★★<span class="stars-empty">★★</span></span>
+    <span class="prob-desc">Medium</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Redis</span>
+    <span class="prob-stars stars">★★★<span class="stars-empty">★★</span></span>
+    <span class="prob-desc">Medium</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Long Polling</span>
+    <span class="prob-stars stars">★★<span class="stars-empty">★★★</span></span>
+    <span class="prob-desc">Rare</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">RabbitMQ</span>
+    <span class="prob-stars stars">★★<span class="stars-empty">★★★</span></span>
+    <span class="prob-desc">Rare</span>
+  </div>
+  <div class="prob-row">
+    <span class="prob-label">Lighthouse</span>
+    <span class="prob-stars stars">★★<span class="stars-empty">★★★</span></span>
+    <span class="prob-desc">Rare</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 10. COMMON TRAPS -->
+<div class="card card-border-rust">
+  <div class="section-title">
+    <span class="icon" style="background:var(--rust)">&#x1F6A7;</span>
+    Common Traps — Don't Fall For These
+  </div>
+  <div class="section-desc">These are the most common mistakes students make. Each trap has been seen in multiple exam cycles.</div>
+
+  <div class="trap-box wrong">
+    <div class="label w">&#x274C; TRAP</div>
+    <div>"JWT stored in localStorage is safe because it's encrypted."</div>
+  </div>
+  <div class="trap-box right">
+    <div class="label r">&#x2705; TRUTH</div>
+    <div>JWT is encoded (base64url), not encrypted. Storing in localStorage makes it vulnerable to XSS attacks. Use <strong>httpOnly secure cookies</strong> instead.</div>
+  </div>
+
+  <div class="trap-box wrong">
+    <div class="label w">&#x274C; TRAP</div>
+    <div>"CORS prevents CSRF attacks."</div>
+  </div>
+  <div class="trap-box right">
+    <div class="label r">&#x2705; TRUTH</div>
+    <div><strong>CORS</strong> is about relaxing same-origin policy for cross-origin requests. <strong>CSRF</strong> is about cookie theft via forged requests. They are different concerns — CORS does not prevent CSRF.</div>
+  </div>
+
+  <div class="trap-box wrong">
+    <div class="label w">&#x274C; TRAP</div>
+    <div>"Celery is a message broker."</div>
+  </div>
+  <div class="trap-box right">
+    <div class="label r">&#x2705; TRUTH</div>
+    <div><strong>Celery</strong> is an async task queue. It requires a message broker like <strong>RabbitMQ</strong> or <strong>Redis</strong> to function. Calling Celery a broker is a common exam trap.</div>
+  </div>
+
+  <div class="trap-box wrong">
+    <div class="label w">&#x274C; TRAP</div>
+    <div>"Always cache everything — it always improves performance."</div>
+  </div>
+  <div class="trap-box right">
+    <div class="label r">&#x2705; TRUTH</div>
+    <div>Cache has trade-offs: stale data, memory overhead, invalidation complexity, thundering herd. Cache strategically, not universally.</div>
+  </div>
+
+  <div class="trap-box wrong">
+    <div class="label w">&#x274C; TRAP</div>
+    <div>"SSE is always better than WebSocket for real-time apps."</div>
+  </div>
+  <div class="trap-box right">
+    <div class="label r">&#x2705; TRUTH</div>
+    <div><strong>SSE</strong> is one-way (server &#x2192; client), auto-reconnects, simpler. <strong>WebSocket</strong> is bidirectional, lower latency, full-duplex. Choose based on need, not preference.</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 11. MENTAL MODELS -->
+<div class="card card-border-purple">
+  <div class="section-title">
+    <span class="icon" style="background:var(--purple)">&#x1F9E0;</span>
+    Mental Models — Analogies for Quick Recall
+  </div>
+  <div class="section-desc">Use these analogies to quickly understand and remember each concept during the exam.</div>
+  <div class="mental-grid">
+    <div class="mental-item"><span class="mental-concept">Flask</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Restaurant kitchen — prep area where orders are handled</span></div>
+    <div class="mental-item"><span class="mental-concept">Cache</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Library reception desk — keeps frequently requested books handy</span></div>
+    <div class="mental-item"><span class="mental-concept">JWT</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Movie ticket — encoded info, verified at the door</span></div>
+    <div class="mental-item"><span class="mental-concept">Celery</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Kitchen assistant — preps orders in the background</span></div>
+    <div class="mental-item"><span class="mental-concept">RabbitMQ</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Post office — routes messages to the right destination</span></div>
+    <div class="mental-item"><span class="mental-concept">Redis</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Sticky notes board — fast access, volatile, right in front of you</span></div>
+    <div class="mental-item"><span class="mental-concept">SSE</span><span class="mental-analogy"><span class="chevron">&rarr;</span> TV broadcast — one-way signal, you just tune in</span></div>
+    <div class="mental-item"><span class="mental-concept">Webhook</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Doorbell — notifies you when something is ready</span></div>
+    <div class="mental-item"><span class="mental-concept">Long Polling</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Holding on a phone line — waiting for an agent to pick up</span></div>
+    <div class="mental-item"><span class="mental-concept">CORS</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Nightclub door policy — checks ID before letting cross-origin requests in</span></div>
+    <div class="mental-item"><span class="mental-concept">Cookies</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Wristband at amusement park — identifies you and your access level</span></div>
+    <div class="mental-item"><span class="mental-concept">Lighthouse</span><span class="mental-analogy"><span class="chevron">&rarr;</span> Health checkup report — measures vitals and gives improvement tips</span></div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- 12. FINAL CHEAT SHEET -->
+<div class="card card-border-green">
+  <div class="section-title">
+    <span class="icon" style="background:var(--green)">&#x1F4D1;</span>
+    Final Cheat Sheet — Exam-Day Rapid Reference
+  </div>
+  <div class="section-desc">Condensed, high-yield summaries covering the most testable material. Review this right before your exam.</div>
+</div>
+
+<!-- 10 Most Expected Questions -->
+<div class="cheat-card blue">
+  <div class="cheat-title"><span class="badge-pill badge-blue">&#x1F522; Top 10</span> 10 Most Expected Questions</div>
+  <div style="font-size:.85rem;line-height:1.8">
+    <strong>1.</strong> Explain JWT structure and auth flow.<br>
+    <strong>2.</strong> How does Flask-Caching work? What is TTL?<br>
+    <strong>3.</strong> When does CORS send a preflight request?<br>
+    <strong>4.</strong> What is the difference between <code>delay()</code> and <code>apply_async()</code> in Celery?<br>
+    <strong>5.</strong> Compare SSE vs WebSocket vs Long Polling.<br>
+    <strong>6.</strong> How does a webhook signature work?<br>
+    <strong>7.</strong> What are httpOnly and secure cookie flags?<br>
+    <strong>8.</strong> What is the App Factory pattern in Flask?<br>
+    <strong>9.</strong> How does Redis Pub/Sub work? What are its limitations?<br>
+    <strong>10.</strong> What do LCP, CLS, and TBT mean in Lighthouse?
+  </div>
+</div>
+
+<!-- 5 Caching Patterns -->
+<div class="cheat-card gold">
+  <div class="cheat-title"><span class="badge-pill badge-gold">&#x26A1;</span> 5 Caching Patterns</div>
+  <div style="font-size:.85rem;line-height:1.8">
+    <strong>1. Cache-Aside:</strong> App checks cache first; on miss, fetches from DB and populates cache. <code>cache.get()</code> → miss → DB → <code>cache.set()</code>.<br>
+    <strong>2. Write-Through:</strong> Every write goes to cache first, then DB. Ensures cache is always fresh.<br>
+    <strong>3. Write-Behind:</strong> Write to cache immediately, asynchronously write to DB later. Fast writes, risk of data loss.<br>
+    <strong>4. TTL-Based Expiry:</strong> <code>@cache.cached(timeout=60)</code>. Key auto-deletes after timeout. Simple but may serve stale data.<br>
+    <strong>5. Cache Invalidation:</strong> <code>cache.delete(key)</code> on update. Use versioned keys (<code>user_123_v2</code>) for fine-grained control.
+  </div>
+</div>
+
+<!-- 5 Security Questions -->
+<div class="cheat-card teal">
+  <div class="cheat-title"><span class="badge-pill badge-teal">&#x1F512;</span> 5 Security Questions (JWT, CORS, Cookies)</div>
+  <div style="font-size:.85rem;line-height:1.8">
+    <strong>1.</strong> JWT signature prevents tampering — verify with <code>decode(token, secret, algorithms=['HS256'])</code>.<br>
+    <strong>2.</strong> Never store JWT in localStorage — use httpOnly cookies to prevent XSS theft.<br>
+    <strong>3.</strong> CORS <code>Access-Control-Allow-Origin: *</code> cannot be used with credentials (<code>withCredentials: true</code>).<br>
+    <strong>4.</strong> CSRF vs CORS — CSRF attacks use cookies (automatic), CORS is about origin policy. Use CSRF tokens + SameSite cookies.<br>
+    <strong>5.</strong> Cookie flags: <code>HttpOnly</code> (no JS), <code>Secure</code> (HTTPS only), <code>SameSite=Lax</code> (prevents cross-site sending).
+  </div>
+</div>
+
+<!-- 5 Real-Time Patterns -->
+<div class="cheat-card rust">
+  <div class="cheat-title"><span class="badge-pill badge-rust">&#x1F4E1;</span> 5 Real-Time Patterns</div>
+  <div style="font-size:.85rem;line-height:1.8">
+    <strong>1. SSE:</strong> Server → Client, one-way. <code>text/event-stream</code>, auto-reconnect. Use for notifications, live feeds.<br>
+    <strong>2. Webhook:</strong> Server → Server, event-driven. HTTP POST to registered URL. Verify with HMAC signature.<br>
+    <strong>3. Long Polling:</strong> Client holds connection, server responds when data available. Fallback when SSE/WS unavailable.<br>
+    <strong>4. WebSocket:</strong> Bidirectional, full-duplex. Requires upgrade handshake (<code>ws://</code>). Lower latency than SSE.<br>
+    <strong>5. Polling:</strong> Client repeatedly sends HTTP requests at intervals. Simplest but wasteful. Use only for non-real-time data.
+  </div>
+</div>
+
+<!-- 5 Celery/Redis Patterns -->
+<div class="cheat-card purple">
+  <div class="cheat-title"><span class="badge-pill badge-purple">&#x1F9CA;</span> 5 Celery &amp; Redis Patterns</div>
+  <div style="font-size:.85rem;line-height:1.8">
+    <strong>1.</strong> Celery: <code>@celery.task(bind=True, max_retries=3)</code> + <code>self.retry(countdown=60)</code> for retries.<br>
+    <strong>2.</strong> <code>task.delay(args)</code> = <code>task.apply_async(args=args)</code>. Use <code>apply_async</code> for countdown, queue, priority.<br>
+    <strong>3.</strong> Redis as Celery broker: simple setup, but lacks RabbitMQ's routing (exchanges, bindings).<br>
+    <strong>4.</strong> Redis Pub/Sub: <code>PUBLISH channel msg</code> + <code>SUBSCRIBE channel</code>. No persistence — messages lost if no subscriber.<br>
+    <strong>5.</strong> Celery Beat: <code>schedule=crontab(minute='*/5')</code> for periodic tasks. Define in <code>beat_schedule</code> dict.
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:30px 0 10px;color:var(--text-light);font-size:.82rem;border-top:1px solid #e0e2ec;margin-top:20px">
+  <strong>Flask &amp; Backend — Master Study Guide</strong> &middot; MAD2 Week 4 &middot; IIT Madras<br>
+  Best of luck for your exam! &#x1F4AA;
+</div>
+
+</div>
+</body>
+</html>

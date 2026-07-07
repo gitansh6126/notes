@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Exam Patterns &amp; Strategies — Premium Exam Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
+  main { padding: 56px 0 90px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display { margin: 0; }
+  .eq-panel .katex-display > .katex { font-size: 1.35em; }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+  .eq-panel.multiline .katex-display > .katex { font-size: 1.1em; }
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula { flex-shrink: 0; }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">Exam Prep &middot; Strategy Guide</div>
+    <h1>Exam Patterns &amp; <em>Strategies</em></h1>
+    <p><strong>Master the MLT exam</strong> with pattern recognition, proven problem-solving workflows, formula cheat sheets, and time management strategies for every question type.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Exam Structure</a>
+      <a href="#s2" class="nav-pill">&sect;2 Formula Sheet</a>
+      <a href="#s3" class="nav-pill">&sect;3 Problem Workflows</a>
+      <a href="#s4" class="nav-pill">&sect;4 Common Traps</a>
+      <a href="#s5" class="nav-pill">&sect;5 Time Strategy</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- SECTION 1: EXAM STRUCTURE -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Exam Structure &amp; Question Types</h2>
+      </div>
+      <p class="sec-intro">
+        The MLT exam tests both <strong>conceptual understanding</strong> and
+        <strong>mathematical derivation</strong>. Questions fall into five distinct patterns.
+        Recognizing the pattern is the first step to solving.
+      </p>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Question Pattern Taxonomy</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>&#9312; Formula Application</strong>
+            "Given $\mathbf{C}$, find eigenvalues."<br>
+            Direct computation — know the formula, plug and chug.
+          </div>
+          <div class="ap-item">
+            <strong>&#9313; True/False + Justification</strong>
+            "Can $[-1, 2]$ be an eigenvector?"<br>
+            Check conditions systematically.
+          </div>
+          <div class="ap-item">
+            <strong>&#9314; Derivation</strong>
+            "Derive the MLE for $\mu$ of a Gaussian."<br>
+            Follow the step timeline: likelihood &rarr; log &rarr; differentiate &rarr; solve.
+          </div>
+          <div class="ap-item">
+            <strong>&#9315; Conceptual Comparison</strong>
+            "Compare K-Means and GMM."<br>
+            Structure: similarity, difference 1, difference 2, when to use each.
+          </div>
+          <div class="ap-item">
+            <strong>&#9316; Missing Value</strong>
+            "Total variance $= 25$, two eigenvalues $8, 5$, find the third."<br>
+            Use trace property: $\sum \lambda_i = \operatorname{tr}(\mathbf{C})$.
+          </div>
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Strategy</div>
+        <div class="in-text">
+          Before solving, ask: <strong>What pattern is this?</strong> Each pattern has a
+          specific workflow. Formula application requires <span class="highlight">accuracy</span>.
+          True/False requires <span class="highlight">systematic checking</span>.
+          Derivations require <span class="highlight">structured steps</span>.
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="co-icon">&#9888;</div>
+        <div class="co-body">
+          <strong>Watch for multi-part questions</strong>
+          <p>Many questions have parts (a), (b), (c). Part (a) is usually <em>setup</em> for (b) and (c). If you're stuck on (a), you can still attempt (b) and (c) using the given answer — partial credit matters!</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: FORMULA SHEET -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Essential Formula Sheet</h2>
+      </div>
+      <p class="sec-intro">
+        These formulas appear in nearly every exam. Master them cold — you should be able to
+        write any of them from memory.
+      </p>
+
+      <div class="eq-panel" id="eq-f1">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Covariance Matrix</div>
+        $$ \mathbf{C} = \frac{1}{n} \mathbf{X}^\mathsf{T} \mathbf{X} $$
+        <div class="eq-caption">Always center $\mathbf{X}$ first. $\operatorname{tr}(\mathbf{C}) = \sum \lambda_i$.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-f2">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Explained Variance Ratio</div>
+        $$ \frac{\lambda_k}{\displaystyle\sum_{i=1}^{d} \lambda_i} $$
+        <div class="eq-caption">Cumulative: sum top $k$ ratios until threshold (e.g., $0.95$).</div>
+      </div>
+
+      <div class="eq-panel" id="eq-f3">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">PCA Projection</div>
+        $$ \mathbf{z} = \mathbf{W}^\mathsf{T} \mathbf{x}, \qquad \hat{\mathbf{x}} = \mathbf{W} \mathbf{z} $$
+        <div class="eq-caption">$\mathbf{W}$ = top $k$ eigenvectors. Reconstruction error $\|\mathbf{x} - \hat{\mathbf{x}}\|^2$ is minimized.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-f4">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Kernel Definition</div>
+        $$ K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\mathsf{T} \phi(\mathbf{x}_j) $$
+        <div class="eq-caption">RBF: $\exp(-\gamma \|\mathbf{x}_i - \mathbf{x}_j\|^2)$. Polynomial: $(\mathbf{x}_i^\mathsf{T} \mathbf{x}_j + c)^p$.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-f5">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">K-Means Objective</div>
+        $$ J = \sum_{i=1}^{n} \sum_{k=1}^{K} r_{ik} \|\mathbf{x}_i - \boldsymbol{\mu}_k\|^2 $$
+        <div class="eq-caption">Assignment: nearest centroid. Update: $\boldsymbol{\mu}_k = \frac{1}{n_k} \sum_{i: r_{ik}=1} \mathbf{x}_i$.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-f6">
+        <span class="eq-num">Equation (6)</span>
+        <div class="eq-label">Bayes' Theorem</div>
+        $$ p(\boldsymbol{\theta} \given \mathcal{D}) = \frac{p(\mathcal{D} \given \boldsymbol{\theta}) \, p(\boldsymbol{\theta})}{p(\mathcal{D})} $$
+        <div class="eq-caption">Posterior $\propto$ Likelihood $\times$ Prior. MAP = MLE + log-prior.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Memory Aid</strong>
+          <p>For PCA: <strong>"Center, Cov, Eig, Sort, Select, Project."</strong> Six steps, six seconds to recall.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: PROBLEM WORKFLOWS -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Problem-Solving Workflows</h2>
+      </div>
+      <p class="sec-intro">
+        Each question type follows a <strong>repeatable workflow</strong>. Memorize these
+        workflows and apply them methodically during the exam.
+      </p>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Workflow A: PCA Question</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Is data centered? If not, center it.</div>
+          <div class="dt-formula">$\mathbf{X} \leftarrow \mathbf{X} - \boldsymbol{\mu}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Compute covariance matrix $\mathbf{C} = \frac{1}{n} \mathbf{X}^\mathsf{T} \mathbf{X}$</div>
+          <div class="dt-formula">$\mathbf{C} \in \R^{d \times d}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Solve $\det(\mathbf{C} - \lambda \mathbf{I}) = 0$ for eigenvalues</div>
+          <div class="dt-formula">$\lambda_1 \ge \cdots \ge \lambda_d$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">For each $\lambda$, solve $(\mathbf{C} - \lambda \mathbf{I})\mathbf{v} = 0$ for eigenvector</div>
+          <div class="dt-formula">$\|\mathbf{v}\| = 1$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">5</div>
+          <div class="dt-text">Sort by $\lambda$, select top $k$, project</div>
+          <div class="dt-formula">$\mathbf{z} = \mathbf{W}^\mathsf{T} \mathbf{x}$</div>
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Workflow B: Kernel Question</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Is the expression symmetric? $K(\mathbf{x}_i, \mathbf{x}_j) = K(\mathbf{x}_j, \mathbf{x}_i)$</div>
+          <div class="dt-formula">Check 1</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Write the kernel matrix $\mathbf{K}_{ij}$ for given points</div>
+          <div class="dt-formula">$n \times n$ matrix</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Check PSD: all eigenvalues $\ge 0$ (or leading principal minors $\ge 0$)</div>
+          <div class="dt-formula">Mercer condition</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">If all checks pass, it's a valid kernel. Identify the kernel type.</div>
+          <div class="dt-formula">Linear / Poly / RBF</div>
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Workflow C: Bayesian Question</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Identify the prior and likelihood distributions</div>
+          <div class="dt-formula">$p(\theta), p(\mathcal{D} \given \theta)$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Write $p(\theta \given \mathcal{D}) \propto p(\mathcal{D} \given \theta) p(\theta)$</div>
+          <div class="dt-formula">Unnormalized posterior</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Match the form to a known distribution (conjugate?); read off parameters</div>
+          <div class="dt-formula">Posterior parameters</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Compute posterior mean / mode / variance as required</div>
+          <div class="dt-formula">Answer</div>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#10003;</div>
+        <div class="co-body">
+          <strong>Pro Tip</strong>
+          <p>When stuck, write down the <strong>definitions</strong> of all symbols in the question. This often triggers the correct formula or approach.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: COMMON TRAPS -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Common Exam Traps</h2>
+      </div>
+      <p class="sec-intro">
+        Every exam has recurring traps that trip up students. Here are the most common ones
+        and how to <strong>avoid</strong> them.
+      </p>
+
+      <div class="eq-panel" id="eq-trap">
+        <span class="eq-num">Equation (7)</span>
+        <div class="eq-label">The Dimensionality Trap</div>
+        $$ \underbrace{\mathbf{X}^\mathsf{T} \mathbf{X}}_{d \times d} \quad \text{vs} \quad \underbrace{\mathbf{X} \mathbf{X}^\mathsf{T}}_{n \times n} $$
+        <div class="eq-caption">Which one is the covariance matrix? $\mathbf{X}^\mathsf{T} \mathbf{X}$ (assuming centered). The other is the Gram matrix.</div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Trap 1: Forgetting to center data</strong>
+          <p>The covariance matrix formula $\frac{1}{n} \mathbf{X}^\mathsf{T} \mathbf{X}$ only works for <strong>centered</strong> data. If you compute it on raw data, the first PC captures the mean, not the variance.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Trap 2: Confusing eigenvectors with PCs</strong>
+          <p>Eigenvectors must be <strong>unit length</strong> and <strong>orthogonal</strong>. A candidate vector may satisfy $\mathbf{C}\mathbf{v} = \lambda \mathbf{v}$ but fail the unit-length check. Always verify all three conditions.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Trap 3: Kernel PSD check</strong>
+          <p>A symmetric function is not automatically a kernel. You must verify <strong>positive semi-definiteness</strong> for all possible sets of points, not just one example.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Trap 4: K-Means $K$ choice</strong>
+          <p>The elbow is not always clear. If no sharp bend exists, <strong>don't force one</strong> — use silhouette score, Gap statistic, or domain knowledge instead.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Trap 5: Bayesian vs Frequentist interpretation</strong>
+          <p>A 95% confidence interval does <strong>not</strong> mean "95% probability the parameter is in this interval." That's a <em>credible interval</em>. CIs are about repeated sampling.</p>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Trap Example: Missing Eigenvalue</div>
+        <div class="num-setup"><strong>Problem:</strong> Covariance matrix has eigenvalues $[10, ?, 4]$. Total variance is $25$. Find the missing eigenvalue and explained variance of PC1.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Step</th><th>Calculation</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Total variance = sum of eigenvalues</td><td>$10 + \lambda_2 + 4 = 25$</td></tr>
+            <tr><td>2</td><td>Solve: $\lambda_2 = 25 - 14$</td><td>$11$</td></tr>
+            <tr><td>3</td><td>Largest eigenvalue is $11$ (not $10$!)</td><td>PC1 explains $11/25 = 44\%$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \lambda_2 = 11,\ \text{PC1 variance ratio} = \frac{11}{25} = 0.44$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>The hidden trap</strong>
+          <p>Students often assume $\lambda_1$ is the first given number ($10$). But the missing value $11$ is larger, making it $\lambda_1$. <strong>Always sort eigenvalues descending</strong> before computing ratios.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: TIME STRATEGY -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Time Management Strategy</h2>
+      </div>
+      <p class="sec-intro">
+        The MLT exam is <strong>time-pressured</strong>. A strategic approach maximizes your
+        score by allocating time proportionally to question weight and difficulty.
+      </p>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Time Allocation Framework</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>&#9312; Scan (5 min)</strong>
+            Read all questions. Identify easy wins and hard problems. Mark confidence levels.
+          </div>
+          <div class="ap-item">
+            <strong>&#9313; Easy Wins (30%)</strong>
+            Solve formula-application and true/false questions first. They're quick and build momentum.
+          </div>
+          <div class="ap-item">
+            <strong>&#9314; Derivations (40%)</strong>
+            Tackle derivations next. Follow the step timeline — partial credit is awarded for correct steps even if the final answer is wrong.
+          </div>
+          <div class="ap-item">
+            <strong>&#9315; Hard Problems (25%)</strong>
+            Conceptual comparisons and multi-part questions. If stuck, write relevant formulas and definitions for partial credit.
+          </div>
+          <div class="ap-item">
+            <strong>&#9316; Review (5%)</strong>
+            Check for missing units, unsorted eigenvalues, uncentered data, sign errors.
+          </div>
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Exam Flow Diagram</div>
+        <svg viewBox="0 0 860 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aE" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+          <rect x="10" y="20" width="120" height="60" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="70" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8f6a1c" font-weight="600">Scan</text>
+          <text x="70" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#b5872a">5 min</text>
+          <text x="180" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#8594;</text>
+          <rect x="230" y="20" width="140" height="60" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="300" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1d4e44" font-weight="600">Easy Wins</text>
+          <text x="300" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2c6b5d">30% of time</text>
+          <text x="420" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#8594;</text>
+          <rect x="470" y="20" width="140" height="60" rx="10" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+          <text x="540" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#143668" font-weight="600">Derivations</text>
+          <text x="540" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#1e4f8a">40% of time</text>
+          <text x="660" y="55" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#8594;</text>
+          <rect x="710" y="20" width="140" height="60" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="780" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7a321e" font-weight="600">Hard</text>
+          <text x="780" y="60" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#a8482a">25% of time</text>
+          <text x="300" y="110" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="16" fill="#8b91a5">&#8595;</text>
+          <rect x="230" y="125" width="140" height="30" rx="10" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+          <text x="300" y="145" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#3d2666" font-weight="600">Review (5%)</text>
+        </svg>
+        <div class="svg-caption">Flow from easiest to hardest. Reserve 5% at the end for review.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Partial Credit Strategy</strong>
+          <p>For derivations, <strong>show every step</strong>. Even if your final answer is wrong, each correct intermediate step earns marks. Write down the starting equation, the log transform, the derivative — everything.</p>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#10003;</div>
+        <div class="co-body">
+          <strong>Last-Minute Checklist</strong>
+          <p>&#9744; Did I center the data?<br>
+          &#9744; Are eigenvalues sorted descending?<br>
+          &#9744; Are eigenvectors unit length?<br>
+          &#9744; Did I write $\mathbf{X}^\mathsf{T} \mathbf{X}$ not $\mathbf{X} \mathbf{X}^\mathsf{T}$?<br>
+          &#9744; Did I include the prior in MAP?<br>
+          &#9744; Are my kernel matrices PSD?</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>MLT &middot; Exam Study Notes &middot; Patterns &amp; Strategies</p>
+</footer>
+
+</body>
+</html>

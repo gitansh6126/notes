@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PCA &amp; Dimensionality Reduction — Premium Exam Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
+  main { padding: 56px 0 90px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display { margin: 0; }
+  .eq-panel .katex-display > .katex { font-size: 1.35em; }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+  .eq-panel.multiline .katex-display > .katex { font-size: 1.1em; }
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula { flex-shrink: 0; }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">Week 01 &middot; Exam Study Notes</div>
+    <h1>PCA &amp; Dimensionality&nbsp;<em>Reduction</em></h1>
+    <p><strong>Principal Component Analysis</strong> transforms high-dimensional data into a lower-dimensional space while preserving maximum variance. Master the covariance matrix, eigenvalues, eigenvectors, projection, and the dual formulation.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Covariance Matrix</a>
+      <a href="#s2" class="nav-pill">&sect;2 Eigenvalues</a>
+      <a href="#s3" class="nav-pill">&sect;3 Eigenvectors &amp; PCs</a>
+      <a href="#s4" class="nav-pill">&sect;4 Projection</a>
+      <a href="#s5" class="nav-pill">&sect;5 Dual PCA</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- SECTION 1: COVARIANCE MATRIX -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>The Covariance Matrix</h2>
+      </div>
+      <p class="sec-intro">
+        The covariance matrix captures how every pair of features varies together.
+        It is the <strong>foundation</strong> of PCA — all subsequent analysis flows from its
+        eigenvectors and eigenvalues.
+      </p>
+
+      <!-- Equation Panel -->
+      <div class="eq-panel" id="eq-cov">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Covariance Matrix</div>
+        $$ \mathbf{C} = \frac{1}{n} \mathbf{X}^\mathsf{T} \mathbf{X} $$
+        <div class="eq-caption">For a centered data matrix $\mathbf{X} \in \R^{n \times d}$, the $d \times d$ covariance matrix measures pairwise feature covariances</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The covariance matrix $\mathbf{C}$ equals one over $n$ times the data matrix 
+          $\mathbf{X}$ <strong>transposed</strong> multiplied by $\mathbf{X}$ itself. Each entry 
+          $\mathbf{C}_{ij}$ is the covariance between feature $i$ and feature $j$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{X}$</td>
+              <td class="leg-meaning">Data matrix, $n$ samples $\times$ $d$ features</td>
+              <td class="leg-example">$100 \times 5$ matrix</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Number of samples (rows)</td>
+              <td class="leg-example">$n = 100$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{C}$</td>
+              <td class="leg-meaning">Covariance matrix, $d \times d$, symmetric PSD</td>
+              <td class="leg-example">$\mathbf{C} \in \R^{d \times d}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{X}^\mathsf{T}$</td>
+              <td class="leg-meaning">Transpose of $\mathbf{X}$</td>
+              <td class="leg-example">$d \times n$ after transpose</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine you have a <strong>spreadsheet</strong> of exam scores: columns are subjects
+          (Math, Physics, English), rows are students. The covariance matrix tells you which
+          subjects <span class="highlight">move together</span> — if a student scores high in
+          Math, do they also score high in Physics? If yes, those two features are
+          <strong>redundant</strong>, and PCA can combine them into one component.
+        </div>
+      </div>
+
+      <div class="param-grid">
+        <div class="param-card" style="border-top: 3px solid var(--gold);">
+          <span class="p-sym">$\mathbf{C}_{ii} = \sigma_i^2$</span>
+          <h4>Diagonal = Variance</h4>
+          <p>Each diagonal entry is the variance of feature $i$ alone.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--teal);">
+          <span class="p-sym">$\mathbf{C}_{ij} = \mathbf{C}_{ji}$</span>
+          <h4>Symmetric</h4>
+          <p>Covariance between $i$ and $j$ is the same as $j$ and $i$.</p>
+        </div>
+        <div class="param-card" style="border-top: 3px solid var(--purple);">
+          <span class="p-sym">$\operatorname{tr}(\mathbf{C}) = \sum \lambda_i$</span>
+          <h4>Trace = Total Variance</h4>
+          <p>The sum of diagonal entries equals the total variance in the data.</p>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Two features, $n = 3$ centered points: $\mathbf{X} = \begin{pmatrix}1 & 2 \\ -1 & 1 \\ 0 & -3\end{pmatrix}$</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Step</th><th>Operation</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td>Compute $\mathbf{X}^\mathsf{T} \mathbf{X}$</td>
+              <td>$\begin{pmatrix}2 & 1 \\ 1 & 14\end{pmatrix}$</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td>Divide by $n = 3$</td>
+              <td>$\mathbf{C} = \begin{pmatrix}0.667 & 0.333 \\ 0.333 & 4.667\end{pmatrix}$</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \mathbf{C} = \begin{pmatrix}0.667 &amp; 0.333 \\ 0.333 &amp; 4.667\end{pmatrix}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What these values mean</strong>
+          <p>The variance of feature 1 is $0.667$, feature 2 is $4.667$ — so feature 2 has much more spread. The covariance $0.333$ is positive, meaning the two features tend to <strong>increase together</strong>.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Forgetting to center data:</strong> PCA <em>always</em> assumes mean-centered data. If you forget, the first PC captures the mean, not the variance.</p>
+          <p>&#x2716; <strong>Confusing covariance with correlation:</strong> Covariance is <em>unscaled</em> and depends on units. Correlation is scaled to $[-1, 1]$.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: EIGENVALUES & EXPLAINED VARIANCE -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Eigenvalues &amp; Explained Variance</h2>
+      </div>
+      <p class="sec-intro">
+        Eigenvalues tell us <strong>how much variance</strong> each principal component captures.
+        The ratio $\lambda_k / \sum \lambda_i$ is the fraction of total variance explained by
+        the $k$-th PC — the central metric for deciding how many components to keep.
+      </p>
+
+      <div class="eq-panel" id="eq-eig">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Characteristic Equation</div>
+        $$ \det(\mathbf{C} - \lambda \mathbf{I}) = 0 $$
+        <div class="eq-caption">Solve this polynomial to find all $d$ eigenvalues $\lambda_1 \ge \lambda_2 \ge \cdots \ge \lambda_d \ge 0$</div>
+      </div>
+
+      <div class="eq-panel multiline" id="eq-exvariance">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Explained Variance Ratio</div>
+        $$ \text{Explained variance by PC}_k = \frac{\lambda_k}{\displaystyle\sum_{i=1}^{d} \lambda_i} $$
+        <div class="eq-caption">The proportion of total variance captured by the $k$-th principal component</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equations in English</div>
+        <div class="ex-text">
+          &ldquo;Eigenvalues are the roots of $\det(\mathbf{C} - \lambda \mathbf{I}) = 0$.
+          Each $\lambda_k$ measures the <strong>variance</strong> along the $k$-th PC direction.
+          Dividing by the sum gives the <strong>fraction</strong> of total variance explained.&rdquo;
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine a <strong>shoebox</strong> filled with points. The longest dimension of the box
+          (PC1) has the largest spread — that's $\lambda_1$. The next longest perpendicular
+          dimension (PC2) has spread $\lambda_2$, and so on. The sum of all spreads
+          is the <span class="highlight">total variance</span>. If $\lambda_1$ accounts for
+          $80\%$ of the total, then PC1 captures most of the information.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> A $3 \times 3$ covariance matrix has eigenvalues $\lambda = [10, 6, 4]$.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>PC</th><th>Eigenvalue</th><th>Explained Variance</th><th>Cumulative</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PC1</td><td>$10$</td><td>$10/20 = 50\%$</td><td>$50\%$</td></tr>
+            <tr><td>PC2</td><td>$6$</td><td>$6/20 = 30\%$</td><td>$80\%$</td></tr>
+            <tr><td>PC3</td><td>$4$</td><td>$4/20 = 20\%$</td><td>$100\%$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \text{Total variance} = 10 + 6 + 4 = 20$</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Exam Trick</strong>
+          <p>When one eigenvalue is <em>missing</em> and total variance is given, compute:
+          $\lambda_{\text{missing}} = \text{total variance} - \sum(\text{known})$.
+          Then compute explained variance ratios directly.</p>
+        </div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>Interpreting the ratios</strong>
+          <p>If the first two PCs explain $80\%$ of variance, reducing from 3D to 2D retains $80\%$ of the information. The remaining $20\%$ is <strong>noise</strong> or fine detail — dropping it simplifies analysis with minimal loss.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Assuming eigenvalues are the data values:</strong> Eigenvalues are <em>variances along PCs</em>, not the data themselves.</p>
+          <p>&#x2716; <strong>Using raw eigenvalues:</strong> Always normalize by the sum to get <em>proportions</em> — a $\lambda$ of 50 could mean everything or nothing depending on total variance.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: EIGENVECTORS & PRINCIPAL COMPONENTS -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Eigenvectors &amp; Principal Components</h2>
+      </div>
+      <p class="sec-intro">
+        Each eigenvector of the covariance matrix defines a <strong>principal component direction</strong>.
+        To be a valid PC, a vector must satisfy three conditions simultaneously.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-eigvec">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Eigenvector Conditions</div>
+        $$\begin{aligned}
+        \mathbf{C} \mathbf{v} &= \lambda \mathbf{v} &&\text{(eigenvector equation)} \\
+        \|\mathbf{v}\| &= 1 &&\text{(unit length)} \\
+        \mathbf{v}_i \cdot \mathbf{v}_j &= 0 \;(i \ne j) &&\text{(orthogonal)}
+        \end{aligned}$$
+        <div class="eq-caption">Three checks every valid principal component must pass</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Condition in English</div>
+        <div class="ex-text">
+          &ldquo;A vector $\mathbf{v}$ is a principal component if (1) multiplying by $\mathbf{C}$
+          just <strong>scales</strong> it by $\lambda$, (2) its <strong>length</strong> is exactly
+          1, and (3) it is <strong>perpendicular</strong> to every other PC.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{v}$</td>
+              <td class="leg-meaning">Eigenvector / PC direction</td>
+              <td class="leg-example">$\mathbf{v} = [0.6, 0.8]^\mathsf{T}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda$</td>
+              <td class="leg-meaning">Eigenvalue — variance along $\mathbf{v}$</td>
+              <td class="leg-example">$\lambda = 10$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{C} \mathbf{v} = \lambda \mathbf{v}$</td>
+              <td class="leg-meaning">Direction is preserved under $\mathbf{C}$</td>
+              <td class="leg-example">Scales but doesn't rotate</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Picture a <strong>rubber sheet</strong> stretched across a frame. The sheet has natural
+          lines where it stretches the most (PC1) and perpendicular to that where it stretches
+          next most (PC2). Eigenvectors are those <span class="highlight">natural stretching
+          directions</span>. The eigenvalues tell you <em>how much</em> stretch in each direction.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> $\mathbf{C} = \begin{pmatrix}5 & 1 \\ 1 & 2\end{pmatrix}$. Check if $\mathbf{v} = [1, -2]^\mathsf{T}$ can be a PC.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Check</th><th>Calculation</th><th>Verdict</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Unit length?</td><td>$\|\mathbf{v}\| = \sqrt{1 + 4} = \sqrt{5} \ne 1$</td><td style="color:var(--rust);">&#x2716; Fail</td></tr>
+            <tr><td>Eigenvector?</td><td>$\mathbf{C}\mathbf{v} = ?$</td><td style="color:var(--ink-soft);">Needs checking</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \|\mathbf{v}\| = \sqrt{5} \neq 1 \;\Longrightarrow\; \text{Not a valid PC}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>Why unit length matters</strong>
+          <p>Without unit length, the variance along the direction is <strong>confounded</strong> with the length of the vector. Normalizing ensures $\mathbf{v}^\mathsf{T} \mathbf{C} \mathbf{v} = \lambda$ gives the true variance.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Any vector with large variance is a PC:</strong> False. It must be an <em>eigenvector</em> of $\mathbf{C}$. High variance alone is not enough.</p>
+          <p>&#x2716; <strong>Checking only one condition:</strong> A candidate must pass <em>all three</em>: eigenvector equation, unit length, and orthogonality to previous PCs.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: PCA PROJECTION -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>PCA Projection</h2>
+      </div>
+      <p class="sec-intro">
+        Once we have the top $k$ eigenvectors (PCs), we <strong>project</strong> each data point
+        onto them to get a lower-dimensional representation. This is how PCA achieves
+        dimensionality reduction.
+      </p>
+
+      <div class="eq-panel" id="eq-proj">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Projection</div>
+        $$ \mathbf{z} = \mathbf{W}^\mathsf{T} \mathbf{x} $$
+        <div class="eq-caption">$\mathbf{W}$ is the $d \times k$ matrix of top $k$ eigenvectors; $\mathbf{z} \in \R^k$ is the reduced representation</div>
+      </div>
+
+      <div class="eq-panel" id="eq-recon">
+        <span class="eq-num">Equation (6)</span>
+        <div class="eq-label">Reconstruction</div>
+        $$ \hat{\mathbf{x}} = \mathbf{W} \mathbf{z} $$
+        <div class="eq-caption">Reconstructing the original $d$-dimensional point from its $k$-dimensional code — the error $\|\mathbf{x} - \hat{\mathbf{x}}\|^2$ is minimized by PCA</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equations in English</div>
+        <div class="ex-text">
+          &ldquo;To <strong>reduce</strong> a point $\mathbf{x}$ from $d$ dimensions to $k$,
+          multiply the transpose of $\mathbf{W}$ by $\mathbf{x}$ — this gives coordinates
+          $\mathbf{z}$ in the PC space. To <strong>reconstruct</strong>, multiply $\mathbf{W}$
+          by $\mathbf{z}$ — PCA guarantees this reconstruction has the smallest possible
+          squared error.&rdquo;
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step Projection</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Center the data point: subtract the mean $\boldsymbol{\mu}$</div>
+          <div class="dt-formula">$\mathbf{x}_{\text{centered}} = \mathbf{x} - \boldsymbol{\mu}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Stack top $k$ eigenvectors into matrix $\mathbf{W} = [\mathbf{v}_1, \dots, \mathbf{v}_k]$</div>
+          <div class="dt-formula">$\mathbf{W} \in \R^{d \times k}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Project: $\mathbf{z} = \mathbf{W}^\mathsf{T} \mathbf{x}_{\text{centered}}$</div>
+          <div class="dt-formula">$\mathbf{z} \in \R^k$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Reconstruct: $\hat{\mathbf{x}} = \mathbf{W} \mathbf{z} + \boldsymbol{\mu}$</div>
+          <div class="dt-formula">$\hat{\mathbf{x}} \in \R^d$</div>
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> PC1 direction $\mathbf{v}_1 = [1/\sqrt{2}, 1/\sqrt{2}]^\mathsf{T}$, centered point $\mathbf{x} = [3, 1]$. Reduce to 1D.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Step</th><th>Calculation</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$z = \mathbf{v}_1^\mathsf{T} \mathbf{x}$</td><td>$3/\sqrt{2} + 1/\sqrt{2} = 4/\sqrt{2}$</td></tr>
+            <tr><td>2</td><td>Simplify</td><td>$2\sqrt{2} \approx 2.828$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle z = \frac{4}{\sqrt{2}} = 2\sqrt{2} \approx 2.828$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What the projection means</strong>
+          <p>The original point $[3, 1]$ in 2D becomes a <strong>single number</strong> $2.828$ in 1D. This number is the coordinate along PC1 — the direction of maximum variance. We've reduced from 2D to 1D while preserving as much variance as possible.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Forgetting to center:</strong> Projecting uncentered data gives incorrect coordinates.</p>
+          <p>&#x2716; <strong>Confusing $\mathbf{W}^\mathsf{T} \mathbf{x}$ with $\mathbf{W} \mathbf{x}$:</strong> The projection uses the <em>transpose</em> of $\mathbf{W}$ because $\mathbf{W}$ columns are the PCs and we need dot products.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: DUAL PCA -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Dual PCA — When $n \ll d$</h2>
+      </div>
+      <p class="sec-intro">
+        Standard PCA works with the $d \times d$ covariance matrix $\mathbf{X}^\mathsf{T} \mathbf{X}$.
+        But when the number of features $d$ far exceeds samples $n$, it's cheaper to work with
+        the $n \times n$ <strong>Gram matrix</strong> $\mathbf{X} \mathbf{X}^\mathsf{T}$.
+      </p>
+
+      <div class="eq-panel" id="eq-gram">
+        <span class="eq-num">Equation (7)</span>
+        <div class="eq-label">Gram Matrix</div>
+        $$ \mathbf{G} = \mathbf{X} \mathbf{X}^\mathsf{T} $$
+        <div class="eq-caption">The $n \times n$ matrix of pairwise dot-products between samples — dual PCA works with this instead of $\mathbf{X}^\mathsf{T} \mathbf{X}$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The Gram matrix $\mathbf{G}$ equals $\mathbf{X}$ times its transpose — an
+          $n \times n$ matrix where entry $\mathbf{G}_{ij}$ is the <strong>dot product</strong>
+          between sample $i$ and sample $j$. Its non-zero eigenvalues are <strong>identical</strong>
+          to those of the covariance matrix.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{G}$</td>
+              <td class="leg-meaning">Gram matrix, $n \times n$</td>
+              <td class="leg-example">$30 \times 30$ when $n=30$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{X} \mathbf{X}^\mathsf{T}$</td>
+              <td class="leg-meaning">Dot products between samples</td>
+              <td class="leg-example">Measures sample similarity</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{X}^\mathsf{T} \mathbf{X}$</td>
+              <td class="leg-meaning">Covariance (feature similarity)</td>
+              <td class="leg-example">$d \times d$, expensive when $d$ large</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Standard PCA asks <span class="highlight">&ldquo;Which features vary together?&rdquo;</span>
+          (a $d \times d$ question). Dual PCA asks <span class="highlight">&ldquo;Which samples
+          are similar to each other?&rdquo;</span> (an $n \times n$ question). Both give the same
+          eigenvalues, but one is cheaper depending on data shape.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; When to Use Dual PCA</div>
+        <div class="num-setup"><strong>Scenario:</strong> Genomics data with $n = 50$ patients and $d = 10{,}000$ genes.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Method</th><th>Matrix Size</th><th>Time Complexity</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Standard PCA</td><td>$10000 \times 10000$</td><td>$O(d^2 n) = 5 \times 10^9$</td></tr>
+            <tr><td style="color:var(--teal); font-weight:600;">Dual PCA</td><td style="color:var(--teal); font-weight:600;">$50 \times 50$</td><td style="color:var(--teal); font-weight:600;">$O(n^2 d) = 2.5 \times 10^7$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \text{Dual PCA is } \approx 200\times \text{ faster here}$</div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Dual vs Standard PCA Decision Flow</div>
+        <svg viewBox="0 0 860 100" xmlns="http://www.w3.org/2000/svg">
+          <rect x="30" y="15" width="180" height="50" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="120" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#8f6a1c" font-weight="600">$n \ll d$?</text>
+          <text x="260" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">&#8594;</text>
+          <rect x="310" y="15" width="200" height="50" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="410" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#1d4e44" font-weight="600">Yes: Use Dual PCA</text>
+          <text x="560" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">&#8594;</text>
+          <rect x="610" y="15" width="220" height="50" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="720" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#7a321e" font-weight="600">No: Use Standard PCA</text>
+        </svg>
+        <div class="svg-caption">Decision rule: if $n < d$, the Gram matrix is smaller — use Dual PCA.</div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#10003;</div>
+        <div class="co-body">
+          <strong>Key Insight</strong>
+          <p><strong>Non-zero eigenvalues</strong> of $\mathbf{X}^\mathsf{T} \mathbf{X}$ and $\mathbf{X} \mathbf{X}^\mathsf{T}$ are <em>identical</em>. Only the eigenvectors differ — the dual gives eigenvectors of the Gram matrix, which relate to the original via $\mathbf{v} \propto \mathbf{X}^\mathsf{T} \mathbf{u}$.</p>
+        </div>
+      </div>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Applications of Dual PCA</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Genomics</strong>
+            $50$ samples, $10000$ genes — Dual PCA makes eigenvalue computation tractable.
+          </div>
+          <div class="ap-item">
+            <strong>Kernel PCA</strong>
+            Nonlinear extensions naturally use the Gram (kernel) matrix.
+          </div>
+          <div class="ap-item">
+            <strong>Image Processing</strong>
+            Small images ($28 \times 28$) but many pixels ($784$) — $n$ is often smaller than $d$.
+          </div>
+          <div class="ap-item">
+            <strong>Anomaly Detection</strong>
+            Projecting onto dual PCs reveals outliers in low-sample regimes.
+          </div>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Thinking Dual PCA gives different eigenvalues:</strong> False. Non-zero eigenvalues of $\mathbf{X}^\mathsf{T} \mathbf{X}$ and $\mathbf{X} \mathbf{X}^\mathsf{T}$ are <em>identical</em>.</p>
+          <p>&#x2716; <strong>Using Dual PCA when $d < n$:</strong> The $d \times d$ covariance is smaller — standard PCA is more efficient.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>MLT &middot; Exam Study Notes &middot; PCA &amp; Dimensionality Reduction</p>
+</footer>
+
+</body>
+</html>

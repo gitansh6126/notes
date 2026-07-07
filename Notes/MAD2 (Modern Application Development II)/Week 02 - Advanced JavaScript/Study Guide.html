@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced JavaScript — Master Study Guide | MAD2 Week 2</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f4f5f9;
+      --surface: #ffffff;
+      --blue: #1e4f8a;
+      --blue-light: #e8f0fa;
+      --gold: #b5872a;
+      --gold-light: #faf3e0;
+      --teal: #2c6b5d;
+      --teal-light: #e6f2ef;
+      --rust: #a8482a;
+      --rust-light: #f6ebe7;
+      --purple: #5a3e8a;
+      --purple-light: #efeaf6;
+      --green: #3d7a4a;
+      --green-light: #e8f2eb;
+      --text: #1a1a2e;
+      --text-muted: #5a5a7a;
+      --border: #e2e4ed;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.12);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: #c0c4d0; border-radius: 4px; }
+
+    /* ─── Container ─── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    /* ─── Header ─── */
+    .header {
+      background: linear-gradient(135deg, #1a2744 0%, #1e4f8a 50%, #2c6b5d 100%);
+      color: #fff;
+      padding: 64px 0 48px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -20%;
+      width: 500px; height: 500px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -30%; left: -10%;
+      width: 400px; height: 400px;
+      background: rgba(255,255,255,0.02);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .header .container { position: relative; z-index: 1; }
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 8px;
+    }
+    .header h1 span { color: var(--gold); }
+    .header .subtitle {
+      font-size: 1.15rem;
+      font-weight: 500;
+      opacity: 0.85;
+      letter-spacing: 0.02em;
+    }
+    .header .badge-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .header .badge {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(6px);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .header .badge.gold { background: rgba(181,135,42,0.25); border-color: rgba(181,135,42,0.3); color: #f5d77a; }
+
+    /* ─── TOC ─── */
+    .toc {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-md);
+      padding: 28px 32px;
+      margin: -32px auto 40px;
+      position: relative;
+      z-index: 10;
+    }
+    .toc h2 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 14px; }
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 6px;
+    }
+    .toc-grid a {
+      color: var(--blue);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      padding: 4px 0;
+      transition: color 0.15s, padding-left 0.15s;
+    }
+    .toc-grid a::before { content: '▸ '; color: var(--gold); }
+    .toc-grid a:hover { color: var(--rust); padding-left: 4px; }
+
+    /* ─── Sections ─── */
+    section { margin-bottom: 36px; }
+    .section-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 32px 36px;
+      transition: box-shadow 0.25s, transform 0.2s;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .section-card:hover { box-shadow: var(--shadow-md); }
+    .section-card .section-number {
+      position: absolute;
+      top: 16px; right: 24px;
+      font-size: 3.5rem;
+      font-weight: 900;
+      opacity: 0.04;
+      line-height: 1;
+      color: var(--text);
+      pointer-events: none;
+    }
+
+    /* ─── Colour accents via top border ─── */
+    .card-blue    { border-top: 4px solid var(--blue); }
+    .card-gold    { border-top: 4px solid var(--gold); }
+    .card-teal    { border-top: 4px solid var(--teal); }
+    .card-rust    { border-top: 4px solid var(--rust); }
+    .card-purple  { border-top: 4px solid var(--purple); }
+    .card-green   { border-top: 4px solid var(--green); }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .section-heading .icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .section-heading h2 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .icon-blue    { background: var(--blue-light); color: var(--blue); }
+    .icon-gold    { background: var(--gold-light); color: var(--gold); }
+    .icon-teal    { background: var(--teal-light); color: var(--teal); }
+    .icon-rust    { background: var(--rust-light); color: var(--rust); }
+    .icon-purple  { background: var(--purple-light); color: var(--purple); }
+    .icon-green   { background: var(--green-light); color: var(--green); }
+
+    /* ─── Code ─── */
+    code, pre {
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.84rem;
+    }
+    code {
+      background: #f0f2f6;
+      padding: 2px 8px;
+      border-radius: 5px;
+      color: var(--rust);
+      font-weight: 500;
+    }
+    pre {
+      background: #1a1a2e;
+      color: #e8e8f0;
+      padding: 18px 22px;
+      border-radius: var(--radius-sm);
+      overflow-x: auto;
+      line-height: 1.6;
+      margin: 14px 0;
+      font-size: 0.82rem;
+    }
+    pre .cmt { color: #6a8a7a; }
+    pre .kwd { color: #7fc1ff; }
+    pre .str { color: #c3e88d; }
+    pre .num { color: #f78c6c; }
+    pre .fn  { color: #82aaff; }
+    pre .op  { color: #89ddff; }
+    pre .err { color: #ff5370; }
+    pre .out { color: #f5d77a; }
+
+    /* ─── Topic Tree ─── */
+    .tree { padding: 12px 0 12px 20px; }
+    .tree ul { list-style: none; padding-left: 28px; position: relative; }
+    .tree > ul { padding-left: 0; }
+    .tree li {
+      position: relative;
+      padding: 5px 0 5px 20px;
+      font-size: 0.92rem;
+    }
+    .tree li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0;
+      width: 14px; height: 100%;
+      border-left: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
+      border-radius: 0 0 0 8px;
+    }
+    .tree li:last-child::before { height: 12px; }
+    .tree li::after {
+      content: '';
+      position: absolute;
+      left: -1px; top: 12px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--blue);
+      border: 2px solid var(--surface);
+      box-shadow: 0 0 0 2px var(--blue);
+    }
+    .tree li.gold::after  { background: var(--gold);  box-shadow: 0 0 0 2px var(--gold); }
+    .tree li.teal::after  { background: var(--teal);  box-shadow: 0 0 0 2px var(--teal); }
+    .tree li.rust::after  { background: var(--rust);  box-shadow: 0 0 0 2px var(--rust); }
+    .tree li.purple::after{ background: var(--purple);box-shadow: 0 0 0 2px var(--purple); }
+    .tree li.green::after { background: var(--green); box-shadow: 0 0 0 2px var(--green); }
+    .tree .root-li { font-weight: 700; font-size: 1rem; color: var(--blue); }
+    .tree .root-li::before { display: none; }
+    .tree .root-li::after { display: none; }
+    .tree .branch-label {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-left: 6px;
+    }
+    .branch-blue   { background: var(--blue-light); color: var(--blue); }
+    .branch-gold   { background: var(--gold-light); color: var(--gold); }
+    .branch-teal   { background: var(--teal-light); color: var(--teal); }
+    .branch-rust   { background: var(--rust-light); color: var(--rust); }
+    .branch-purple { background: var(--purple-light); color: var(--purple); }
+    .branch-green  { background: var(--green-light); color: var(--green); }
+
+    /* ─── Badges / Pills ─── */
+    .pill {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .pill-blue    { background: var(--blue-light); color: var(--blue); }
+    .pill-gold    { background: var(--gold-light); color: var(--gold); }
+    .pill-teal    { background: var(--teal-light); color: var(--teal); }
+    .pill-rust    { background: var(--rust-light); color: var(--rust); }
+    .pill-purple  { background: var(--purple-light); color: var(--purple); }
+    .pill-green   { background: var(--green-light); color: var(--green); }
+    .pill-warning { background: #fef3e2; color: #b7761a; }
+    .pill-danger  { background: #fde8e8; color: #b33a3a; }
+    .pill-star    { background: #fff8e0; color: #b5872a; }
+
+    /* ─── Progress Bars ─── */
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 6px 0;
+    }
+    .progress-bar .label {
+      font-size: 0.88rem;
+      font-weight: 500;
+      min-width: 130px;
+    }
+    .progress-bar .track {
+      flex: 1;
+      height: 8px;
+      background: #e8eaef;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .progress-bar .fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s ease;
+    }
+    .fill-blue    { background: linear-gradient(90deg, var(--blue), #4a8bc7); }
+    .fill-gold    { background: linear-gradient(90deg, var(--gold), #d4a63a); }
+    .fill-teal    { background: linear-gradient(90deg, var(--teal), #4a9a8a); }
+    .fill-rust    { background: linear-gradient(90deg, var(--rust), #c8603a); }
+    .fill-purple  { background: linear-gradient(90deg, var(--purple), #7a5aaa); }
+    .fill-green   { background: linear-gradient(90deg, var(--green), #5aaa6a); }
+    .progress-bar .count {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      min-width: 32px;
+      text-align: right;
+    }
+
+    /* ─── Tables ─── */
+    .table-wrap { overflow-x: auto; margin: 14px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    thead th {
+      background: #f0f2f7;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
+    }
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover { background: #f8f9fc; }
+
+    /* ─── Interconnection Map (SVG-like) ─── */
+    .inter-map {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 20px 0;
+    }
+    .inter-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .inter-node {
+      padding: 8px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: 2px solid transparent;
+    }
+    .inter-node.blue    { background: var(--blue-light); color: var(--blue); border-color: var(--blue); }
+    .inter-node.gold    { background: var(--gold-light); color: var(--gold); border-color: var(--gold); }
+    .inter-node.teal    { background: var(--teal-light); color: var(--teal); border-color: var(--teal); }
+    .inter-node.rust    { background: var(--rust-light); color: var(--rust); border-color: var(--rust); }
+    .inter-node.purple  { background: var(--purple-light); color: var(--purple); border-color: var(--purple); }
+    .inter-node.green   { background: var(--green-light); color: var(--green); border-color: var(--green); }
+    .inter-arrow { color: var(--text-muted); font-size: 1.2rem; }
+
+    /* ─── Stars ─── */
+    .stars { color: var(--gold); letter-spacing: 2px; font-size: 0.95rem; }
+    .star-empty { opacity: 0.25; }
+
+    /* ─── PYQ ─── */
+    .pyq {
+      background: #f8faff;
+      border-radius: var(--radius-sm);
+      padding: 18px 22px;
+      margin: 14px 0;
+      border-left: 4px solid var(--blue);
+    }
+    .pyq.gold { border-left-color: var(--gold); }
+    .pyq .pyq-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .pyq .pyq-head .difficulty { margin-left: auto; }
+
+    /* ─── Traps / Models ─── */
+    .trap-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 14px 0;
+    }
+    .trap-item {
+      background: #fdf6f0;
+      border-radius: var(--radius-sm);
+      padding: 14px 18px;
+      border-left: 4px solid var(--rust);
+    }
+    .trap-item.correct { border-left-color: var(--green); background: #f0f8f2; }
+    .trap-item .trap-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .trap-item .trap-label.wrong { color: var(--rust); }
+    .trap-item .trap-label.right { color: var(--green); }
+
+    /* ─── Mental Models ─── */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .model-card {
+      background: #f8f9fc;
+      border-radius: var(--radius-sm);
+      padding: 16px 18px;
+      text-align: center;
+      border: 1px solid var(--border);
+    }
+    .model-card .model-concept {
+      font-weight: 700;
+      color: var(--blue);
+      font-size: 0.95rem;
+    }
+    .model-card .model-arrow { color: var(--gold); font-size: 1.1rem; margin: 4px 0; }
+    .model-card .model-analogy {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+    }
+
+    /* ─── Hidden Patterns ─── */
+    .pattern-list {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0;
+    }
+    .pattern-list li {
+      padding: 8px 14px 8px 32px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .pattern-list li:last-child { border-bottom: none; }
+    .pattern-list li::before {
+      content: '📌';
+      position: absolute;
+      left: 4px;
+      font-size: 0.85rem;
+    }
+
+    /* ─── Final Cheat Sheet ─── */
+    .cheat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 14px 0;
+    }
+    .cheat-block {
+      background: #f8f9fc;
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+    }
+    .cheat-block h4 {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .cheat-block ul {
+      list-style: none;
+      padding: 0;
+    }
+    .cheat-block ul li {
+      padding: 3px 0;
+      font-size: 0.88rem;
+    }
+    .cheat-block ul li::before { content: '→ '; color: var(--gold); font-weight: 600; }
+
+    /* ─── Footer ─── */
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .footer strong { color: var(--text); }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.8rem; }
+      .section-card { padding: 22px 18px; }
+      .toc { padding: 20px 18px; }
+      .trap-grid,
+      .cheat-grid { grid-template-columns: 1fr; }
+      .inter-row { gap: 6px; }
+      .inter-node { font-size: 0.78rem; padding: 6px 12px; }
+    }
+    @media print {
+      .header { background: #1a2744 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .section-card { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<header class="header">
+  <div class="container">
+    <h1>Advanced JavaScript <span>—</span> Master Study Guide</h1>
+    <p class="subtitle">MAD2 · Week 2 · IIT Madras</p>
+    <div class="badge-row">
+      <span class="badge">📘 13 Topics</span>
+      <span class="badge">🎯 30+ PYQs</span>
+      <span class="badge gold">⚡ Exam Ready</span>
+      <span class="badge">🏆 50 Coding Patterns</span>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════ TOC ═══════════════════ -->
+<main class="container">
+<div class="toc">
+  <h2>📑 Table of Contents</h2>
+  <div class="toc-grid">
+    <a href="#topic-map">Master Topic Map</a>
+    <a href="#arrays">Arrays</a>
+    <a href="#objects">Objects</a>
+    <a href="#destructuring">Destructuring</a>
+    <a href="#spread">Spread Operator</a>
+    <a href="#rest">Rest Parameters</a>
+    <a href="#map">map()</a>
+    <a href="#filter">filter()</a>
+    <a href="#reduce">reduce()</a>
+    <a href="#find">find()</a>
+    <a href="#foreach">forEach()</a>
+    <a href="#promises">Promises</a>
+    <a href="#async-await">Async / Await</a>
+    <a href="#event-loop">Event Loop</a>
+    <a href="#qtypes">Question Types</a>
+    <a href="#coding-types">Coding Types</a>
+    <a href="#tricky">Tricky Questions</a>
+    <a href="#hidden-patterns">Hidden Patterns</a>
+    <a href="#interconnection">Interconnection Map</a>
+    <a href="#frequency">Frequency Analysis</a>
+    <a href="#probability">Probability Ratings</a>
+    <a href="#traps">Common Traps</a>
+    <a href="#mental-models">Mental Models</a>
+    <a href="#cheatsheet">Final Cheat Sheet</a>
+  </div>
+</div>
+
+<!-- ═══════════════════ 1. MASTER TOPIC MAP ═══════════════════ -->
+<section id="topic-map">
+<div class="section-card card-blue">
+  <span class="section-number">01</span>
+  <div class="section-heading">
+    <div class="icon icon-blue">🗺️</div>
+    <h2>Master Topic Map</h2>
+  </div>
+  <div class="tree">
+    <ul>
+      <li class="root-li">Week 2 <span class="branch-label branch-blue">Core</span></li>
+      <li>
+        <ul>
+          <li class="blue">Arrays <span class="pill pill-blue">methods</span> <span class="pill pill-blue">iteration</span></li>
+          <li class="blue">Objects <span class="pill pill-blue">creation</span> <span class="pill pill-blue">properties</span> <span class="pill pill-blue">freezing</span></li>
+          <li class="gold">Destructuring <span class="pill pill-gold">array</span> <span class="pill pill-gold">object</span> <span class="pill pill-gold">nested</span></li>
+          <li class="gold">Spread Operator</li>
+          <li class="gold">Rest Parameters</li>
+          <li class="teal">map()</li>
+          <li class="teal">filter()</li>
+          <li class="teal">reduce()</li>
+          <li class="teal">find()</li>
+          <li class="teal">forEach()</li>
+          <li class="rust">Promises</li>
+          <li class="rust">Async / Await</li>
+          <li class="purple">Event Loop</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 2. TOPIC DEEP DIVES ═══════════════════ -->
+
+<!-- ─── Arrays ─── -->
+<section id="arrays">
+<div class="section-card card-blue">
+  <span class="section-number">02</span>
+  <div class="section-heading">
+    <div class="icon icon-blue">📊</div>
+    <h2>Arrays</h2>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">🔧 Array Methods</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Method</th><th>Mutates?</th><th>Returns</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td><code>push</code></td><td><span class="pill pill-rust">Mutable</span></td><td>new length</td><td>Adds to end</td></tr>
+      <tr><td><code>pop</code></td><td><span class="pill pill-rust">Mutable</span></td><td>removed element</td><td>Removes from end</td></tr>
+      <tr><td><code>shift</code></td><td><span class="pill pill-rust">Mutable</span></td><td>removed element</td><td>Removes from start</td></tr>
+      <tr><td><code>unshift</code></td><td><span class="pill pill-rust">Mutable</span></td><td>new length</td><td>Adds to start</td></tr>
+      <tr><td><code>splice</code></td><td><span class="pill pill-rust">Mutable</span></td><td>removed elements</td><td>Add/remove at index</td></tr>
+      <tr><td><code>reverse</code></td><td><span class="pill pill-rust">Mutable</span></td><td>reversed array</td><td>Reverses in-place</td></tr>
+      <tr><td><code>sort</code></td><td><span class="pill pill-rust">Mutable</span></td><td>sorted array</td><td>Sorts in-place</td></tr>
+      <tr><td><code>slice</code></td><td><span class="pill pill-green">Immutable</span></td><td>new array</td><td>Returns a portion</td></tr>
+      <tr><td><code>concat</code></td><td><span class="pill pill-green">Immutable</span></td><td>new array</td><td>Merges arrays</td></tr>
+      <tr><td><code>indexOf</code></td><td><span class="pill pill-green">Immutable</span></td><td>index or -1</td><td>Searches element</td></tr>
+      <tr><td><code>includes</code></td><td><span class="pill pill-green">Immutable</span></td><td>boolean</td><td>Checks existence</td></tr>
+      <tr><td><code>join</code></td><td><span class="pill pill-green">Immutable</span></td><td>string</td><td>Joins with separator</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">⚠️ Sparse Arrays &amp; Array-like Objects</h3>
+  <p style="margin-bottom:10px;">Sparse arrays have holes: <code>const arr = [1, , 3]</code>. Holes are treated as <code>undefined</code> by most iteration methods. Array-like objects have a <code>length</code> property and indexed elements (e.g., <code>arguments</code>, DOM NodeLists). Convert with <code>Array.from()</code> or spread.</p>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — Array Method Output</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> arr = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+arr.splice(<span class="num">1</span>, <span class="num">1</span>, <span class="num">99</span>);
+console.log(arr);</pre>
+    <p><strong>Answer:</strong> <code>[1, 99, 3]</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Objects ─── -->
+<section id="objects">
+<div class="section-card card-gold">
+  <span class="section-number">03</span>
+  <div class="section-heading">
+    <div class="icon icon-gold">📦</div>
+    <h2>Objects</h2>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">🔨 Creation Patterns</h3>
+  <pre><span class="cmt">// Literal</span>
+<span class="kwd">const</span> obj1 = { name: <span class="str">'Alice'</span> };
+
+<span class="cmt">// new Object()</span>
+<span class="kwd">const</span> obj2 = <span class="kwd">new</span> <span class="fn">Object</span>();
+obj2.name = <span class="str">'Bob'</span>;
+
+<span class="cmt">// Object.create()</span>
+<span class="kwd">const</span> proto = { greet() { console.log(<span class="str">'Hi'</span>); } };
+<span class="kwd">const</span> obj3 = <span class="fn">Object.create</span>(proto);
+obj3.name = <span class="str">'Charlie'</span>;</pre>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">🔒 Property Descriptors &amp; Object Control</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Method</th><th>Add/Remove</th><th>Config</th><th>Writable</th><th>Enumerable</th></tr></thead>
+    <tbody>
+      <tr><td><code>Object.freeze(obj)</code></td><td>❌</td><td>❌</td><td>❌</td><td>✔️</td></tr>
+      <tr><td><code>Object.seal(obj)</code></td><td>❌</td><td>❌</td><td>✔️</td><td>✔️</td></tr>
+      <tr><td><code>Object.preventExtensions(obj)</code></td><td>❌</td><td>✔️</td><td>✔️</td><td>✔️</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">🔑 Object.keys / values / entries</h3>
+  <pre><span class="kwd">const</span> obj = { a: <span class="num">1</span>, b: <span class="num">2</span>, c: <span class="num">3</span> };
+<span class="fn">Object.keys</span>(obj);    <span class="cmt">// ['a', 'b', 'c']</span>
+<span class="fn">Object.values</span>(obj);  <span class="cmt">// [1, 2, 3]</span>
+<span class="fn">Object.entries</span>(obj); <span class="cmt">// [['a',1], ['b',2], ['c',3]]</span></pre>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">⚡ Property Shorthand &amp; Computed Properties</h3>
+  <pre><span class="kwd">const</span> name = <span class="str">'Alice'</span>;
+<span class="kwd">const</span> key = <span class="str">'score'</span>;
+<span class="kwd">const</span> obj = {
+  name,                      <span class="cmt">// shorthand</span>
+  [key]: <span class="num">95</span>,              <span class="cmt">// computed</span>
+  [<span class="str">'is'</span> + <span class="str">'Active'</span>]: <span class="kwd">true</span>  <span class="cmt">// computed expression</span>
+};</pre>
+
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ — Object Mutation</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> obj = { a: <span class="num">1</span> };
+<span class="fn">Object.freeze</span>(obj);
+obj.a = <span class="num">2</span>;
+obj.b = <span class="num">3</span>;
+console.log(obj);</pre>
+    <p><strong>Answer:</strong> <code>{ a: 1 }</code> — strict mode throws, sliently ignored otherwise.</p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Destructuring ─── -->
+<section id="destructuring">
+<div class="section-card card-teal">
+  <span class="section-number">04</span>
+  <div class="section-heading">
+    <div class="icon icon-teal">🔀</div>
+    <h2>Destructuring</h2>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">📐 Array Destructuring</h3>
+  <pre><span class="kwd">const</span> [a, b] = [<span class="num">1</span>, <span class="num">2</span>];            <span class="cmt">// a=1, b=2</span>
+<span class="kwd">const</span> [x, , z] = [<span class="num">10</span>, <span class="num">20</span>, <span class="num">30</span>];    <span class="cmt">// x=10, z=30</span>
+<span class="kwd">const</span> [p, q = <span class="num">99</span>] = [<span class="num">1</span>];          <span class="cmt">// p=1, q=99 (default)</span>
+<span class="kwd">const</span> [first, ...rest] = [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>];  <span class="cmt">// first=1, rest=[2,3]</span></pre>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">📐 Object Destructuring</h3>
+  <pre><span class="kwd">const</span> { name, age } = { name: <span class="str">'Alice'</span>, age: <span class="num">25</span> };
+<span class="kwd">const</span> { name: n, age: a } = { name: <span class="str">'Bob'</span>, age: <span class="num">30</span> };  <span class="cmt">// rename</span>
+<span class="kwd">const</span> { city = <span class="str">'Chennai'</span> } = {};                    <span class="cmt">// default</span>
+<span class="kwd">const</span> { address: { pin } } = { address: { pin: <span class="num">600</span> } };  <span class="cmt">// nested</span></pre>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">🔄 Swapping Variables</h3>
+  <pre><span class="kwd">let</span> a = <span class="num">1</span>, b = <span class="num">2</span>;
+[b, a] = [a, b];  <span class="cmt">// a=2, b=1</span></pre>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — Destructuring Output</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> obj = { x: <span class="num">10</span>, y: <span class="num">20</span>, z: <span class="num">30</span> };
+<span class="kwd">const</span> { x, ...rest } = obj;
+console.log(x, rest);</pre>
+    <p><strong>Answer:</strong> <code>10 { y: 20, z: 30 }</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Spread Operator ─── -->
+<section id="spread">
+<div class="section-card card-rust">
+  <span class="section-number">05</span>
+  <div class="section-heading">
+    <div class="icon icon-rust">✨</div>
+    <h2>Spread Operator</h2>
+  </div>
+
+  <pre><span class="cmt">// Array spread</span>
+<span class="kwd">const</span> arr1 = [<span class="num">1</span>, <span class="num">2</span>];
+<span class="kwd">const</span> arr2 = [<span class="num">3</span>, <span class="num">4</span>];
+<span class="kwd">const</span> merged = [...arr1, ...arr2];  <span class="cmt">// [1, 2, 3, 4]</span>
+
+<span class="cmt">// Object spread</span>
+<span class="kwd">const</span> obj1 = { a: <span class="num">1</span>, b: <span class="num">2</span> };
+<span class="kwd">const</span> obj2 = { b: <span class="num">3</span>, c: <span class="num">4</span> };
+<span class="kwd">const</span> mergedObj = { ...obj1, ...obj2 };  <span class="cmt">// { a: 1, b: 3, c: 4 }</span>
+
+<span class="cmt">// Function arguments</span>
+<span class="fn">Math.max</span>(...[<span class="num">3</span>, <span class="num">7</span>, <span class="num">1</span>]);  <span class="cmt">// 7</span></pre>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin:16px 0 8px;">⚠️ Shallow Copy Trap</h3>
+  <pre><span class="kwd">const</span> original = { a: <span class="num">1</span>, nested: { b: <span class="num">2</span> } };
+<span class="kwd">const</span> clone = { ...original };
+clone.nested.b = <span class="num">99</span>;
+console.log(original.nested.b);  <span class="cmt">// 99 — shared reference!</span></pre>
+
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ — Spread Operator</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> a = [<span class="num">1</span>, <span class="num">2</span>];
+<span class="kwd">const</span> b = [<span class="num">3</span>, ...a, <span class="num">4</span>];
+console.log(b);</pre>
+    <p><strong>Answer:</strong> <code>[3, 1, 2, 4]</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Rest Parameters ─── -->
+<section id="rest">
+<div class="section-card card-purple">
+  <span class="section-number">06</span>
+  <div class="section-heading">
+    <div class="icon icon-purple">🔧</div>
+    <h2>Rest Parameters</h2>
+  </div>
+
+  <pre><span class="kwd">function</span> <span class="fn">sum</span>(...args) {
+  <span class="kwd">return</span> args.<span class="fn">reduce</span>((a, b) => a + b, <span class="num">0</span>);
+}
+console.log(<span class="fn">sum</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>));  <span class="cmt">// 6</span></pre>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Feature</th><th><code>...args</code> (Rest)</th><th><code>arguments</code></th></tr></thead>
+    <tbody>
+      <tr><td>Type</td><td>True Array</td><td>Array-like</td></tr>
+      <tr><td>Arrow functions</td><td>✔️</td><td>❌</td></tr>
+      <tr><td>Partial capture</td><td>✔️ <code>function(a, b, ...rest)</code></td><td>❌</td></tr>
+      <tr><td>Methods</td><td>All array methods</td><td>None</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — Rest Parameter Output</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre><span class="kwd">function</span> <span class="fn">foo</span>(a, ...b) {
+  console.log(a, b);
+}
+<span class="fn">foo</span>(<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>);</pre>
+    <p><strong>Answer:</strong> <code>1 [2, 3, 4]</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── map() ─── -->
+<section id="map">
+<div class="section-card card-blue">
+  <span class="section-number">07</span>
+  <div class="section-heading">
+    <div class="icon icon-blue">🔄</div>
+    <h2>map()</h2>
+  </div>
+
+  <p style="margin-bottom:10px;"><code>arr.map(callback(currentValue, index, array))</code> — Returns a <strong>new array</strong> of the same length. Chainable with <code>filter()</code> and <code>reduce()</code>.</p>
+
+  <pre><span class="kwd">const</span> nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="kwd">const</span> doubled = nums.<span class="fn">map</span>(n => n * <span class="num">2</span>);  <span class="cmt">// [2, 4, 6]</span>
+<span class="kwd">const</span> parsed = [<span class="str">'1'</span>, <span class="str">'2'</span>].<span class="fn">map</span>(<span class="fn">Number</span>);  <span class="cmt">// [1, 2]</span></pre>
+
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ — parseInt with map (🔥 TRICKY)</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐</span>
+    </div>
+    <pre>console.log([<span class="str">'1'</span>, <span class="str">'2'</span>, <span class="str">'3'</span>].<span class="fn">map</span>(<span class="fn">parseInt</span>));</pre>
+    <p><strong>Answer:</strong> <code>[1, NaN, NaN]</code><br>
+    <code>parseInt</code> receives <code>(element, index, array)</code>. So <code>parseInt('1',0)</code> → 1, <code>parseInt('2',1)</code> → NaN, <code>parseInt('3',2)</code> → NaN (base 2 has no digit 3).</p>
+  </div>
+</div>
+</section>
+
+<!-- ─── filter() ─── -->
+<section id="filter">
+<div class="section-card card-green">
+  <span class="section-number">08</span>
+  <div class="section-heading">
+    <div class="icon icon-green">🔍</div>
+    <h2>filter()</h2>
+  </div>
+
+  <p style="margin-bottom:10px;"><code>arr.filter(callback)</code> — Returns a <strong>new array</strong> with elements for which callback returns truthy. Skips empty slots.</p>
+
+  <pre><span class="kwd">const</span> nums = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>, <span class="num">4</span>, <span class="num">5</span>];
+<span class="kwd">const</span> evens = nums.<span class="fn">filter</span>(n => n % <span class="num">2</span> === <span class="num">0</span>);  <span class="cmt">// [2, 4]</span>
+
+<span class="cmt">// Chaining</span>
+nums.<span class="fn">filter</span>(n => n > <span class="num">2</span>).<span class="fn">map</span>(n => n * n);  <span class="cmt">// [9, 16, 25]</span></pre>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — Filter Output</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre>console.log([<span class="num">1</span>, , <span class="num">2</span>, , <span class="num">3</span>].<span class="fn">filter</span>(x => <span class="kwd">true</span>));</pre>
+    <p><strong>Answer:</strong> <code>[1, 2, 3]</code> — empty slots are skipped by filter.</p>
+  </div>
+</div>
+</section>
+
+<!-- ─── reduce() ─── -->
+<section id="reduce">
+<div class="section-card card-rust">
+  <span class="section-number">09</span>
+  <div class="section-heading">
+    <div class="icon icon-rust">📉</div>
+    <h2>reduce()</h2>
+  </div>
+
+  <p style="margin-bottom:10px;"><code>arr.reduce(callback(acc, current, index, array), initialValue)</code></p>
+
+  <pre><span class="cmt">// Sum</span>
+[<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>].<span class="fn">reduce</span>((a, b) => a + b, <span class="num">0</span>);           <span class="cmt">// 6</span>
+
+<span class="cmt">// Flatten</span>
+[[<span class="num">1</span>,<span class="num">2</span>], [<span class="num">3</span>], [<span class="num">4</span>,<span class="num">5</span>]].<span class="fn">reduce</span>((a, b) => [...a, ...b], []);  <span class="cmt">// [1,2,3,4,5]</span>
+
+<span class="cmt">// Group by</span>
+[<span class="str">'apple'</span>, <span class="str">'banana'</span>, <span class="str">'apricot'</span>].<span class="fn">reduce</span>((acc, s) => {
+  <span class="kwd">const</span> key = s[<span class="num">0</span>];
+  (acc[key] = acc[key] || []).<span class="fn">push</span>(s);
+  <span class="kwd">return</span> acc;
+}, {});
+
+<span class="cmt">// Count occurrences</span>
+[<span class="str">'a'</span>,<span class="str">'b'</span>,<span class="str">'a'</span>].<span class="fn">reduce</span>((acc, v) => (acc[v] = (acc[v]||<span class="num">0</span>) + <span class="num">1</span>, acc), {});</pre>
+
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ — Reduce Output</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre>console.log([<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>].<span class="fn">reduce</span>((a, b) => a + b));</pre>
+    <p><strong>Answer:</strong> <code>6</code> — no initialValue, so <code>a=1</code>, <code>b=2</code> (first iteration), then <code>a=3</code>, <code>b=3</code>.</p>
+  </div>
+</div>
+</section>
+
+<!-- ─── find() ─── -->
+<section id="find">
+<div class="section-card card-teal">
+  <span class="section-number">10</span>
+  <div class="section-heading">
+    <div class="icon icon-teal">🎯</div>
+    <h2>find()</h2>
+  </div>
+
+  <p style="margin-bottom:10px;"><code>arr.find(callback)</code> — Returns the <strong>first element</strong> that satisfies the condition, or <code>undefined</code>.</p>
+
+  <pre><span class="kwd">const</span> users = [
+  { id: <span class="num">1</span>, name: <span class="str">'Alice'</span> },
+  { id: <span class="num">2</span>, name: <span class="str">'Bob'</span> },
+  { id: <span class="num">3</span>, name: <span class="str">'Charlie'</span> }
+];
+<span class="kwd">const</span> user = users.<span class="fn">find</span>(u => u.id === <span class="num">2</span>);  <span class="cmt">// { id: 2, name: 'Bob' }</span></pre>
+
+  <div class="table-wrap" style="margin:10px 0;">
+  <table>
+    <thead><tr><th></th><th><code>find()</code></th><th><code>filter()</code></th></tr></thead>
+    <tbody>
+      <tr><td>Returns</td><td>Single element or <code>undefined</code></td><td>New array (empty array if none)</td></tr>
+      <tr><td>Stops at</td><td>First match</td><td>Iterates all elements</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — Find with Objects</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> arr = [{a:<span class="num">1</span>}, {a:<span class="num">2</span>}, {a:<span class="num">3</span>}];
+console.log(arr.<span class="fn">find</span>(x => x.a > <span class="num">1</span>));</pre>
+    <p><strong>Answer:</strong> <code>{ a: 2 }</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── forEach() ─── -->
+<section id="foreach">
+<div class="section-card card-purple">
+  <span class="section-number">11</span>
+  <div class="section-heading">
+    <div class="icon icon-purple">➿</div>
+    <h2>forEach()</h2>
+  </div>
+
+  <p style="margin-bottom:10px;"><code>arr.forEach(callback)</code> — <strong>No return value</strong> (returns <code>undefined</code>). Used for side effects. Cannot break or continue (except via thrown exception).</p>
+
+  <pre><span class="kwd">const</span> arr = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+arr.<span class="fn">forEach</span>(n => console.log(n * <span class="num">2</span>));  <span class="cmt">// 2, 4, 6 (returns undefined)</span>
+
+<span class="kwd">const</span> mapped = arr.<span class="fn">map</span>(n => n * <span class="num">2</span>);     <span class="cmt">// [2, 4, 6] (returns array)</span></pre>
+
+  <div class="table-wrap" style="margin:10px 0;">
+  <table>
+    <thead><tr><th></th><th><code>forEach</code></th><th><code>map</code></th></tr></thead>
+    <tbody>
+      <tr><td>Return value</td><td><code>undefined</code></td><td>New array</td></tr>
+      <tr><td>Chainable</td><td>❌</td><td>✔️</td></tr>
+      <tr><td>Purpose</td><td>Side effects</td><td>Transformation</td></tr>
+      <tr><td>Break possible?</td><td>Only via exception</td><td>N/A</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ — forEach vs map</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre><span class="kwd">const</span> r = [<span class="num">1</span>,<span class="num">2</span>,<span class="num">3</span>].<span class="fn">forEach</span>(x => x * <span class="num">2</span>);
+console.log(r);</pre>
+    <p><strong>Answer:</strong> <code>undefined</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Promises ─── -->
+<section id="promises">
+<div class="section-card card-rust">
+  <span class="section-number">12</span>
+  <div class="section-heading">
+    <div class="icon icon-rust">⚡</div>
+    <h2>Promises</h2>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">📌 States</h3>
+  <p style="margin-bottom:10px;"><span class="pill pill-blue">Pending</span> → <span class="pill pill-green">Fulfilled</span> or <span class="pill pill-rust">Rejected</span> (settled, immutable thereafter)</p>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">🔧 Static Methods</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Method</th><th>Resolves when</th><th>Rejects when</th></tr></thead>
+    <tbody>
+      <tr><td><code>Promise.all(iterable)</code></td><td>All settle fulfilled</td><td>Any rejects (fail-fast)</td></tr>
+      <tr><td><code>Promise.allSettled(iterable)</code></td><td>All settle (any result)</td><td>Never rejects</td></tr>
+      <tr><td><code>Promise.race(iterable)</code></td><td>First settles (any)</td><td>First settles (any)</td></tr>
+      <tr><td><code>Promise.any(iterable)</code></td><td>First fulfills</td><td>All reject</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <pre><span class="cmt">// Promise constructor</span>
+<span class="kwd">const</span> p = <span class="kwd">new</span> <span class="fn">Promise</span>((resolve, reject) => {
+  setTimeout(() => <span class="fn">resolve</span>(<span class="str">'done'</span>), <span class="num">1000</span>);
+});
+
+<span class="cmt">// Chaining</span>
+<span class="fn">Promise.resolve</span>(<span class="num">1</span>)
+  .<span class="fn">then</span>(x => x + <span class="num">1</span>)
+  .<span class="fn">then</span>(<span class="fn">console.log</span>);  <span class="cmt">// 2</span></pre>
+
+  <!-- PYQ 1 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 1 — Error Propagation</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="fn">Promise.resolve</span>(<span class="num">1</span>)
+  .<span class="fn">then</span>(x => x + <span class="num">1</span>)
+  .<span class="fn">then</span>(x => { <span class="kwd">throw</span> x })
+  .<span class="fn">then</span>(x => console.log(<span class="str">'A'</span>))
+  .<span class="fn">catch</span>(x => console.log(x))</pre>
+    <p><strong>Answer:</strong> <code>2</code> — throws the value 2, caught by catch.</p>
+  </div>
+
+  <!-- PYQ 2 -->
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ 2 — Execution Order</span>
+      <span class="difficulty">Difficulty: ⭐</span>
+    </div>
+    <pre><span class="fn">Promise.resolve</span>()
+  .<span class="fn">then</span>(() => console.log(<span class="num">1</span>))
+  .<span class="fn">then</span>(() => console.log(<span class="num">2</span>))</pre>
+    <p><strong>Answer:</strong> <code>1</code> (then) <code>2</code> (then) — chained thens execute sequentially.</p>
+  </div>
+
+  <!-- PYQ 3 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 3 — Control Flow</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐</span>
+    </div>
+    <pre><span class="fn">Promise.resolve</span>()
+  .<span class="fn">then</span>(() => console.log(<span class="num">1</span>))
+  .<span class="fn">catch</span>(() => console.log(<span class="num">2</span>))
+  .<span class="fn">finally</span>(() => console.log(<span class="num">3</span>))</pre>
+    <p><strong>Answer:</strong> <code>1</code> (then) <code>3</code> (finally) — catch skipped because no rejection.</p>
+  </div>
+
+  <!-- PYQ 4 -->
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ 4 — Promise.all with Rejection</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐⭐</span>
+    </div>
+    <pre><span class="fn">Promise.all</span>([
+  <span class="fn">Promise.resolve</span>(<span class="num">1</span>),
+  <span class="fn">Promise.reject</span>(<span class="str">'error'</span>),
+  <span class="fn">Promise.resolve</span>(<span class="num">3</span>)
+]).<span class="fn">catch</span>(e => console.log(e));</pre>
+    <p><strong>Answer:</strong> <code>'error'</code> — Promise.all rejects fast on first rejection.</p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Async / Await ─── -->
+<section id="async-await">
+<div class="section-card card-teal">
+  <span class="section-number">13</span>
+  <div class="section-heading">
+    <div class="icon icon-teal">⏳</div>
+    <h2>Async / Await</h2>
+  </div>
+
+  <p style="margin-bottom:10px;">An <code>async</code> function always returns a <code>Promise</code>. <code>await</code> pauses execution until the promise settles.</p>
+
+  <pre><span class="kwd">async function</span> <span class="fn">fetchData</span>() {
+  <span class="kwd">try</span> {
+    <span class="kwd">const</span> res = <span class="kwd">await</span> <span class="fn">fetch</span>(url);
+    <span class="kwd">return</span> <span class="kwd">await</span> res.json();
+  } <span class="kwd">catch</span> (err) {
+    console.error(err);
+  }
+}
+
+<span class="cmt">// Parallel execution</span>
+<span class="kwd">const</span> [a, b] = <span class="kwd">await</span> <span class="fn">Promise.all</span>([<span class="fn">p1</span>(), <span class="fn">p2</span>()]);</pre>
+
+  <!-- PYQ 1 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 1 — Basic Execution Order</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="kwd">async function</span> <span class="fn">foo</span>() {
+  console.log(<span class="num">1</span>);
+  <span class="kwd">await</span> <span class="fn">Promise.resolve</span>();
+  console.log(<span class="num">2</span>);
+}
+<span class="fn">foo</span>();
+console.log(<span class="num">3</span>);</pre>
+    <p><strong>Answer:</strong> <code>1</code> (sync), <code>3</code> (sync), <code>2</code> (microtask after await).</p>
+  </div>
+
+  <!-- PYQ 2 -->
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ 2 — Async/Await with Promise.all</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐</span>
+    </div>
+    <pre><span class="kwd">async function</span> <span class="fn">bar</span>() {
+  <span class="kwd">const</span> r = <span class="kwd">await</span> <span class="fn">Promise.all</span>([
+    <span class="fn">Promise.resolve</span>(<span class="num">10</span>),
+    <span class="fn">Promise.resolve</span>(<span class="num">20</span>)
+  ]);
+  console.log(r);
+}
+<span class="fn">bar</span>();</pre>
+    <p><strong>Answer:</strong> <code>[10, 20]</code></p>
+  </div>
+
+  <!-- PYQ 3 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 3 — Error Handling</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre><span class="kwd">async function</span> <span class="fn">fail</span>() {
+  <span class="kwd">throw</span> <span class="kwd">new</span> Error(<span class="str">'oops'</span>);
+}
+<span class="fn">fail</span>().<span class="fn">catch</span>(e => console.log(e.message));</pre>
+    <p><strong>Answer:</strong> <code>'oops'</code></p>
+  </div>
+</div>
+</section>
+
+<!-- ─── Event Loop ─── -->
+<section id="event-loop">
+<div class="section-card card-purple">
+  <span class="section-number">14</span>
+  <div class="section-heading">
+    <div class="icon icon-purple">⭕</div>
+    <h2>Event Loop</h2>
+  </div>
+
+  <h3 style="font-size:0.95rem;font-weight:600;margin-bottom:8px;">🔁 Execution Order</h3>
+  <p style="margin-bottom:10px;"><strong>Sync code</strong> → <strong>Microtasks</strong> (Promise.then/catch/finally, queueMicrotask, MutationObserver) → <strong>Macrotasks</strong> (setTimeout, setInterval, I/O)</p>
+
+  <pre>console.log(<span class="str">'sync'</span>);
+
+setTimeout(() => console.log(<span class="str">'macrotask'</span>), <span class="num">0</span>);
+
+<span class="fn">Promise.resolve</span>().<span class="fn">then</span>(() => console.log(<span class="str">'microtask'</span>));
+
+console.log(<span class="str">'sync end'</span>);
+
+<span class="cmt">// Output: sync → sync end → microtask → macrotask</span></pre>
+
+  <!-- PYQ 1 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 1 — Classic setTimeout vs Promise</span>
+      <span class="difficulty">Difficulty: ⭐⭐</span>
+    </div>
+    <pre>console.log(<span class="num">1</span>);
+setTimeout(() => console.log(<span class="num">2</span>), <span class="num">0</span>);
+<span class="fn">Promise.resolve</span>().<span class="fn">then</span>(() => console.log(<span class="num">3</span>));
+console.log(<span class="num">4</span>);</pre>
+    <p><strong>Answer:</strong> <code>1, 4, 3, 2</code></p>
+  </div>
+
+  <!-- PYQ 2 -->
+  <div class="pyq">
+    <div class="pyq-head">
+      <span>📝 PYQ 2 — Nested Microtasks</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐</span>
+    </div>
+    <pre><span class="fn">Promise.resolve</span>().<span class="fn">then</span>(() => {
+  console.log(<span class="num">1</span>);
+  <span class="fn">Promise.resolve</span>().<span class="fn">then</span>(() => console.log(<span class="num">2</span>));
+}).<span class="fn">then</span>(() => console.log(<span class="num">3</span>));</pre>
+    <p><strong>Answer:</strong> <code>1, 2, 3</code> — microtasks are queued and processed before next macrotask.</p>
+  </div>
+
+  <!-- PYQ 3 -->
+  <div class="pyq gold">
+    <div class="pyq-head">
+      <span>📝 PYQ 3 — setInterval with Promise</span>
+      <span class="difficulty">Difficulty: ⭐⭐⭐⭐</span>
+    </div>
+    <pre><span class="kwd">let</span> i = <span class="num">0</span>;
+<span class="kwd">const</span> id = setInterval(() => {
+  console.log(<span class="str">'A'</span>);
+  <span class="kwd">if</span> (++i === <span class="num">2</span>) clearInterval(id);
+}, <span class="num">0</span>);
+<span class="fn">Promise.resolve</span>().<span class="fn">then</span>(() => console.log(<span class="str">'B'</span>));</pre>
+    <p><strong>Answer:</strong> <code>B, A, A</code> (microtask B runs before each macrotask A).</p>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 3. QUESTION TYPES CATALOG ═══════════════════ -->
+<section id="qtypes">
+<div class="section-card card-blue">
+  <span class="section-number">15</span>
+  <div class="section-heading">
+    <div class="icon icon-blue">❓</div>
+    <h2>Question Types Catalog</h2>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Type</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill pill-blue">Conceptual MCQ</span></td><td>"What does map() return?"</td></tr>
+      <tr><td><span class="pill pill-rust">Output Prediction</span></td><td><code>["1","2","3"].map(parseInt)</code></td></tr>
+      <tr><td><span class="pill pill-teal">Fill Output</span></td><td><code>.filter(x => x > 2)</code> returns ___</td></tr>
+      <tr><td><span class="pill pill-purple">Find Error</span></td><td>Missing return in reduce</td></tr>
+      <tr><td><span class="pill pill-green">Code Correction</span></td><td>Fix the Promise chain</td></tr>
+      <tr><td><span class="pill pill-gold">Execution Order</span></td><td>setTimeout vs Promise</td></tr>
+      <tr><td><span class="pill pill-warning">True/False</span></td><td>"forEach returns array" → False</td></tr>
+      <tr><td><span class="pill pill-blue">MSQ</span></td><td>Which methods are immutable?</td></tr>
+      <tr><td><span class="pill pill-teal">Scenario Based</span></td><td>"Need to flatten array..."</td></tr>
+      <tr><td><span class="pill pill-rust">Assertion Reason</span></td><td>A: map returns new array, R: forEach also returns new array</td></tr>
+      <tr><td><span class="pill pill-purple">Matching</span></td><td>Method to its return value</td></tr>
+      <tr><td><span class="pill pill-gold">Numeric</span></td><td><code>[1,2,3].reduce((a,b) => a+b) = ?</code></td></tr>
+      <tr><td><span class="pill pill-green">Short Answer</span></td><td>Difference between map and forEach</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 4. CODING QUESTION TYPES ═══════════════════ -->
+<section id="coding-types">
+<div class="section-card card-green">
+  <span class="section-number">16</span>
+  <div class="section-heading">
+    <div class="icon icon-green">💻</div>
+    <h2>Coding Question Types</h2>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Concept</th><th>Patterns</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill pill-blue">map()</span></td><td>Transform, extract, convert types</td></tr>
+      <tr><td><span class="pill pill-teal">filter()</span></td><td>Remove falsy, find by condition</td></tr>
+      <tr><td><span class="pill pill-rust">reduce()</span></td><td>Sum, group, flatten, count</td></tr>
+      <tr><td><span class="pill pill-purple">forEach()</span></td><td>Side effects, DOM updates</td></tr>
+      <tr><td><span class="pill pill-green">find()</span></td><td>First occurrence search</td></tr>
+      <tr><td><span class="pill pill-gold">Promise</span></td><td>Chain, error handle, all/race</td></tr>
+      <tr><td><span class="pill pill-rust">async/await</span></td><td>Sequential, parallel, try/catch</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 5. TRICKY QUESTIONS ═══════════════════ -->
+<section id="tricky">
+<div class="section-card card-rust">
+  <span class="section-number">17</span>
+  <div class="section-heading">
+    <div class="icon icon-rust">⚠️</div>
+    <h2>Tricky Questions <span class="pill pill-warning">🔥 Watch Out</span></h2>
+  </div>
+  <ol style="padding-left:22px;font-size:0.9rem;">
+    <li style="margin-bottom:10px;"><strong>parseInt with map:</strong> <code>["1","2","3"].map(parseInt)</code> → <code>[1, NaN, NaN]</code><br><small>parseInt receives index as radix!</small></li>
+    <li style="margin-bottom:10px;"><strong>reduce without initialValue with empty array:</strong> <code>[].reduce((a,b) => a+b)</code> → <code>TypeError</code></li>
+    <li style="margin-bottom:10px;"><strong>Promise inside forEach vs map:</strong> forEach ignores returned promises (parallel), map can collect them</li>
+    <li style="margin-bottom:10px;"><strong>async/await in forEach:</strong> doesn't wait! Use for...of instead</li>
+    <li style="margin-bottom:10px;"><strong>Event loop:</strong> <code>setTimeout(0)</code> runs after <code>Promise.resolve()</code></li>
+    <li style="margin-bottom:10px;"><strong>Chained filter().map():</strong> executes fully sequentially — filter completes before map starts</li>
+    <li style="margin-bottom:10px;"><strong>Object.is() vs ===:</strong> <code>Object.is(NaN, NaN)</code> → <code>true</code>, <code>Object.is(-0, +0)</code> → <code>false</code></li>
+    <li style="margin-bottom:10px;"><strong>Spread with nested objects:</strong> shallow copy trap — nested objects are shared references</li>
+    <li style="margin-bottom:10px;"><strong>Destructuring with rename and default:</strong> <code>const { x: y = 5 } = {}</code> → <code>y = 5</code></li>
+    <li style="margin-bottom:10px;"><strong>Missing return in .then():</strong> next then receives <code>undefined</code></li>
+  </ol>
+</div>
+</section>
+
+<!-- ═══════════════════ 6. HIDDEN PATTERNS ═══════════════════ -->
+<section id="hidden-patterns">
+<div class="section-card card-gold">
+  <span class="section-number">18</span>
+  <div class="section-heading">
+    <div class="icon icon-gold">🔮</div>
+    <h2>Hidden Patterns</h2>
+  </div>
+  <p style="margin-bottom:12px;">Every year, the exam reliably includes one question from each of these categories:</p>
+  <ul class="pattern-list">
+    <li>One <strong>Promise</strong> output question</li>
+    <li>One <strong>async-await</strong> output question</li>
+    <li>One <strong>map-filter-reduce</strong> question</li>
+    <li>One <strong>Event Loop</strong> question</li>
+    <li>One <strong>Spread/Rest</strong> question</li>
+    <li>One <strong>Destructuring</strong> question</li>
+    <li>One <strong>Object method</strong> question</li>
+  </ul>
+  <p style="font-size:0.85rem;color:var(--text-muted);"><em>If you master these 7 question patterns, you cover &gt;70% of the paper.</em></p>
+</div>
+</section>
+
+<!-- ═══════════════════ 7. INTERCONNECTION MAP ═══════════════════ -->
+<section id="interconnection">
+<div class="section-card card-teal">
+  <span class="section-number">19</span>
+  <div class="section-heading">
+    <div class="icon icon-teal">🔗</div>
+    <h2>Interconnection Map</h2>
+  </div>
+  <div class="inter-map">
+    <div class="inter-row">
+      <span class="inter-node blue">Arrays</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node teal">map/filter/reduce</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node gold">Chaining</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-arrow" style="visibility:hidden;">│</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-node gold">Objects</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node teal">Destructuring</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node rust">Spread / Rest</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-arrow" style="visibility:hidden;">│</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-node rust">Promises</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node purple">Async / Await</span>
+      <span class="inter-arrow">→</span>
+      <span class="inter-node blue">Event Loop</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-arrow" style="visibility:hidden;">│</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-arrow" style="visibility:hidden;">│</span>
+      <span class="inter-arrow">↕</span>
+      <span class="inter-node purple">Microtask Queue</span>
+    </div>
+    <div class="inter-row">
+      <span class="inter-arrow" style="visibility:hidden;">│</span>
+      <span class="inter-arrow">↕</span>
+      <span class="inter-node gold">setTimeout / setInterval</span>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 8. FREQUENCY ANALYSIS ═══════════════════ -->
+<section id="frequency">
+<div class="section-card card-purple">
+  <span class="section-number">20</span>
+  <div class="section-heading">
+    <div class="icon icon-purple">📈</div>
+    <h2>Frequency Analysis</h2>
+  </div>
+  <div style="margin:14px 0;">
+    <div class="progress-bar"><span class="label">Promises</span><div class="track"><div class="fill fill-blue" style="width:100%"></div></div><span class="count">12</span></div>
+    <div class="progress-bar"><span class="label">map/filter/reduce</span><div class="track"><div class="fill fill-teal" style="width:83%"></div></div><span class="count">10</span></div>
+    <div class="progress-bar"><span class="label">Async / Await</span><div class="track"><div class="fill fill-gold" style="width:75%"></div></div><span class="count">9</span></div>
+    <div class="progress-bar"><span class="label">Event Loop</span><div class="track"><div class="fill fill-purple" style="width:67%"></div></div><span class="count">8</span></div>
+    <div class="progress-bar"><span class="label">Objects</span><div class="track"><div class="fill fill-blue" style="width:58%"></div></div><span class="count">7</span></div>
+    <div class="progress-bar"><span class="label">Destructuring</span><div class="track"><div class="fill fill-gold" style="width:50%"></div></div><span class="count">6</span></div>
+    <div class="progress-bar"><span class="label">Spread / Rest</span><div class="track"><div class="fill fill-rust" style="width:42%"></div></div><span class="count">5</span></div>
+    <div class="progress-bar"><span class="label">Arrays</span><div class="track"><div class="fill fill-teal" style="width:42%"></div></div><span class="count">5</span></div>
+    <div class="progress-bar"><span class="label">forEach</span><div class="track"><div class="fill fill-purple" style="width:33%"></div></div><span class="count">4</span></div>
+    <div class="progress-bar"><span class="label">find</span><div class="track"><div class="fill fill-green" style="width:25%"></div></div><span class="count">3</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 9. PROBABILITY RATINGS ═══════════════════ -->
+<section id="probability">
+<div class="section-card card-gold">
+  <span class="section-number">21</span>
+  <div class="section-heading">
+    <div class="icon icon-gold">🎲</div>
+    <h2>Probability Ratings</h2>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Topic</th><th>Probability</th></tr></thead>
+    <tbody>
+      <tr><td>Promises</td><td><span class="stars">★★★★★</span> Almost Guaranteed</td></tr>
+      <tr><td>map/filter/reduce</td><td><span class="stars">★★★★★</span> Almost Guaranteed</td></tr>
+      <tr><td>Async / Await</td><td><span class="stars">★★★★★</span> Almost Guaranteed</td></tr>
+      <tr><td>Event Loop</td><td><span class="stars">★★★★<span class="star-empty">★</span></span> Very High</td></tr>
+      <tr><td>Objects</td><td><span class="stars">★★★★<span class="star-empty">★</span></span> Very High</td></tr>
+      <tr><td>Destructuring</td><td><span class="stars">★★★<span class="star-empty">★★</span></span> Medium</td></tr>
+      <tr><td>Spread / Rest</td><td><span class="stars">★★★<span class="star-empty">★★</span></span> Medium</td></tr>
+      <tr><td>Arrays</td><td><span class="stars">★★<span class="star-empty">★★★</span></span> Rare</td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 10. COMMON TRAPS ═══════════════════ -->
+<section id="traps">
+<div class="section-card card-rust">
+  <span class="section-number">22</span>
+  <div class="section-heading">
+    <div class="icon icon-rust">🚫</div>
+    <h2>Common Traps</h2>
+  </div>
+  <div class="trap-grid">
+    <div class="trap-item">
+      <div class="trap-label wrong">❌ Wrong Belief</div>
+      <p style="font-size:0.88rem;">"reduce works without return"</p>
+    </div>
+    <div class="trap-item correct">
+      <div class="trap-label right">✅ Correct</div>
+      <p style="font-size:0.88rem;">Without return, accumulator becomes <code>undefined</code></p>
+    </div>
+    <div class="trap-item">
+      <div class="trap-label wrong">❌ Wrong Belief</div>
+      <p style="font-size:0.88rem;">"map passes one argument to callback"</p>
+    </div>
+    <div class="trap-item correct">
+      <div class="trap-label right">✅ Correct</div>
+      <p style="font-size:0.88rem;">map passes <code>(element, index, array)</code> — this is why <code>parseInt</code> breaks</p>
+    </div>
+    <div class="trap-item">
+      <div class="trap-label wrong">❌ Wrong Belief</div>
+      <p style="font-size:0.88rem;">"await works in forEach"</p>
+    </div>
+    <div class="trap-item correct">
+      <div class="trap-label right">✅ Correct</div>
+      <p style="font-size:0.88rem;">forEach ignores async; use for...of for sequential awaits</p>
+    </div>
+    <div class="trap-item">
+      <div class="trap-label wrong">❌ Wrong Belief</div>
+      <p style="font-size:0.88rem;">"setTimeout(0) runs immediately"</p>
+    </div>
+    <div class="trap-item correct">
+      <div class="trap-label right">✅ Correct</div>
+      <p style="font-size:0.88rem;">Microtasks (Promise callbacks) always run before macrotasks</p>
+    </div>
+    <div class="trap-item">
+      <div class="trap-label wrong">❌ Wrong Belief</div>
+      <p style="font-size:0.88rem;">"Spread creates a deep copy"</p>
+    </div>
+    <div class="trap-item correct">
+      <div class="trap-label right">✅ Correct</div>
+      <p style="font-size:0.88rem;">Shallow copy only — nested objects are shared references</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 11. MENTAL MODELS ═══════════════════ -->
+<section id="mental-models">
+<div class="section-card card-teal">
+  <span class="section-number">23</span>
+  <div class="section-heading">
+    <div class="icon icon-teal">🧠</div>
+    <h2>Mental Models</h2>
+  </div>
+  <div class="model-grid">
+    <div class="model-card">
+      <div class="model-concept">Promise</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Courier delivering a package</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">Async / Await</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Waiting at a restaurant order counter</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">Event Loop</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Restaurant kitchen with orders queue</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">Microtask Queue</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">VIP orders (processed first)</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">reduce()</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Snowball rolling downhill</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">filter()</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Sieve / colander</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">map()</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Assembly line</div>
+    </div>
+    <div class="model-card">
+      <div class="model-concept">Spread</div>
+      <div class="model-arrow">→</div>
+      <div class="model-analogy">Unpacking a suitcase</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ 12. FINAL CHEAT SHEET ═══════════════════ -->
+<section id="cheatsheet">
+<div class="section-card card-blue">
+  <span class="section-number">24</span>
+  <div class="section-heading">
+    <div class="icon icon-blue">📋</div>
+    <h2>Final Cheat Sheet</h2>
+  </div>
+
+  <div class="cheat-grid">
+    <div class="cheat-block">
+      <h4>🔟 Most Expected Questions</h4>
+      <ul>
+        <li>Promise chain output prediction</li>
+        <li>async/await execution order</li>
+        <li>map/parseInt trick (<code>[1, NaN, NaN]</code>)</li>
+        <li>Event Loop: sync → microtask → macrotask</li>
+        <li>reduce sum / flatten / group</li>
+        <li>Object.freeze mutation behaviour</li>
+        <li>Destructuring with rest</li>
+        <li>Spread shallow copy vs deep copy</li>
+        <li>forEach returns undefined</li>
+        <li>Promise.all fail-fast behaviour</li>
+      </ul>
+    </div>
+    <div class="cheat-block">
+      <h4>🏗️ 50 Coding Patterns (Key)</h4>
+      <ul>
+        <li>Transform with map, Filter then map</li>
+        <li>Reduce to sum/avg/min/max</li>
+        <li>Reduce to object (group/count)</li>
+        <li>Flatten nested arrays (reduce + spread)</li>
+        <li>Chaining: filter → map → reduce</li>
+        <li>Promise chain with error recovery</li>
+        <li>Parallel async with Promise.all</li>
+        <li>Sequential async with for...of + await</li>
+        <li>Retry pattern with async/await</li>
+        <li>Debounce with setTimeout + clear</li>
+      </ul>
+    </div>
+    <div class="cheat-block">
+      <h4>🧨 5 Tricky Concepts</h4>
+      <ul>
+        <li>parseInt with map (index as radix)</li>
+        <li>reduce on empty array (throws)</li>
+        <li>await in forEach (doesn't pause)</li>
+        <li>Object spread is shallow</li>
+        <li>then() without return passes undefined</li>
+      </ul>
+    </div>
+    <div class="cheat-block">
+      <h4>🔮 5 Output Prediction Types</h4>
+      <ul>
+        <li>Promise chain (catch skips)</li>
+        <li>async/await + sync interleaving</li>
+        <li>Event Loop: setTimeout + Promise</li>
+        <li>map with side-effect callback</li>
+        <li>Object mutation after freeze/seal</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;padding:18px 22px;background:linear-gradient(135deg,#1a2744,#1e4f8a);border-radius:var(--radius-sm);color:#fff;">
+    <p style="font-weight:700;font-size:1rem;margin-bottom:6px;">🔐 Security Questions to Watch</p>
+    <ul style="list-style:none;padding:0;font-size:0.88rem;">
+      <li style="padding:3px 0;">→ <strong>Prototype pollution:</strong> <code>Object.assign({}, JSON.parse(obj))</code> risks</li>
+      <li style="padding:3px 0;">→ <strong>XSS via innerHTML:</strong> sanitize before inserting user content</li>
+      <li style="padding:3px 0;">→ <strong>CSRF with fetch:</strong> credentials and CORS configuration</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <p><strong>Advanced JavaScript — Master Study Guide</strong> · MAD2 Week 2 · IIT Madras</p>
+  <p style="margin-top:4px;">Created for exam preparation · <span style="color:var(--gold);">✦</span> Best of luck <span style="color:var(--gold);">✦</span></p>
+</footer>
+
+</main>
+</body>
+</html>

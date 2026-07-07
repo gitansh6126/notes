@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kernel Methods — Premium Exam Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
+  main { padding: 56px 0 90px; }
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display { margin: 0; }
+  .eq-panel .katex-display > .katex { font-size: 1.35em; }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+  .eq-panel.multiline .katex-display > .katex { font-size: 1.1em; }
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula { flex-shrink: 0; }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+  .code-block {
+    background: #141824;
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+    overflow-x: auto;
+    box-shadow: var(--shadow);
+  }
+  .code-block .cb-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #6b7394;
+    margin-bottom: 12px;
+    letter-spacing: 0.04em;
+  }
+  .code-block pre {
+    margin: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: #dbe0ef;
+  }
+  .code-block .cm { color: #6b7394; }
+  .code-block .kw { color: #e2a25c; }
+  .code-block .fn { color: #7fb0e8; }
+  .code-block .er { color: #e0967a; }
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">Week 02 &middot; Exam Study Notes</div>
+    <h1>Kernel Methods &amp; the <em>Kernel Trick</em></h1>
+    <p><strong>Kernel methods</strong> enable linear algorithms to operate in a high-dimensional feature space without explicitly computing coordinates — by replacing dot products with kernel functions.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Motivation</a>
+      <a href="#s2" class="nav-pill">&sect;2 Kernel Definition</a>
+      <a href="#s3" class="nav-pill">&sect;3 Popular Kernels</a>
+      <a href="#s4" class="nav-pill">&sect;4 Kernel Trick</a>
+      <a href="#s5" class="nav-pill">&sect;5 Kernel Matrix</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- SECTION 1: MOTIVATION -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Why Kernels?</h2>
+      </div>
+      <p class="sec-intro">
+        Many real-world datasets are <strong>not linearly separable</strong> in their original
+        space. The kernel trick lets us <strong>implicitly</strong> map data to a higher-dimensional
+        space where separation becomes linear — without ever computing the mapping.
+      </p>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; The Core Idea</div>
+        <svg viewBox="0 0 860 120" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="15" width="220" height="50" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="130" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Linear in $\R^d$</text>
+          <text x="290" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">$\xrightarrow{\phi}$</text>
+          <rect x="350" y="15" width="240" height="50" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="470" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Linear in $\R^m$ ($m \gg d$)</text>
+          <text x="640" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">$\xleftarrow{K}$</text>
+          <rect x="690" y="15" width="150" height="50" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="765" y="46" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">Never compute $\phi$</text>
+        </svg>
+        <div class="svg-caption">The kernel $K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\mathsf{T} \phi(\mathbf{x}_j)$ lets us work in $\R^m$ while computing only in $\R^d$.</div>
+      </div>
+
+      <div class="callout warn">
+        <div class="co-icon">&#9888;</div>
+        <div class="co-body">
+          <strong>Why explicit mapping fails</strong>
+          <p>For a polynomial of degree $p$ in $d$ dimensions, the explicit feature space dimension is $O(d^p)$. For $d = 100, p = 4$, that's roughly $4.5$ million dimensions — impossible to compute directly.</p>
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine you have a <strong>crumpled paper ball</strong> with red dots on one side and
+          blue on the other. In 2D, you can't draw a line to separate them. But if you
+          <span class="highlight">unfold the paper</span> (map to 3D), a simple plane separates
+          them perfectly. The kernel trick does this unfolding <em>implicitly</em>.
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistake</strong>
+          <p>&#x2716; <strong>Thinking kernels are a specific algorithm:</strong> Kernels are a <em>technique</em> that can be applied to any algorithm expressed only in terms of dot products (SVMs, PCA, regression, etc.).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: KERNEL DEFINITION -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>What is a Kernel?</h2>
+      </div>
+      <p class="sec-intro">
+        A kernel is a <strong>symmetric, positive semi-definite</strong> function that computes
+        a dot product in some (possibly infinite-dimensional) feature space.
+      </p>
+
+      <div class="eq-panel" id="eq-kernel-def">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Kernel Definition</div>
+        $$ K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\mathsf{T} \phi(\mathbf{x}_j) $$
+        <div class="eq-caption">A valid kernel corresponds to an inner product in some feature space $\mathcal{H}$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;A kernel $K$ applied to two points $\mathbf{x}_i$ and $\mathbf{x}_j$ equals the
+          <strong>dot product</strong> of their images $\phi(\mathbf{x}_i)$ and
+          $\phi(\mathbf{x}_j)$ in the feature space $\mathcal{H}$ — without ever explicitly
+          computing $\phi$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$K(\mathbf{x}_i, \mathbf{x}_j)$</td>
+              <td class="leg-meaning">Kernel function — similarity measure</td>
+              <td class="leg-example">$K(\mathbf{x}_i, \mathbf{x}_j) \in \R$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\phi(\mathbf{x})$</td>
+              <td class="leg-meaning">Feature map to $\R^m$ or $\mathcal{H}$</td>
+              <td class="leg-example">Maps $d$-dim to $m$-dim</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathcal{H}$</td>
+              <td class="leg-meaning">Reproducing Kernel Hilbert Space (RKHS)</td>
+              <td class="leg-example">Possibly infinite-dimensional</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of a kernel as a <span class="highlight">smart similarity measure</span>.
+          Instead of "how close are these points in original space?", it answers
+          "how close would they be after a clever transformation?". The kernel function
+          <strong>directly</strong> computes this transformed similarity.
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Mercer's Theorem — When is a Function a Valid Kernel?</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">$K$ must be <strong>symmetric</strong>: $K(\mathbf{x}_i, \mathbf{x}_j) = K(\mathbf{x}_j, \mathbf{x}_i)$</div>
+          <div class="dt-formula">$\checkmark$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">For any set of points, the kernel matrix $\mathbf{K}_{ij} = K(\mathbf{x}_i, \mathbf{x}_j)$ must be <strong>positive semi-definite</strong></div>
+          <div class="dt-formula">$\mathbf{K} \succeq 0$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">If both hold, $\exists\ \phi$ such that $K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^\mathsf{T} \phi(\mathbf{x}_j)$</div>
+          <div class="dt-formula">Mercer's Theorem</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: POPULAR KERNELS -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Common Kernel Functions</h2>
+      </div>
+      <p class="sec-intro">
+        Three kernels dominate practice: <strong>polynomial</strong> for finite feature
+        spaces, <strong>RBF/Gaussian</strong> for infinite-dimensional feature spaces,
+        and <strong>sigmoid</strong> for neural-network-like behavior.
+      </p>
+
+      <div class="eq-panel" id="eq-poly">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Polynomial Kernel</div>
+        $$ K(\mathbf{x}_i, \mathbf{x}_j) = (\mathbf{x}_i^\mathsf{T} \mathbf{x}_j + c)^p $$
+        <div class="eq-caption">$p$ = degree, $c$ = constant term. Maps to $O(d^p)$ features. When $c=0$, it's the <em>homogeneous</em> polynomial kernel.</div>
+      </div>
+
+      <div class="eq-panel" id="eq-rbf">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">RBF (Gaussian) Kernel</div>
+        $$ K(\mathbf{x}_i, \mathbf{x}_j) = \exp\!\left( -\frac{\|\mathbf{x}_i - \mathbf{x}_j\|^2}{2\sigma^2} \right) $$
+        <div class="eq-caption">$\sigma$ controls the width. Corresponds to an <em>infinite-dimensional</em> feature space. Also written as $K = \exp(-\gamma \| \mathbf{x}_i - \mathbf{x}_j\|^2)$ with $\gamma = 1/(2\sigma^2)$.</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equations in English</div>
+        <div class="ex-text">
+          &ldquo;The <strong>polynomial kernel</strong> raises the dot product (plus constant) to
+          power $p$, creating interactions up to degree $p$. The <strong>RBF kernel</strong>
+          measures similarity as an exponentially decaying function of squared distance —
+          points close together have $K \approx 1$, points far apart have $K \approx 0$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Kernel Parameters</div>
+        <table>
+          <thead>
+            <tr><th>Parameter</th><th>Controls</th><th>Low value</th><th>High value</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$p$ (degree)</td>
+              <td class="leg-meaning">Complexity of polynomial interactions</td>
+              <td class="leg-example">$p=1$ (linear)</td>
+              <td class="leg-example">$p=5$ (highly non-linear)</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sigma$ / $\gamma$</td>
+              <td class="leg-meaning">Width of RBF influence</td>
+              <td class="leg-example">Large $\sigma$ (smooth)</td>
+              <td class="leg-example">Small $\sigma$ (wiggly)</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$c$</td>
+              <td class="leg-meaning">Bias / constant term in polynomial</td>
+              <td class="leg-example">$c=0$ (homogeneous)</td>
+              <td class="leg-example">$c=1$ (includes bias)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Two points $\mathbf{x}_1 = [1, 2]$, $\mathbf{x}_2 = [3, 4]$. Compute polynomial kernel with $p=2, c=0$.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Step</th><th>Calculation</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>Dot product $\mathbf{x}_1^\mathsf{T} \mathbf{x}_2 = 1\cdot3 + 2\cdot4$</td><td>$11$</td></tr>
+            <tr><td>2</td><td>Raise to power $p=2$: $11^2$</td><td>$121$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle K(\mathbf{x}_1, \mathbf{x}_2) = 121$</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; RBF Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Same points, $\sigma = 2$. Compute $\|\mathbf{x}_1 - \mathbf{x}_2\|^2 = (1-3)^2 + (2-4)^2 = 8$.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>Step</th><th>Calculation</th><th>Result</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>$\|\mathbf{x}_1 - \mathbf{x}_2\|^2$</td><td>$8$</td></tr>
+            <tr><td>2</td><td>$-8 / (2 \cdot 2^2) = -8/8$</td><td>$-1$</td></tr>
+            <tr><td>3</td><td>$\exp(-1)$</td><td>$0.3679$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle K_{\text{RBF}}(\mathbf{x}_1, \mathbf{x}_2) = e^{-1} \approx 0.368$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>Interpreting the RBF value</strong>
+          <p>$K \approx 0.368$ means the points are moderately far apart relative to $\sigma = 2$. If $\sigma$ were smaller, the similarity would drop faster — the kernel becomes more <strong>local</strong>.</p>
+        </div>
+      </div>
+
+      <div class="apps-card">
+        <div class="ap-label">&#9654; Kernel Selection Guide</div>
+        <div class="ap-grid">
+          <div class="ap-item">
+            <strong>Linear ($p=1$)</strong>
+            Use when data is already high-dimensional or approximately linearly separable.
+          </div>
+          <div class="ap-item">
+            <strong>Polynomial ($p=2,3$)</strong>
+            Use when you expect feature interactions of bounded degree.
+          </div>
+          <div class="ap-item">
+            <strong>RBF/Gaussian</strong>
+            Default choice — universal approximator, handles most non-linear patterns.
+          </div>
+          <div class="ap-item">
+            <strong>Sigmoid</strong>
+            Use for neural-network-like behavior; less common in practice.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: THE KERNEL TRICK -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>The Kernel Trick</h2>
+      </div>
+      <p class="sec-intro">
+        The <strong>kernel trick</strong> replaces every dot product in an algorithm with a kernel
+        function. This lets the algorithm work in the high-dimensional feature space at the
+        computational cost of the original space.
+      </p>
+
+      <div class="eq-panel" id="eq-trick">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">The Kernel Trick</div>
+        $$ \langle \phi(\mathbf{x}_i), \phi(\mathbf{x}_j) \rangle \;\longrightarrow\; K(\mathbf{x}_i, \mathbf{x}_j) $$
+        <div class="eq-caption">Replace all inner products with kernel evaluations — the algorithm never sees $\phi(\mathbf{x})$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Substitution in English</div>
+        <div class="ex-text">
+          &ldquo;Wherever an algorithm uses a <strong>dot product</strong> between two feature
+          vectors $\phi(\mathbf{x}_i)$ and $\phi(\mathbf{x}_j)$, replace it with the
+          <strong>kernel</strong> $K(\mathbf{x}_i, \mathbf{x}_j)$ — a single scalar computation
+          in the original space.&rdquo;
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Dual SVM as an Example</div>
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Original SVM dual uses dot products: $\max \sum \alpha_i - \frac12 \sum\sum \alpha_i \alpha_j y_i y_j \langle \mathbf{x}_i, \mathbf{x}_j \rangle$</div>
+          <div class="dt-formula">$\langle \mathbf{x}_i, \mathbf{x}_j \rangle$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Replace with kernel</span></div>
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Kernelized SVM dual: $\max \sum \alpha_i - \frac12 \sum\sum \alpha_i \alpha_j y_i y_j K(\mathbf{x}_i, \mathbf{x}_j)$</div>
+          <div class="dt-formula">$K(\mathbf{x}_i, \mathbf{x}_j)$</div>
+        </div>
+        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Decision function</span></div>
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">$f(\mathbf{x}) = \sum_i \alpha_i y_i K(\mathbf{x}_i, \mathbf{x}) + b$ — still only needs kernel evaluations</div>
+          <div class="dt-formula">$K(\mathbf{x}_i, \mathbf{x})$</div>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#10003;</div>
+        <div class="co-body">
+          <strong>Why it's a "trick"</strong>
+          <p>The computational cost of the kernelized algorithm depends on $n$ and $d$ (original space), <em>not</em> on $m$ (feature space). For RBF, $m$ is infinite — yet $K$ costs $O(d)$ to compute.</p>
+        </div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What the trick means</strong>
+          <p>Any algorithm that can be <strong>re-written</strong> solely in terms of dot products can be kernelized. This includes SVMs, PCA (kernel PCA), ridge regression, perceptron, and more — enabling non-linear versions with minimal code change.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Using non-PSD kernels:</strong> If $K$ is not positive semi-definite, the optimization problem becomes non-convex and may not converge.</p>
+          <p>&#x2716; <strong>Applying kernel trick to primal algorithms:</strong> The algorithm must be expressible <em>entirely</em> in dot products. Primal gradient-based methods typically cannot be kernelized.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: KERNEL MATRIX -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>The Kernel Matrix (Gram Matrix)</h2>
+      </div>
+      <p class="sec-intro">
+        The <strong>kernel matrix</strong> $\mathbf{K}$ (also called the Gram matrix) collects all
+        pairwise kernel evaluations. Its properties determine whether a kernel is valid and
+        how well-conditioned the learning problem will be.
+      </p>
+
+      <div class="eq-panel" id="eq-kmat">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Kernel Matrix</div>
+        $$ \mathbf{K}_{ij} = K(\mathbf{x}_i, \mathbf{x}_j) \quad \text{for } i,j = 1,\dots,n $$
+        <div class="eq-caption">An $n \times n$ symmetric matrix. For a valid kernel, $\mathbf{K}$ must be PSD: $\mathbf{v}^\mathsf{T} \mathbf{K} \mathbf{v} \ge 0\ \forall \mathbf{v} \in \R^n$.</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Definition in English</div>
+        <div class="ex-text">
+          &ldquo;The kernel matrix $\mathbf{K}$ stores the <strong>similarity</strong> between
+          every pair of training points. Entry $\mathbf{K}_{ij}$ is the kernel value for
+          $(\mathbf{x}_i, \mathbf{x}_j)$. For Mercer kernels, $\mathbf{K}$ is
+          <strong>positive semi-definite</strong> — no negative eigenvalues.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Properties of $\mathbf{K}$</div>
+        <table>
+          <thead>
+            <tr><th>Property</th><th>Meaning</th><th>Implication</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">Symmetric</td>
+              <td class="leg-meaning">$\mathbf{K}_{ij} = \mathbf{K}_{ji}$</td>
+              <td class="leg-example">Follows from kernel symmetry</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">PSD</td>
+              <td class="leg-meaning">All eigenvalues $\ge 0$</td>
+              <td class="leg-example">Convex optimization guaranteed</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n \times n$</td>
+              <td class="leg-meaning">Size depends on samples, not features</td>
+              <td class="leg-example">$O(n^2)$ memory, $O(n^3)$ for inversion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Kernel Matrix Example</div>
+        <div class="num-setup"><strong>Setup:</strong> 3 points in 2D with linear kernel $K(\mathbf{x}_i, \mathbf{x}_j) = \mathbf{x}_i^\mathsf{T} \mathbf{x}_j$. $\mathbf{X} = \begin{pmatrix}1 & 2 \\ 3 & 4 \\ 5 & 6\end{pmatrix}$.</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>$i$</th><th>$j$</th><th>$\mathbf{x}_i^\mathsf{T} \mathbf{x}_j$</th><th>$\mathbf{K}_{ij}$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td>1</td><td>$1+4 = 5$</td><td>$5$</td></tr>
+            <tr><td>1</td><td>2</td><td>$3+8 = 11$</td><td>$11$</td></tr>
+            <tr><td>2</td><td>2</td><td>$9+16 = 25$</td><td>$25$</td></tr>
+            <tr><td>1</td><td>3</td><td>$5+12 = 17$</td><td>$17$</td></tr>
+            <tr><td>2</td><td>3</td><td>$15+24 = 39$</td><td>$39$</td></tr>
+            <tr><td>3</td><td>3</td><td>$25+36 = 61$</td><td>$61$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">$\displaystyle \mathbf{K} = \begin{pmatrix}5 & 11 & 17 \\ 11 & 25 & 39 \\ 17 & 39 & 61\end{pmatrix}$</div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Kernel Matrix Visualization</div>
+        <svg viewBox="0 0 860 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="aK" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+          <rect x="30" y="20" width="130" height="50" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+          <text x="95" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#8f6a1c" font-weight="600">Data $\mathbf{X}$</text>
+          <text x="210" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">$\xrightarrow{K}$</text>
+          <rect x="260" y="15" width="130" height="60" rx="10" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="325" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Kernel Matrix</text>
+          <text x="325" y="58" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">$n \times n$</text>
+          <text x="440" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">$\xrightarrow{\text{Spectrum}}$</text>
+          <rect x="500" y="20" width="200" height="50" rx="10" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+          <text x="600" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#3d2666" font-weight="600">Eigenvalues $\lambda_i \ge 0$</text>
+          <text x="750" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="20" fill="#8b91a5">$\Rightarrow$</text>
+          <rect x="770" y="12" width="80" height="65" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+          <text x="810" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7a321e" font-weight="600">Valid</text>
+          <text x="810" y="56" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7a321e" font-weight="600">Kernel</text>
+        </svg>
+        <div class="svg-caption">The kernel matrix encodes all pairwise similarities; PSD check via eigenvalues validates the kernel.</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Computational Note</strong>
+          <p>Kernel methods scale <em>quadratically</em> in $n$ (computing $\mathbf{K}$ is $O(n^2 d)$). For large datasets ($n > 10^5$), approximations like the Nystr&ouml;m method or random Fourier features are used.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>&#x2716; <strong>Confusing kernel matrix with covariance matrix:</strong> The kernel matrix is $n \times n$ (sample similarities), while the covariance matrix is $d \times d$ (feature similarities).</p>
+          <p>&#x2716; <strong>Assuming all kernel matrices are invertible:</strong> PSD guarantees eigenvalues $\ge 0$, but some may be $0$ — the matrix can be singular.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>MLT &middot; Exam Study Notes &middot; Kernel Methods</p>
+</footer>
+
+</body>
+</html>
