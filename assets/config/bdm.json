@@ -1,54 +1,222 @@
 {
   "courseId": "bdm",
-  "courseName": "BDM (Business Data Management)",
+  "courseName": "BDM",
   "weeks": [
     {
       "weekName": "Week 01 - Introduction to Data Management",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 01 - Introduction to Data Management/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 01 - Introduction to Data Management",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.462Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 02 - Data Modeling",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 02 - Data Modeling/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 02 - Data Modeling",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.605Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 03 - Database Design",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 03 - Database Design/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 03 - Database Design",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.611Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 04 - SQL Fundamentals",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 04 - SQL Fundamentals/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 04 - SQL Fundamentals",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.617Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 05 - Advanced SQL",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 05 - Advanced SQL/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 05 - Advanced SQL",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.627Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 06 - Data Warehousing",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 06 - Data Warehousing/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 06 - Data Warehousing",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.637Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 07 - Data Integration & ETL",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 07 - Data Integration & ETL/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 07 - Data Integration & ETL",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.649Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 08 - Data Quality & Governance",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 08 - Data Quality & Governance/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 08 - Data Quality & Governance",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.661Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 09 - Big Data Fundamentals",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 09 - Big Data Fundamentals/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 09 - Big Data Fundamentals",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.700Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 10 - Data Visualization",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 10 - Data Visualization/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 10 - Data Visualization",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.716Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 11 - Business Intelligence",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 11 - Business Intelligence/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 11 - Business Intelligence",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.726Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     },
     {
       "weekName": "Week 12 - Data Strategy & Ethics",
-      "lectures": []
+      "lectures": [
+        {
+          "title": "Study Guide",
+          "file": "Study Guide.html",
+          "path": "Week 12 - Data Strategy & Ethics/Study Guide.html",
+          "course": "bdm",
+          "week": "Week 12 - Data Strategy & Ethics",
+          "order": 1,
+          "slug": "study-guide",
+          "lastModified": "2026-07-08T04:00:05.733Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
     }
   ]
 }
