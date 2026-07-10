@@ -1,0 +1,269 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Modules NPM OOP — Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 03</div>
+  <h1>Modules, NPM &amp; Objects</h1>
+  <p>How JavaScript code is packaged, shared, and organized — from <b>ES6 modules</b> and the <b>npm</b> ecosystem to <b>object</b> fundamentals and the <code>this</code> keyword.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span> ES6 Modules — Export &amp; Import</div>
+<div class="card">
+  <h2>Named &amp; Default Exports</h2>
+  <div class="def">Every file is its own module. You control exactly what is exposed to the outside world.</div>
+<pre><code><span class="cmt">// ------ math.js ------</span>
+<span class="cmt">// Named export — multiple per module</span>
+<span class="kw">export</span> <span class="kw">const</span> PI <span class="kw">=</span> <span class="num">3.14159</span>;
+<span class="kw">export</span> <span class="kw">function</span> add(<span class="fn">a, b</span>) { <span class="kw">return</span> a <span class="kw">+</span> b; }
+
+<span class="cmt">// Default export — one per module</span>
+<span class="kw">export</span> <span class="kw">default</span> <span class="kw">class</span> Calculator { <span class="cmt">/* … */</span> }
+
+<span class="cmt">// ------ app.js ------</span>
+<span class="cmt">// Named import — must use exact name</span>
+<span class="kw">import</span> { PI, add } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Default import — any name you choose</span>
+<span class="kw">import</span> Calc <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Combined import</span>
+<span class="kw">import</span> Calc, { PI, add } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Aliases — rename to avoid conflicts</span>
+<span class="kw">import</span> { add <span class="kw">as</span> sum } <span class="kw">from</span> <span class="str">'./math.js'</span>;
+
+<span class="cmt">// Namespace import — all exports on one object</span>
+<span class="kw">import</span> <span class="kw">*</span> <span class="kw">as</span> math <span class="kw">from</span> <span class="str">'./math.js'</span>;
+console.log(math.PI);     <span class="cmt">// 3.14159</span>
+console.log(math.add(<span class="num">2</span>, <span class="num">3</span>)); <span class="cmt">// 5</span></code></pre>
+  <div class="tip-box">
+    <div class="t-label">Key Insight</div>
+    <div class="t-text">Module scope is <strong>strict mode by default</strong> — no need for <code>"use strict"</code>. All top-level declarations are private unless explicitly exported.</div>
+  </div>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A module is like a toolbox drawer with a label. <code>export</code> is hanging a tool on the pegboard outside the drawer; <code>import</code> is taking that specific tool from the pegboard into your own workspace. Default export is the "main" tool everyone knows the drawer for.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">CommonJS (Node.js)</div>
+    <div class="c-desc">Synchronous <code>require()</code> / <code>module.exports</code>. Dynamic imports allowed anywhere. Not supported in browsers without bundling. Used in legacy Node.js code.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">ES6 Modules (ESM)</div>
+    <div class="c-desc">Static <code>import</code> / <code>export</code> (analyzed at parse time). Async loading by default. Works in browsers with <code>&lt;script type="module"&gt;</code>. The standard for modern JS.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> NPM — The Package Ecosystem</div>
+<div class="card">
+  <h2>package.json, Dependencies &amp; Lockfiles</h2>
+  <div class="def">npm is the default package manager for Node.js. It manages project metadata, scripts, and dependencies.</div>
+<pre><code><span class="cmt">// Initialize a new project</span>
+npm init <span class="kw">-</span>y    <span class="cmt">// creates package.json with defaults</span>
+
+<span class="cmt">// Install a dependency</span>
+npm install lodash    <span class="cmt">// adds to "dependencies"</span>
+npm install <span class="kw">-</span><span class="kw">-</span>save-dev jest  <span class="cmt">// adds to "devDependencies"</span></code></pre>
+  <p><strong>package.json</strong> — stores project name, version, scripts, and dependency lists.</p>
+  <p><strong>node_modules</strong> — where installed packages live. Never commit to version control.</p>
+  <p><strong>package-lock.json</strong> — locks exact version numbers for reproducible installs across machines.</p>
+  <div class="industry-box">
+    <div class="i-label">Industry Best Practice</div>
+    <div class="i-text">Always commit <code>package-lock.json</code> to version control. It ensures every developer and deployment pipeline installs the exact same dependency tree — preventing "works on my machine" bugs caused by minor version drift.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Installing packages globally (<code>npm install -g</code>) when they should be local dev dependencies. Tools like ESLint, Prettier, and bundlers belong in <code>devDependencies</code> so every team member uses the same version.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Objects — Syntax &amp; Patterns</div>
+<div class="card">
+  <h2>Object Literals &amp; Modern Shorthands</h2>
+  <div class="def">Objects are the fundamental data structure in JS. Modern syntax makes them more concise.</div>
+<pre><code><span class="cmt">// Basic literal</span>
+<span class="kw">const</span> user <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Alice'</span>,
+  <span class="prop">age</span>: <span class="num">30</span>
+};
+
+<span class="cmt">// Computed property keys</span>
+<span class="kw">const</span> key <span class="kw">=</span> <span class="str">'dynamicField'</span>;
+<span class="kw">const</span> obj <span class="kw">=</span> {
+  [key]: <span class="str">'value'</span>,         <span class="cmt">// evaluates key at definition time</span>
+  [`${key}<span class="num">2</span>`]: <span class="str">'another'</span>
+};
+
+<span class="cmt">// Property value shorthand</span>
+<span class="kw">const</span> name <span class="kw">=</span> <span class="str">'Bob'</span>;
+<span class="kw">const</span> age <span class="kw">=</span> <span class="num">25</span>;
+<span class="kw">const</span> person <span class="kw">=</span> { name, age }; <span class="cmt">// { name: 'Bob', age: 25 }</span>
+
+<span class="cmt">// Method shorthand</span>
+<span class="kw">const</span> greeter <span class="kw">=</span> {
+  <span class="fn">sayHi</span>() {                 <span class="cmt">// instead of sayHi: function()</span>
+    <span class="kw">return</span> <span class="str">`Hi, I'm ${this.name}`</span>;
+  }
+};</code></pre>
+</div>
+
+<div class="card">
+  <h2>The <code>this</code> Keyword</h2>
+  <div class="def"><code>this</code> is determined by <strong>how a function is called</strong>, not where it's defined. This is a frequent source of confusion.</div>
+<pre><code><span class="cmt">// 1. Method call — 'this' is the object the method is called on</span>
+user.sayHi();  <span class="cmt">// this → user</span>
+
+<span class="cmt">// 2. Standalone call — 'this' is undefined (strict) or global (non-strict)</span>
+<span class="kw">const</span> greet <span class="kw">=</span> user.sayHi;
+greet();       <span class="cmt">// this → undefined (module scope = strict)</span>
+
+<span class="cmt">// 3. Arrow functions — inherit 'this' from surrounding scope</span>
+<span class="kw">const</span> obj <span class="kw">=</span> {
+  <span class="prop">name</span>: <span class="str">'Obj'</span>,
+  <span class="fn">regular</span>() { <span class="kw">return</span> this.name; },    <span class="cmt">// "Obj"</span>
+  <span class="prop">arrow</span>: <span class="fn">()</span> <span class="kw">=></span> this.name              <span class="cmt">// undefined — inherits from outer scope</span>
+};</code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><code>this</code> is like saying "my" — the meaning depends entirely on who says it. If Alice says "my car," "my" refers to Alice. If Bob borrows Alice's words and says "my car," it now refers to Bob. The same function borrowed by different objects changes what <code>this</code> means.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What's the difference between <code>import { x }</code> and <code>import * as x</code>?</div>
+  <div class="a"><strong>A:</strong> <code>import { x }</code> imports only the specific binding <code>x</code> — tree-shakeable, explicit. <code>import * as x</code> imports all exported bindings as properties of a namespace object — never tree-shakeable, used when you need everything from a module.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What does <code>npm ci</code> do and when should you use it?</div>
+  <div class="a"><strong>A:</strong> <code>npm ci</code> installs dependencies <strong>exactly</strong> from <code>package-lock.json</code> — it fails if the lockfile is out of sync with <code>package.json</code>. Use it in CI/CD pipelines for deterministic, faster installs.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> How does <code>this</code> behave differently in arrow functions vs regular functions?</div>
+  <div class="a"><strong>A:</strong> Regular functions get their own <code>this</code> based on invocation context (method call, standalone, etc.). Arrow functions have no own <code>this</code> — they capture it lexically from the enclosing scope at definition time.</div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>Named export</b> — <code>export const x</code></div>
+  <div class="rev-item"><b>Default export</b> — <code>export default x</code></div>
+  <div class="rev-item"><b>Namespace import</b> — <code>import * as ns</code></div>
+  <div class="rev-item"><b>Alias import</b> — <code>import { x as y }</code></div>
+  <div class="rev-item"><b>Modules are strict</b> — no <code>"use strict"</code> needed</div>
+  <div class="rev-item"><b>npm init</b> — creates package.json</div>
+  <div class="rev-item"><b>dependencies</b> — runtime (lodash, react)</div>
+  <div class="rev-item"><b>devDependencies</b> — dev tools (jest, eslint)</div>
+  <div class="rev-item"><b>lockfile</b> — exact version pinning</div>
+  <div class="rev-item"><b>Computed keys</b> — <code>{ [expr]: val }</code></div>
+  <div class="rev-item"><b>Shorthand</b> — <code>{ name, age }</code></div>
+  <div class="rev-item"><b>Method shorthand</b> — <code>{ foo() {} }</code></div>
+  <div class="rev-item"><b>this</b> — depends on call site</div>
+  <div class="rev-item"><b>Arrow this</b> — lexical, from enclosing scope</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

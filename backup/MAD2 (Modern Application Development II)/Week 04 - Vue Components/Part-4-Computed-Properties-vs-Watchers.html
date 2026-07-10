@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Computed Properties vs Watchers — Study Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root{
+    --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+    --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+    --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+    --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+    --code-bg:#0D1118; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 20% 0%, rgba(125,211,252,0.08), transparent 40%),radial-gradient(circle at 80% 20%, rgba(74,222,148,0.06), transparent 40%),var(--bg);
+    color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .hero{border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px; background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;}
+  .hero::after{content:""; position:absolute; top:-40%; right:-10%; width:280px;height:280px;border-radius:50%; background:radial-gradient(circle, rgba(125,211,252,0.12), transparent 70%);}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--cyan); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .eyebrow::before{content:"●"; font-size:10px;}
+  h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+  .hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+  .section-tag{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin:38px 0 10px; display:flex; align-items:center; gap:10px;}
+  .section-tag .n{width:22px;height:22px;border-radius:6px;background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--cyan); font-weight:700; font-size:11px;}
+  .card{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:24px 26px; margin-bottom:18px;}
+  .card h2{font-size:19px; margin:0 0 10px; font-weight:700;}
+  .card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+  .emoji-h{display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;}
+  .emoji-h .e{font-size:20px;}
+  .analogy-box{background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+  .analogy-box .a-text{font-size:13.5px; color:#E9D9B8;} .analogy-box .a-text b{color:var(--amber);}
+  .industry-box{background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+  .industry-box .i-text{font-size:13.5px; color:#D5D8FF;} .industry-box .i-text b{color:var(--violet);}
+  .mistake-box{background:var(--red-dim); border:1px solid rgba(240,80,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+  .mistake-box .m-text{font-size:13.5px; color:#F0B0B0;} .mistake-box .m-text b{color:var(--red);}
+  .tip-box{background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+  .tip-box .t-text{font-size:13.5px; color:#C9E8F8;} .tip-box .t-text b{color:var(--cyan);}
+  .app-box{background:var(--green-dim); border:1px solid rgba(74,222,148,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .app-box .app-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--green); font-weight:600; margin-bottom:4px;}
+  .app-box .app-text{font-size:13.5px; color:#C9F2DC;} .app-box .app-text b{color:var(--green);}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; margin:12px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;}
+  code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;} .fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px;}
+  th,td{border:1px solid var(--line); padding:12px 14px; text-align:left;}
+  th{background:var(--panel-2); color:var(--cyan); font-weight:600;}
+  td{background:var(--panel); color:var(--text);}
+
+  .decision-tree{display:flex; flex-direction:column; gap:6px; margin:16px 0; font-size:13.5px;}
+  .dt-step{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:12px 16px; display:flex; align-items:center; gap:10px;}
+  .dt-step .dt-q{color:var(--amber); font-weight:600;}
+  .dt-step .dt-a{color:var(--muted);}
+  .dt-step .dt-result{font-weight:600; padding:2px 10px; border-radius:4px; font-size:12px;}
+  .dt-step .dt-result.computed{background:var(--green-dim); color:var(--green);}
+  .dt-step .dt-result.watcher{background:var(--violet-dim); color:var(--violet);}
+  .dt-step .dt-result.method{background:var(--amber-dim); color:var(--amber);}
+
+  .qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+  .qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+  .qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+
+  .rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+  .rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+  .rev-item b{color:var(--cyan);}
+  @media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+
+  ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+  li{margin:4px 0; color:var(--text);}
+
+  .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">AppDev2 · Vue.js</div>
+    <h1>Computed Properties vs. Watchers</h1>
+    <p>Two distinct strategies for handling data changes — and why choosing the wrong tool for the job is one of the most common anti-patterns in Vue development.</p>
+  </div>
+
+  <!-- ====== SECTION 1: COMPUTED PROPERTIES ====== -->
+  <div class="section-tag"><span class="n">1</span> COMPUTED PROPERTIES</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><b>Computed properties</b> calculate and expose derived data based on original, reactive dependencies. Whenever a source dependency changes, the computed property automatically re-evaluates and updates its value. They <b>always return a value</b> used directly in the template.</p>
+
+    <div class="emoji-h"><span class="e">🧠</span> Intuition</div>
+    <p style="font-size:14.5px;">Computed properties are like <b>formulas in a spreadsheet</b>. Cell <code>C1</code> has <code>=A1+B1</code>. When <code>A1</code> or <code>B1</code> changes, <code>C1</code> recalculates automatically. You never call <code>C1</code> — it's always up-to-date. Computed properties work the same way: they track their dependencies and cache the result until those dependencies change.</p>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy — Bank Balance</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Bank Account Balance</div>
+      <div class="a-text">Your bank account balance is never typed manually. It is <b>computed</b> from <code>deposits − withdrawals</code>. Whenever a transaction occurs (dependency changes), the balance updates automatically. The bank doesn't re-compute the balance 100 times if 100 people view it — it caches the result and only re-calculates when a new transaction happens. <b>That's a computed property: cached, derived, auto-updating.</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💻</span> Syntax — Getter &amp; Setter</div>
+    <pre><code><span class="cmt">// Read-only computed (default — getter only)</span>
+computed: {
+  fullName() {
+    <span class="kw">return</span> <span class="kw">this</span>.firstName + <span class="str">' '</span> + <span class="kw">this</span>.lastName;
+  }
+}
+
+<span class="cmt">// Computed with getter AND setter (rare, but useful)</span>
+computed: {
+  fullName: {
+    <span class="fn">get</span>() {
+      <span class="kw">return</span> <span class="kw">this</span>.firstName + <span class="str">' '</span> + <span class="kw">this</span>.lastName;
+    },
+    <span class="fn">set</span>(newValue) {
+      <span class="kw">const</span> parts = newValue.<span class="fn">split</span>(<span class="str">' '</span>);
+      <span class="kw">this</span>.firstName = parts[<span class="str">0</span>];
+      <span class="kw">this</span>.lastName = parts[<span class="str">1</span>];
+    }
+  }
+}</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💼</span> Real-Life Applications</div>
+
+    <div class="app-box">
+      <div class="app-label">Application 1 — Shopping Cart Total</div>
+      <div class="app-text"><b>E-commerce cart:</b> The total price is computed from <code>cartItems.reduce((sum, item) => sum + item.price * item.qty, 0)</code>. Every time the user adds, removes, or changes quantities, the total auto-updates. No manual recalculation needed. <b>This is the most common computed property example in industry.</b></div>
+    </div>
+
+    <div class="app-box">
+      <div class="app-label">Application 2 — GPA Calculation</div>
+      <div class="app-text"><b>Student portal:</b> <code>gpa() { return this.grades.reduce((sum, g) => sum + g.gradePoint * g.credits, 0) / this.totalCredits }</code>. When a new grade is added or an existing one changes, the GPA recalculates automatically. Caching ensures viewing the GPA on multiple pages doesn't re-run the calculation.</div>
+    </div>
+
+    <div class="app-box">
+      <div class="app-label">Application 3 — Dashboard Statistics</div>
+      <div class="app-text"><b>Analytics dashboard:</b> <code>conversionRate() { return this.totalConversions / this.totalVisitors * 100 }</code>. Every time new visitor or conversion data arrives, the rate updates. Computed properties keep dashboard widgets synchronized without manual refresh logic.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚡</span> Computed vs Method</div>
+    <table>
+      <tr><th>Feature</th><th>Computed Property</th><th>Method</th></tr>
+      <tr><td><b>Caching</b></td><td>✅ Cached until dependencies change</td><td>❌ Re-executes on every render</td></tr>
+      <tr><td><b>Reactivity</b></td><td>Auto-tracks dependencies</td><td>No dependency tracking</td></tr>
+      <tr><td><b>Template Usage</b></td><td><code>{{ fullName }}</code> (no parentheses)</td><td><code>{{ getFullName() }}</code> (parentheses)</td></tr>
+      <tr><td><b>Best For</b></td><td>Derived state, formatted data</td><td>One-time calculations, event handlers</td></tr>
+    </table>
+
+    <div class="tip-box">
+      <div class="t-label">Best Practice</div>
+      <div class="t-text">If the template accesses a value multiple times, use a <b>computed property</b> to avoid redundant re-execution. Methods re-run on <em>every</em> re-render, even if their inputs haven't changed. Computed properties only re-run when dependencies change.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using a computed property for side-effects.</b> Computed properties must <b>only</b> return a value, never trigger API calls, mutate data, or cause side-effects. Vue expects them to be pure functions of their dependencies.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Mutating computed property dependencies inside the computed function.</b> This creates infinite loops. If <code>fullName</code> sets <code>this.firstName</code> inside its getter, it triggers a re-evaluation, which sets it again — infinite loop.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 2: WATCHERS ====== -->
+  <div class="section-tag"><span class="n">2</span> WATCHERS (<span class="kw">watch</span>)</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><b>Watchers</b> explicitly monitor reactive properties and execute callback functions whenever that tracked property changes. They are used primarily to trigger custom imperative code or execute complex <b>asynchronous actions</b> — like making an API request, saving state to local storage, or triggering an animation.</p>
+
+    <div class="emoji-h"><span class="e">🧠</span> Intuition</div>
+    <p style="font-size:14.5px;">A watcher is like a <b>security camera</b> pointed at a specific door. When the door state changes (opens/closes), the camera triggers a recording. It doesn't produce a value — it performs an action. Same with watchers: they don't return values for the template, they execute side-effect functions.</p>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💻</span> Syntax — Basic, Deep, Immediate</div>
+    <pre><code><span class="cmt">// Basic watcher</span>
+watch: {
+  searchQuery(newVal, oldVal) {
+    <span class="fn">console</span>.log(<span class="str">`Query changed from ${oldVal} to ${newVal}`</span>);
+  }
+}
+
+<span class="cmt">// Deep watcher — watches nested object changes</span>
+watch: {
+  user: {
+    handler(newVal) {
+      <span class="fn">console</span>.log(<span class="str">'User object changed'</span>, newVal);
+    },
+    deep: <span class="kw">true</span>  <span class="cmt">// watches nested properties</span>
+  }
+}
+
+<span class="cmt">// Immediate watcher — runs ONCE on creation, then on changes</span>
+watch: {
+  userId: {
+    handler(newId) {
+      <span class="kw">this</span>.<span class="fn">fetchUserData</span>(newId);
+    },
+    immediate: <span class="kw">true</span>  <span class="cmt">// runs on component mount too</span>
+  }
+}</code></pre>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Amazon Search Bar</div>
+      <div class="a-text">When you type on Amazon's search bar:<br><br>
+      <code>l → "l" → API call for suggestions<br>
+      la → "la" → API call for suggestions<br>
+      lap → "lap" → API call for suggestions<br>
+      laptop → "laptop" → API call for suggestions</code><br><br>
+      Each keystroke changes the search query, and that <b>triggers an API call</b>. The API call is a <b>side-effect</b>, not a derived value. This is exactly what watchers are for — watch the search query, and when it changes, make an API request.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💼</span> Industry Applications</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example 1 — Search-as-you-type</div>
+      <div class="i-text"><b>Google Search / Amazon / YouTube:</b> The search input is watched. When the query changes, a debounced API call fetches suggestions. Uses <code>watch</code> with debouncing to avoid flooding the API on every keystroke.</div>
+    </div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example 2 — Form Autosave</div>
+      <div class="i-text"><b>Google Docs / Notion:</b> A <code>watch</code> on the document content triggers <code>localStorage.setItem('draft', newContent)</code> or an API autosave endpoint. Changes are persisted without the user clicking "Save."</div>
+    </div>
+    <div class="industry-box">
+      <div class="i-label">Industry Example 3 — Form Validation</div>
+      <div class="i-text"><b>Any signup form:</b> Watch the <code>password</code> field to validate strength in real-time. Watch <code>email</code> to check format. Watch <code>repeat_password</code> to compare with password. Each watcher triggers validation logic and updates error messages.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using a watcher when a computed property would do.</b> If you're watching <code>firstName</code> and <code>lastName</code> to set <code>fullName</code>, that's a computed property job. Watchers should be for side-effects, not derived state.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Forgetting deep: true for nested objects.</b> If you <code>watch: { user: handler }</code> and the user object's nested property changes (<code>user.name</code>), the watcher won't fire unless you add <code>deep: true</code>.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Not cleaning up watchers.</b> If a watcher sets up a timer, interval, or subscription, the component's <code>beforeDestroy</code> hook must clean it up to prevent memory leaks.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 3: COMPUTED vs WATCH vs METHOD ====== -->
+  <div class="section-tag"><span class="n">3</span> COMPUTED vs WATCH vs METHOD</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📊</span> Complete Comparison Table</div>
+    <table>
+      <tr><th>Feature</th><th>Computed</th><th>Watcher</th><th>Method</th></tr>
+      <tr><td><b>Paradigm</b></td><td>Declarative — <em>what</em> value to derive</td><td>Imperative — <em>what action</em> to take</td><td>Imperative — reusable logic</td></tr>
+      <tr><td><b>Caching</b></td><td>✅ Cached until deps change</td><td>❌ No caching</td><td>❌ No caching</td></tr>
+      <tr><td><b>Return Value</b></td><td>✅ Must return a value</td><td>❌ No return (side-effects)</td><td>✅ May return value</td></tr>
+      <tr><td><b>Dependency Tracking</b></td><td>✅ Automatic</td><td>✅ Explicit (you choose what to watch)</td><td>❌ None</td></tr>
+      <tr><td><b>Async Support</b></td><td>❌ No</td><td>✅ Yes</td><td>✅ Yes</td></tr>
+      <tr><td><b>Template Usage</b></td><td><code>{{ computedProp }}</code></td><td>N/A (triggers side-effects)</td><td><code>{{ method() }}</code></td></tr>
+      <tr><td><b>Best For</b></td><td>Derived state, formatting</td><td>Async, side-effects, API calls</td><td>Event handlers, logic reuse</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Decision Tree</div>
+    <div class="decision-tree">
+      <div class="dt-step">
+        <span class="dt-q">Do you need to derive a value from existing data?</span>
+        <span class="dt-a">→</span>
+        <span class="dt-result computed">Use Computed</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q">Do you need to react to a change and do something (API call, save, validate)?</span>
+        <span class="dt-a">→</span>
+        <span class="dt-result watcher">Use Watcher</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q">Do you need reusable logic called from events or multiple places?</span>
+        <span class="dt-a">→</span>
+        <span class="dt-result method">Use Method</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q">Does the value need to be re-evaluated on every render (no caching)?</span>
+        <span class="dt-a">→</span>
+        <span class="dt-result method">Use Method</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes — Both</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Using a watcher to compute fullName from firstName + lastName.</b> A computed property does this declaratively with caching. A watcher is imperative, doesn't cache, and requires manual management of the derived state.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Calling a method from template for derived state.</b> <code>{{ getFullName() }}</code> in the template re-runs on EVERY re-render, even if firstName/lastName haven't changed. Use a computed property for caching.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💡</span> Best Practices</div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 1</div>
+      <div class="t-text"><b>Prefer computed over watcher whenever possible.</b> Computed properties are declarative, cached, and easier to reason about. Watchers should be your last resort for side-effects only.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 2</div>
+      <div class="t-text"><b>Keep computed properties pure.</b> No API calls, no data mutation, no DOM access. They should only read dependencies and return a value.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Best Practice 3</div>
+      <div class="t-text"><b>Use immediate + deep watchers deliberately.</b> <code>immediate: true</code> runs the handler on component creation — useful for fetching initial data. <code>deep: true</code> adds overhead for nested objects — use sparingly.</div>
+    </div>
+  </div>
+
+  <!-- ====== REVISION ====== -->
+  <div class="section-tag"><span class="n">4</span> REVISION CHEAT SHEET</div>
+  <div class="card">
+    <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
+    <ul>
+      <li><b>Computed:</b> Derives + caches a value. Auto-tracks dependencies. Pure function.</li>
+      <li><b>Watcher:</b> Triggers side-effects on change. Imperative. Good for API calls, save, validation.</li>
+      <li><b>Method:</b> Reusable logic. No caching. Good for event handlers.</li>
+      <li>Rule of thumb: if it returns a value for the template, use computed. If it triggers an action, use watcher.</li>
+      <li>Computed properties are cached; methods re-run on every render.</li>
+      <li>Watchers have <code>deep</code> and <code>immediate</code> options for advanced scenarios.</li>
+      <li>Never mutate dependencies inside a computed getter — infinite loop risk.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">❓</span> Interview Questions</div>
+    <div class="qa-box">
+      <div class="q">Q: What is the difference between a computed property and a watcher?</div>
+      <div class="a"><b>A:</b> A computed property derives a value from reactive dependencies, caches the result, and only re-evaluates when dependencies change — it's declarative and must return a value. A watcher is imperative, executes a callback when a watched property changes, is used for side-effects (API calls, localStorage, etc.), and does not return a value. Use computed when you need a derived value; use watcher when you need to react to a change.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: Why would you use a computed property instead of a method?</div>
+      <div class="a"><b>A:</b> Computed properties are <b>cached</b> — they only re-evaluate when their dependencies change. Methods re-execute on <b>every render</b>, even if their inputs haven't changed. If a value appears multiple times in a template or is expensive to compute, a computed property avoids redundant work.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: Can a computed property have a setter?</div>
+      <div class="a"><b>A:</b> Yes. By default, computed properties are getter-only (read-only). But you can provide both a <code>get</code> and <code>set</code> function. The setter allows you to run logic when the computed value is assigned — typically splitting the assigned value back into its source properties. This is useful for <code>v-model</code> with computed properties.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">AppDev2 · Vue.js Computed, Watchers &amp; Methods — study card</div>
+</div>
+</body>
+</html>

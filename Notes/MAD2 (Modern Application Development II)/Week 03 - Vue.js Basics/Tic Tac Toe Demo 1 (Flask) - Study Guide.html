@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe Demo 1 (Flask) — Study Guide | MAD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Typography */
+  h1, h2, h3, h4, h5 { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code, pre, .mono { font-family: 'JetBrains Mono', 'Cascadia Code', monospace; }
+  pre { background: #1a1e2b; color: #e8eaef; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: var(--blue-soft); padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; font-size: 0.85em; }
+  pre code { background: none; padding: 0; border-radius: 0; font-weight: 400; }
+
+  /* Syntax Highlighting - CSS only */
+  .hljs-keyword { color: #c792ea; }
+  .hljs-string { color: #c3e88d; }
+  .hljs-number { color: #f78c6c; }
+  .hljs-comment { color: #546e7a; font-style: italic; }
+  .hljs-function { color: #82aaff; }
+  .hljs-title { color: #ffcb6b; }
+  .hljs-built_in { color: #89ddff; }
+  .hljs-attr { color: #f07178; }
+  .hljs-tag { color: #f07178; }
+  .hljs-name { color: #f07178; }
+  .hljs-selector-tag { color: #c792ea; }
+  .hljs-literal { color: #f78c6c; }
+  .hljs-params { color: #eeffff; }
+  .hljs-variable { color: #eeffff; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a1e2b 0%, #2c3e6b 50%, #1e4f8a 100%);
+    color: #fff;
+    padding: 3rem 0 2.5rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: -60%; right: -20%;
+    width: 500px; height: 500px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%; pointer-events: none;
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: -40%; left: -10%;
+    width: 350px; height: 350px;
+    background: rgba(255,255,255,0.02);
+    border-radius: 50%; pointer-events: none;
+  }
+  .hero h1 { font-size: 2.4rem; font-weight: 900; position: relative; z-index: 1; line-height: 1.2; }
+  .hero h1 span { color: #e8c55a; }
+  .hero .subtitle { font-size: 1.1rem; opacity: 0.85; margin-top: 0.4rem; font-weight: 400; position: relative; z-index: 1; }
+  .hero .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; opacity: 0.7; position: relative; z-index: 1; flex-wrap: wrap; }
+  .hero .meta span { display: flex; align-items: center; gap: 0.35rem; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--line);
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card h2 { font-size: 1.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--blue); }
+  .card p { margin-bottom: 0.5rem; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+
+  .bdr-blue { border-left-color: var(--blue); }
+  .bdr-gold { border-left-color: var(--gold); }
+  .bdr-teal { border-left-color: var(--teal); }
+  .bdr-rust { border-left-color: var(--rust); }
+  .bdr-purple { border-left-color: var(--purple); }
+  .bdr-green { border-left-color: var(--green); }
+
+  /* Section */
+  .section { margin-bottom: 2.5rem; }
+  .sec-header {
+    display: flex; align-items: baseline; gap: 0.75rem;
+    margin-bottom: 1.25rem; padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--line);
+  }
+  .sec-num {
+    font-size: 0.75rem; font-weight: 800; color: var(--blue);
+    background: var(--blue-soft); padding: 0.2em 0.7em;
+    border-radius: 999px; letter-spacing: 0.04em;
+  }
+  .sec-header h2 { font-size: 1.5rem; margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .sec-intro { font-size: 1rem; color: var(--ink-soft); margin-bottom: 1.25rem; line-height: 1.8; }
+
+  /* Callout boxes */
+  .callout {
+    display: flex; gap: 1rem; padding: 1rem 1.25rem;
+    border-radius: var(--radius); margin-bottom: 1.25rem;
+    border-left: 4px solid;
+  }
+  .callout-info { background: var(--blue-soft); border-color: var(--blue); }
+  .callout-warning { background: var(--rust-soft); border-color: var(--rust); }
+  .callout-tip { background: var(--green-soft); border-color: var(--green); }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p { margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p:last-child { margin-bottom: 0; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; }
+  .tbl-wrap table { margin-bottom: 0; }
+
+  /* Code block wrapper */
+  .code-block {
+    background: #1a1e2b;
+    border-radius: var(--radius);
+    margin-bottom: 1.25rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .cb-label {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.5rem 1rem;
+    background: #2a2e3b;
+    color: #8b91a5;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .cb-label .cb-lang { color: var(--gold); }
+  .code-block pre { margin: 0; border-radius: 0; }
+
+  /* Flowchart */
+  .flowchart {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 1.5rem; gap: 0.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+  }
+  .fc-box {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0.7rem 1.2rem;
+    background: var(--surface);
+    border: 2px solid var(--blue);
+    border-radius: 8px;
+    font-weight: 600;
+    color: var(--blue);
+    text-align: center;
+    min-width: 140px;
+    box-shadow: var(--shadow);
+  }
+  .fc-box.gold { border-color: var(--gold); color: var(--gold-deep); background: var(--gold-soft); }
+  .fc-box.teal { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+  .fc-box.rust { border-color: var(--rust); color: var(--rust); background: var(--rust-soft); }
+  .fc-box.purple { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .fc-box.green { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .fc-box.small { min-width: 100px; padding: 0.5rem 0.8rem; font-size: 0.75rem; }
+  .fc-arrow { color: var(--ink-faint); font-size: 1.2rem; line-height: 1; }
+  .fc-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+  .fc-label { font-size: 0.7rem; color: var(--ink-faint); text-align: center; margin-top: -0.25rem; margin-bottom: 0.25rem; }
+
+  /* Diagram */
+  .diagram {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+  }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* Concept card */
+  .concept-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--gold);
+  }
+  .concept-card h3 {
+    color: var(--gold-deep);
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  @media (max-width: 820px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+  /* Q&A cards */
+  .qa-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .qa-q {
+    padding: 1rem 1.25rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--blue-soft);
+    color: var(--blue);
+    font-size: 0.9rem;
+    transition: 0.2s;
+  }
+  .qa-q:hover { background: #dce4f5; }
+  .qa-q .qa-toggle { font-size: 1.1rem; transition: transform 0.3s; }
+  .qa-q.open .qa-toggle { transform: rotate(45deg); }
+  .qa-a { padding: 1rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.9rem; display: none; }
+  .qa-a.open { display: block; }
+  .qa-a p { margin-bottom: 0.4rem; }
+  .qa-a ul { padding-left: 1.25rem; margin-bottom: 0.4rem; }
+  .qa-a code { font-size: 0.82em; }
+
+  /* Cheat sheet */
+  .cheat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  .cheat-item {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    box-shadow: var(--shadow);
+    border-left: 3px solid var(--blue);
+  }
+  .cheat-item h4 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--blue);
+    margin-bottom: 0.4rem;
+  }
+  .cheat-item code {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+  }
+  .cheat-item .cheat-desc { font-size: 0.78rem; color: var(--ink-soft); }
+
+  /* Summary box */
+  .summary-box {
+    background: linear-gradient(135deg, var(--blue-soft), var(--teal-soft));
+    border-radius: var(--radius);
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(30,79,138,0.15);
+  }
+  .summary-box h3 { color: var(--blue); margin-bottom: 0.75rem; }
+  .summary-box ul { padding-left: 1.25rem; }
+  .summary-box li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 2rem 0 1.5rem;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint);
+  }
+  .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  /* Pill */
+  .pill {
+    display: inline-block; padding: 0.2em 0.7em;
+    border-radius: 999px; font-size: 0.7rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .pill-blue { background: var(--blue-soft); color: var(--blue); }
+  .pill-gold { background: var(--gold-soft); color: var(--gold-deep); }
+  .pill-teal { background: var(--teal-soft); color: var(--teal); }
+  .pill-rust { background: var(--rust-soft); color: var(--rust); }
+
+  /* Takeaway list */
+  .takeaway-list { list-style: none; padding: 0; }
+  .takeaway-list li {
+    padding: 0.5rem 0 0.5rem 1.5rem;
+    position: relative;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .takeaway-list li:last-child { border-bottom: none; }
+  .takeaway-list li::before {
+    content: '>'; position: absolute; left: 0;
+    color: var(--teal);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Glossary */
+  .glossary-term {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 0.5rem 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.9rem;
+  }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .gt-word {
+    font-weight: 700;
+    color: var(--blue);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+  }
+  .glossary-term .gt-def { color: var(--ink-soft); }
+
+  /* Footer */
+  .footer {
+    text-align: center; padding: 2rem 0;
+    color: var(--ink-faint); font-size: 0.8rem;
+    border-top: 1px solid var(--line);
+    margin-top: 2rem;
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 1.5rem 0; }
+    .card, .concept-card, .qa-card, .callout, .summary-box, .diagram, .code-block, .cheat-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    .qa-a { display: block !important; }
+    .qa-q .qa-toggle { display: none; }
+    .fc-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .callout-info, .callout-warning, .callout-tip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sec-header { border-bottom-color: #ccc; }
+  }
+
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 1.6rem; }
+    .hero { padding: 2rem 0 1.5rem; }
+    .container { padding: 0 16px; }
+    .card { padding: 1rem 1.25rem; }
+    .glossary-term { grid-template-columns: 1fr; gap: 0.2rem; }
+    .fc-row { flex-direction: column; }
+    .fc-arrow { transform: rotate(90deg); }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.3rem; }
+    .sec-header h2 { font-size: 1.2rem; }
+    .card { padding: 0.85rem 1rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Tic Tac Toe Demo 1 &mdash; <span>Flask</span></h1>
+    <div class="subtitle">Server-Side Rendering &amp; Flask Architecture</div>
+    <div class="meta">
+      <span>MAD2: Modern Application Development II</span>
+      <span>Week 03 &middot; Vue.js Basics</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section class="section" id="overview">
+  <div class="sec-header">
+    <span class="sec-num">01</span>
+    <h2>Overview &mdash; Tic Tac Toe on Flask</h2>
+  </div>
+  <p class="sec-intro">
+    This demo builds a <strong>multi-player Tic Tac Toe</strong> game where every move is handled entirely on the <strong>server</strong>. 
+    The browser sends a move, the server updates the game state, re-renders the entire board as HTML, and sends it back. 
+    Every click triggers a full page reload. This is <strong>classic server-side rendering (SSR)</strong>.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F3AE; How the Game Works</h3>
+    <ol>
+      <li>Two players share the same browser (alternating turns).</li>
+      <li>A player clicks on an empty cell &mdash; the browser submits a <code>POST</code> request to Flask.</li>
+      <li>Flask receives the request, finds which cell was clicked, updates the board state, checks for a winner.</li>
+      <li>Flask renders a <strong>new HTML page</strong> with the updated board and sends it back.</li>
+      <li>The browser loads the fresh HTML &mdash; the page <strong>reloads completely</strong> every turn.</li>
+    </ol>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Core Idea</strong>
+      <p>The server owns all the logic &mdash; the board state, win detection, turn management. The browser is just a <strong>dumb display</strong> that sends clicks and renders HTML. Every interaction requires a round-trip to the server.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. SERVER-SIDE RENDERING ==================== -->
+<section class="section" id="ssr">
+  <div class="sec-header">
+    <span class="sec-num">02</span>
+    <h2>Server-Side Rendering (SSR)</h2>
+  </div>
+  <p class="sec-intro">
+    <strong>Server-Side Rendering</strong> means the server generates the final HTML and sends it to the browser. 
+    The browser simply displays what it receives. This is how websites worked before modern JavaScript frameworks.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4E1; SSR Explained</h3>
+    <p>In SSR, the <strong>server</strong> does all the heavy lifting:</p>
+    <ul>
+      <li>It stores the application state (board, scores, whose turn it is).</li>
+      <li>It contains all the game logic (validate move, check win, switch turns).</li>
+      <li>It generates HTML (using Jinja2 templates) and sends it in the HTTP response.</li>
+      <li>The browser just <strong>renders</strong> what it gets. No JavaScript logic runs on the client.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4C8; SSR Flow Diagram</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrB" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/>
+          </marker>
+          <marker id="arrR" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a8482a"/>
+          </marker>
+        </defs>
+        <rect x="30" y="30" rx="10" width="180" height="60" fill="#e9eef7" stroke="#1e4f8a" stroke-width="2"/>
+        <text x="120" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#1e4f8a">Browser</text>
+        <text x="120" y="73" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#1e4f8a">(displays HTML)</text>
+
+        <rect x="420" y="10" rx="10" width="240" height="100" fill="#f7e6df" stroke="#a8482a" stroke-width="2"/>
+        <text x="540" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#a8482a">Flask Server</text>
+        <text x="540" y="55" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">Board state, turn logic</text>
+        <text x="540" y="70" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">Win detection</text>
+        <text x="540" y="85" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">Jinja2 template rendering</text>
+        <text x="540" y="100" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">Full HTML response</text>
+
+        <line x1="210" y1="50" x2="415" y2="40" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrB)"/>
+        <text x="310" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#1e4f8a">1. Click cell &#x2192; POST /move</text>
+
+        <line x1="420" y1="80" x2="215" y2="70" stroke="#a8482a" stroke-width="2" marker-end="url(#arrR)" stroke-dasharray="5,3"/>
+        <text x="315" y="90" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">2. Full HTML page back</text>
+
+        <rect x="30" y="130" rx="8" width="180" height="36" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="120" y="153" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#2c6b5d">Page reloads completely</text>
+
+        <line x1="120" y1="90" x2="120" y2="128" stroke="#2c6b5d" stroke-width="1.5" marker-end="url(#arrB)" stroke-dasharray="3,3"/>
+
+        <text x="540" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#8b91a5">Server stores board in memory/session</text>
+        <text x="540" y="162" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#8b91a5">Every move = full round-trip</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Key Trade-off</strong>
+      <p>Every user action requires a <strong>full page reload</strong>. The browser flashes white, fetches a new page, and re-renders everything. This feels slow and clunky compared to modern SPAs, but it is <strong>simple to build</strong> and the <strong>server has full control</strong> over the state.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. FLASK ARCHITECTURE ==================== -->
+<section class="section" id="flask-arch">
+  <div class="sec-header">
+    <span class="sec-num">03</span>
+    <h2>Flask Architecture</h2>
+  </div>
+  <p class="sec-intro">
+    Flask is a <strong>micro web framework</strong> for Python. It is minimal, flexible, and gives you just enough 
+    to build a web application without imposing structure. Let us break down its architecture.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F3D7;&#xFE0F; Flask Core Components</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Component</th><th>Role</th><th>In Tic Tac Toe</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Application Object</strong></td>
+            <td><code>Flask(__name__)</code> &mdash; the central app instance</td>
+            <td>One <code>app</code> instance handles all requests</td>
+          </tr>
+          <tr>
+            <td><strong>Routes</strong></td>
+            <td><code>@app.route()</code> decorator maps URLs to functions</td>
+            <td><code>/</code> shows the board; <code>/move</code> handles a turn</td>
+          </tr>
+          <tr>
+            <td><strong>View Functions</strong></td>
+            <td>Python functions that process requests and return responses</td>
+            <td><code>index()</code> renders board; <code>move()</code> processes clicks</td>
+          </tr>
+          <tr>
+            <td><strong>Jinja2 Templates</strong></td>
+            <td>HTML templates with dynamic placeholders (<code>{{ }}</code>)</td>
+            <td><code>board.html</code> renders the 3x3 grid with current state</td>
+          </tr>
+          <tr>
+            <td><strong>Request Object</strong></td>
+            <td><code>request</code> global gives access to incoming HTTP data</td>
+            <td><code>request.form</code> carries the clicked cell index</td>
+          </tr>
+          <tr>
+            <td><strong>Session Object</strong></td>
+            <td><code>session</code> global stores per-user data across requests</td>
+            <td><code>session['board']</code> holds the game board</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4DC; Flask Request Handling Flow</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">Browser sends HTTP request</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">WSGI Server (Werkzeug)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">Flask Router matches URL</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small rust">Before Request Hooks</div>
+        <div class="fc-box small purple">View Function Runs</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Returns Response (HTML)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">Browser renders HTML</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label">
+      <span>Flask app skeleton for Tic Tac Toe</span>
+      <span class="cb-lang">Python</span>
+    </div>
+    <pre><code><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Flask, render_template, request, session
+
+app = Flask(__name__)
+app.secret_key = <span class="hljs-string">'your-secret-key-here'</span>
+
+
+<span class="hljs-comment"># Route 1: Show the board</span>
+<span class="hljs-meta">@app.route('/')</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>():
+    <span class="hljs-keyword">if</span> <span class="hljs-string">'board'</span> <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> session:
+        session[<span class="hljs-string">'board'</span>] = [<span class="hljs-string">''</span>] * <span class="hljs-number">9</span>
+        session[<span class="hljs-string">'turn'</span>] = <span class="hljs-string">'X'</span>
+    <span class="hljs-keyword">return</span> render_template(<span class="hljs-string">'board.html'</span>, board=session[<span class="hljs-string">'board'</span>],
+                           turn=session[<span class="hljs-string">'turn'</span>])
+
+
+<span class="hljs-comment"># Route 2: Handle a move</span>
+<span class="hljs-meta">@app.route('/move', methods=['POST'])</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>():
+    cell = int(request.form[<span class="hljs-string">'cell'</span>])
+    board = session[<span class="hljs-string">'board'</span>]
+    turn = session[<span class="hljs-string">'turn'</span>]
+
+    <span class="hljs-keyword">if</span> board[cell] == <span class="hljs-string">''</span>:
+        board[cell] = turn
+        turn = <span class="hljs-string">'O'</span> <span class="hljs-keyword">if</span> turn == <span class="hljs-string">'X'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'X'</span>
+
+    session[<span class="hljs-string">'board'</span>] = board
+    session[<span class="hljs-string">'turn'</span>] = turn
+    <span class="hljs-keyword">return</span> render_template(<span class="hljs-string">'board.html'</span>, board=board, turn=turn)</code></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Why Session?</strong>
+      <p>HTTP is stateless &mdash; Flask does not remember previous requests. The <code>session</code> object (backed by a signed cookie) lets us persist the board state across requests without a database. The browser sends the session cookie with every request; Flask decrypts it to recover the board.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. REQUEST-RESPONSE CYCLE ==================== -->
+<section class="section" id="request-cycle">
+  <div class="sec-header">
+    <span class="sec-num">04</span>
+    <h2>Request-Response Cycle (Detailed)</h2>
+  </div>
+  <p class="sec-intro">
+    Every time a player clicks a cell, a complete HTTP request-response cycle executes. 
+    Here is the exact sequence of events.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F501; Complete Cycle for One Move</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 740 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrD" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/>
+          </marker>
+        </defs>
+        <rect x="20" y="10" rx="10" width="200" height="46" fill="#1e4f8a" opacity="0.9"/>
+        <text x="120" y="37" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 1: User Clicks</text>
+
+        <line x1="120" y1="56" x2="120" y2="78" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="20" y="80" rx="10" width="200" height="46" fill="#b5872a" opacity="0.9"/>
+        <text x="120" y="107" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 2: Form Submit</text>
+
+        <line x1="120" y1="126" x2="120" y2="148" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="20" y="150" rx="10" width="200" height="60" fill="#a8482a" opacity="0.9"/>
+        <text x="120" y="175" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 3: POST /move</text>
+        <text x="120" y="195" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#fff">cell=3 (third cell)</text>
+
+        <line x1="220" y1="180" x2="350" y2="180" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+        <text x="285" y="173" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#1e4f8a">HTTP over network</text>
+
+        <rect x="355" y="10" rx="10" width="200" height="46" fill="#2c6b5d" opacity="0.9"/>
+        <text x="455" y="37" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 4: Route Match</text>
+        <line x1="455" y1="56" x2="455" y2="78" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="355" y="80" rx="10" width="200" height="46" fill="#5a3e8a" opacity="0.9"/>
+        <text x="455" y="107" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 5: View Function</text>
+        <line x1="455" y1="126" x2="455" y2="148" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="355" y="150" rx="10" width="200" height="60" fill="#5a3e8a" opacity="0.9"/>
+        <text x="455" y="175" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 6: Update State</text>
+        <text x="455" y="195" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#fff">board[3] = 'X', toggle turn</text>
+        <line x1="455" y1="210" x2="455" y2="232" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="355" y="235" rx="10" width="200" height="46" fill="#3d7a4a" opacity="0.9"/>
+        <text x="455" y="262" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 7: Render Template</text>
+        <line x1="455" y1="281" x2="455" y2="303" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="355" y="305" rx="10" width="200" height="46" fill="#2c6b5d" opacity="0.9"/>
+        <text x="455" y="332" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 8: Send HTML</text>
+
+        <line x1="355" y1="328" x2="225" y2="328" stroke="#a8482a" stroke-width="2" marker-end="url(#arrD)" stroke-dasharray="5,3"/>
+        <text x="290" y="345" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" fill="#a8482a">HTTP response with new HTML</text>
+
+        <rect x="20" y="305" rx="10" width="200" height="46" fill="#b5872a" opacity="0.9"/>
+        <text x="120" y="332" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 9: Page Reloads</text>
+        <line x1="120" y1="351" x2="120" y2="373" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrD)"/>
+
+        <rect x="20" y="375" rx="10" width="200" height="36" fill="#1e4f8a" opacity="0.9"/>
+        <text x="120" y="398" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Step 10: User Sees Board</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x23F1; Timeline of a Single Move</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Step</th><th>What Happens</th><th>Time Cost</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>User clicks a cell</td><td>&lt;1 ms</td></tr>
+          <tr><td>2</td><td>Browser serialises form data</td><td>&lt;1 ms</td></tr>
+          <tr><td>3</td><td>HTTP POST request travels to server</td><td>10-100 ms (network)</td></tr>
+          <tr><td>4</td><td>Flask matches URL to route</td><td>&lt;1 ms</td></tr>
+          <tr><td>5</td><td>View function executes (update board, check win)</td><td>&lt;5 ms</td></tr>
+          <tr><td>6</td><td>Jinja2 renders HTML template</td><td>1-5 ms</td></tr>
+          <tr><td>7</td><td>HTTP response travels back</td><td>10-100 ms (network)</td></tr>
+          <tr><td>8</td><td>Browser parses HTML, re-renders</td><td>10-50 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:0.85rem; color:var(--ink-soft); margin-top:0.5rem;">Total: roughly 30-250 ms per move. Most of the time is <strong>network latency</strong>, not server processing.</p>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Why This Feels Slow</strong>
+      <p>Every move requires a <strong>round-trip</strong> to the server. The browser shows a blank white page during reload. For a game with many rapid clicks, the delay and visual flash are annoying. This is why modern apps use <strong>client-side rendering</strong> instead.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 5. HTTP COMMUNICATION ==================== -->
+<section class="section" id="http-comm">
+  <div class="sec-header">
+    <span class="sec-num">05</span>
+    <h2>HTTP Communication in Detail</h2>
+  </div>
+  <p class="sec-intro">
+    Every interaction between the browser and Flask happens over <strong>HTTP</strong>. 
+    Understanding the request and response structure is essential.
+  </p>
+
+  <div class="card bdr-rust">
+    <h3>&#x1F4E5; The HTTP Request (Browser &#x2192; Server)</h3>
+    <p>When a player clicks cell 3, the browser sends this:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>HTTP POST request</span><span class="cb-lang">HTTP</span></div>
+      <pre><code>POST /move HTTP/1.1
+Host: localhost:5000
+Content-Type: application/x-www-form-urlencoded
+Cookie: session=eyJib2FyZCI6WyIiLCIiLCIiLCIiLCIiLCIiLCIiLCIiLCIiXX0
+
+cell=3</code></pre>
+    </div>
+    <ul>
+      <li><strong>Method:</strong> <code>POST</code> &mdash; sends data to the server (changes state)</li>
+      <li><strong>Path:</strong> <code>/move</code> &mdash; matches the Flask route</li>
+      <li><strong>Headers:</strong> Content-Type tells Flask how to parse the body; Cookie carries the session.</li>
+      <li><strong>Body:</strong> <code>cell=3</code> &mdash; the clicked cell index.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4E4; The HTTP Response (Server &#x2192; Browser)</h3>
+    <p>Flask sends back a full HTML document:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>HTTP response</span><span class="cb-lang">HTTP</span></div>
+      <pre><code>HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+Set-Cookie: session=eyJib2FyZCI6WyIiLCIiLCIiLCJY...
+
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;Tic Tac Toe&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Tic Tac Toe&lt;/h1&gt;
+  &lt;p&gt;Player O's turn&lt;/p&gt;
+  &lt;form method="POST" action="/move"&gt;
+    &lt;table class="board"&gt;
+      &lt;tr&gt;
+        &lt;td&gt;&lt;button type="submit" name="cell" value="0"&gt;X&lt;/button&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;button type="submit" name="cell" value="1"&gt; &lt;/button&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;button type="submit" name="cell" value="2"&gt; &lt;/button&gt;&lt;/td&gt;
+      &lt;/tr&gt;
+      ...
+    &lt;/table&gt;
+  &lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+    </div>
+    <ul>
+      <li><strong>Status:</strong> <code>200 OK</code> &mdash; request succeeded.</li>
+      <li><strong>Headers:</strong> <code>Content-Type: text/html</code> tells the browser to render as HTML.</li>
+      <li><strong>Body:</strong> The completely rendered HTML page with the updated board.</li>
+      <li><strong>Set-Cookie:</strong> The updated session cookie (with the new board state).</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Stateless Protocol Reminder</strong>
+      <p>HTTP itself does not remember anything. Each request is independent. The <strong>session cookie</strong> is the bridge &mdash; it carries the board state to the server so Flask knows what happened in previous requests. Without it, every move would start a fresh game.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. WHY EVERY MOVE RELOADS ==================== -->
+<section class="section" id="why-reload">
+  <div class="sec-header">
+    <span class="sec-num">06</span>
+    <h2>Why Every Move Reloads the Page</h2>
+  </div>
+  <p class="sec-intro">
+    In the Flask Tic Tac Toe demo, clicking a cell causes a <strong>full page reload</strong>. 
+    This is not a bug &mdash; it is a direct consequence of the architecture.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4F1; The Mechanism</h3>
+    <p>The board is rendered as an HTML <code>&lt;form&gt;</code>. Each cell is a <code>&lt;button type="submit"&gt;</code>.</p>
+    <div class="code-block">
+      <div class="cb-label"><span>HTML board template (Jinja2)</span><span class="cb-lang">HTML</span></div>
+      <pre><code><span class="hljs-comment">&lt;!-- board.html --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">form</span> <span class="hljs-attr">method</span>=<span class="hljs-string">"POST"</span> <span class="hljs-attr">action</span>=<span class="hljs-string">"/move"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">table</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"board"</span>&gt;</span>
+    {% <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> <span class="hljs-built_in">range</span>(<span class="hljs-number">9</span>) %}
+      <span class="hljs-tag">&lt;<span class="hljs-name">td</span>&gt;</span>
+        <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">type</span>=<span class="hljs-string">"submit"</span>
+                <span class="hljs-attr">name</span>=<span class="hljs-string">"cell"</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"{{ i }}"</span>&gt;</span>
+          {{ board[i] or '&amp;nbsp;' }}
+        <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+      <span class="hljs-tag">&lt;/<span class="hljs-name">td</span>&gt;</span>
+    {% <span class="hljs-keyword">endfor</span> %}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">table</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span></code></pre>
+    </div>
+    <p>When a user clicks any button inside the form, the browser:</p>
+    <ol>
+      <li><strong>Serialises</strong> the form data (<code>cell=N</code>).</li>
+      <li><strong>Navigates away</strong> from the current page.</li>
+      <li><strong>Sends a POST request</strong> to <code>/move</code>.</li>
+      <li><strong>Replaces</strong> the entire page with the server's HTML response.</li>
+    </ol>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Real-Life Analogy: A Letter</strong>
+      <p>Imagine playing chess by mail. You mail a letter saying "I moved my pawn to e4". Your opponent receives it, updates the board on their end, and mails you back the new board state. You cannot see the board while waiting for the reply. The form submission is like mailing a letter &mdash; you have to wait for the reply to see the updated state.</p>
+    </div>
+  </div>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F4AD; Comparison: SSR vs Client-Side Rendering</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Aspect</th><th>Flask SSR (this demo)</th><th>Client-Side (Vue/React)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Page reloads?</td><td><strong>Yes</strong>, every move</td><td>No, DOM updates in-place</td></tr>
+          <tr><td>State location</td><td>Server (session cookie)</td><td>Browser (JavaScript memory)</td></tr>
+          <tr><td>Network usage</td><td>Full HTML sent every time</td><td>Small JSON payloads</td></tr>
+          <tr><td>User experience</td><td>Flashing, slower feel</td><td>Smooth, instant</td></tr>
+          <tr><td>Development complexity</td><td>Low (Python + HTML)</td><td>Higher (build tools, state mgmt)</td></tr>
+          <tr><td>SEO</td><td>Great (HTML is ready)</td><td>Needs SSR or pre-rendering</td></tr>
+          <tr><td>Accessibility</td><td>Good (native form behaviour)</td><td>Requires ARIA management</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 7. ADVANTAGES & DISADVANTAGES ==================== -->
+<section class="section" id="adv-disadv">
+  <div class="sec-header">
+    <span class="sec-num">07</span>
+    <h2>Advantages &amp; Disadvantages</h2>
+  </div>
+
+  <div class="grid-2">
+    <div class="card bdr-teal">
+      <h3>&#x2705; Advantages</h3>
+      <ul>
+        <li><strong>Simple to build</strong> &mdash; just Python and HTML templates, no JavaScript needed.</li>
+        <li><strong>State is secure</strong> &mdash; game logic and data live on the server; users cannot cheat by inspecting browser code.</li>
+        <li><strong>Works without JavaScript</strong> &mdash; the game functions even if JS is disabled in the browser.</li>
+        <li><strong>SEO-friendly</strong> &mdash; search engines get fully rendered HTML directly.</li>
+        <li><strong>Great for learning</strong> &mdash; makes the HTTP request-response cycle visible and concrete.</li>
+        <li><strong>No client-side framework needed</strong> &mdash; reduces bundle size and complexity.</li>
+      </ul>
+    </div>
+
+    <div class="card bdr-rust">
+      <h3>&#x274C; Disadvantages</h3>
+      <ul>
+        <li><strong>Full page reload every move</strong> &mdash; causes visual flash and perceived slowness.</li>
+        <li><strong>More bandwidth</strong> &mdash; sending the entire HTML page for every interaction is wasteful.</li>
+        <li><strong>Server load</strong> &mdash; every click hits the server, even trivial UI updates.</li>
+        <li><strong>Limited interactivity</strong> &mdash; no animations, hover effects, or instant feedback.</li>
+        <li><strong>No offline support</strong> &mdash; the game requires a network connection for every move.</li>
+        <li><strong>Scaling challenges</strong> &mdash; each user's state lives in the session, which can complicate horizontal scaling.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. GAME STATE STORAGE ==================== -->
+<section class="section" id="state-storage">
+  <div class="sec-header">
+    <span class="sec-num">08</span>
+    <h2>How Game State is Stored</h2>
+  </div>
+  <p class="sec-intro">
+    State management is the central challenge. The board must persist across HTTP requests 
+    because each request is independent.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4BE; State Storage Options</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>Method</th><th>How it Works</th><th>Pros</th><th>Cons</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Flask Session</strong></td>
+            <td>Signed cookie stored on browser, sent with every request</td>
+            <td>No server memory needed, survives restarts</td>
+            <td>Limited size (~4 KB), sent on every request</td>
+          </tr>
+          <tr>
+            <td><strong>Server Memory</strong></td>
+            <td>Global variable or dictionary in Python</td>
+            <td>Fast, flexible</td>
+            <td>Lost on restart, not shared across workers</td>
+          </tr>
+          <tr>
+            <td><strong>Database</strong></td>
+            <td>Store board in SQLite/PostgreSQL</td>
+            <td>Persistent, scalable</td>
+            <td>Overkill for a simple game</td>
+          </tr>
+          <tr>
+            <td><strong>Hidden Form Fields</strong></td>
+            <td>Board state embedded as hidden inputs in HTML</td>
+            <td>Simple, no cookies needed</td>
+            <td>Users can tamper with values</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4E6; Flask Session Internals</h3>
+    <p>The Flask session is implemented as a <strong>signed cookie</strong> (not stored on the server).</p>
+    <div class="code-block">
+      <div class="cb-label"><span>How session works</span><span class="cb-lang">Python</span></div>
+      <pre><code><span class="hljs-comment"># Flask does this automatically:</span>
+
+<span class="hljs-comment"># 1. When you set session['board'] = [...], Flask serialises it to JSON</span>
+<span class="hljs-comment"># 2. Signs it with app.secret_key to prevent tampering</span>
+<span class="hljs-comment"># 3. Sets a Set-Cookie header with the signed data</span>
+
+<span class="hljs-comment"># On the next request:</span>
+<span class="hljs-comment"># 1. Browser sends the cookie back</span>
+<span class="hljs-comment"># 2. Flask verifies the signature</span>
+<span class="hljs-comment"># 3. Decrypts it and populates session dict</span>
+
+<span class="hljs-comment"># This is why secret_key must be strong!</span>
+app.secret_key = <span class="hljs-string">'a1b2c3d4-e5f6-7890-very-secure-key'</span></code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Security Note</strong>
+      <p>While the session is <strong>signed</strong> (tamper-proof), it is <strong>not encrypted by default</strong>. The user can decode the base64 content and see the board state. Do not put sensitive data (passwords, credit cards) in the default Flask session. Use server-side sessions for sensitive data.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 9. COMPARISON WITH JS ==================== -->
+<section class="section" id="comparison-js">
+  <div class="sec-header">
+    <span class="sec-num">09</span>
+    <h2>Flask SSR vs JavaScript Approach</h2>
+  </div>
+  <p class="sec-intro">
+    The same Tic Tac Toe game can be built with client-side JavaScript. 
+    Understanding the differences clarifies why frameworks like Vue.js exist.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F9F0; Same Game, Two Architectures</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 740 280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2c6b5d"/>
+          </marker>
+        </defs>
+        <rect x="20" y="10" rx="8" width="330" height="40" fill="#a8482a" opacity="0.85"/>
+        <text x="185" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Flask SSR (This Demo)</text>
+
+        <rect x="390" y="10" rx="8" width="330" height="40" fill="#2c6b5d" opacity="0.85"/>
+        <text x="555" y="35" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Client-Side (Vue.js)</text>
+
+        <text x="185" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#1e4f8a" font-weight="600">Server</text>
+        <rect x="60" y="85" rx="6" width="250" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="101" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">Board state, game logic</text>
+
+        <rect x="60" y="115" rx="6" width="250" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="131" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">Win detection, turn logic</text>
+
+        <rect x="60" y="145" rx="6" width="250" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="161" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">HTML generation (Jinja2)</text>
+
+        <rect x="60" y="175" rx="6" width="250" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="191" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">Sends full HTML page</text>
+
+        <text x="555" y="75" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" fill="#1e4f8a" font-weight="600">Browser</text>
+        <rect x="430" y="85" rx="6" width="250" height="24" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="101" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">Board state in JS memory</text>
+
+        <rect x="430" y="115" rx="6" width="250" height="24" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="131" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">Game logic in JavaScript</text>
+
+        <rect x="430" y="145" rx="6" width="250" height="24" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="161" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">DOM updates in-place</text>
+
+        <rect x="430" y="175" rx="6" width="250" height="24" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="191" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">API calls (small JSON)</text>
+
+        <line x1="60" y1="240" x2="430" y2="240" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="6,4"/>
+        <text x="245" y="235" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#a8482a">All logic on server</text>
+        <line x1="430" y1="255" x2="60" y2="255" stroke="#2c6b5d" stroke-width="1.5" stroke-dasharray="6,4"/>
+        <text x="245" y="268" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" fill="#2c6b5d">All logic on client</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4DD; Flask Version (SSR)</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>app.py</span><span class="cb-lang">Python</span></div>
+      <pre><code><span class="hljs-keyword">from</span> flask <span class="hljs-keyword">import</span> Flask, render_template, request, session
+
+app = Flask(__name__)
+app.secret_key = <span class="hljs-string">'secret'</span>
+
+<span class="hljs-meta">@app.route('/')</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">index</span>():
+    <span class="hljs-keyword">return</span> render_template(<span class="hljs-string">'board.html'</span>,
+        board=session.get(<span class="hljs-string">'board'</span>, [<span class="hljs-string">''</span>]*<span class="hljs-number">9</span>),
+        turn=session.get(<span class="hljs-string">'turn'</span>, <span class="hljs-string">'X'</span>))
+
+<span class="hljs-meta">@app.route('/move', methods=['POST'])</span>
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">move</span>():
+    cell = int(request.form[<span class="hljs-string">'cell'</span>])
+    board = session[<span class="hljs-string">'board'</span>]
+    <span class="hljs-keyword">if</span> board[cell] == <span class="hljs-string">''</span>:
+        board[cell] = session[<span class="hljs-string">'turn'</span>]
+        session[<span class="hljs-string">'turn'</span>] = <span class="hljs-string">'O'</span> <span class="hljs-keyword">if</span> session[<span class="hljs-string">'turn'</span>] == <span class="hljs-string">'X'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">'X'</span>
+        session[<span class="hljs-string">'board'</span>] = board
+    <span class="hljs-keyword">return</span> render_template(<span class="hljs-string">'board.html'</span>, board=board, turn=session[<span class="hljs-string">'turn'</span>])</code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F4DD; Vue.js Version (Client-Side)</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>App.vue</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span> <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>
+         @<span class="hljs-attr">click</span>=<span class="hljs-string">"makeMove(i)"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span>&gt;</span>
+      {{ cell }}
+    <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  data() {
+    <span class="hljs-keyword">return</span> {
+      board: [<span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>],
+      turn: <span class="hljs-string">'X'</span>
+    }
+  },
+  methods: {
+    makeMove(i) {
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.board[i]) <span class="hljs-keyword">return</span>;
+      <span class="hljs-variable language_">this</span>.board[i] = <span class="hljs-variable language_">this</span>.turn;
+      <span class="hljs-variable language_">this</span>.turn = <span class="hljs-variable language_">this</span>.turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+      <span class="hljs-comment">// Optional: sync to server via API</span>
+    }
+  }
+}
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+    </div>
+    <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--ink-soft);">
+      <strong>Key difference:</strong> In Vue, clicking a cell updates the board <strong>instantly</strong> in the browser. No page reload, no HTTP round-trip. The server is only contacted if you need to persist or share the state.
+    </p>
+  </div>
+</section>
+
+<!-- ==================== 10. REAL-WORLD EXAMPLES ==================== -->
+<section class="section" id="real-world">
+  <div class="sec-header">
+    <span class="sec-num">10</span>
+    <h2>Real-World Examples</h2>
+  </div>
+  <p class="sec-intro">
+    The patterns in this demo appear everywhere in production web applications.
+  </p>
+
+  <div class="grid-2">
+    <div class="card bdr-blue">
+      <h3>&#x1F3E0; Where SSR is Used Today</h3>
+      <ul>
+        <li><strong>Blogs &amp; Content Sites</strong> &mdash; WordPress, Medium (HTML is generated server-side for SEO).</li>
+        <li><strong>E-commerce Product Pages</strong> &mdash; Amazon, Flipkart render product pages on the server for fast initial load.</li>
+        <li><strong>News Websites</strong> &mdash; BBC, CNN serve fully rendered HTML for SEO and performance.</li>
+        <li><strong>Documentation</strong> &mdash; Read the Docs, Docusaurus use SSR for search-engine visibility.</li>
+        <li><strong>Legacy Enterprise Apps</strong> &mdash; Many internal tools still use server-rendered forms.</li>
+      </ul>
+    </div>
+    <div class="card bdr-purple">
+      <h3>&#x1F310; Where Client-Side Shines</h3>
+      <ul>
+        <li><strong>Dashboards</strong> &mdash; Real-time charts, filters, and tables need instant updates.</li>
+        <li><strong>Social Media</strong> &mdash; Twitter, Facebook (infinite scroll, likes, comments without reload).</li>
+        <li><strong>Collaborative Tools</strong> &mdash; Google Docs, Figma (multi-user real-time editing).</li>
+        <li><strong>Games</strong> &mdash; Interactive games need instant feedback (the Tic Tac Toe example!).</li>
+        <li><strong>Form-heavy Apps</strong> &mdash; Multi-step forms with validation feedback on each field.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Modern Hybrid Approach</strong>
+      <p>Most modern apps use <strong>both</strong>. The initial page is server-rendered (for SEO and fast first paint), and subsequent interactions are client-rendered (for smooth UX). Frameworks like Next.js (React) and Nuxt (Vue) make this pattern easy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 11. INTERVIEW & EXAM QUESTIONS ==================== -->
+<section class="section" id="qa">
+  <div class="sec-header">
+    <span class="sec-num">11</span>
+    <h2>Interview &amp; Exam Questions</h2>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q1: What is server-side rendering (SSR) and how does it differ from client-side rendering?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>SSR:</strong> The server generates the full HTML page and sends it to the browser. The browser just displays it. <strong>CSR:</strong> The browser downloads a minimal HTML shell and JavaScript, then JavaScript generates the UI on the client.</p>
+      <p><strong>Key difference:</strong> SSR sends ready-to-display HTML; CSR sends code that builds the HTML on the client. SSR gives faster first paint and better SEO; CSR gives smoother subsequent interactions.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q2: Why does every move cause a full page reload in the Flask Tic Tac Toe demo?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Because each cell is a <code>&lt;button type="submit"&gt;</code> inside an HTML <code>&lt;form&gt;</code>. Clicking a submit button triggers the browser's native form submission behaviour, which navigates to the form's <code>action</code> URL (<code>/move</code>) and loads the server's response as a new page. Since the server returns a complete HTML document (not just data), the entire page is replaced.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q3: How does Flask persist the game board across HTTP requests?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Flask uses the <code>session</code> object, which is backed by a <strong>signed cookie</strong>. The board state is serialised to JSON, signed with <code>app.secret_key</code>, and stored in the browser as a cookie. On each subsequent request, the browser sends the cookie back, Flask verifies the signature, deserialises it, and makes the data available via <code>session['board']</code>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q4: What are the disadvantages of storing game state in Flask's session?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Disadvantages: (1) <strong>Size limit</strong> &mdash; cookies are limited to ~4 KB; (2) <strong>Sent on every request</strong> &mdash; increases bandwidth; (3) <strong>Not encrypted by default</strong> &mdash; the value is signed but base64-encoded, so users can decode it; (4) <strong>No server-side control</strong> &mdash; the user holds the session data; (5) <strong>Not suitable for sensitive or large data</strong>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q5: Describe the full request-response cycle when a player clicks a cell.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>1. User clicks a button inside the form. 2. Browser serialises the form data (<code>cell=3</code>). 3. Browser sends an HTTP POST request to <code>/move</code> with the session cookie. 4. Flask receives the request, matches the URL to the <code>move()</code> view function. 5. View function reads <code>request.form['cell']</code>, updates <code>session['board']</code>, checks for a win condition, toggles the turn. 6. Flask renders <code>board.html</code> template with the updated board. 7. Flask sends the HTML response back with an updated session cookie. 8. Browser parses the HTML and displays the new page.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q6: What is the role of <code>app.secret_key</code> in Flask?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><code>app.secret_key</code> is used to <strong>cryptographically sign</strong> the session cookie. It ensures that the session data has not been tampered with by the client. Without a secret key, Flask's session feature will not work (Flask raises an error). The key should be a long, random string kept secret in production.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q7: Compare the Flask SSR approach with a Vue.js approach for Tic Tac Toe.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Flask SSR:</strong> State on the server, full HTML sent per move, page reloads, simpler code, no JavaScript needed. <strong>Vue.js:</strong> State in browser memory, DOM updates in-place, smooth UX, more complex setup (build tools, components), needs API if persistence required. Flask is better for learning HTTP; Vue is better for real-world interactive apps.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q8: What is WSGI and how does it relate to Flask?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>WSGI</strong> (Web Server Gateway Interface) is the Python standard for web servers to communicate with web applications. Flask includes Werkzeug, a WSGI toolkit, which handles the low-level HTTP details. When you run <code>app.run()</code>, Flask starts a WSGI server that listens for HTTP requests, parses them, and calls your view functions.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q9: How would you modify the Flask demo to support multiple concurrent games?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Several approaches: (1) Store game state in a <strong>database</strong> with a game ID, pass the game ID in the URL (<code>/game/&lt;id&gt;/move</code>); (2) Use <strong>server-side sessions</strong> (Redis, filesystem) instead of cookies; (3) Use <strong>query parameters</strong> to identify the game. The simplest approach is to use a dictionary in memory keyed by a game ID, though it would not survive a server restart.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q10: What are Jinja2 templates and why are they used?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Jinja2</strong> is Flask's default template engine. It allows embedding Python-like expressions inside HTML files using <code>{{ }}</code> for expressions and <code>{% %}</code> for control flow (loops, conditionals). In Tic Tac Toe, Jinja2 iterates over the board array to generate the 9 cells, each pre-filled with the correct mark or blank. This is how dynamic HTML is generated on the server.</p>
+    </div>
+  </div>
+
+  <div class="divider">Exam Focus</div>
+
+  <div class="card bdr-rust" style="background:#fff8f5;">
+    <h3>&#x1F4DD; Common Exam Questions</h3>
+    <ol>
+      <li><strong>Explain the request-response cycle</strong> in a Flask web application with a diagram.</li>
+      <li><strong>What is a session?</strong> How does Flask implement sessions? What is the role of <code>secret_key</code>?</li>
+      <li><strong>Compare and contrast</strong> server-side rendering with client-side rendering. Give one advantage and one disadvantage of each.</li>
+      <li><strong>Why is HTTP considered stateless?</strong> How do web applications overcome this limitation?</li>
+      <li><strong>What is the Flask <code>session</code> object?</strong> Where is the data actually stored &mdash; on the server or the client?</li>
+      <li><strong>How does Jinja2 help in generating dynamic HTML?</strong> Show an example using the Tic Tac Toe board.</li>
+      <li><strong>What would happen</strong> if <code>app.secret_key</code> is not set in the Flask app?</li>
+      <li><strong>Explain the role</strong> of <code>request.form</code> in processing a POST request in Flask.</li>
+      <li><strong>What is WSGI?</strong> How does it relate to Flask and Werkzeug?</li>
+      <li><strong>Design a simple modification</strong> to the Tic Tac Toe demo that adds a "Reset Game" button. Describe the Flask route and template changes needed.</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== 12. COMMON MISTAKES ==================== -->
+<section class="section" id="common-mistakes">
+  <div class="sec-header">
+    <span class="sec-num">12</span>
+    <h2>Common Mistakes Students Make</h2>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 1: Forgetting to Set <code>secret_key</code></h3>
+    <p>Running the app without <code>app.secret_key</code> causes a runtime error when using sessions.</p>
+    <div class="code-block">
+      <div class="cb-label"><span>Error</span><span class="cb-lang">Traceback</span></div>
+      <pre><code>RuntimeError: The session is unavailable because no secret
+key was set.  Set the secret_key on the application to
+something unique and secret.</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Always set <code>app.secret_key = 'your-strong-key'</code> after creating the Flask app.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 2: Using GET Instead of POST for State Changes</h3>
+    <p>If the form uses <code>method="GET"</code>, the cell index goes into the URL query string (<code>/move?cell=3</code>).</p>
+    <ul>
+      <li><strong>Problem:</strong> GET requests can be bookmarked, cached, and replayed accidentally. They are meant for <strong>reading</strong> data, not <strong>modifying</strong> it.</li>
+      <li><strong>Fix:</strong> Use <code>method="POST"</code> for any action that changes state (like making a move). This follows HTTP semantics correctly.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 3: Modifying the Session Without Marking it Modified</h3>
+    <p>When you mutate a mutable object inside the session (like a list), Flask may not detect the change automatically.</p>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">Python</span></div>
+      <pre><code>board = session[<span class="hljs-string">'board'</span>]
+board[cell] = <span class="hljs-string">'X'</span>        <span class="hljs-comment"># Mutates the list in-place</span>
+<span class="hljs-comment"># session is NOT automatically saved!</span></code></pre>
+    </div>
+    <p><strong>Fix:</strong> Assign the modified object back to the session to mark it as changed:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>Correct</span><span class="cb-lang">Python</span></div>
+      <pre><code>board = session[<span class="hljs-string">'board'</span>]
+board[cell] = <span class="hljs-string">'X'</span>
+session[<span class="hljs-string">'board'</span>] = board  <span class="hljs-comment"># Force session save</span></code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 4: Not Validating the Move on the Server</h3>
+    <p>Students often skip validation and let the server blindly update the board. A malicious user can send a POST request with any cell index, even one already occupied.</p>
+    <p><strong>Always check:</strong> Is the cell index valid? Is the cell empty? Is it really this player's turn?</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 5: Confusing <code>render_template</code> with <code>redirect</code></h3>
+    <p><code>render_template()</code> returns HTML directly. <code>redirect()</code> sends a 302 response telling the browser to navigate elsewhere. If you redirect after a move without passing the board state, the user sees the initial board again. Use <code>render_template</code> for this demo since every response includes the full board.</p>
+  </div>
+</section>
+
+<!-- ==================== 13. CHEAT SHEET ==================== -->
+<section class="section" id="cheatsheet">
+  <div class="sec-header">
+    <span class="sec-num">13</span>
+    <h2>Quick Revision Cheat Sheet</h2>
+  </div>
+
+  <div class="cheat-grid">
+    <div class="cheat-item">
+      <h4>Flask Setup</h4>
+      <code>from flask import Flask</code>
+      <code>app = Flask(__name__)</code>
+      <code>app.secret_key = '...'</code>
+      <span class="cheat-desc">Import, instantiate, set secret key.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Routes</h4>
+      <code>@app.route('/')</code>
+      <code>@app.route('/move', methods=['POST'])</code>
+      <span class="cheat-desc">GET for pages, POST for state changes.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Request Data</h4>
+      <code>request.form['cell']</code>
+      <code>request.args.get('q')</code>
+      <code>session.get('board', [])</code>
+      <span class="cheat-desc">Form data, query params, session access.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Response</h4>
+      <code>render_template('file.html', var=val)</code>
+      <code>redirect(url_for('index'))</code>
+      <span class="cheat-desc">Return HTML or redirect.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Jinja2 Template</h4>
+      <code>{{ variable }}</code>
+      <code>{% for i in range(9) %}</code>
+      <code>{% if condition %}</code>
+      <span class="cheat-desc">Expression, loop, conditional.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Form in HTML</h4>
+      <code>&lt;form method="POST" action="/move"&gt;</code>
+      <code>&lt;button type="submit" name="cell" value="0"&gt;</code>
+      <span class="cheat-desc">Form submission triggers POST.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>SSR Characteristics</h4>
+      <code>State: server-side</code>
+      <code>HTML: generated on server</code>
+      <code>Reloads: full page</code>
+      <code>UX: slower, flashing</code>
+      <span class="cheat-desc">Simpler but less smooth.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>HTTP Methods</h4>
+      <code>GET -> read (no side effects)</code>
+      <code>POST -> create/update</code>
+      <code>PUT -> full update</code>
+      <code>DELETE -> remove</code>
+      <span class="cheat-desc">Use correct HTTP semantics.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Session Cookie</h4>
+      <code>Signed, not encrypted</code>
+      <code>~4 KB max</code>
+      <code>Sent on every request</code>
+      <span class="cheat-desc">Client-side storage, server-verified.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Win Detection Logic</h4>
+      <code>win_patterns = [(0,1,2), (3,4,5), ...]</code>
+      <code>for a,b,c in win_patterns:</code>
+      <code>&nbsp;&nbsp;if board[a]==board[b]==board[c]!='':</code>
+      <code>&nbsp;&nbsp;&nbsp;&nbsp;return board[a]</code>
+      <span class="cheat-desc">Check all 8 winning patterns.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 14. KEY TAKEAWAYS ==================== -->
+<section class="section" id="key-takeaways">
+  <div class="sec-header">
+    <span class="sec-num">14</span>
+    <h2>Key Takeaways</h2>
+  </div>
+
+  <div class="card bdr-teal">
+    <ul class="takeaway-list">
+      <li><strong>SSR means the server generates HTML.</strong> The browser is just a rendering engine &mdash; all logic lives on the server.</li>
+      <li><strong>Every form submission causes a full page reload.</strong> This is browser-native behaviour for <code>&lt;form&gt;</code> elements.</li>
+      <li><strong>HTTP is stateless.</strong> Flask uses signed cookies (sessions) to persist state across requests.</li>
+      <li><strong>The request-response cycle is the fundamental unit of web communication.</strong> Every click = one full cycle.</li>
+      <li><strong>Flask + Jinja2</strong> gives you a powerful server-side rendering stack with minimal code.</li>
+      <li><strong>SSR is simple but limited.</strong> It is great for learning and content-focused sites but poor for highly interactive apps.</li>
+      <li><strong>Client-side frameworks (Vue, React)</strong> solve the page-reload problem by managing state and DOM in the browser.</li>
+      <li><strong>Validation must happen on the server.</strong> Even in SSR, never trust client input.</li>
+      <li><strong>Flask session has limitations:</strong> size (~4 KB), not encrypted, sent every request.</li>
+      <li><strong>Understanding SSR first</strong> makes learning client-side frameworks easier &mdash; you appreciate <em>why</em> they exist.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 15. SUMMARY ==================== -->
+<section class="section" id="summary">
+  <div class="sec-header">
+    <span class="sec-num">15</span>
+    <h2>Summary</h2>
+  </div>
+
+  <div class="summary-box">
+    <h3>&#x1F4D6; Lecture at a Glance</h3>
+    <p>The Flask Tic Tac Toe demo is a <strong>server-side rendered</strong> web application. Every player click submits an HTML form, triggering a full HTTP request-response cycle. Flask receives the move, updates the board state stored in a signed session cookie, checks for a winner, re-renders the entire board using Jinja2 templates, and sends the complete HTML page back to the browser.</p>
+    <p style="margin-top:0.5rem;">Key concepts covered:</p>
+    <ul>
+      <li><strong>Server-Side Rendering</strong> &mdash; All HTML is generated on the server; the browser just displays it.</li>
+      <li><strong>Flask Architecture</strong> &mdash; Routes, view functions, sessions, and Jinja2 templates work together.</li>
+      <li><strong>Request-Response Cycle</strong> &mdash; Each move = a complete round-trip from browser to server and back.</li>
+      <li><strong>HTTP Communication</strong> &mdash; POST requests carry form data; responses carry full HTML documents.</li>
+      <li><strong>State Management</strong> &mdash; Flask session (signed cookies) bridges HTTP's stateless nature.</li>
+      <li><strong>Why Reloads Happen</strong> &mdash; HTML forms natively navigate to the action URL on submit.</li>
+      <li><strong>Trade-offs</strong> &mdash; SSR is simple and SEO-friendly but causes page flashes and wastes bandwidth.</li>
+      <li><strong>Comparison with JS</strong> &mdash; Client-side frameworks keep state in the browser for instant, smooth interactions.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F504; Complete Architecture Flow</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">Browser renders board</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">User clicks cell (form submit)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box rust">POST /move (cell=N)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">Flask receives request</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small purple">Read session</div>
+        <div class="fc-box small purple">Update board</div>
+        <div class="fc-box small purple">Check win</div>
+        <div class="fc-box small purple">Toggle turn</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Jinja2 renders HTML</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">Full HTML page response</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Browser reloads &amp; displays</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 16. GLOSSARY ==================== -->
+<section class="section" id="glossary">
+  <div class="sec-header">
+    <span class="sec-num">16</span>
+    <h2>Glossary</h2>
+  </div>
+
+  <div class="card bdr-purple">
+    <div class="glossary-term">
+      <span class="gt-word">Client-Side Rendering</span>
+      <span class="gt-def">The browser downloads JavaScript that builds the UI on the client. The server sends code, not ready HTML.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Flask</span>
+      <span class="gt-def">A micro web framework for Python. Minimal, flexible, and includes Jinja2 templating and Werkzeug WSGI toolkit.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Form Submission</span>
+      <span class="gt-def">The browser-native behaviour where a &lt;form&gt; element serialises its inputs and navigates to the action URL.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">HTTP (Hypertext Transfer Protocol)</span>
+      <span class="gt-def">The protocol used for communication between web browsers and servers. Request-response based and stateless.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Jinja2</span>
+      <span class="gt-def">Flask's default template engine. Allows embedding Python-like expressions in HTML using {{ }} and {% %} syntax.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">POST</span>
+      <span class="gt-def">An HTTP method used to send data to the server, typically causing a change in state (e.g., making a move in a game).</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Route</span>
+      <span class="gt-def">A URL pattern mapped to a view function using the @app.route() decorator in Flask.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Session</span>
+      <span class="gt-def">A mechanism to persist data across HTTP requests. In Flask, implemented via signed cookies by default.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Server-Side Rendering (SSR)</span>
+      <span class="gt-def">The server generates the complete HTML page and sends it to the browser. The browser renders it directly.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Signed Cookie</span>
+      <span class="gt-def">A cookie whose contents are cryptographically signed to prevent tampering. Flask sessions use this.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">View Function</span>
+      <span class="gt-def">A Python function in Flask that handles a specific URL route and returns a response (HTML, JSON, redirect, etc.).</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">Werkzeug</span>
+      <span class="gt-def">The WSGI toolkit that Flask uses internally to handle HTTP requests and responses at a low level.</span>
+    </div>
+    <div class="glossary-term">
+      <span class="gt-word">WSGI</span>
+      <span class="gt-def">Web Server Gateway Interface &mdash; the Python standard for connecting web servers to web applications.</span>
+    </div>
+  </div>
+</section>
+
+<!-- Bottom nav -->
+<div style="border-top:1px solid var(--line); padding-top:1.5rem; margin-top:1.5rem; text-align:center;">
+  <a href="#overview" style="color:var(--blue); text-decoration:none; font-weight:500;">&#x2191; Back to Top</a>
+</div>
+
+</div><!-- .container -->
+
+<footer class="footer">
+  <p>MAD2 &mdash; Week 03: Vue.js Basics &middot; Tic Tac Toe Demo 1 (Flask)</p>
+  <p style="margin-top:0.25rem; font-size:0.7rem;">Built for study &amp; revision purposes</p>
+</footer>
+
+<script>
+function toggleQA(el) {
+  let answer = el.nextElementSibling;
+  let toggle = el.querySelector('.qa-toggle');
+  answer.classList.toggle('open');
+  el.classList.toggle('open');
+  toggle.textContent = answer.classList.contains('open') ? '\u00d7' : '+';
+}
+</script>
+
+</body>
+</html>

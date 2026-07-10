@@ -1,0 +1,306 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Prototypes Classes — Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 04</div>
+  <h1>Prototypes &amp; Classes</h1>
+  <p>JavaScript's inheritance model is <b>prototype-based</b> — objects inherit from other objects. The <code>class</code> keyword provides familiar syntax over this same mechanism.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span> The Prototype Chain</div>
+<div class="card">
+  <h2>How Property Lookup Works</h2>
+  <div class="def">Every JS object has an internal link to another object called its <strong>prototype</strong>. When a property isn't found on the object itself, JS walks up the chain.</div>
+<pre><code><span class="kw">const</span> parent <span class="kw">=</span> { <span class="prop">greet</span>: <span class="fn">()</span> <span class="kw">=></span> <span class="str">'Hello'</span> };
+<span class="kw">const</span> child <span class="kw">=</span> Object.create(parent);
+child.name <span class="kw">=</span> <span class="str">'Child'</span>;
+
+console.log(child.name);   <span class="cmt">// "Child" — own property</span>
+console.log(child.greet);  <span class="cmt">// "Hello" — found on prototype</span>
+console.log(child.toString); <span class="cmt">// found on Object.prototype</span>
+
+<span class="cmt">// __proto__ — the actual prototype reference (deprecated but widely used)</span>
+console.log(child.__proto__ <span class="kw">===</span> parent); <span class="cmt">// true</span>
+
+<span class="cmt">// .prototype — exists only on constructor functions (not instances)</span>
+console.log(Array.prototype); <span class="cmt">// the object that all arrays inherit from</span></code></pre>
+  <svg viewBox="0 0 600 120" style="width:100%;margin:12px 0;">
+    <rect x="10" y="10" width="140" height="50" rx="6" fill="none" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="80" y="40" text-anchor="middle" fill="#E7EAF2" font-family="JetBrains Mono" font-size="13">child</text>
+    <path d="M150,35 L230,35" stroke="#8B93FF" stroke-width="1.5" marker-end="url(#pr1)"/>
+    <text x="190" y="28" text-anchor="middle" fill="#8A93A8" font-family="JetBrains Mono" font-size="10">__proto__</text>
+    <rect x="230" y="10" width="140" height="50" rx="6" fill="none" stroke="#F0B450" stroke-width="1.5"/>
+    <text x="300" y="40" text-anchor="middle" fill="#E7EAF2" font-family="JetBrains Mono" font-size="13">parent</text>
+    <path d="M370,35 L450,35" stroke="#8B93FF" stroke-width="1.5" marker-end="url(#pr1)"/>
+    <text x="410" y="28" text-anchor="middle" fill="#8A93A8" font-family="JetBrains Mono" font-size="10">__proto__</text>
+    <rect x="450" y="10" width="140" height="50" rx="6" fill="none" stroke="#F05050" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="520" y="40" text-anchor="middle" fill="#E7EAF2" font-family="JetBrains Mono" font-size="13">Object.prototype</text>
+    <defs>
+      <marker id="pr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#8B93FF"/></marker>
+    </defs>
+  </svg>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The prototype chain is like a junior developer asking a senior, who asks a principal — each level has more knowledge. If the junior doesn't know a method, the question automatically goes up to the next level without the code needing to do anything explicit.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Constructor Functions &amp; <code>new</code></h2>
+  <div class="def">Before <code>class</code> syntax, constructor functions created objects with a shared prototype.</div>
+<pre><code><span class="cmt">// Constructor function</span>
+<span class="kw">function</span> Animal(<span class="fn">name</span>) {
+  <span class="kw">this</span>.name <span class="kw">=</span> name;  <span class="cmt">// 'this' is the new instance</span>
+}
+
+<span class="cmt">// Methods go on .prototype — shared across all instances</span>
+Animal.prototype.speak <span class="kw">=</span> <span class="kw">function</span>() {
+  <span class="kw">return</span> <span class="str">`${this.name} makes a sound`</span>;
+};
+
+<span class="kw">const</span> dog <span class="kw">=</span> <span class="kw">new</span> Animal(<span class="str">'Rex'</span>);
+console.log(dog.speak());   <span class="cmt">// "Rex makes a sound"</span>
+
+<span class="cmt">// instanceof checks prototype chain</span>
+console.log(dog <span class="kw">instanceof</span> Animal);  <span class="cmt">// true</span>
+console.log(dog <span class="kw">instanceof</span> Object); <span class="cmt">// true</span></code></pre>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Defining methods inside the constructor body (<code>this.speak = function…</code>) instead of on <code>.prototype</code>. This creates a new function copy per instance, wasting memory. Shared methods always go on the prototype.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> Class Syntax</div>
+<div class="card">
+  <h2>Class Declaration, Constructor &amp; Methods</h2>
+  <div class="def">The <code>class</code> keyword provides a cleaner syntax over the prototype pattern — but under the hood, it's still prototypes.</div>
+<pre><code><span class="kw">class</span> Animal {
+  <span class="cmt">// Constructor — runs when 'new' is called</span>
+  <span class="fn">constructor</span>(name) {
+    <span class="kw">this</span>.name <span class="kw">=</span> name;
+  }
+
+  <span class="cmt">// Instance method — goes on Animal.prototype</span>
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> <span class="str">`${this.name} makes a sound`</span>;
+  }
+
+  <span class="cmt">// Static method — on the class itself, not instances</span>
+  <span class="kw">static</span> <span class="fn">classInfo</span>() {
+    <span class="kw">return</span> <span class="str">'This is the Animal class'</span>;
+  }
+
+  <span class="cmt">// Getter — computed property</span>
+  <span class="kw">get</span> <span class="fn">uppercaseName</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.name.toUpperCase();
+  }
+
+  <span class="cmt">// Setter — reactive property assignment</span>
+  <span class="kw">set</span> <span class="fn">uppercaseName</span>(val) {
+    <span class="kw">this</span>.name <span class="kw">=</span> val.toLowerCase();
+  }
+}
+
+console.log(Animal.classInfo()); <span class="cmt">// "This is the Animal class"</span>
+<span class="kw">const</span> a <span class="kw">=</span> <span class="kw">new</span> Animal(<span class="str">'Leo'</span>);
+console.log(a.speak());          <span class="cmt">// "Leo makes a sound"</span></code></pre>
+</div>
+
+<div class="card">
+  <h2>Private Fields (#) &amp; Static Members</h2>
+  <div class="def">Private fields use <code>#</code> prefix — truly private, enforced at the language level.</div>
+<pre><code><span class="kw">class</span> BankAccount {
+  <span class="cmt">// Private field — cannot be accessed outside the class</span>
+  #balance <span class="kw">=</span> <span class="num">0</span>;
+
+  <span class="fn">constructor</span>(owner) {
+    <span class="kw">this</span>.owner <span class="kw">=</span> owner;
+  }
+
+  <span class="fn">deposit</span>(amount) {
+    <span class="kw">if</span> (amount <span class="kw">></span> <span class="num">0</span>) <span class="kw">this</span>.#balance <span class="kw">+=</span> amount;
+  }
+
+  <span class="fn">getBalance</span>() {
+    <span class="kw">return</span> <span class="kw">this</span>.#balance;
+  }
+}
+
+<span class="kw">const</span> acct <span class="kw">=</span> <span class="kw">new</span> BankAccount(<span class="str">'Alice'</span>);
+acct.deposit(<span class="num">100</span>);
+console.log(acct.getBalance());  <span class="cmt">// 100</span>
+console.log(acct.#balance);      <span class="cmt">// SyntaxError — truly private</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Inheritance — extends &amp; super</div>
+<div class="card">
+  <h2>Subclassing &amp; Method Overriding</h2>
+  <div class="def">Inheritance creates an <code>is-a</code> relationship. <code>super</code> calls the parent constructor or method.</div>
+<pre><code><span class="kw">class</span> Dog <span class="kw">extends</span> Animal {
+  <span class="fn">constructor</span>(name, breed) {
+    <span class="kw">super</span>(name);         <span class="cmt">// must call parent constructor first</span>
+    <span class="kw">this</span>.breed <span class="kw">=</span> breed;
+  }
+
+  <span class="cmt">// Override parent method</span>
+  <span class="fn">speak</span>() {
+    <span class="kw">return</span> <span class="str">`${<span class="kw">super</span>.speak()} — WOOF!`</span>;
+  }
+}
+
+<span class="kw">const</span> rex <span class="kw">=</span> <span class="kw">new</span> Dog(<span class="str">'Rex'</span>, <span class="str">'Husky'</span>);
+console.log(rex.speak()); <span class="cmt">// "Rex makes a sound — WOOF!"</span>
+console.log(rex <span class="kw">instanceof</span> Dog);    <span class="cmt">// true</span>
+console.log(rex <span class="kw">instanceof</span> Animal); <span class="cmt">// true</span></code></pre>
+  <div class="tip-box">
+    <div class="t-label">Key Rule</div>
+    <div class="t-text">In a subclass constructor, <code>super()</code> must be called <strong>before</strong> accessing <code>this</code>. The parent constructor is responsible for creating the instance — the child then extends it.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">Prototype Pattern</div>
+    <div class="c-desc">Function constructors + manual <code>.prototype</code> assignment. <code>Object.create()</code> for inheritance. More verbose but shows the underlying mechanism clearly. Full control over property descriptors.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">Class Syntax</div>
+    <div class="c-desc"><code>class</code> + <code>extends</code> + <code>super</code>. Cleaner, self-documenting. Supports static methods, getters/setters, private fields. Still prototype-based under the hood — no different performance characteristics.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What's the difference between <code>__proto__</code> and <code>.prototype</code>?</div>
+  <div class="a"><strong>A:</strong> <code>__proto__</code> is the actual prototype link on every object (what JS follows during property lookup). <code>.prototype</code> is a property that exists only on constructor functions — it's the object that will become the <code>__proto__</code> of instances created with <code>new</code>.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> Can you create an object without a prototype?</div>
+  <div class="a"><strong>A:</strong> Yes — <code>Object.create(null)</code> creates an object with no prototype chain. This is useful for pure dictionaries (like hash maps) where you don't want any inherited properties like <code>toString</code> or <code>hasOwnProperty</code>.</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> When should you use prototypal inheritance vs composition?</div>
+  <div class="a"><strong>A:</strong> Prefer composition ("has-a") over inheritance ("is-a") for code reuse — use mixins, factory functions, or dependency injection. Reserve <code>extends</code> for true taxonomic relationships (e.g., <code>Dog extends Animal</code>). Deep inheritance hierarchies are fragile.</div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>Prototype chain</b> — property lookup walks up</div>
+  <div class="rev-item"><b>__proto__</b> — link to parent object</div>
+  <div class="rev-item"><b>.prototype</b> — on constructor fns only</div>
+  <div class="rev-item"><b>Object.create(p)</b> — set prototype explicitly</div>
+  <div class="rev-item"><b>new</b> — creates instance, sets prototype</div>
+  <div class="rev-item"><b>instanceof</b> — checks prototype chain</div>
+  <div class="rev-item"><b>class</b> — syntax sugar over prototypes</div>
+  <div class="rev-item"><b>constructor</b> — runs on <code>new</code></div>
+  <div class="rev-item"><b>static</b> — method on class itself</div>
+  <div class="rev-item"><b>#private</b> — truly private fields</div>
+  <div class="rev-item"><b>get/set</b> — computed property access</div>
+  <div class="rev-item"><b>extends</b> — create subclass</div>
+  <div class="rev-item"><b>super()</b> — call parent constructor</div>
+  <div class="rev-item"><b>Override</b> — redefine method in subclass</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

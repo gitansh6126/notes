@@ -1,0 +1,321 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L1 – Review of MAD-I &amp; Course Overview — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 1</div>
+  <h1>Review of MAD-I &amp; Course Overview</h1>
+  <p>Welcome to <b>Modern Application Development II</b>. This course dives deep into <b>JavaScript</b> — the language that powers the modern web. We begin with a broad landscape view: what JS is, where it runs, what makes it special, and how it fits alongside the technologies you encountered in MAD-I.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span>What is JavaScript?</div>
+<div class="card">
+  <h2>The Language of the Web</h2>
+  <div class="def">
+    JavaScript (JS) is a <b>high-level, dynamic, interpreted</b> programming language that conforms to the ECMAScript specification. It is one of the three core technologies of the World Wide Web — alongside HTML and CSS — and is supported by every modern browser.
+  </div>
+  <h3>Key Characteristics</h3>
+  <ul>
+    <li><b>Dynamic typing</b> — variables can hold any type; type is determined at runtime</li>
+    <li><b>First-class functions</b> — functions are treated like any other value (passed as arguments, returned, assigned)</li>
+    <li><b>Prototype-based inheritance</b> — objects inherit directly from other objects (not classical classes)</li>
+    <li><b>Event-driven</b> — built around an event loop for asynchronous operations</li>
+    <li><b>Single-threaded</b> — one call stack, one heap, async via the event loop</li>
+  </ul>
+  <pre><code><span class="cmt">// A quick taste of JavaScript</span>
+<span class="kw">const</span> greet = <span class="fn">(name)</span> <span class="kw">=></span> <span class="str">`Hello, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="fn">greet</span>(<span class="str">"MAD2"</span>));  <span class="cmt">// → Hello, MAD2!</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Runtime Environments</div>
+<div class="card">
+  <h2>Where JavaScript Runs</h2>
+  <div class="def">
+    JavaScript was originally created to run <b>only in browsers</b>. Today it runs almost everywhere.
+  </div>
+
+  <h3>Browser Runtime</h3>
+  <ul>
+    <li><b>Google Chrome</b> — V8 engine</li>
+    <li><b>Mozilla Firefox</b> — SpiderMonkey engine</li>
+    <li><b>Apple Safari</b> — JavaScriptCore (Nitro)</li>
+    <li><b>Microsoft Edge</b> — V8 (Chromium-based)</li>
+  </ul>
+  <p>The browser provides Web APIs: <code>document</code>, <code>console</code>, <code>fetch</code>, <code>setTimeout</code>, DOM APIs, and more.</p>
+
+  <h3>Server-Side Runtime</h3>
+  <ul>
+    <li><b>Node.js</b> — V8 engine + libuv for I/O; file system, networking, process APIs</li>
+    <li><b>Deno</b> — V8 + Rust-built; secure by default, supports TypeScript natively</li>
+    <li><b>Bun</b> — JavaScriptCore-based; built-in bundler, test runner, package manager</li>
+  </ul>
+
+  <svg viewBox="0 0 600 200" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="200" fill="#12161F" rx="10"/>
+    <text x="300" y="30" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="14" font-weight="700">JavaScript Runtime Environments</text>
+    <rect x="40" y="50" width="240" height="120" rx="8" fill="#234436" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="160" y="80" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700">Browser</text>
+    <text x="160" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">JS Engine + Web APIs</text>
+    <text x="160" y="120" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">DOM, fetch, console,</text>
+    <text x="160" y="138" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">events, localStorage</text>
+    <rect x="320" y="50" width="240" height="120" rx="8" fill="#26264A" stroke="#8B93FF" stroke-width="1.5"/>
+    <text x="440" y="80" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700">Node.js / Deno</text>
+    <text x="440" y="102" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="11">V8 + libuv / Rust</text>
+    <text x="440" y="120" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">fs, http, path, process,</text>
+    <text x="440" y="138" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="11">crypto, streams</text>
+    <line x1="280" y1="110" x2="320" y2="110" stroke="#232A38" stroke-width="2" stroke-dasharray="4,3"/>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Development Setup</div>
+<div class="card">
+  <h2>Tools of the Trade</h2>
+  <h3>Browser Console</h3>
+  <p>Every browser includes <b>DevTools</b> (F12 / Ctrl+Shift+I). The Console tab is a <b>REPL</b> — Read-Eval-Print Loop — where you can type and run JS instantly.</p>
+  <pre><code><span class="cmt">// Open console → paste this → press Enter</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Hello from the browser console!"</span>);
+<span class="fn">console</span>.<span class="fn">table</span>({ <span class="prop">name</span>: <span class="str">"JS"</span>, <span class="prop">year</span>: <span class="str">1995</span> });</code></pre>
+
+  <h3>Script Tags in HTML</h3>
+  <p>There are two ways to include JS in an HTML page:</p>
+  <pre><code><span class="cmt">&lt;!-- Internal script (inside HTML) --></span>
+<span class="kw">&lt;</span><span class="fn">script</span><span class="kw">></span>
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Internal JS"</span>);
+<span class="kw">&lt;/</span><span class="fn">script</span><span class="kw">></span>
+
+<span class="cmt">&lt;!-- External script (separate .js file) --></span>
+<span class="kw">&lt;</span><span class="fn">script</span> <span class="prop">src</span>=<span class="str">"app.js"</span><span class="kw">>&lt;/</span><span class="fn">script</span><span class="kw">></span></code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Place <code>&lt;script&gt;</code> tags just before <code>&lt;/body&gt;</code> or use the <code>defer</code> attribute to avoid blocking HTML parsing. Always prefer external scripts for production.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>JavaScript vs Other Languages</div>
+<div class="card">
+  <h2>How JS Compares</h2>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Java / C++</div>
+      <div class="c-desc">Statically typed, class-based OOP, compiled. Verbose. Threads via OS threads.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">JavaScript</div>
+      <div class="c-desc">Dynamically typed, prototype-based, interpreted. Concise. Async via event loop (single-threaded).</div>
+    </div>
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Python</div>
+      <div class="c-desc">Dynamically typed, indent-based, synchronous by default. Used for data/backend/ML.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">JavaScript</div>
+      <div class="c-desc">Curly-brace syntax, async-native, prototype-based. Only language in the browser.</div>
+    </div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">Think of JavaScript as the <b>universal translator</b> of the web. HTML is the skeleton, CSS is the clothes, and JavaScript is the muscles that make everything move and respond. Without JS, web pages would be static documents — with JS, they become applications.</div>
+  </div>
+
+  <h3>Key Takeaways</h3>
+  <ul>
+    <li>JS is <b>dynamically typed</b> — flexible but requires discipline</li>
+    <li>Functions are <b>first-class citizens</b> — a core paradigm</li>
+    <li><b>Prototype-based</b> inheritance is unique to JS</li>
+    <li>JS is <b>single-threaded</b> but non-blocking via the event loop</li>
+    <li>The <b>V8 engine</b> (Chrome/Node/Deno) uses JIT compilation for speed</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">5</span>MAD-I Recap &amp; MAD-II Roadmap</div>
+<div class="card">
+  <h2>From MAD-I to MAD-II</h2>
+  <div class="def">
+    In MAD-I, you built REST APIs with Flask and learned Python, SQL, and basic frontend integration. MAD-II shifts focus to <b>full-stack JavaScript</b> — from browser to server.
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">MAD-I (Python/Flask)</div>
+      <div class="c-desc">Python, Flask REST APIs, SQLite/PostgreSQL, SQLAlchemy, Jinja templates, HTML/CSS basics, Git, deployment basics</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">MAD-II (JavaScript/Node)</div>
+      <div class="c-desc">JavaScript fundamentals, DOM API, Node.js + Express, React or Vue, MongoDB, async programming, full-stack integration, deployment</div>
+    </div>
+  </div>
+  <h3>Why JavaScript for MAD-II?</h3>
+  <ul>
+    <li><b>Full-stack in one language</b> — one language for frontend (browser) and backend (Node.js)</li>
+    <li><b>Industry standard</b> — most job postings for full-stack roles list JavaScript as a core requirement</li>
+    <li><b>Rich ecosystem</b> — npm (package manager) has over 2 million packages</li>
+    <li><b>Modern frameworks</b> — React, Vue, Angular dominate the frontend landscape</li>
+    <li><b>Real-time capabilities</b> — WebSockets, SSE, event-driven architecture built in</li>
+  </ul>
+  <p>This course builds from <b>zero</b> JS knowledge to being able to build complete, interactive web applications by the end.</p>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Common Pitfalls</div>
+<div class="card">
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Confusing JavaScript with Java.</b> Despite the similar name, they are entirely different languages. Java is compiled, statically typed, and runs on the JVM. JavaScript is interpreted, dynamically typed, and runs in browsers/Node. The name "JavaScript" was a marketing ploy during the browser wars.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Blocking the main thread.</b> JS is single-threaded. If you run a long synchronous loop, the entire page freezes. Always use async patterns (callbacks, promises, async/await) for I/O and heavy computation.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Not using semicolons in ambiguous cases.</b> While JS has automatic semicolon insertion (ASI), it can break on lines starting with <code>(</code>, <code>[</code>, or <code>`</code>. Always use semicolons or learn the few places where ASI fails.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">JavaScript has been the <b>most popular programming language on Stack Overflow</b> for 10+ consecutive years. According to the 2023 Stack Overflow survey, over 65% of professional developers use JavaScript. The entire modern web — React, Vue, Angular, Next.js, Svelte — is built on JavaScript. Learning JS opens doors to frontend, backend (Node.js), mobile (React Native), and desktop (Electron) development.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: Is JavaScript compiled or interpreted?</div>
+    <div class="a">A: Traditionally interpreted, but modern engines use <b>JIT (Just-In-Time) compilation</b>. V8 compiles JS to native machine code at runtime. So it's best described as a <b>JIT-compiled</b> language.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between JavaScript and ECMAScript?</div>
+    <div class="a">A: <b>ECMAScript (ES)</b> is the specification / standard. <b>JavaScript</b> is the most popular implementation of that standard. Other implementations include JScript (Microsoft), ActionScript (Adobe). When people say "ES6" they refer to the 6th edition of the ECMAScript specification.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the event loop in JavaScript?</div>
+    <div class="a">A: The event loop is the mechanism that allows JS to perform non-blocking I/O despite being single-threaded. The call stack executes code, the event loop checks if the call stack is empty, and then pushes pending callbacks (from the callback queue) onto the stack. This is the foundation of JavaScript's concurrency model.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What are the different ways to include JavaScript in an HTML page?</div>
+    <div class="a">A: (1) <b>Inline</b> — directly in HTML attributes (<code>onclick</code>), bad practice. (2) <b>Internal</b> — <code>&lt;script&gt;</code> tag in the HTML body. (3) <b>External</b> — <code>&lt;script src="file.js"&gt;</code>, best for production. Use <code>defer</code> or <code>async</code> attributes for non-blocking loading.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>JS born</b> 1995, Brendan Eich</div>
+    <div class="rev-item"><b>Dynamic typing</b> types determined at runtime</div>
+    <div class="rev-item"><b>First-class fns</b> treated as values</div>
+    <div class="rev-item"><b>Prototype-based</b> objects inherit from objects</div>
+    <div class="rev-item"><b>Single-threaded</b> one call stack</div>
+    <div class="rev-item"><b>Event loop</b> async concurrency model</div>
+    <div class="rev-item"><b>JIT-compiled</b> by modern engines</div>
+    <div class="rev-item"><b>V8 engine</b> Chrome, Node, Deno</div>
+    <div class="rev-item"><b>ECMAScript</b> the standard behind JS</div>
+    <div class="rev-item"><b>script defer</b> non-blocking loading</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

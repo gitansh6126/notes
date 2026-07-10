@@ -1,0 +1,421 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue API Calls — Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 05 · Screencast 5.4</div>
+  <h1>Vue API Calls</h1>
+  <p>Combining Vue's lifecycle with async data fetching — the <b>standard pattern</b> for loading, error, and success states, watching reactive sources for re-fetching, and organizing API logic into a <b>service layer</b>.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span> THE STANDARD PATTERN</div>
+<div class="card">
+  <h2>fetch in mounted()</h2>
+  <p class="def">The canonical approach: call an async function inside <b>mounted</b>, store the result in reactive data, and let Vue's reactivity update the UI automatically.</p>
+  <pre>&lt;template&gt;
+  &lt;div v-if="loading"&gt;Loading...&lt;/div&gt;
+  &lt;div v-else-if="error"&gt;{{ error }}&lt;/div&gt;
+  &lt;div v-else&gt;
+    &lt;div v-for="item in items" :key="item.id"&gt;
+      {{ item.name }}
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data() {
+    return {
+      items: [],
+      loading: false,
+      error: null
+    }
+  },
+  async mounted() {
+    this.loading = true
+    try {
+      const res = await fetch('/api/items')
+      if (!res.ok) throw new Error('HTTP ' + res.status)
+      this.items = await res.json()
+    } catch (err) {
+      this.error = err.message
+    } finally {
+      this.loading = false
+    }
+  }
+}
+&lt;/script&gt;</pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The standard pattern is like ordering at a restaurant: when you sit down (mounted), you place an order (fetch). While the kitchen is cooking, the waiter brings you bread (loading). If the chef burnt the steak (error), they tell you. When food arrives (data loaded), you eat (render UI).</div>
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">fetch in created()</div>
+      <div class="c-desc">No DOM access. Fine for SSR-universal data fetching, but can't use  after load.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">fetch in mounted()</div>
+      <div class="c-desc">DOM is ready. Can integrate with DOM libs, scroll, measure layout. Best for client-side SPAs.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> LOADING &amp; ERROR STATES</div>
+<div class="card">
+  <h2>Reactive State Flags</h2>
+  <p class="def">Manage UI states with reactive booleans — <b>loading</b>, <b>error</b>, and data itself. Conditional rendering (<b>v-if/v-else</b>) shows the right UI for each state.</p>
+  <pre>&lt;template&gt;
+  &lt;div class="user-profile"&gt;
+    &lt;div v-if="loading" class="spinner"&gt;
+      Loading profile...
+    &lt;/div&gt;
+    &lt;div v-else-if="error" class="error-banner"&gt;
+      &lt;p&gt;{{ error }}&lt;/p&gt;
+      &lt;button @click="fetchUser"&gt;Retry&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;div v-else class="user-data"&gt;
+      &lt;h2&gt;{{ user.name }}&lt;/h2&gt;
+      &lt;p&gt;{{ user.email }}&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data() {
+    return { user: null, loading: false, error: null }
+  },
+  async mounted() {
+    await this.fetchUser()
+  },
+  methods: {
+    async fetchUser() {
+      this.loading = true
+      this.error = null
+      try {
+        const res = await fetch('/api/user')
+        if (!res.ok) throw new Error('Failed to load user')
+        this.user = await res.json()
+      } catch (err) {
+        this.error = err.message
+      } finally {
+        this.loading = false
+      }
+    }
+  }
+}
+&lt;/script&gt;</pre>
+  <div class="tip-box">
+    <div class="t-label">Pattern Note</div>
+    <div class="t-text">Reset <b>error</b> to null at the start of a retry — otherwise the old error persists alongside loading. The <b>finally</b> block guarantees loading becomes false even on errors.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> WATCHERS FOR REACTIVE FETCHING</div>
+<div class="card">
+  <h2>Fetch When Data Changes</h2>
+  <p class="def">Use <b>watchers</b> to trigger API calls when reactive data changes — e.g., re-fetching search results when the query changes.</p>
+  <pre>&lt;template&gt;
+  &lt;input v-model="searchQuery" placeholder="Search..." /&gt;
+  &lt;div v-if="searching"&gt;Searching...&lt;/div&gt;
+  &lt;ul v-else&gt;
+    &lt;li v-for="r in results" :key="r.id"&gt;{{ r.title }}&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/template&gt;
+
+&lt;script&gt;
+export default {
+  data() {
+    return {
+      searchQuery: '',
+      results: [],
+      searching: false,
+      debounceTimer: null
+    }
+  },
+  watch: {
+    searchQuery(newVal) {
+      clearTimeout(this.debounceTimer)
+      this.debounceTimer = setTimeout(() => {
+        this.performSearch(newVal)
+      }, 300)
+    }
+  },
+  methods: {
+    async performSearch(query) {
+      if (!query.trim()) { this.results = []; return }
+      this.searching = true
+      try {
+        const res = await fetch('/api/search?q=' + encodeURIComponent(query))
+        this.results = await res.json()
+      } catch (err) {
+        console.error('Search failed:', err)
+      } finally {
+        this.searching = false
+      }
+    }
+  }
+}
+&lt;/script&gt;</pre>
+  <div class="industry-box">
+    <div class="i-label">Industry Context</div>
+    <div class="i-text">Production apps use <b>debounced watchers</b> with a 300-500ms delay to avoid overwhelming the API. Vue 3's @vueuse/core provides <code>useDebounceFn</code>. Always cancel previous in-flight requests to prevent race conditions.</div>
+  </div>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Race conditions in watchers</b> — if the user types "Jav", "Java", "JavaS" quickly, three requests fire. "JavaS" might resolve before "Jav", leaving wrong results. Use AbortController or a sequence counter to ensure only the latest response is applied.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> SERVICE LAYER SEPARATION</div>
+<div class="card">
+  <h2>Clean Architecture</h2>
+  <p class="def">Extract all fetch logic into a separate <b>service layer</b>. This keeps components clean, makes API logic reusable, and simplifies testing.</p>
+  <pre>// services/api.js — centralized API client
+const BASE_URL = 'https://api.example.com'
+
+async function request(endpoint, options = {}) {
+  const config = {
+    headers: { 'Content-Type': 'application/json' },
+    ...options
+  }
+  const res = await fetch(BASE_URL + endpoint, config)
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.message || res.statusText)
+  }
+  return res.json()
+}
+
+export const api = {
+  get: (url) => request(url),
+  post: (url, data) => request(url, { method: 'POST', body: JSON.stringify(data) }),
+  put: (url, data) => request(url, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (url) => request(url, { method: 'DELETE' })
+}</pre>
+  <pre>// services/users.js — user-specific API functions
+import { api } from './api'
+
+export const userService = {
+  getAll: () => api.get('/users'),
+  getById: (id) => api.get('/users/' + id),
+  create: (user) => api.post('/users', user),
+  update: (id, user) => api.put('/users/' + id, user),
+  delete: (id) => api.delete('/users/' + id)
+}</pre>
+  <pre>// UserList.vue — component stays clean
+import { userService } from '../services/users'
+
+export default {
+  data() {
+    return { users: [], loading: false, error: null }
+  },
+  async mounted() {
+    this.loading = true
+    try {
+      this.users = await userService.getAll()
+    } catch (err) {
+      this.error = err.message
+    } finally {
+      this.loading = false
+    }
+  }
+}</pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The service layer is like a restaurant kitchen vs. the dining room. The component (dining room) tells the waiter "I'd like pasta" and the waiter calls the kitchen (service layer). The kitchen handles all the messy details. If menu changes, you only update the kitchen, not every table.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> COMPLETE EXAMPLE WITH ABORTCONTROLLER</div>
+<div class="card">
+  <h2>Robust Data Fetching</h2>
+  <p class="def">A production-ready pattern combining mounted fetch, loading/error states, AbortController for cancellation, and service layer organization.</p>
+  <pre>// services/api.js
+let controller = null
+
+export const api = {
+  async get(url) {
+    // Cancel previous request
+    if (controller) controller.abort()
+    controller = new AbortController()
+
+    const res = await fetch(url, { signal: controller.signal })
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    return res.json()
+  },
+  cancel() {
+    if (controller) controller.abort()
+  }
+}</pre>
+  <pre>// UserProfile.vue
+import { api } from '../services/api'
+
+export default {
+  data() {
+    return { user: null, loading: false, error: null }
+  },
+  async mounted() {
+    this.loading = true
+    try {
+      this.user = await api.get('/api/user')
+    } catch (err) {
+      if (err.name === 'AbortError') return
+      this.error = err.message
+    } finally {
+      this.loading = false
+    }
+  },
+  beforeDestroy() {
+    api.cancel() // Cancel on unmount
+  }
+}</pre>
+  <div class="tip-box">
+    <div class="t-label">Production Pattern</div>
+    <div class="t-text">Always combine <b>mounted</b> fetch, <b>loading/error</b> states, <b>AbortController</b> cleanup, and <b>service layer</b> separation. This pattern is used in production Vue apps at companies like GitLab, Upwork, and Alibaba.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span> INTERVIEW Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: Why fetch in mounted() instead of created()?</div>
+    <div class="a">A: <b>mounted</b> guarantees the DOM is ready — important for third-party libraries, measuring elements, or scrolling. <b>created</b> is fine for SSR-universal data, but in client-side SPAs, <b>mounted</b> is the convention for API calls because it ensures a consistent DOM environment.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: How do you prevent race conditions in search-as-you-type?</div>
+    <div class="a">A: Use a debounced watcher (300ms) to reduce API calls, and an <b>AbortController</b> to cancel the previous in-flight request before starting a new one. Alternatively, use a request ID counter — only apply responses that match the latest request ID.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What's the benefit of a service layer?</div>
+    <div class="a">A: Centralized error handling, single base URL configuration, reusable API functions across components, easier testing (mock the service module), and cleaner components that focus on presentation rather than HTTP details.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> QUICK REVISION</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>mounted</b> — the standard hook for API calls</div>
+    <div class="rev-item"><b>loading/error/data</b> — the three-state pattern</div>
+    <div class="rev-item"><b>v-if/v-else-if/v-else</b> — conditional rendering for states</div>
+    <div class="rev-item"><b>Watchers</b> — trigger fetch when reactive data changes</div>
+    <div class="rev-item"><b>Debounce</b> — 300ms delay before search API calls</div>
+    <div class="rev-item"><b>AbortController</b> — cancel requests on unmount</div>
+    <div class="rev-item"><b>Service layer</b> — separate api/ and service/ files</div>
+    <div class="rev-item"><b>Retry pattern</b> — reset error, set loading, catch, finally</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · Vue.js — study card</div>
+</div>
+</body>
+</html>

@@ -76,6 +76,40 @@ h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
 }
 .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
 .tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+.impact-card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px; margin:20px 0;
+}
+.impact-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:#4ADE94; font-weight:700; margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.impact-label::before{
+  content:""; width:4px; height:18px;
+  background:#4ADE94; border-radius:3px; flex-shrink:0;
+}
+.impact-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:14px;
+}
+.impact-item{
+  background:#161B26; border:1px solid #232A38;
+  border-radius:10px; padding:16px;
+}
+.impact-item .company{
+  font-size:13px; font-weight:700; color:#4ADE94;
+  margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.impact-item .company::before{
+  content:">"; font-family:'JetBrains Mono',monospace;
+  color:#4ADE94; font-size:11px; opacity:0.5;
+}
+.impact-item .impact-text{
+  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
+}
+.impact-item .impact-text strong{color:#F0B450;}
+.impact-item .impact-text b{color:#E7EAF2;}
 pre{
   background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
   padding:16px 18px; overflow-x:auto; margin:12px 0;
@@ -233,7 +267,26 @@ greet();       <span class="cmt">// this → undefined (module scope = strict)</
   </div>
 </div>
 
-<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="section-tag"><span class="n">4</span>Production Use Cases</div>
+<div class="impact-card">
+  <div class="impact-label">Production Impact</div>
+  <div class="impact-grid">
+    <div class="impact-item">
+      <div class="company">Vue.js</div>
+      <p class="impact-text"><b>11M weekly downloads</b> — ships both ESM and CommonJS via <code>"exports"</code> in package.json. The exact module system powering <strong>GitLab, Adobe, and Alibaba</strong>.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Google Angular</div>
+      <p class="impact-text">Arrow functions used as class methods broke <code>this</code> binding in production. Angular now enforces lint rules — the same bug affected <strong>multiple companies using React class components</strong>.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Socket.dev</div>
+      <p class="impact-text"><b>52%</b> of top 10K npm packages use ES6 module syntax. The npm ecosystem: <strong>2M+ packages</strong>, 100B+ weekly downloads — the largest package registry on Earth.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> What's the difference between <code>import { x }</code> and <code>import * as x</code>?</div>
   <div class="a"><strong>A:</strong> <code>import { x }</code> imports only the specific binding <code>x</code> — tree-shakeable, explicit. <code>import * as x</code> imports all exported bindings as properties of a namespace object — never tree-shakeable, used when you need everything from a module.</div>

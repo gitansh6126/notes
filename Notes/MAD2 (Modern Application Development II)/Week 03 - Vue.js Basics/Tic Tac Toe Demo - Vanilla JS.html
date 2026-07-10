@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe — Vanilla JavaScript | MAD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: var(--ink);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+  /* Typography */
+  h1, h2, h3, h4, h5 { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code, pre, .mono { font-family: 'JetBrains Mono', 'Cascadia Code', monospace; }
+  pre { background: #1a1e2b; color: #e8eaef; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: var(--blue-soft); padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; font-size: 0.85em; }
+  pre code { background: none; padding: 0; border-radius: 0; font-weight: 400; }
+
+  /* Syntax Highlighting */
+  .hljs-keyword { color: #c792ea; }
+  .hljs-string { color: #c3e88d; }
+  .hljs-number { color: #f78c6c; }
+  .hljs-comment { color: #546e7a; font-style: italic; }
+  .hljs-function { color: #82aaff; }
+  .hljs-title { color: #ffcb6b; }
+  .hljs-built_in { color: #89ddff; }
+  .hljs-attr { color: #f07178; }
+  .hljs-tag { color: #f07178; }
+  .hljs-name { color: #f07178; }
+  .hljs-selector-tag { color: #c792ea; }
+  .hljs-literal { color: #f78c6c; }
+  .hljs-params { color: #eeffff; }
+  .hljs-variable { color: #eeffff; }
+  .hljs-property { color: #c3e88d; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #1a1e2b 0%, #2c3e6b 50%, #1e4f8a 100%);
+    color: #fff;
+    padding: 3rem 0 2.5rem;
+    margin-bottom: 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before { content: ''; position: absolute; top: -60%; right: -20%; width: 500px; height: 500px; background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -40%; left: -10%; width: 350px; height: 350px; background: rgba(255,255,255,0.02); border-radius: 50%; pointer-events: none; }
+  .hero h1 { font-size: 2.4rem; font-weight: 900; position: relative; z-index: 1; line-height: 1.2; }
+  .hero h1 span { color: #e8c55a; }
+  .hero .subtitle { font-size: 1.1rem; opacity: 0.85; margin-top: 0.4rem; font-weight: 400; position: relative; z-index: 1; }
+  .hero .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; opacity: 0.7; position: relative; z-index: 1; flex-wrap: wrap; }
+  .hero .meta span { display: flex; align-items: center; gap: 0.35rem; }
+
+  /* Sections */
+  .section { margin-bottom: 2.5rem; }
+  .sec-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--line); }
+  .sec-num { font-size: 0.75rem; font-weight: 800; color: var(--blue); background: var(--blue-soft); padding: 0.2em 0.7em; border-radius: 999px; letter-spacing: 0.04em; }
+  .sec-header h2 { font-size: 1.5rem; margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .sec-intro { font-size: 1rem; color: var(--ink-soft); margin-bottom: 1.25rem; line-height: 1.8; }
+
+  /* Cards */
+  .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--line); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card h2 { font-size: 1.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--blue); }
+  .card p { margin-bottom: 0.5rem; }
+  .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+
+  .bdr-blue { border-left-color: var(--blue); }
+  .bdr-gold { border-left-color: var(--gold); }
+  .bdr-teal { border-left-color: var(--teal); }
+  .bdr-rust { border-left-color: var(--rust); }
+  .bdr-purple { border-left-color: var(--purple); }
+  .bdr-green { border-left-color: var(--green); }
+
+  /* Concept card */
+  .concept-card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+  .concept-card h3 { color: var(--gold-deep); font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  /* Callout */
+  .callout { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; border-left: 4px solid; }
+  .callout-info { background: var(--blue-soft); border-color: var(--blue); }
+  .callout-warning { background: var(--rust-soft); border-color: var(--rust); }
+  .callout-tip { background: var(--green-soft); border-color: var(--green); }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p { margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p:last-child { margin-bottom: 0; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; }
+  .tbl-wrap table { margin-bottom: 0; }
+
+  /* Code block */
+  .code-block { background: #1a1e2b; border-radius: var(--radius); margin-bottom: 1.25rem; overflow: hidden; box-shadow: var(--shadow); }
+  .cb-label { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #2a2e3b; color: #8b91a5; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .cb-label .cb-lang { color: var(--gold); }
+  .code-block pre { margin: 0; border-radius: 0; }
+
+  /* Flowchart */
+  .flowchart { display: flex; flex-direction: column; align-items: center; padding: 1.5rem; gap: 0.5rem; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+  .fc-box { display: flex; align-items: center; justify-content: center; padding: 0.7rem 1.2rem; background: var(--surface); border: 2px solid var(--blue); border-radius: 8px; font-weight: 600; color: var(--blue); text-align: center; min-width: 140px; box-shadow: var(--shadow); }
+  .fc-box.gold { border-color: var(--gold); color: var(--gold-deep); background: var(--gold-soft); }
+  .fc-box.teal { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+  .fc-box.rust { border-color: var(--rust); color: var(--rust); background: var(--rust-soft); }
+  .fc-box.purple { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .fc-box.green { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .fc-box.small { min-width: 100px; padding: 0.5rem 0.8rem; font-size: 0.75rem; }
+  .fc-arrow { color: var(--ink-faint); font-size: 1.2rem; line-height: 1; }
+  .fc-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+  /* Diagram */
+  .diagram { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); overflow-x: auto; }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  /* Grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* Q&A */
+  .qa-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden; }
+  .qa-q { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; background: var(--blue-soft); color: var(--blue); font-size: 0.9rem; transition: 0.2s; }
+  .qa-q:hover { background: #dce4f5; }
+  .qa-q .qa-toggle { font-size: 1.1rem; transition: transform 0.3s; }
+  .qa-q.open .qa-toggle { transform: rotate(45deg); }
+  .qa-a { padding: 1rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.9rem; display: none; }
+  .qa-a.open { display: block; }
+  .qa-a p { margin-bottom: 0.4rem; }
+  .qa-a ul { padding-left: 1.25rem; margin-bottom: 0.4rem; }
+  .qa-a code { font-size: 0.82em; }
+
+  /* Cheat sheet */
+  .cheat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .cheat-item { background: var(--surface); border-radius: 8px; padding: 1rem 1.25rem; box-shadow: var(--shadow); border-left: 3px solid var(--blue); }
+  .cheat-item h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blue); margin-bottom: 0.4rem; }
+  .cheat-item code { display: block; margin-bottom: 0.2rem; font-size: 0.8rem; }
+  .cheat-item .cheat-desc { font-size: 0.78rem; color: var(--ink-soft); }
+
+  /* Summary box */
+  .summary-box { background: linear-gradient(135deg, var(--blue-soft), var(--teal-soft)); border-radius: var(--radius); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border: 1px solid rgba(30,79,138,0.15); }
+  .summary-box h3 { color: var(--blue); margin-bottom: 0.75rem; }
+  .summary-box ul { padding-left: 1.25rem; }
+  .summary-box li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+
+  /* Divider */
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  /* Pill */
+  .pill { display: inline-block; padding: 0.2em 0.7em; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-blue { background: var(--blue-soft); color: var(--blue); }
+  .pill-gold { background: var(--gold-soft); color: var(--gold-deep); }
+  .pill-teal { background: var(--teal-soft); color: var(--teal); }
+  .pill-rust { background: var(--rust-soft); color: var(--rust); }
+
+  /* Takeaway list */
+  .takeaway-list { list-style: none; padding: 0; }
+  .takeaway-list li { padding: 0.5rem 0 0.5rem 1.5rem; position: relative; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+  .takeaway-list li:last-child { border-bottom: none; }
+  .takeaway-list li::before { content: '>'; position: absolute; left: 0; color: var(--teal); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
+  /* Glossary */
+  .glossary-term { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .gt-word { font-weight: 700; color: var(--blue); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+  .glossary-term .gt-def { color: var(--ink-soft); }
+
+  /* Live demo board */
+  .demo-board { display: grid; grid-template-columns: repeat(3, 80px); gap: 4px; margin: 1rem auto; justify-content: center; }
+  .demo-cell { width: 80px; height: 80px; background: var(--surface); border: 2px solid var(--blue); border-radius: 8px; font-size: 2rem; font-weight: 700; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.15s; font-family: 'Inter', sans-serif; }
+  .demo-cell:hover { background: var(--blue-soft); }
+  .demo-cell.taken { cursor: default; }
+  .demo-cell.x { color: var(--rust); }
+  .demo-cell.o { color: var(--teal); }
+  .demo-status { text-align: center; font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--ink-soft); }
+  .demo-reset { display: block; margin: 0.75rem auto 0; padding: 0.5rem 1.5rem; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: 'Inter', sans-serif; }
+  .demo-reset:hover { opacity: 0.9; }
+
+  /* Footer */
+  .footer { text-align: center; padding: 2rem 0; color: var(--ink-faint); font-size: 0.8rem; border-top: 1px solid var(--line); margin-top: 2rem; }
+
+  /* Print */
+  @media print {
+    body { background: #fff; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 1.5rem 0; }
+    .card, .concept-card, .qa-card, .callout, .summary-box, .diagram, .code-block, .cheat-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    .qa-a { display: block !important; }
+    .qa-q .qa-toggle { display: none; }
+    .fc-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .callout-info, .callout-warning, .callout-tip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sec-header { border-bottom-color: #ccc; }
+  }
+
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 1.6rem; }
+    .hero { padding: 2rem 0 1.5rem; }
+    .container { padding: 0 16px; }
+    .card { padding: 1rem 1.25rem; }
+    .glossary-term { grid-template-columns: 1fr; gap: 0.2rem; }
+    .fc-row { flex-direction: column; }
+    .fc-arrow { transform: rotate(90deg); }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.3rem; }
+    .sec-header h2 { font-size: 1.2rem; }
+    .card { padding: 0.85rem 1rem; }
+    .demo-board { grid-template-columns: repeat(3, 60px); }
+    .demo-cell { width: 60px; height: 60px; font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Tic Tac Toe &mdash; <span>Vanilla JavaScript</span></h1>
+    <div class="subtitle">DOM Manipulation, Events &amp; Client-Side State</div>
+    <div class="meta">
+      <span>MAD2: Modern Application Development II</span>
+      <span>Week 03 &middot; Vue.js Basics</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section class="section" id="overview">
+  <div class="sec-header"><span class="sec-num">01</span><h2>Overview</h2></div>
+  <p class="sec-intro">
+    This demo builds Tic Tac Toe entirely with <strong>vanilla JavaScript</strong> (no frameworks). 
+    The browser holds the game state, handles clicks, updates the DOM directly, and never talks to a server 
+    during gameplay. This is <strong>client-side rendering</strong> in its purest form.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F3AE; How It Works</h3>
+    <ol>
+      <li>The HTML has an empty 3&times;3 grid container and a status display.</li>
+      <li>JavaScript creates the board <strong>in memory</strong> as an array (<code>['','','', ...]</code>).</li>
+      <li>When a player clicks a cell, JS checks if it is empty, updates the array, re-renders that cell.</li>
+      <li>After every move, JS checks for a winner or draw using the in-memory array.</li>
+      <li>The DOM is updated <strong>in place</strong> &mdash; no page reloads, no server round-trips.</li>
+    </ol>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Core Idea</strong>
+      <p>The browser is now a <strong>smart client</strong>. It stores state, runs logic, and updates its own display. The server is only needed if we want to persist or share the game across devices. Every interaction is instant because it all happens in the same process.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. DOM ==================== -->
+<section class="section" id="dom">
+  <div class="sec-header"><span class="sec-num">02</span><h2>The Document Object Model (DOM)</h2></div>
+  <p class="sec-intro">
+    The <strong>DOM</strong> is a tree-like representation of an HTML page that JavaScript can read and modify. 
+    Every HTML element becomes a <strong>node</strong> in this tree.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F333; What is the DOM?</h3>
+    <p>When the browser loads an HTML page, it parses the HTML text and builds a <strong>DOM tree</strong> in memory:</p>
+    <div class="diagram">
+      <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg">
+        <rect x="240" y="10" rx="6" width="100" height="28" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+        <text x="290" y="29" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#1e4f8a">document</text>
+
+        <line x1="290" y1="38" x2="290" y2="55" stroke="#1e4f8a" stroke-width="1.5"/>
+        <line x1="290" y1="50" x2="125" y2="50" stroke="#1e4f8a" stroke-width="1.5"/>
+        <line x1="290" y1="50" x2="455" y2="50" stroke="#1e4f8a" stroke-width="1.5"/>
+
+        <rect x="40" y="55" rx="6" width="170" height="28" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+        <text x="125" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#a8482a">head</text>
+
+        <rect x="370" y="55" rx="6" width="170" height="28" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="455" y="74" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#2c6b5d">body</text>
+
+        <line x1="455" y1="83" x2="455" y2="100" stroke="#2c6b5d" stroke-width="1.5"/>
+        <line x1="455" y1="96" x2="290" y2="96" stroke="#2c6b5d" stroke-width="1.5"/>
+        <line x1="455" y1="96" x2="580" y2="96" stroke="#2c6b5d" stroke-width="1.5"/>
+        <line x1="455" y1="96" x2="455" y2="225" stroke="#2c6b5d" stroke-width="1.5"/>
+
+        <rect x="170" y="100" rx="6" width="100" height="28" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="220" y="119" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#b5872a">h1</text>
+
+        <rect x="180" y="138" rx="6" width="220" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5" stroke-dasharray="3,2"/>
+        <text x="290" y="153" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#b5872a">"Tic Tac Toe"</text>
+
+        <line x1="220" y1="128" x2="290" y2="136" stroke="#b5872a" stroke-width="1" stroke-dasharray="3,2"/>
+
+        <rect x="520" y="100" rx="6" width="120" height="28" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+        <text x="580" y="119" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5a3e8a">div.board</text>
+
+        <line x1="580" y1="128" x2="580" y2="148" stroke="#5a3e8a" stroke-width="1.5"/>
+        <line x1="580" y1="145" x2="520" y2="145" stroke="#5a3e8a" stroke-width="1.5"/>
+        <line x1="580" y1="145" x2="640" y2="145" stroke="#5a3e8a" stroke-width="1.5"/>
+
+        <rect x="470" y="150" rx="4" width="100" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="520" y="166" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">button (0)</text>
+        <rect x="540" y="182" rx="4" width="100" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="590" y="198" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">button (1)</text>
+        <rect x="470" y="214" rx="4" width="100" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="520" y="230" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">button (2)</text>
+
+        <rect x="30" y="175" rx="6" width="120" height="28" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="90" y="194" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#b5872a">p#status</text>
+
+        <line x1="455" y1="175" x2="150" y2="185" stroke="#b5872a" stroke-width="1" stroke-dasharray="3,2"/>
+      </svg>
+    </div>
+    <div class="code-block">
+      <div class="cb-label"><span>HTML that produces the tree</span><span class="cb-lang">HTML</span></div>
+      <pre><code><span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Tic Tac Toe<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"status"</span>&gt;</span>Player X's turn<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"board"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span> <span class="hljs-attr">data-index</span>=<span class="hljs-string">"0"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span> <span class="hljs-attr">data-index</span>=<span class="hljs-string">"1"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span> <span class="hljs-attr">data-index</span>=<span class="hljs-string">"2"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  ...
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Real-Life Analogy: A Whiteboard</strong>
+      <p>The DOM is like a <strong>whiteboard</strong>. The HTML is the initial drawing. JavaScript is your hand &mdash; it can erase parts, write new text, change colours, all without removing the whiteboard from the wall. <strong>DOM manipulation</strong> is just reaching out and editing parts of the board.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. DOM MANIPULATION ==================== -->
+<section class="section" id="dom-manipulation">
+  <div class="sec-header"><span class="sec-num">03</span><h2>DOM Manipulation</h2></div>
+  <p class="sec-intro">
+    DOM manipulation is how JavaScript reads, creates, modifies, or removes elements in the DOM tree.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F527; Essential DOM Methods</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>What It Does</th><th>Used For</th></tr></thead>
+        <tbody>
+          <tr><td><code>document.getElementById('id')</code></td><td>Finds one element by its <code>id</code> attribute</td><td>Getting the status display</td></tr>
+          <tr><td><code>document.querySelector('.class')</code></td><td>Finds the first element matching a CSS selector</td><td>Getting a specific cell</td></tr>
+          <tr><td><code>document.querySelectorAll('.class')</code></td><td>Finds all elements matching a CSS selector (returns NodeList)</td><td>Getting all 9 cells</td></tr>
+          <tr><td><code>element.textContent</code></td><td>Reads or sets the text inside an element</td><td>Updating cell text, status message</td></tr>
+          <tr><td><code>element.classList.add/remove/toggle</code></td><td>Adds, removes, or toggles a CSS class</td><td>Marking cells as taken, highlighting</td></tr>
+          <tr><td><code>element.addEventListener()</code></td><td>Attaches an event handler to an element</td><td>Handling cell clicks</td></tr>
+          <tr><td><code>element.style.property</code></td><td>Directly sets a CSS property inline</td><td>Quick visual changes</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Common DOM operations in Tic Tac Toe</span><span class="cb-lang">JavaScript</span></div>
+    <pre><code><span class="hljs-comment">// Select elements</span>
+<span class="hljs-keyword">const</span> cells = <span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelectorAll</span>(<span class="hljs-string">'.cell'</span>);
+<span class="hljs-keyword">const</span> status = <span class="hljs-variable language_">document</span>.<span class="hljs-title function_">getElementById</span>(<span class="hljs-string">'status'</span>);
+
+<span class="hljs-comment">// Update a cell's text</span>
+cells[<span class="hljs-number">3</span>].<span class="hljs-property">textContent</span> = <span class="hljs-string">'X'</span>;
+
+<span class="hljs-comment">// Add a CSS class (disable further clicks)</span>
+cells[<span class="hljs-number">3</span>].<span class="hljs-property">classList</span>.<span class="hljs-title function_">add</span>(<span class="hljs-string">'taken'</span>);
+
+<span class="hljs-comment">// Update status text</span>
+status.<span class="hljs-property">textContent</span> = <span class="hljs-string">'Player O wins!'</span>;
+
+<span class="hljs-comment">// Direct style change</span>
+cells[<span class="hljs-number">3</span>].<span class="hljs-property">style</span>.<span class="hljs-property">background</span> = <span class="hljs-string">'#e2efec'</span>;</code></pre>
+  </div>
+</section>
+
+<!-- ==================== 4. EVENT HANDLING ==================== -->
+<section class="section" id="events">
+  <div class="sec-header"><span class="sec-num">04</span><h2>Event Handling</h2></div>
+  <p class="sec-intro">
+    Events are how JavaScript responds to user interactions. Every click, keypress, or form submission generates an <strong>event object</strong> that JS can listen for.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F514; How Events Work in the Browser</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">User clicks a cell</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Browser creates a <strong>click event</strong></div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small purple">Capturing Phase (root &#x2192; target)</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">Target Phase (the clicked element)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small purple">Bubbling Phase (target &#x2192; root)</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Your event handler runs!</div>
+    </div>
+  </div>
+
+  <div class="card bdr-rust">
+    <h3>&#x1F4DD; Event Handling in Tic Tac Toe</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Three ways to handle clicks</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-comment">// Method 1: Add listener to each cell (most common)</span>
+<span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelectorAll</span>(<span class="hljs-string">'.cell'</span>).<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">cell, i</span>) =></span> {
+  cell.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">'click'</span>, <span class="hljs-function">() =></span> <span class="hljs-title function_">handleMove</span>(i));
+});
+
+<span class="hljs-comment">// Method 2: Event delegation on the board container</span>
+<span class="hljs-variable language_">document</span>.<span class="hljs-title function_">getElementById</span>(<span class="hljs-string">'board'</span>).<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">'click'</span>, <span class="hljs-function">(<span class="hljs-params">e</span>) =></span> {
+  <span class="hljs-keyword">const</span> cell = e.<span class="hljs-property">target</span>.<span class="hljs-title function_">closest</span>(<span class="hljs-string">'.cell'</span>);
+  <span class="hljs-keyword">if</span> (cell) <span class="hljs-title function_">handleMove</span>(+cell.<span class="hljs-property">dataset</span>.<span class="hljs-property">index</span>);
+});
+
+<span class="hljs-comment">// Method 3: Inline onclick (old way, avoid in production)</span>
+<span class="hljs-comment">// &lt;button onclick="handleMove(0)"&gt;&lt;/button&gt;</span>
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleMove</span>(<span class="hljs-params">index</span>) {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'Cell clicked:'</span>, index);
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Event Delegation</strong>
+      <p>Instead of attaching 9 separate listeners, attach <strong>one</strong> listener to the parent <code>#board</code> div. When any cell is clicked, the event <strong>bubbles up</strong> to the parent, and we use <code>event.target</code> to determine which cell was clicked. This is more efficient and works for dynamically added cells.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 5. BROWSER RENDERING ==================== -->
+<section class="section" id="rendering">
+  <div class="sec-header"><span class="sec-num">05</span><h2>Browser Rendering</h2></div>
+  <p class="sec-intro">
+    When your JavaScript changes the DOM, the browser does not instantly repaint. It follows a carefully optimised pipeline.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F4C8; The Critical Rendering Path</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">JavaScript modifies DOM</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Style Calculation (what CSS applies?)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">Layout (reflow) &mdash; calculate positions</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box purple">Paint &mdash; fill pixels</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Compositing &mdash; layer stacking</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">Screen displays updated pixels</div>
+    </div>
+    <p style="margin-top:0.75rem; font-size:0.85rem; color:var(--ink-soft);">
+      Tic Tac Toe only modifies <code>textContent</code> and adds/removes CSS classes &mdash; these are cheap operations that typically only trigger <strong>paint</strong> (not layout/reflow), because the grid dimensions do not change.
+    </p>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Performance Trap</strong>
+      <p>Reading <code>element.offsetHeight</code> or <code>getComputedStyle()</code> forces the browser to do an immediate <strong>synchronous reflow</strong>, flushing the render queue. If you read such values inside a loop that also writes to the DOM, you force repeated reflows and kill performance. Batch your reads separately from writes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. GAME LOGIC ==================== -->
+<section class="section" id="game-logic">
+  <div class="sec-header"><span class="sec-num">06</span><h2>JavaScript Game Logic</h2></div>
+  <p class="sec-intro">
+    Every piece of game logic runs in the browser: board state, turn tracking, win detection, draw detection.
+  </p>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F3AE; Complete Vanilla JS Implementation</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Full game logic (no frameworks)</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-keyword">const</span> cells = <span class="hljs-variable language_">document</span>.<span class="hljs-title function_">querySelectorAll</span>(<span class="hljs-string">'.cell'</span>);
+<span class="hljs-keyword">const</span> status = <span class="hljs-variable language_">document</span>.<span class="hljs-title function_">getElementById</span>(<span class="hljs-string">'status'</span>);
+
+<span class="hljs-comment">// State (no framework!)</span>
+<span class="hljs-keyword">let</span> board = [<span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>];
+<span class="hljs-keyword">let</span> turn = <span class="hljs-string">'X'</span>;
+<span class="hljs-keyword">let</span> gameOver = <span class="hljs-literal">false</span>;
+
+<span class="hljs-comment">// Win patterns: 3 rows, 3 cols, 2 diagonals</span>
+<span class="hljs-keyword">const</span> wins = [
+  [<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>], [<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>], [<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">8</span>], <span class="hljs-comment">// rows</span>
+  [<span class="hljs-number">0</span>,<span class="hljs-number">3</span>,<span class="hljs-number">6</span>], [<span class="hljs-number">1</span>,<span class="hljs-number">4</span>,<span class="hljs-number">7</span>], [<span class="hljs-number">2</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>], <span class="hljs-comment">// cols</span>
+  [<span class="hljs-number">0</span>,<span class="hljs-number">4</span>,<span class="hljs-number">8</span>], [<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>]  <span class="hljs-comment">// diagonals</span>
+];
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleClick</span>(<span class="hljs-params">index</span>) {
+  <span class="hljs-keyword">if</span> (gameOver || board[index]) <span class="hljs-keyword">return</span>;
+
+  board[index] = turn;                    <span class="hljs-comment">// Update state</span>
+  cells[index].<span class="hljs-property">textContent</span> = turn;       <span class="hljs-comment">// Update DOM</span>
+  cells[index].<span class="hljs-property">classList</span>.<span class="hljs-title function_">add</span>(<span class="hljs-string">'taken'</span>);
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">checkWin</span>(turn)) {
+    status.<span class="hljs-property">textContent</span> = <span class="hljs-string">`Player <span class="hljs-subst">${turn}</span> wins!`</span>;
+    gameOver = <span class="hljs-literal">true</span>;
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (board.<span class="hljs-title function_">every</span>(<span class="hljs-function"><span class="hljs-params">c</span> =></span> c)) {
+    status.<span class="hljs-property">textContent</span> = <span class="hljs-string">"It's a draw!"</span>;
+    gameOver = <span class="hljs-literal">true</span>;
+  } <span class="hljs-keyword">else</span> {
+    turn = turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+    status.<span class="hljs-property">textContent</span> = <span class="hljs-string">`Player <span class="hljs-subst">${turn}</span>'s turn`</span>;
+  }
+}
+
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">checkWin</span>(<span class="hljs-params">player</span>) {
+  <span class="hljs-keyword">return</span> wins.<span class="hljs-title function_">some</span>(<span class="hljs-function"><span class="hljs-params">pattern</span> =></span>
+    pattern.<span class="hljs-title function_">every</span>(<span class="hljs-function"><span class="hljs-params">i</span> =></span> board[i] === player)
+  );
+}
+
+<span class="hljs-comment">// Attach events</span>
+cells.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">cell, i</span>) =></span>
+  cell.<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">'click'</span>, <span class="hljs-function">() =></span> <span class="hljs-title function_">handleClick</span>(i))
+);</code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F504; Game Loop Flowchart</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">Wait for click</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Cell clicked at index i</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box rust">Is cell empty? Is game over?</div>
+      <div class="fc-row">
+        <div class="fc-box small" style="border-color:#999;color:#999;">No &#x2192; Ignore</div>
+        <div class="fc-box small teal">Yes &#x2192; Continue</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box purple">Update board[i] = turn</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box purple">Update DOM cell i</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small green">Check win</div>
+        <div class="fc-box small rust">Check draw</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small gold">Win/Draw &#x2192; End game</div>
+        <div class="fc-box small teal">Continue &#x2192; Toggle turn</div>
+      </div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold" style="border-color:#999;color:#999;">Wait for next click</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 7. STATE HANDLING WITHOUT FRAMEWORKS ==================== -->
+<section class="section" id="state-no-fw">
+  <div class="sec-header"><span class="sec-num">07</span><h2>State Handling Without Frameworks</h2></div>
+  <p class="sec-intro">
+    In vanilla JS, you manage state manually. There is no reactive system, no watchers, no virtual DOM. 
+    You mutate variables and explicitly update the DOM yourself.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4CA; How State Works in Vanilla JS</h3>
+    <p>The game state is just a <strong>plain JavaScript variable</strong>:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>State is just data</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-comment">// This is your entire "state management system"</span>
+<span class="hljs-keyword">let</span> board    = [<span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>];
+<span class="hljs-keyword">let</span> turn     = <span class="hljs-string">'X'</span>;
+<span class="hljs-keyword">let</span> gameOver = <span class="hljs-literal">false</span>;
+
+<span class="hljs-comment">// You update the DOM YOURSELF after every state change</span>
+board[i] = turn;
+cells[i].<span class="hljs-property">textContent</span> = turn;  <span class="hljs-comment">// &lt;-- manual DOM sync</span></code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F9F0; State Flow in Vanilla JS vs Frameworks</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Aspect</th><th>Vanilla JS</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr><td>State storage</td><td>Plain variables</td><td><code>data()</code> wrapped in reactive proxy</td></tr>
+          <tr><td>DOM update</td><td>You call <code>.textContent =</code> yourself</td><td>Automatic via reactivity system</td></tr>
+          <tr><td>Change detection</td><td>None (you must remember to update)</td><td>Automatic (getter/setter interception)</td></tr>
+          <tr><td>Re-render scope</td><td>You choose exactly what to change</td><td>Framework diffs and patches the DOM</td></tr>
+          <tr><td>Boilerplate</td><td>Minimal</td><td>More (component structure, directives)</td></tr>
+          <tr><td>Mental model</td><td>"I change the DOM when state changes"</td><td>"State changes, DOM follows automatically"</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>The Manual Sync Problem</strong>
+      <p>In vanilla JS, <strong>you</strong> are responsible for keeping the DOM in sync with the state. Forget to update one place? You get a visual bug. This is why frameworks exist &mdash; they automate the state &rarr; DOM mapping. In a larger app, manual sync becomes error-prone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. COMPARISON WITH FLASK ==================== -->
+<section class="section" id="comparison">
+  <div class="sec-header"><span class="sec-num">08</span><h2>Comparison: Vanilla JS vs Flask SSR</h2></div>
+  <p class="sec-intro">
+    The same Tic Tac Toe game built two ways. Understanding the differences reveals why we use frameworks.
+  </p>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4DD; Architecture Comparison</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 740 200" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrBl" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/>
+          </marker>
+        </defs>
+        <rect x="20" y="10" rx="8" width="330" height="36" fill="#a8482a" opacity="0.85"/>
+        <text x="185" y="33" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Flask SSR</text>
+
+        <rect x="390" y="10" rx="8" width="330" height="36" fill="#2c6b5d" opacity="0.85"/>
+        <text x="555" y="33" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#fff">Vanilla JavaScript</text>
+
+        <text x="185" y="65" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#1e4f8a">Browser</text>
+        <rect x="40" y="72" rx="6" width="290" height="22" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">Displays HTML (dumb terminal)</text>
+
+        <rect x="40" y="98" rx="6" width="290" height="22" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="185" y="113" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#1e4f8a">Sends POST for every move</text>
+
+        <text x="555" y="65" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#2c6b5d">Browser</text>
+        <rect x="410" y="72" rx="6" width="290" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="87" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">Stores state, runs logic</text>
+
+        <rect x="410" y="98" rx="6" width="290" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="555" y="113" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#2c6b5d">Updates DOM directly</text>
+
+        <text x="185" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#1e4f8a">Server</text>
+        <rect x="40" y="152" rx="6" width="290" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="185" y="167" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#a8482a">Board state, game logic</text>
+
+        <rect x="40" y="178" rx="6" width="290" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="185" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#a8482a">Jinja2 renders full HTML</text>
+
+        <text x="555" y="145" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="600" fill="#2c6b5d">Server</text>
+        <rect x="410" y="152" rx="6" width="290" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="555" y="167" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#b5872a">Static files only (no logic)</text>
+
+        <rect x="410" y="178" rx="6" width="290" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="555" y="193" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#b5872a">No state, no rendering</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card bdr-rust">
+      <h3>&#x2705; Vanilla JS Advantages</h3>
+      <ul>
+        <li><strong>Instant updates</strong> &mdash; no network delay, no page reload</li>
+        <li><strong>Offline capable</strong> &mdash; works without internet after initial load</li>
+        <li><strong>Lower server cost</strong> &mdash; server just serves static files</li>
+        <li><strong>Rich interactivity</strong> &mdash; animations, hover effects, real-time feedback</li>
+        <li><strong>Reduced bandwidth</strong> &mdash; only initial HTML/JS sent once</li>
+        <li><strong>No framework lock-in</strong> &mdash; you own every line of code</li>
+      </ul>
+    </div>
+    <div class="card bdr-gold">
+      <h3>&#x274C; Vanilla JS Limitations</h3>
+      <ul>
+        <li><strong>Manual state &rarr; DOM sync</strong> &mdash; easy to forget updates</li>
+        <li><strong>No reactivity</strong> &mdash; re-rendering is your responsibility</li>
+        <li><strong>Harder to scale</strong> &mdash; complex apps become spaghetti code</li>
+        <li><strong>No SEO</strong> &mdash; search engines see an empty HTML shell</li>
+        <li><strong>Security</strong> &mdash; game logic is visible in browser dev tools</li>
+        <li><strong>No state persistence</strong> &mdash; refreshing the page loses the game</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 9. LIVE DEMO ==================== -->
+<section class="section" id="live-demo">
+  <div class="sec-header"><span class="sec-num">09</span><h2>Live Interactive Demo</h2></div>
+  <p class="sec-intro">
+    Try the game right here. The full logic runs in your browser &mdash; no server needed.
+  </p>
+
+  <div class="card bdr-teal" style="text-align:center;">
+    <div class="demo-status" id="demoStatus">Player X's turn</div>
+    <div class="demo-board" id="demoBoard">
+      <button class="demo-cell" data-index="0"></button>
+      <button class="demo-cell" data-index="1"></button>
+      <button class="demo-cell" data-index="2"></button>
+      <button class="demo-cell" data-index="3"></button>
+      <button class="demo-cell" data-index="4"></button>
+      <button class="demo-cell" data-index="5"></button>
+      <button class="demo-cell" data-index="6"></button>
+      <button class="demo-cell" data-index="7"></button>
+      <button class="demo-cell" data-index="8"></button>
+    </div>
+    <button class="demo-reset" id="demoReset">&#x21BB; Reset Game</button>
+  </div>
+
+  <script>
+    (function(){
+      const cells = document.querySelectorAll('#demoBoard .demo-cell');
+      const status = document.getElementById('demoStatus');
+      const resetBtn = document.getElementById('demoReset');
+      let board = ['','','','','','','','',''];
+      let turn = 'X';
+      let gameOver = false;
+      const wins = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+      function checkWin(player) {
+        return wins.some(p => p.every(i => board[i] === player));
+      }
+
+      function handleClick(i) {
+        if (gameOver || board[i]) return;
+        board[i] = turn;
+        cells[i].textContent = turn;
+        cells[i].classList.add('taken');
+        cells[i].classList.add(turn.toLowerCase());
+        if (checkWin(turn)) {
+          status.textContent = 'Player ' + turn + ' wins!';
+          gameOver = true;
+        } else if (board.every(c => c)) {
+          status.textContent = "It's a draw!";
+          gameOver = true;
+        } else {
+          turn = turn === 'X' ? 'O' : 'X';
+          status.textContent = 'Player ' + turn + "'s turn";
+        }
+      }
+
+      function resetGame() {
+        board = ['','','','','','','','',''];
+        turn = 'X';
+        gameOver = false;
+        status.textContent = "Player X's turn";
+        cells.forEach(c => {
+          c.textContent = '';
+          c.classList.remove('taken', 'x', 'o');
+        });
+      }
+
+      cells.forEach((c, i) => c.addEventListener('click', () => handleClick(i)));
+      resetBtn.addEventListener('click', resetGame);
+    })();
+  </script>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Notice</strong>
+      <p>The demo runs entirely in <strong>this browser tab</strong>. No HTTP requests are made. No page reload. The state is just a few JavaScript variables. If you refresh the page, the game resets &mdash; that is the <strong>ephemeral</strong> nature of client-side state.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 10. COMMON BUGS ==================== -->
+<section class="section" id="bugs">
+  <div class="sec-header"><span class="sec-num">10</span><h2>Common Bugs &amp; Mistakes</h2></div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Bug 1: Forgetting to Update the DOM After State Change</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">handleClick</span>(<span class="hljs-params">i</span>) {
+  board[i] = turn;        <span class="hljs-comment">// State updated</span>
+  turn = turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+  <span class="hljs-comment">// DOM not updated! Cell still shows blank.</span>
+}</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Always update the corresponding DOM element right after mutating state: <code>cells[i].textContent = board[i]</code>.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Bug 2: Using <code>==</code> Instead of <code>===</code> in Win Check</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-comment">// board[i] is '', which is falsy but == null</span>
+<span class="hljs-keyword">if</span> (board[a] == board[b] == board[c]) { ... }  <span class="hljs-comment">// BAD</span></code></pre>
+    </div>
+    <p><strong>Fix:</strong> Use strict comparison: <code>board[a] === board[b] && board[b] === board[c] && board[a] !== ''</code>.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Bug 3: Event Listener Inside a Loop (Closure Problem)</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; <span class="hljs-number">9</span>; i++) {
+  cells[i].<span class="hljs-title function_">addEventListener</span>(<span class="hljs-string">'click'</span>, <span class="hljs-keyword">function</span>() {
+    <span class="hljs-title function_">handleClick</span>(i);  <span class="hljs-comment">// i is always 9 when clicked!</span>
+  });
+}</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Use <code>let</code> (block scoped) instead of <code>var</code>, or use <code>forEach</code> with its own scope, or use <code>dataset</code> attributes.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Bug 4: Not Preventing Clicks on Occupied Cells</h3>
+    <p>Without the guard <code>if (board[i]) return</code>, players can overwrite existing marks. Always check <code>if (board[i] !== '')</code> before processing a move.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Bug 5: Checking Win Before Updating the Board</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong order</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-keyword">if</span> (<span class="hljs-title function_">checkWin</span>(turn)) { <span class="hljs-comment">// &lt;-- board[i] is still empty!</span>
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'win'</span>);
+}
+board[i] = turn;  <span class="hljs-comment">// &lt;-- should be BEFORE check</span></code></pre>
+    </div>
+    <p><strong>Fix:</strong> Always update <code>board[i] = turn</code> <strong>before</strong> calling <code>checkWin()</code>.</p>
+  </div>
+</section>
+
+<!-- ==================== 11. REAL-WORLD APPLICATIONS ==================== -->
+<section class="section" id="real-world">
+  <div class="sec-header"><span class="sec-num">11</span><h2>Real-World Applications</h2></div>
+  <p class="sec-intro">
+    The same patterns &mdash; DOM selection, event listeners, manual state management &mdash; appear everywhere in production code.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F3E0; Where Vanilla JS is Used in Production</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Application</th><th>How Vanilla JS is Used</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Form validation</strong></td><td>Listen for <code>input</code> events, check field values, show/hide error messages</td></tr>
+          <tr><td><strong>Image carousels</strong></td><td>Track current slide index, update <code>transform</code> or <code>src</code> on click</td></tr>
+          <tr><td><strong>Accordion menus</strong></td><td>Toggle <code>classList</code> to show/hide content panels</td></tr>
+          <tr><td><strong>Tabbed interfaces</strong></td><td>Manage active tab state, show/hide corresponding panels</td></tr>
+          <tr><td><strong>Modal popups</strong></td><td>Toggle <code>display</code> or <code>class</code>, trap focus, handle escape key</td></tr>
+          <tr><td><strong>Drag and drop</strong></td><td><code>mousedown</code>, <code>mousemove</code>, <code>mouseup</code> events with position tracking</td></tr>
+          <tr><td><strong>Autocomplete search</strong></td><td><code>keyup</code> event triggers filtering of a local or fetched data list</td></tr>
+          <tr><td><strong>Countdown timers</strong></td><td><code>setInterval</code> updates <code>textContent</code> every second</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Progression: Vanilla JS to Frameworks</strong>
+      <p>Every one of the examples above is a <strong>component</strong> in a framework. A carousel in Vue is a <code>&lt;Carousel&gt;</code> component with reactive state. The concepts are identical &mdash; frameworks just package the pattern into a reusable, declarative structure.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 12. UPDATING UI ==================== -->
+<section class="section" id="updating-ui">
+  <div class="sec-header"><span class="sec-num">12</span><h2>Updating the UI</h2></div>
+  <p class="sec-intro">
+    There are multiple ways to update the UI in vanilla JS. Each has different performance and clarity trade-offs.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F4DD; UI Update Strategies</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Strategy</th><th>Code Example</th><th>Best For</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Direct property set</strong></td>
+            <td><code>el.textContent = 'X'</code></td>
+            <td>Simple text updates (Tic Tac Toe cells)</td>
+          </tr>
+          <tr>
+            <td><strong>Class toggling</strong></td>
+            <td><code>el.classList.add('taken')</code></td>
+            <td>Visual state changes (disabled, active, error)</td>
+          </tr>
+          <tr>
+            <td><strong>InnerHTML (caution)</strong></td>
+            <td><code>el.innerHTML = '&lt;span&gt;X&lt;/span&gt;'</code></td>
+            <td>When you need to replace a chunk of HTML</td>
+          </tr>
+          <tr>
+            <td><strong>Style property</strong></td>
+            <td><code>el.style.background = 'green'</code></td>
+            <td>Inline style changes (animations, highlights)</td>
+          </tr>
+          <tr>
+            <td><strong>Re-render entire board</strong></td>
+            <td>Loop over array, rebuild all cells</td>
+            <td>When state changes substantially</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Re-render approach (alternative to per-cell update)</span><span class="cb-lang">JavaScript</span></div>
+    <pre><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">renderBoard</span>(<span class="hljs-params"></span>) {
+  <span class="hljs-comment">// Blindly re-render ALL cells from state</span>
+  cells.<span class="hljs-title function_">forEach</span>(<span class="hljs-function">(<span class="hljs-params">cell, i</span>) =></span> {
+    cell.<span class="hljs-property">textContent</span> = board[i];
+    cell.<span class="hljs-property">classList</span>.<span class="hljs-title function_">toggle</span>(<span class="hljs-string">'taken'</span>, !!board[i]);
+  });
+}
+
+<span class="hljs-comment">// Now handleClick only needs to update state:</span>
+<span class="hljs-keyword">function</span> <span class="hljs-title function_">handleClick</span>(<span class="hljs-params">i</span>) {
+  <span class="hljs-keyword">if</span> (gameOver || board[i]) <span class="hljs-keyword">return</span>;
+  board[i] = turn;
+  <span class="hljs-title function_">renderBoard</span>();  <span class="hljs-comment">// &lt;-- One call to sync all DOM</span>
+  <span class="hljs-title function_">checkGameState</span>();
+}</code></pre>
+  </div>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F3AF; Per-Cell vs Full Re-render</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th>Pros</th><th>Cons</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Per-cell update</strong></td><td>Minimal DOM changes, fast</td><td>Each handler must know exactly what changed</td></tr>
+          <tr><td><strong>Full re-render</strong></td><td>Simple, consistent, hard to forget something</td><td>Updates all 9 cells even if only 1 changed</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:0.5rem; font-size:0.85rem; color:var(--ink-soft);">For a 9-cell board, both approaches are instant. For a large list (1000+ items), per-cell updates matter.</p>
+  </div>
+</section>
+
+<!-- ==================== 13. INTERVIEW & EXAM ==================== -->
+<section class="section" id="qa">
+  <div class="sec-header"><span class="sec-num">13</span><h2>Interview &amp; Exam Questions</h2></div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q1: What is the DOM and how does JavaScript interact with it?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>The <strong>DOM</strong> (Document Object Model) is a tree structure representing an HTML document. JavaScript interacts with it via the <code>document</code> object using methods like <code>getElementById</code>, <code>querySelector</code>, <code>createElement</code>, and properties like <code>textContent</code>, <code>innerHTML</code>, and <code>classList</code>. The DOM is <em>live</em> &mdash; changes in JS immediately reflect on screen.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q2: How does the browser rendering pipeline work when you change the DOM?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>1. <strong>JavaScript</strong> modifies the DOM (text, classes, attributes). 2. <strong>Style calculation</strong> determines which CSS rules apply. 3. <strong>Layout (reflow)</strong> computes positions and sizes. 4. <strong>Paint</strong> fills pixels. 5. <strong>Compositing</strong> layers them. Changing <code>textContent</code> typically only triggers paint; changing width/height triggers layout which is more expensive.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q3: What is event delegation and why use it?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Event delegation</strong> means attaching a single event listener to a <em>parent</em> element and using <code>event.target</code> to determine which <em>child</em> was interacted with. Benefits: (1) fewer listeners (one vs nine), (2) works for dynamically added children, (3) less memory. For Tic Tac Toe, you attach one listener to the board div instead of nine to individual cells.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q4: How does vanilla JavaScript manage state compared to Vue.js?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Vanilla JS:</strong> State is stored in plain variables. You must <em>manually</em> update the DOM whenever state changes. There is no automatic tracking. <strong>Vue.js:</strong> State lives in <code>data()</code> which Vue wraps in reactive proxies. When state changes, Vue automatically determines which DOM nodes to update and patches them. Vue eliminates the manual sync step.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q5: What is the difference between <code>textContent</code> and <code>innerHTML</code>?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>textContent</code> sets or gets only the <strong>text</strong> (HTML tags are escaped). <code>innerHTML</code> parses the string as <strong>HTML</strong>. Use <code>textContent</code> for text-only updates (it is faster and prevents XSS). Use <code>innerHTML</code> only when you need to insert structured HTML from a trusted source.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q6: Why does refreshing the page reset the Tic Tac Toe game in Vanilla JS?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>Because the game state is stored in <strong>JavaScript variables</strong> (<code>board</code>, <code>turn</code>, <code>gameOver</code>) that live in memory. When you refresh, the browser destroys the page's memory and reloads the HTML/JS from scratch. The variables are reinitialised to their starting values. To persist across refreshes, you would need <code>localStorage</code> or a backend server.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q7: What is the difference between <code>let</code>, <code>const</code>, and <code>var</code>?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>const</code> cannot be reassigned (but objects/arrays can be mutated). <code>let</code> is block-scoped and can be reassigned. <code>var</code> is function-scoped (not block-scoped) and hoisted. In modern JS, prefer <code>const</code> by default and <code>let</code> when you need reassignment.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q8: How does the <code>some()</code> and <code>every()</code> array methods work in the win check?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>wins.some(pattern => ...)</code> returns <code>true</code> if <em>any</em> winning pattern matches. Inside, <code>pattern.every(i => board[i] === player)</code> returns <code>true</code> if <em>every</em> cell in that pattern belongs to the current player. Together: "Is there at least one pattern where all three cells belong to this player?"</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q9: What is event bubbling and how does it affect the Tic Tac Toe click handler?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Event bubbling</strong> means when an event fires on an element, it first runs handlers on that element, then on its parent, then its grandparent, all the way up to <code>document</code>. In Tic Tac Toe, a click on a cell bubbles up to the board div. If you have a listener on the board, it will catch all cell clicks via <code>event.target</code>. You can stop bubbling with <code>event.stopPropagation()</code> if needed.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q10: Compare the developer experience of building Tic Tac Toe in Flask vs Vanilla JS.</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Flask:</strong> You write Python logic, Jinja2 templates, and handle form submissions. Every feature requires a round-trip. Easier for beginners who know Python. No need to understand the DOM. <strong>Vanilla JS:</strong> You write JavaScript that directly manipulates the DOM. Instant feedback, but you must understand events, the DOM API, closures, and state management. Steeper initial learning, but more representative of how modern frontend works.</p>
+    </div>
+  </div>
+
+  <div class="divider">Exam Focus</div>
+
+  <div class="card bdr-rust" style="background:#fff8f5;">
+    <h3>&#x1F4DD; Common Exam Questions</h3>
+    <ol>
+      <li><strong>Draw and explain</strong> the DOM tree structure for a simple HTML page with a div, button, and paragraph.</li>
+      <li><strong>Write JavaScript code</strong> that selects all cells, attaches click handlers, and updates the board.</li>
+      <li><strong>Explain the event lifecycle</strong>: capturing, target, and bubbling phases.</li>
+      <li><strong>Compare <code>textContent</code> vs <code>innerHTML</code></strong> with code examples of each.</li>
+      <li><strong>Identify and fix</strong> the closure bug in a loop with <code>addEventListener</code>.</li>
+      <li><strong>Describe the browser rendering pipeline</strong> when a CSS class is toggled on an element.</li>
+      <li><strong>What is state management?</strong> Compare how state is handled in Vanilla JS vs a framework like Vue.</li>
+      <li><strong>Explain event delegation</strong> and refactor 9 separate listeners into a single delegated listener.</li>
+      <li><strong>Why does the Tic Tac Toe game reset on page refresh?</strong> How would you make it persistent?</li>
+      <li><strong>Write a function</strong> that checks for a winner given a board array. What are the 8 winning patterns?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== 14. CHEAT SHEET ==================== -->
+<section class="section" id="cheatsheet">
+  <div class="sec-header"><span class="sec-num">14</span><h2>Quick Revision Cheat Sheet</h2></div>
+
+  <div class="cheat-grid">
+    <div class="cheat-item">
+      <h4>DOM Selection</h4>
+      <code>document.getElementById('id')</code>
+      <code>document.querySelector('.class')</code>
+      <code>document.querySelectorAll('.cell')</code>
+      <span class="cheat-desc">Returns one element or a NodeList.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>DOM Reading/Writing</h4>
+      <code>el.textContent = 'text'</code>
+      <code>el.innerHTML = '&lt;b&gt;bold&lt;/b&gt;'</code>
+      <code>el.getAttribute('data-x')</code>
+      <code>el.dataset.index</code>
+      <span class="cheat-desc">Get/set content and data attributes.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Class Manipulation</h4>
+      <code>el.classList.add('name')</code>
+      <code>el.classList.remove('name')</code>
+      <code>el.classList.toggle('name')</code>
+      <code>el.classList.contains('name')</code>
+      <span class="cheat-desc">Manage CSS classes without touching className.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Events</h4>
+      <code>el.addEventListener('click', fn)</code>
+      <code>el.removeEventListener('click', fn)</code>
+      <code>e.target (the clicked element)</code>
+      <code>e.currentTarget (the listener element)</code>
+      <span class="cheat-desc">Add/remove event listeners.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Event Flow</h4>
+      <code>Capturing: root &rarr; target</code>
+      <code>Target: the element</code>
+      <code>Bubbling: target &rarr; root</code>
+      <code>e.stopPropagation()</code>
+      <span class="cheat-desc">Three phases of event propagation.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>State in Vanilla JS</h4>
+      <code>let board = ['', '', ...]</code>
+      <code>function render() { /* update DOM */ }</code>
+      <code>// Manual: state change &rarr; DOM change</code>
+      <span class="cheat-desc">You own the entire sync process.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Rendering Pipeline</h4>
+      <code>Style &rarr; Layout &rarr; Paint &rarr; Composite</code>
+      <code>textContent &rarr; paint only</code>
+      <code>width change &rarr; reflow + paint</code>
+      <span class="cheat-desc">Different DOM changes cost different amounts.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Win Detection</h4>
+      <code>wins = [[0,1,2], [3,4,5], ...]</code>
+      <code>wins.some(p =&gt; p.every(i =&gt; b[i]===p))</code>
+      <span class="cheat-desc">8 patterns: 3 rows, 3 cols, 2 diagonals.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Vanilla JS vs Flask SSR</h4>
+      <code>JS: no reload, instant, offline</code>
+      <code>Flask: reloads, slow, online required</code>
+      <span class="cheat-desc">Different trade-offs for different needs.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Common Bug Fixes</h4>
+      <code>Use === not ==</code>
+      <code>Update board[i] BEFORE checkWin()</code>
+      <code>Use let in loops (not var)</code>
+      <code>Always guard: if (board[i]) return</code>
+      <span class="cheat-desc">Top 4 mistakes and their solutions.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 15. KEY TAKEAWAYS ==================== -->
+<section class="section" id="takeaways">
+  <div class="sec-header"><span class="sec-num">15</span><h2>Key Takeaways</h2></div>
+  <div class="card bdr-teal">
+    <ul class="takeaway-list">
+      <li><strong>The DOM is a live tree</strong> &mdash; every HTML element is a node you can read and modify with JavaScript.</li>
+      <li><strong>DOM manipulation</strong> means using methods like <code>querySelector</code>, <code>textContent</code>, and <code>classList</code> to update the page.</li>
+      <li><strong>Events</strong> (<code>click</code>, <code>submit</code>, etc.) are the way JavaScript responds to user actions. Event delegation attaches one listener to a parent rather than many to children.</li>
+      <li><strong>Browser rendering</strong> follows a pipeline: Style &rarr; Layout &rarr; Paint &rarr; Composite. Different DOM operations trigger different stages.</li>
+      <li><strong>State in vanilla JS</strong> is just variables. You must <em>manually</em> update the DOM when state changes &mdash; there is no reactivity.</li>
+      <li><strong>Vanilla JS gives instant feedback</strong> with no page reloads, but state is lost on refresh unless you use localStorage or a backend.</li>
+      <li><strong>Frameworks (Vue, React)</strong> automate the state &rarr; DOM sync. Understanding the vanilla way helps you appreciate what frameworks do.</li>
+      <li><strong>Common bugs</strong> include: forgetting to update the DOM, incorrect comparison operators, closure issues in loops, and wrong order of operations.</li>
+      <li><strong>The same patterns</strong> &mdash; select elements, attach listeners, update content &mdash; are used in every JavaScript application, from Tic Tac Toe to Google Docs.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 16. SUMMARY ==================== -->
+<section class="section" id="summary">
+  <div class="sec-header"><span class="sec-num">16</span><h2>Summary</h2></div>
+  <div class="summary-box">
+    <h3>&#x1F4D6; Lecture at a Glance</h3>
+    <p>The Vanilla JavaScript Tic Tac Toe demo is a <strong>client-side rendered</strong> application where the browser handles everything: state, logic, and display. No server is involved during gameplay.</p>
+    <ul>
+      <li>The <strong>DOM</strong> is a tree of HTML nodes that JavaScript reads and modifies.</li>
+      <li><strong>DOM manipulation</strong> uses <code>querySelector</code>, <code>textContent</code>, <code>classList</code>, and <code>style</code> to update the page.</li>
+      <li><strong>Event handling</strong> via <code>addEventListener</code> lets JS respond to clicks. Event delegation is the efficient pattern.</li>
+      <li>The <strong>browser rendering pipeline</strong> (Style &rarr; Layout &rarr; Paint &rarr; Composite) determines how expensive a DOM change is.</li>
+      <li><strong>Game state</strong> is held in plain JS variables. <strong>You</strong> must sync state changes to the DOM manually.</li>
+      <li><strong>Vanilla JS</strong> gives instant, offline-capable interactions but lacks reactivity, SEO, and persistence.</li>
+      <li><strong>Compared to Flask SSR</strong>, the difference is where logic lives (server vs browser) and how the page updates (reload vs in-place).</li>
+      <li><strong>Frameworks exist</strong> to automate the manual sync. Understanding vanilla JS first makes you a better framework developer.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 17. GLOSSARY ==================== -->
+<section class="section" id="glossary">
+  <div class="sec-header"><span class="sec-num">17</span><h2>Glossary</h2></div>
+  <div class="card bdr-purple">
+    <div class="glossary-term"><span class="gt-word">DOM</span><span class="gt-def">Document Object Model &mdash; a tree representation of HTML that JavaScript can read and modify.</span></div>
+    <div class="glossary-term"><span class="gt-word">DOM Manipulation</span><span class="gt-def">Using JavaScript to create, read, update, or delete elements in the DOM tree.</span></div>
+    <div class="glossary-term"><span class="gt-word">Event</span><span class="gt-def">A signal fired by the browser (click, keypress, submit) that JavaScript can listen for and respond to.</span></div>
+    <div class="glossary-term"><span class="gt-word">Event Delegation</span><span class="gt-def">Attaching a single listener to a parent element and using event.target to handle events from children.</span></div>
+    <div class="glossary-term"><span class="gt-word">Event Bubbling</span><span class="gt-def">The phase where an event travels from the target element up to the document root.</span></div>
+    <div class="glossary-term"><span class="gt-word">Reflow (Layout)</span><span class="gt-def">The browser recalculates element positions and sizes. Expensive, triggered by layout changes.</span></div>
+    <div class="glossary-term"><span class="gt-word">Repaint</span><span class="gt-def">The browser fills pixels without changing layout. Cheaper than reflow.</span></div>
+    <div class="glossary-term"><span class="gt-word">State</span><span class="gt-def">The data that determines what the UI displays at any moment (board array, turn, gameOver).</span></div>
+    <div class="glossary-term"><span class="gt-word">Vanilla JavaScript</span><span class="gt-def">Plain JavaScript without any libraries, frameworks, or transpilers.</span></div>
+    <div class="glossary-term"><span class="gt-word">Client-Side Rendering</span><span class="gt-def">The browser runs JavaScript to generate and update the UI, rather than receiving HTML from a server.</span></div>
+    <div class="glossary-term"><span class="gt-word">NodeList</span><span class="gt-def">An array-like collection returned by querySelectorAll. Convert to array with Array.from() if needed.</span></div>
+    <div class="glossary-term"><span class="gt-word">Closure</span><span class="gt-def">A function that retains access to variables from its outer scope even after that scope has exited.</span></div>
+  </div>
+</section>
+
+<div style="border-top:1px solid var(--line); padding-top:1.5rem; margin-top:1.5rem; text-align:center;">
+  <a href="#overview" style="color:var(--blue); text-decoration:none; font-weight:500;">&#x2191; Back to Top</a>
+</div>
+
+</div>
+
+<footer class="footer">
+  <p>MAD2 &mdash; Week 03: Vue.js Basics &middot; Tic Tac Toe Demo &mdash; Vanilla JavaScript</p>
+  <p style="margin-top:0.25rem; font-size:0.7rem;">Built for study &amp; revision purposes</p>
+</footer>
+
+<script>
+function toggleQA(el) {
+  let answer = el.nextElementSibling;
+  let toggle = el.querySelector('.qa-toggle');
+  answer.classList.toggle('open');
+  el.classList.toggle('open');
+  toggle.textContent = answer.classList.contains('open') ? '\u00d7' : '+';
+}
+</script>
+
+</body>
+</html>

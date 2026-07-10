@@ -1,0 +1,396 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L6 – DOM API — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 6</div>
+  <h1>DOM API</h1>
+  <p>The <b>Document Object Model (DOM)</b> is the bridge between JavaScript and HTML. Learn how to <b>select</b>, <b>modify</b>, <b>create</b>, and <b>remove</b> elements, and how to handle <b>events</b> that make pages interactive.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span>What is the DOM?</div>
+<div class="card">
+  <h2>The DOM Tree</h2>
+  <div class="def">
+    When the browser loads an HTML page, it creates a <b>tree-like representation</b> of the document called the DOM. Each HTML element becomes a <b>node</b> in this tree. JavaScript can read, modify, add, or delete any node.
+  </div>
+
+  <svg viewBox="0 0 600 220" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="220" fill="#12161F" rx="10"/>
+    <text x="300" y="25" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="13" font-weight="700">DOM Tree Structure</text>
+    <rect x="250" y="40" width="100" height="28" rx="6" fill="#4ADE94" stroke="#234436" stroke-width="1.5"/>
+    <text x="300" y="59" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">document</text>
+    <line x1="300" y1="68" x2="300" y2="85" stroke="#232A38" stroke-width="2"/>
+    <rect x="250" y="85" width="100" height="28" rx="6" fill="#7DD3FC"/>
+    <text x="300" y="104" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">html</text>
+    <line x1="230" y1="113" x2="200" y2="130" stroke="#232A38" stroke-width="2"/>
+    <line x1="370" y1="113" x2="400" y2="130" stroke="#232A38" stroke-width="2"/>
+    <rect x="150" y="130" width="100" height="28" rx="6" fill="#F0B450"/>
+    <text x="200" y="149" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">head</text>
+    <rect x="350" y="130" width="100" height="28" rx="6" fill="#F0B450"/>
+    <text x="400" y="149" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">body</text>
+    <line x1="175" y1="158" x2="140" y2="175" stroke="#232A38" stroke-width="2"/>
+    <line x1="225" y1="158" x2="260" y2="175" stroke="#232A38" stroke-width="2"/>
+    <rect x="90" y="175" width="100" height="28" rx="6" fill="#8B93FF"/>
+    <text x="140" y="194" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">title</text>
+    <rect x="210" y="175" width="100" height="28" rx="6" fill="#8B93FF"/>
+    <text x="260" y="194" text-anchor="middle" fill="#0A0D14" font-family="JetBrains Mono,monospace" font-size="11" font-weight="700">div</text>
+  </svg>
+
+  <h3>The <code>document</code> Object</h3>
+  <p>The <b>entry point</b> to the DOM. Every browser exposes the global <code>document</code> object in JavaScript.</p>
+  <pre><code><span class="fn">console</span>.<span class="fn">log</span>(document);            <span class="cmt">// the entire HTML document</span>
+<span class="fn">console</span>.<span class="fn">log</span>(document.<span class="prop">head</span>);       <span class="cmt">// &lt;head&gt; element</span>
+<span class="fn">console</span>.<span class="fn">log</span>(document.<span class="prop">body</span>);       <span class="cmt">// &lt;body&gt; element</span>
+<span class="fn">console</span>.<span class="fn">log</span>(document.<span class="prop">title</span>);      <span class="cmt">// the page title (string)</span></code></pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The DOM is like an <b>architectural blueprint</b> of a building. HTML is the raw building material, but the DOM is the detailed plan that shows every wall, door, and window. JavaScript is the <b>construction worker</b> who reads the blueprint, walks through the building, and modifies walls, adds windows, or demolishes rooms.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Selecting Elements</div>
+<div class="card">
+  <h2>Finding Nodes in the DOM</h2>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Traditional (Legacy)</div>
+      <div class="c-desc"><code>getElementById("id")</code> — single element<br><code>getElementsByClassName("cls")</code> — live HTMLCollection<br><code>getElementsByTagName("div")</code> — live HTMLCollection</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Modern (Recommended)</div>
+      <div class="c-desc"><code>querySelector("css-selector")</code> — first match<br><code>querySelectorAll("css-selector")</code> — static NodeList</div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt">// Modern selectors (pass any CSS selector)</span>
+<span class="kw">const</span> header = document.<span class="fn">querySelector</span>(<span class="str">"header"</span>);
+<span class="kw">const</span> nav = document.<span class="fn">querySelector</span>(<span class="str">".nav-bar"</span>);
+<span class="kw">const</span> btn = document.<span class="fn">querySelector</span>(<span class="str">"#submit-btn"</span>);
+<span class="kw">const</span> items = document.<span class="fn">querySelectorAll</span>(<span class="str">".list-item"</span>);
+<span class="kw">const</span> firstLi = document.<span class="fn">querySelector</span>(<span class="str">"ul li:first-child"</span>);
+
+<span class="cmt">// querySelectorAll returns a NodeList (not an array!)</span>
+<span class="fn">console</span>.<span class="fn">log</span>(items.<span class="prop">length</span>);          <span class="cmt">// 3</span>
+items.<span class="fn">forEach</span>(item => {             <span class="cmt">// NodeList has forEach</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(item.<span class="prop">textContent</span>);
+});
+<span class="kw">const</span> arr = [...items];             <span class="cmt">// convert to Array if needed</span></code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Always prefer <b>querySelector</b> and <b>querySelectorAll</b>. They accept any CSS selector, return static (not live) collections, and are consistent across browsers. The legacy methods (<code>getElementById</code> excepted) have quirks that cause bugs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Modifying Content &amp; Attributes</div>
+<div class="card">
+  <h2>Changing What the User Sees</h2>
+
+  <h3>Text Content</h3>
+  <pre><code><span class="kw">const</span> el = document.<span class="fn">querySelector</span>(<span class="str">"h1"</span>);
+
+el.<span class="prop">textContent</span> = <span class="str">"New Title"</span>;       <span class="cmt">// sets text (safe, no HTML parsing)</span>
+el.<span class="prop">innerHTML</span> = <span class="str">"&lt;em&gt;New&lt;/em&gt; Title"</span>; <span class="cmt">// parses HTML (XSS risk!)</span>
+el.<span class="prop">innerText</span> = <span class="str">"New Title"</span>;         <span class="cmt">// similar to textContent but slower</span></code></pre>
+
+  <h3>Attributes &amp; Styles</h3>
+  <pre><code><span class="cmt">// Attributes</span>
+el.<span class="fn">setAttribute</span>(<span class="str">"data-id"</span>, <span class="str">"123"</span>);
+el.<span class="fn">getAttribute</span>(<span class="str">"data-id"</span>);   <span class="cmt">// "123"</span>
+el.<span class="fn">hasAttribute</span>(<span class="str">"disabled"</span>); <span class="cmt">// true/false</span>
+el.<span class="fn">removeAttribute</span>(<span class="str">"disabled"</span>);
+
+<span class="cmt">// Direct property access (for standard attributes)</span>
+el.<span class="prop">id</span> = <span class="str">"main-header"</span>;
+el.<span class="prop">href</span> = <span class="str">"https://example.com"</span>;   <span class="cmt">// for &lt;a&gt;</span>
+el.<span class="prop">src</span> = <span class="str">"image.jpg"</span>;               <span class="cmt">// for &lt;img&gt;</span></code></pre>
+
+  <h3>Class List</h3>
+  <pre><code><span class="kw">const</span> div = document.<span class="fn">querySelector</span>(<span class="str">".box"</span>);
+div.<span class="prop">classList</span>.<span class="fn">add</span>(<span class="str">"active"</span>);           <span class="cmt">// add class</span>
+div.<span class="prop">classList</span>.<span class="fn">remove</span>(<span class="str">"hidden"</span>);        <span class="cmt">// remove class</span>
+div.<span class="prop">classList</span>.<span class="fn">toggle</span>(<span class="str">"dark-mode"</span>);      <span class="cmt">// toggle on/off</span>
+div.<span class="prop">classList</span>.<span class="fn">contains</span>(<span class="str">"active"</span>);       <span class="cmt">// true/false</span>
+div.<span class="prop">classList</span>.<span class="fn">replace</span>(<span class="str">"old"</span>, <span class="str">"new"</span>);   <span class="cmt">// replace class</span></code></pre>
+
+  <h3>Inline Styles</h3>
+  <pre><code>el.<span class="prop">style</span>.<span class="prop">color</span> = <span class="str">"red"</span>;
+el.<span class="prop">style</span>.<span class="prop">backgroundColor</span> = <span class="str">"#333"</span>;    <span class="cmt">// camelCase, not background-color</span>
+el.<span class="prop">style</span>.<span class="prop">fontSize</span> = <span class="str">"16px"</span>;</code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using innerHTML with user input.</b> <code>innerHTML</code> parses HTML strings. If you insert user-provided content (e.g., comments, search terms), this creates an <b>XSS vulnerability</b>. Always use <code>textContent</code> for text, and <code>innerHTML</code> only with trusted content or after sanitization.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Creating &amp; Removing Elements</div>
+<div class="card">
+  <h2>Dynamic DOM Manipulation</h2>
+  <pre><code><span class="cmt">// Create element</span>
+<span class="kw">const</span> li = document.<span class="fn">createElement</span>(<span class="str">"li"</span>);
+li.<span class="prop">textContent</span> = <span class="str">"New Item"</span>;
+li.<span class="prop">classList</span>.<span class="fn">add</span>(<span class="str">"list-item"</span>);
+
+<span class="cmt">// Append to parent</span>
+<span class="kw">const</span> ul = document.<span class="fn">querySelector</span>(<span class="str">"ul"</span>);
+ul.<span class="fn">appendChild</span>(li);                 <span class="cmt">// adds at end</span>
+ul.<span class="fn">insertBefore</span>(li, ul.<span class="prop">firstChild</span>); <span class="cmt">// adds at beginning</span>
+
+<span class="cmt">// Modern append/prepend</span>
+ul.<span class="fn">append</span>(li);                       <span class="cmt">// at end</span>
+ul.<span class="fn">prepend</span>(li);                      <span class="cmt">// at start</span>
+
+<span class="cmt">// Remove element</span>
+li.<span class="fn">remove</span>();                          <span class="cmt">// modern way (IE no)</span>
+ul.<span class="fn">removeChild</span>(li);                   <span class="cmt">// legacy way</span></code></pre>
+
+  <svg viewBox="0 0 600 100" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="100" fill="#12161F" rx="10"/>
+    <text x="300" y="25" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="12" font-weight="700">DOM Manipulation Methods</text>
+    <rect x="20" y="40" width="120" height="40" rx="6" fill="#234436"/>
+    <text x="80" y="65" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="10">createElement</text>
+    <rect x="160" y="40" width="100" height="40" rx="6" fill="#26264A"/>
+    <text x="210" y="65" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono,monospace" font-size="10">appendChild</text>
+    <rect x="280" y="40" width="100" height="40" rx="6" fill="#1A3A4A"/>
+    <text x="330" y="65" text-anchor="middle" fill="#7DD3FC" font-family="JetBrains Mono,monospace" font-size="10">append/prepend</text>
+    <rect x="400" y="40" width="80" height="40" rx="6" fill="#3A1A1A"/>
+    <text x="440" y="65" text-anchor="middle" fill="#F05050" font-family="JetBrains Mono,monospace" font-size="10">remove</text>
+    <rect x="500" y="40" width="80" height="40" rx="6" fill="#3E3320"/>
+    <text x="540" y="65" text-anchor="middle" fill="#F0B450" font-family="JetBrains Mono,monospace" font-size="10">removeChild</text>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Events</div>
+<div class="card">
+  <h2>Making Pages Interactive</h2>
+  <div class="def">
+    Events are <b>signals</b> fired when something happens — a click, keypress, form submit, mouse move, page load. We <b>listen</b> for events and <b>handle</b> them with functions.
+  </div>
+
+  <h3>addEventListener</h3>
+  <pre><code><span class="kw">const</span> btn = document.<span class="fn">querySelector</span>(<span class="str">"button"</span>);
+
+btn.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, <span class="kw">function</span>(event) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Button clicked!"</span>);
+  <span class="fn">console</span>.<span class="fn">log</span>(event.<span class="prop">target</span>);    <span class="cmt">// the clicked element</span>
+  <span class="fn">console</span>.<span class="fn">log</span>(event.<span class="prop">type</span>);      <span class="cmt">// "click"</span>
+});
+
+<span class="cmt">// Arrow function</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, e =&gt; {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Clicked!"</span>);
+});</code></pre>
+
+  <h3>Common Events</h3>
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);"><th style="text-align:left;padding:6px;color:var(--cyan);">Event</th><th style="text-align:left;padding:6px;color:var(--cyan);">Trigger</th></tr>
+    <tr style="border-bottom:1px solid var(--line);"><td style="padding:6px;"><code>click</code></td><td style="padding:6px;">Mouse click on element</td></tr>
+    <tr style="border-bottom:1px solid var(--line);"><td style="padding:6px;"><code>submit</code></td><td style="padding:6px;">Form submitted</td></tr>
+    <tr style="border-bottom:1px solid var(--line);"><td style="padding:6px;"><code>keydown</code></td><td style="padding:6px;">Key pressed</td></tr>
+    <tr style="border-bottom:1px solid var(--line);"><td style="padding:6px;"><code>DOMContentLoaded</code></td><td style="padding:6px;">HTML parsed, DOM ready</td></tr>
+    <tr><td style="padding:6px;"><code>input</code></td><td style="padding:6px;">Value of input/textarea changed</td></tr>
+  </table>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The event system is like a <b>doorbell</b>. You install a listener (the doorbell button). When someone presses it (event fires), your handler runs (you answer the door). The event object is like the camera feed — it tells you who is at the door (target) and what happened (type). You can also stop the event from propagating further (<code>stopPropagation</code>), like telling your dog to stop barking at the doorbell.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Event Propagation</div>
+<div class="card">
+  <h2>Bubbling &amp; Capturing</h2>
+  <div class="def">
+    When an event fires on an element, it travels through the DOM in three phases:
+  </div>
+  <ol>
+    <li><b>Capturing phase</b> — event travels from <code>document</code> down to the target</li>
+    <li><b>Target phase</b> — event reaches the target element</li>
+    <li><b>Bubbling phase</b> — event travels from target back up to <code>document</code></li>
+  </ol>
+
+  <pre><code><span class="cmt">// By default, listeners fire during bubbling phase</span>
+parent.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Parent (bubbling)"</span>);
+});
+child.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Child"</span>);
+});
+<span class="cmt">// Clicking child logs: "Child" → "Parent (bubbling)"</span>
+
+<span class="cmt">// Capture phase: pass { capture: true } or true</span>
+parent.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, () => {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Parent (capture)"</span>);
+}, { <span class="prop">capture</span>: <span class="kw">true</span> });
+<span class="cmt">// Now clicking child logs: "Parent (capture)" → "Child" → "Parent (bubbling)"</span>
+
+<span class="cmt">// Stop propagation</span>
+child.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, e => {
+  e.<span class="fn">stopPropagation</span>();  <span class="cmt">// prevents bubbling</span>
+});</code></pre>
+
+  <h3>Event Delegation</h3>
+  <p>A powerful pattern where a <b>single listener on a parent</b> handles events for all current and future children.</p>
+  <pre><code><span class="cmt">// Instead of adding listeners to every li...</span>
+ul.<span class="fn">addEventListener</span>(<span class="str">"click"</span>, e => {
+  <span class="kw">const</span> li = e.<span class="prop">target</span>.<span class="fn">closest</span>(<span class="str">"li"</span>);
+  <span class="kw">if</span> (li) {
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Clicked:"</span>, li.<span class="prop">textContent</span>);
+  }
+});</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Use <b>event delegation</b> for lists, tables, and dynamic content. It uses less memory (one listener vs hundreds) and automatically handles elements added later. Use <code>e.target.closest(selector)</code> to find the right element.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">Modern frameworks like <b>React</b> and <b>Vue</b> abstract away direct DOM manipulation. They use a <b>Virtual DOM</b> — a lightweight JS representation — and batch updates for performance. However, understanding the raw DOM API is still critical for debugging, working with Web Components, and scenarios where you need direct control (canvas, games, performance-critical code). Every React dev inevitably needs <code>document.querySelector</code> or <code>.addEventListener</code> at some point.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between textContent and innerHTML?</div>
+    <div class="a">A: <code>textContent</code> sets/gets text only — it escapes HTML tags (safe). <code>innerHTML</code> parses the string as HTML (XSS risk if content is user-provided). Use <code>textContent</code> unless you specifically need to insert HTML.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is event delegation and why is it useful?</div>
+    <div class="a">A: Event delegation attaches a single event listener to a parent element to handle events from its children via bubbling. Benefits: (1) less memory (one listener instead of hundreds), (2) works for dynamically added elements, (3) cleaner code.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is event.stopPropagation() vs event.preventDefault()?</div>
+    <div class="a">A: <code>stopPropagation()</code> prevents the event from traveling further through the DOM (bubbling/capturing). <code>preventDefault()</code> prevents the browser's default behavior (e.g., link navigation, form submission) but does not stop propagation.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is a NodeList vs an Array?</div>
+    <div class="a">A: <code>NodeList</code> is the return type of <code>querySelectorAll</code>. It has <code>forEach</code> but not <code>map</code>, <code>filter</code>, or <code>reduce</code>. Convert with <code>Array.from()</code> or spread <code>[...nodeList]</code> to use full array methods.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>DOM</b> tree of HTML nodes</div>
+    <div class="rev-item"><b>document</b> entry point to DOM</div>
+    <div class="rev-item"><b>querySelector</b> CSS selector, first match</div>
+    <div class="rev-item"><b>querySelectorAll</b> CSS selector, NodeList</div>
+    <div class="rev-item"><b>textContent</b> safe text (no HTML)</div>
+    <div class="rev-item"><b>classList</b> add/remove/toggle</div>
+    <div class="rev-item"><b>addEventListener</b> attach event handler</div>
+    <div class="rev-item"><b>Event bubbling</b> child → parent</div>
+    <div class="rev-item"><b>Event delegation</b> single parent listener</div>
+    <div class="rev-item"><b>createElement</b> dynamic element creation</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Asynchrony Event Loop — Study Notes</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 05</div>
+  <h1>Asynchrony &amp; the Event Loop</h1>
+  <p>JavaScript is <b>single-threaded</b> but <b>non-blocking</b>. The event loop orchestrates deferred work — timers, network calls, and UI updates — without freezing the main thread.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span> Sync vs Async &amp; the Call Stack</div>
+<div class="card">
+  <h2>The Call Stack — One Thing at a Time</h2>
+  <div class="def">The call stack tracks function execution. Each function call adds a frame; each return removes it. Stack overflow = too many frames.</div>
+<pre><code><span class="kw">function</span> <span class="fn">a</span>() { b(); }
+<span class="kw">function</span> <span class="fn">b</span>() { c(); }
+<span class="kw">function</span> <span class="fn">c</span>() { console.log(<span class="str">'done'</span>); }
+
+a();
+<span class="cmt">// Stack: global → a → b → c (then pops in reverse)</span>
+
+<span class="cmt">// Blocking — if c() took 5 seconds, nothing else runs</span>
+<span class="kw">function</span> <span class="fn">block</span>() {
+  <span class="kw">const</span> start <span class="kw">=</span> Date.now();
+  <span class="kw">while</span> (Date.now() <span class="kw">-</span> start <span class="kw">&lt;</span> <span class="num">5000</span>) {} <span class="cmt">// blocks for 5s</span>
+  console.log(<span class="str">'unblocked'</span>);
+}</code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">The call stack is like a stack of plates at a buffet: you can only wash one plate at a time. If you stop to scrubs a single plate for 5 minutes, every other plate in the stack waits. That's blocking — and no new plates can even be placed on the stack.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Non-Blocking with <code>setTimeout</code></h2>
+  <div class="def"><code>setTimeout</code> doesn't pause execution — it schedules a callback to run after at least N milliseconds, then continues immediately.</div>
+<pre><code>console.log(<span class="num">1</span>);
+setTimeout(<span class="fn">()</span> <span class="kw">=></span> console.log(<span class="num">2</span>), <span class="num">0</span>); <span class="cmt">// 0ms delay</span>
+console.log(<span class="num">3</span>);
+
+<span class="cmt">// Output: 1, 3, 2 (NOT 1, 2, 3)</span>
+<span class="cmt">// Why even setTimeout(0) is deferred</span>
+
+setInterval(<span class="fn">()</span> <span class="kw">=></span> console.log(<span class="str">'tick'</span>), <span class="num">1000</span>);
+<span class="cmt">// Runs callback every ~1000ms (not guaranteed exact)</span></code></pre>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text">Assuming <code>setTimeout(fn, 0)</code> runs immediately. It only guarantees a minimum delay — the callback still waits for all pending code in the current execution context to finish and its turn in the task queue.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span> The Event Loop — Complete Picture</div>
+<div class="card">
+  <h2>Event Loop with All Queues</h2>
+  <div class="def">The event loop continuously checks: is the call stack empty? If yes, process microtasks, then pick the next macrotask from the task queue.</div>
+  <svg viewBox="0 0 700 260" style="width:100%;margin:12px 0;">
+    <g font-family="JetBrains Mono, monospace" font-size="11">
+      <rect x="10" y="95" width="160" height="70" rx="6" fill="#12161F" stroke="#4ADE94" stroke-width="1.5"/>
+      <text x="90" y="120" text-anchor="middle" fill="#E7EAF2" font-weight="700">Call Stack</text>
+      <text x="90" y="140" text-anchor="middle" fill="#8A93A8" font-size="10">(synchronous execution)</text>
+      <path d="M170,130 L250,130" stroke="#F0B450" stroke-width="1.5" marker-end="url(#el1)"/>
+      <text x="200" y="118" text-anchor="middle" fill="#8A93A8" font-size="9">stack empty?</text>
+      <ellipse cx="310" cy="130" rx="80" ry="25" fill="#12161F" stroke="#7DD3FC" stroke-width="1.5"/>
+      <text x="310" y="134" text-anchor="middle" fill="#7DD3FC" font-weight="700">Event Loop</text>
+      <path d="M390,120 L470,100" stroke="#8B93FF" stroke-width="1.5" marker-end="url(#el1)"/>
+      <text x="430" y="108" text-anchor="middle" fill="#8A93A8" font-size="9">microtasks first</text>
+      <rect x="470" y="80" width="200" height="50" rx="6" fill="#26264A" stroke="#8B93FF" stroke-width="1.2" stroke-dasharray="4 3"/>
+      <text x="570" y="100" text-anchor="middle" fill="#8B93FF" font-weight="700">Microtask Queue</text>
+      <text x="570" y="118" text-anchor="middle" fill="#8A93A8" font-size="9">Promise.then, queueMicrotask</text>
+      <path d="M390,145 L470,165" stroke="#F0B450" stroke-width="1.5" marker-end="url(#el1)"/>
+      <text x="430" y="158" text-anchor="middle" fill="#8A93A8" font-size="9">then macrotasks</text>
+      <rect x="470" y="145" width="200" height="50" rx="6" fill="#3E3320" stroke="#F0B450" stroke-width="1.2"/>
+      <text x="570" y="165" text-anchor="middle" fill="#F0B450" font-weight="700">Task (Macrotask) Queue</text>
+      <text x="570" y="183" text-anchor="middle" fill="#8A93A8" font-size="9">setTimeout, setInterval, I/O, UI</text>
+      <path d="M470,170 L170,160" stroke="#4ADE94" stroke-width="1" stroke-dasharray="5 4" marker-end="url(#el2)" fill="none"/>
+      <text x="320" y="195" fill="#4ADE94" font-size="9">dequeue next task → push onto stack</text>
+      <defs>
+        <marker id="el1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#8A93A8"/></marker>
+        <marker id="el2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6Z" fill="#4ADE94"/></marker>
+      </defs>
+    </g>
+  </svg>
+  <div class="tip-box">
+    <div class="t-label">Microtask Priority</div>
+    <div class="t-text">The event loop processes the <strong>entire microtask queue</strong> before moving to the next macrotask. This is why <code>Promise.resolve().then(fn)</code> always runs before a scheduled <code>setTimeout</code> — even when both are ready at the same time.</div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">Macrotask (Task Queue)</div>
+    <div class="c-desc"><code>setTimeout</code>, <code>setInterval</code>, I/O callbacks, UI rendering events. Processed one per event loop cycle. Lower priority than microtasks.</div>
+  </div>
+  <div class="comp-card new">
+    <div class="c-title">Microtask</div>
+    <div class="c-desc"><code>Promise.then/catch/finally</code>, <code>queueMicrotask()</code>, <code>MutationObserver</code>. Processed immediately after the current task finishes — entire queue is drained before next macrotask.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Callback Pattern &amp; Callback Hell</div>
+<div class="card">
+  <h2>The Nested Callback Problem</h2>
+  <div class="def">Before Promises, async operations used callbacks. Nesting multiple callbacks created the infamous "callback hell" pyramid.</div>
+<pre><code><span class="cmt">// Callback hell — deeply nested, hard to read, error-prone</span>
+getUser(<span class="str">'alice'</span>, <span class="fn">(err, user)</span> <span class="kw">=></span> {
+  <span class="kw">if</span> (err) { <span class="kw">return</span> console.error(err); }
+  getPosts(user.id, <span class="fn">(err, posts)</span> <span class="kw">=></span> {
+    <span class="kw">if</span> (err) { <span class="kw">return</span> console.error(err); }
+    getComments(posts[<span class="num">0</span>].id, <span class="fn">(err, comments)</span> <span class="kw">=></span> {
+      <span class="kw">if</span> (err) { <span class="kw">return</span> console.error(err); }
+      console.log(comments);
+    });
+  });
+});
+
+<span class="cmt">// Each level adds a new indentation — the "pyramid of doom"</span>
+<span class="cmt">// Solution: Promises + async/await flatten this to linear code</span></code></pre>
+  <div class="industry-box">
+    <div class="i-label">Industry Context</div>
+    <div class="i-text">Modern codebases use <code>async/await</code> exclusively for async control flow. Callback patterns survive only in event emitters (<code>on('data', cb)</code>) and some Node.js legacy APIs. The <code>util.promisify</code> wrapper converts callback-based APIs to Promise-based ones.</div>
+  </div>
+</div>
+
+<div class="card">
+  <h2><code>requestAnimationFrame</code></h2>
+  <div class="def">Schedules code to run before the next browser repaint. The browser batches all rAF callbacks in a single frame — ideal for animations.</div>
+<pre><code><span class="kw">function</span> <span class="fn">animate</span>(timestamp) {
+  element.style.transform <span class="kw">=</span> <span class="str">`translateX(${Math.sin(timestamp / 1000) * 50}px)`</span>;
+  requestAnimationFrame(animate);  <span class="cmt">// schedule next frame</span>
+}
+requestAnimationFrame(animate);
+
+<span class="cmt">// Unlike setInterval(fn, 16) — rAF pauses when tab is inactive</span>
+<span class="cmt">// rAF fires ~60 times/sec (matches display refresh rate)</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> Explain the difference between macrotasks and microtasks with an example.</div>
+  <div class="a"><strong>A:</strong> <code>console.log(1); setTimeout(() => console.log(2)); Promise.resolve().then(() => console.log(3)); console.log(4);</code> — Output: 1, 4, 3, 2. Synchronous code runs first (1,4), then microtask queue drains (3), then the next macrotask runs (2).</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> Is <code>setTimeout(fn, 0)</code> truly zero delay?</div>
+  <div class="a"><strong>A:</strong> No. Browsers enforce a minimum delay of 4ms for nested timeouts (HTML spec). Even at 0ms, the callback must wait for the call stack to clear and its turn in the task queue. It's "as soon as possible, but not immediately."</div>
+</div>
+<div class="qa-box">
+  <div class="q"><strong>Q:</strong> What happens to the event loop when an error is thrown in an async callback?</div>
+  <div class="a"><strong>A:</strong> Uncaught errors in macrotask callbacks bubble to the global <code>error</code> event (or crash). Uncaught Promise rejections trigger <code>unhandledrejection</code>. The event loop itself continues running — the error only affects the current task.</div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Quick Revision</div>
+<div class="rev-grid">
+  <div class="rev-item"><b>Single-threaded</b> — one call stack</div>
+  <div class="rev-item"><b>Call stack</b> — tracks function calls</div>
+  <div class="rev-item"><b>Blocking</b> — long sync op freezes stack</div>
+  <div class="rev-item"><b>Non-blocking</b> — defer work, continue</div>
+  <div class="rev-item"><b>Event loop</b> — orchestrates deferred work</div>
+  <div class="rev-item"><b>Macrotask</b> — setTimeout, I/O, UI events</div>
+  <div class="rev-item"><b>Microtask</b> — Promise.then, queueMicrotask</div>
+  <div class="rev-item"><b>Microtask priority</b> — drained before next macrotask</div>
+  <div class="rev-item"><b>setTimeout(0)</b> — minimum delay, not immediate</div>
+  <div class="rev-item"><b>setInterval</b> — periodic macrotask scheduling</div>
+  <div class="rev-item"><b>rAF</b> — syncs with display refresh</div>
+  <div class="rev-item"><b>Callback hell</b> — nested pyramid of doom</div>
+  <div class="rev-item"><b>Async/await</b> — modern solution</div>
+  <div class="rev-item"><b>Stack overflow</b> — infinite recursion</div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

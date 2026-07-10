@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 25 — The Expectation–Maximization Framework</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e17;
+    --panel:#0f1420;
+    --panel-2:#131926;
+    --border:rgba(217,184,114,0.16);
+    --border-strong:rgba(217,184,114,0.32);
+    --gold:#d9b872;
+    --gold-soft:rgba(217,184,114,0.12);
+    --gold-glow:rgba(217,184,114,0.35);
+    --blue:#6fa3c9;
+    --blue-soft:rgba(111,163,201,0.14);
+    --text:#e9e6dd;
+    --text-dim:#9aa1af;
+    --text-faint:#6b7280;
+    --red:#c97b6b;
+    --green:#8fb996;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;padding:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  body{
+    background-image:
+      linear-gradient(rgba(217,184,114,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(217,184,114,0.035) 1px, transparent 1px);
+    background-size:38px 38px;
+    background-attachment:fixed;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px 100px;}
+
+  h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;margin:0;}
+
+  code, .mono, .eq{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:78px 0 46px;
+    border-bottom:1px solid var(--border);
+    position:relative;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--gold);
+    background:var(--gold-soft);
+    border:1px solid var(--border-strong);
+    padding:6px 14px;border-radius:100px;
+    margin-bottom:26px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold-glow);}
+  .hero h1{
+    font-size:clamp(32px,5vw,50px);
+    line-height:1.08;
+    color:#f5f1e8;
+    max-width:14ch;
+  }
+  .hero h1 em{
+    font-style:italic;color:var(--gold);
+  }
+  .hero p.lede{
+    margin-top:22px;
+    font-size:18px;line-height:1.65;
+    color:var(--text-dim);
+    max-width:56ch;
+  }
+  .hero-eq{
+    margin-top:34px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    border-radius:var(--radius);
+    padding:20px 24px;
+    display:flex;align-items:center;gap:16px;
+    flex-wrap:wrap;
+  }
+  .hero-eq .tag{
+    font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--red);font-family:'JetBrains Mono',monospace;
+    border:1px solid rgba(201,123,107,0.4);
+    background:rgba(201,123,107,0.08);
+    padding:4px 9px;border-radius:6px;flex-shrink:0;
+  }
+  .hero-eq .eq{font-size:16px;color:#f0ece1;overflow-x:auto;}
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  section{padding:56px 0;border-bottom:1px solid var(--border);}
+  section:last-of-type{border-bottom:none;}
+  .kicker{
+    display:flex;align-items:baseline;gap:12px;margin-bottom:22px;
+  }
+  .kicker .num{
+    font-family:'JetBrains Mono',monospace;color:var(--gold);
+    font-size:14px;opacity:0.7;
+  }
+  .kicker h2{font-size:clamp(22px,3vw,30px);color:#f5f1e8;}
+  .subtext{color:var(--text-dim);font-size:16px;line-height:1.7;margin:14px 0 24px;}
+  .subtext strong{color:var(--text);font-weight:600;}
+
+  /* ---------- BOX CARDS ---------- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px 26px;
+    margin-bottom:18px;
+  }
+  .card h4{font-size:17px;color:#f0ece1;margin-bottom:10px;}
+  .card p{color:var(--text-dim);font-size:15px;line-height:1.7;margin:0 0 10px;}
+  .card p:last-child{margin-bottom:0;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius:var(--radius);
+    padding:18px 22px;
+    margin:22px 0;
+    display:flex;gap:14px;
+    border:1px solid;
+  }
+  .callout .icon{font-size:19px;line-height:1.5;flex-shrink:0;}
+  .callout .body{font-size:15px;line-height:1.65;color:var(--text-dim);}
+  .callout .body strong{color:var(--text);}
+  .callout .label{
+    display:block;font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;font-weight:600;
+  }
+  .callout.insight{background:var(--gold-soft);border-color:var(--border-strong);}
+  .callout.insight .label{color:var(--gold);}
+  .callout.define{background:var(--blue-soft);border-color:rgba(111,163,201,0.35);}
+  .callout.define .label{color:var(--blue);}
+  .callout.warn{background:rgba(201,123,107,0.09);border-color:rgba(201,123,107,0.35);}
+  .callout.warn .label{color:var(--red);}
+
+  /* ---------- EQUATION CARDS ---------- */
+  .equation-card{
+    background:#0c111c;
+    border:1px solid var(--border);
+    border-left:3px solid var(--gold);
+    border-radius:10px;
+    padding:20px 24px;
+    margin:18px 0;
+    overflow-x:auto;
+  }
+  .equation-card .eq-label{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.08em;
+    text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;
+  }
+  .equation-card .eq{font-size:17px;color:#f5f1e8;white-space:nowrap;}
+  .equation-card .eq .frac{display:inline-block;vertical-align:middle;text-align:center;margin:0 4px;}
+  .equation-card .eq .frac .num,.equation-card .eq .frac .den{display:block;padding:0 4px;}
+  .equation-card .eq .frac .num{border-bottom:1px solid var(--text-dim);padding-bottom:2px;}
+  .equation-card .eq .frac .den{padding-top:2px;}
+  .equation-card .eq-note{margin-top:12px;font-size:13.5px;color:var(--text-faint);font-family:'Inter',sans-serif;font-style:italic;}
+  .gold-txt{color:var(--gold);}
+  .blue-txt{color:var(--blue);}
+
+  /* ---------- TABLES ---------- */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin:22px 0;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:520px;}
+  thead th{
+    background:var(--panel-2);
+    text-align:left;padding:13px 16px;
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;
+    letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);
+    border-bottom:1px solid var(--border-strong);
+  }
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td.step-name{color:var(--text);font-weight:600;}
+  tbody td .eq{font-size:13.5px;color:#e5e1d5;}
+
+  /* ---------- DIAGRAMS ---------- */
+  .diagram{
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    background:radial-gradient(circle at 30% 20%, rgba(217,184,114,0.05), transparent 60%), var(--panel);
+    padding:30px;
+    margin:24px 0;
+  }
+
+  /* two teachers analogy diagram */
+  .teachers-row{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;}
+  .teacher-card{
+    flex:1;min-width:180px;
+    text-align:center;padding:20px 16px;
+    border-radius:12px;border:1px solid var(--border);
+  }
+  .teacher-card.gold{background:rgba(217,184,114,0.08);border-color:var(--border-strong);}
+  .teacher-card.blue{background:var(--blue-soft);border-color:rgba(111,163,201,0.35);}
+  .teacher-card .avatar{font-size:34px;margin-bottom:8px;}
+  .teacher-card .name{font-family:'Fraunces',serif;font-size:17px;color:#f0ece1;margin-bottom:4px;}
+  .teacher-card .desc{font-size:13px;color:var(--text-faint);}
+  .mystery-col{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+    min-width:70px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;font-size:12px;
+  }
+  .mystery-col .q{font-size:26px;color:var(--red);}
+
+  /* jensen diagram */
+  .jensen-svg-wrap{display:flex;justify-content:center;}
+
+  /* E/M loop diagram */
+  .loop-row{display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
+  .loop-box{
+    border-radius:12px;padding:22px 26px;min-width:180px;text-align:center;
+    border:1px solid var(--border-strong);
+  }
+  .loop-box.e{background:var(--blue-soft);border-color:rgba(111,163,201,0.4);}
+  .loop-box.m{background:rgba(217,184,114,0.09);border-color:var(--border-strong);}
+  .loop-box .lbl{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;}
+  .loop-box .ti{font-family:'Fraunces',serif;font-size:19px;color:#f0ece1;}
+  .loop-box.e .lbl{color:var(--blue);}
+  .loop-box.m .lbl{color:var(--gold);}
+  .loop-arrow{font-size:26px;color:var(--text-faint);}
+  .loop-repeat{
+    width:100%;text-align:center;margin-top:18px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-faint);
+    letter-spacing:0.06em;
+  }
+
+  /* ---------- SIMULATOR ---------- */
+  .sim{
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    background:linear-gradient(180deg, rgba(217,184,114,0.05), transparent 30%), var(--panel);
+    padding:26px;
+    margin-top:26px;
+  }
+  .sim-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:22px;}
+  .sim-top .sim-title{font-family:'Fraunces',serif;font-size:19px;color:#f0ece1;}
+  .sim-top .sim-sub{font-size:13px;color:var(--text-faint);margin-top:3px;}
+  .sim-badge{
+    font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:100px;
+    background:var(--gold-soft);border:1px solid var(--border-strong);color:var(--gold);
+  }
+
+  .numberline-wrap{position:relative;padding:50px 10px 30px;}
+  .numberline{
+    position:relative;height:2px;background:var(--border-strong);border-radius:2px;margin:0 6px;
+  }
+  .axis-tick{position:absolute;top:8px;transform:translateX(-50%);font-size:10.5px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
+  .axis-tick::before{content:"";position:absolute;top:-14px;left:50%;width:1px;height:6px;background:var(--border-strong);}
+
+  .band{position:absolute;top:-13px;height:28px;border-radius:14px;opacity:0.16;pointer-events:none;transform:translateX(-50%);}
+  .marker{
+    position:absolute;top:-13px;width:0;height:0;
+    border-left:8px solid transparent;border-right:8px solid transparent;
+    transform:translateX(-50%);
+    filter:drop-shadow(0 0 6px rgba(0,0,0,0.4));
+  }
+  .marker.gold-m{border-top:14px solid var(--gold);}
+  .marker.blue-m{border-top:14px solid var(--blue);}
+  .marker-label{
+    position:absolute;top:-34px;transform:translateX(-50%);
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;white-space:nowrap;
+  }
+  .dot{
+    position:absolute;top:-5px;width:12px;height:12px;border-radius:50%;
+    transform:translateX(-50%);
+    border:1.5px solid rgba(255,255,255,0.5);
+    transition:background 0.5s ease, left 0.6s ease;
+  }
+
+  .sim-controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;}
+  button.sim-btn{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:14px;
+    padding:11px 20px;border-radius:9px;cursor:pointer;
+    border:1px solid var(--border-strong);
+    background:var(--gold-soft);color:var(--gold);
+    transition:all 0.15s ease;
+  }
+  button.sim-btn:hover:not(:disabled){background:var(--gold);color:#0a0e17;}
+  button.sim-btn:disabled{opacity:0.35;cursor:not-allowed;}
+  button.sim-btn.secondary{background:transparent;color:var(--text-dim);border-color:var(--border);}
+  button.sim-btn.secondary:hover{border-color:var(--text-dim);color:var(--text);}
+
+  .sim-stats{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+    gap:12px;margin-top:24px;
+  }
+  .stat{
+    background:#0c111c;border:1px solid var(--border);border-radius:10px;padding:12px 14px;
+  }
+  .stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-faint);}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--text);margin-top:4px;}
+  .stat .v.gold-txt{color:var(--gold);}
+  .stat .v.blue-txt{color:var(--blue);}
+
+  .ll-track{margin-top:20px;}
+  .ll-track .ll-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.07em;}
+  .ll-bars{display:flex;align-items:flex-end;gap:4px;height:60px;border-bottom:1px solid var(--border);padding-bottom:2px;}
+  .ll-bar{
+    flex:1;background:linear-gradient(180deg,var(--gold),rgba(217,184,114,0.3));
+    border-radius:3px 3px 0 0;min-width:6px;transition:height 0.4s ease;
+  }
+  .sim-legend{display:flex;gap:18px;margin-top:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text-faint);}
+  .sim-legend span{display:inline-flex;align-items:center;gap:6px;}
+  .swatch{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+  /* ---------- TAKEAWAY / FOOTER ---------- */
+  .takeaway{
+    background:linear-gradient(135deg, rgba(217,184,114,0.1), rgba(111,163,201,0.06));
+    border:1px solid var(--border-strong);
+    border-radius:var(--radius);
+    padding:28px 30px;
+  }
+  .takeaway h3{color:var(--gold);font-size:20px;margin-bottom:14px;}
+  .takeaway ul{margin:0;padding-left:20px;color:var(--text-dim);font-size:15px;line-height:1.8;}
+  .takeaway li strong{color:var(--text);}
+
+  footer{padding:40px 0 10px;text-align:center;color:var(--text-faint);font-size:12.5px;font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:640px){
+    .wrap{padding:0 16px 70px;}
+    .hero{padding:56px 0 34px;}
+    .hero h1{max-width:100%;}
+    .grid-2, .grid-3{grid-template-columns:1fr;}
+    section{padding:42px 0;}
+    .equation-card .eq{font-size:14.5px;}
+    .card{padding:19px 18px;}
+    .teachers-row{flex-direction:column;}
+    .mystery-col{flex-direction:row;padding:6px 0;}
+    .loop-row{flex-direction:column;}
+    .loop-arrow{transform:rotate(90deg);}
+    table{min-width:460px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture 25</div>
+    <h1>The <em>Expectation–Maximization</em> Framework</h1>
+    <p class="lede">A log inside a sum you can maximize. A sum inside a log, you can't. This lecture is about the trick that turns the second kind of problem back into the first — by inventing a set of numbers that don't even appear in the original question.</p>
+    <div class="hero-eq">
+      <span class="tag">the wall</span>
+      <span class="eq">log L(θ) &nbsp;=&nbsp; Σ<sub>i=1</sub><sup>n</sup> log ( Σ<sub>k=1</sub><sup>K</sup> π<sub>k</sub> · 𝒩(x<sub>i</sub> | μ<sub>k</sub>, σ<sub>k</sub>²) )</span>
+    </div>
+  </div>
+
+  <!-- ============ 1. THE CORE CHALLENGE ============ -->
+  <section>
+    <div class="kicker"><span class="num">01</span><h2>Why This Likelihood Fights Back</h2></div>
+    <p class="subtext">Ordinary maximum likelihood estimation works because the log of a <strong>product</strong> becomes a friendly <strong>sum</strong> of logs, and sums differentiate cleanly. A Gaussian Mixture Model breaks that pattern before you even get started: inside every term, there's already a sum — over clusters — sitting <strong>underneath</strong> the log.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body"><span class="label">The obstruction</span>
+      Take the derivative of <span class="eq">log(π<sub>1</sub>𝒩<sub>1</sub> + π<sub>2</sub>𝒩<sub>2</sub> + …)</span> with respect to μ<sub>k</sub>, and every single term in the mixture drags every other term into the denominator. There is no clean algebraic split — no closed-form solution falls out. The parameters for every cluster are tangled together inside one log.</div>
+    </div>
+
+    <div class="card">
+      <h4>The Two Teachers, One Gradebook</h4>
+      <p>Picture a stack of 25 exam papers from an intro class secretly co-taught by two professors with very different grading styles. <strong>Professor Gold</strong> grades tough and centers around the low 60s. <strong>Professor Blue</strong> is generous and centers in the high 80s. The papers are shuffled — no names, no section numbers.</p>
+      <p>You only see the final scores. You don't know which professor graded which paper. Yet you want to estimate <em>both</em> professors' average and spread, <em>and</em> what fraction of the class each of them taught — all from the anonymous scores alone.</p>
+    </div>
+
+    <div class="diagram">
+      <div class="teachers-row">
+        <div class="teacher-card gold">
+          <div class="avatar">🧑‍🏫</div>
+          <div class="name">Professor Gold</div>
+          <div class="desc">μ<sub>1</sub> ≈ 63 &nbsp;·&nbsp; strict grader</div>
+        </div>
+        <div class="mystery-col">
+          <div class="q">?</div>
+          <div>25 unlabeled<br>exam scores</div>
+        </div>
+        <div class="teacher-card blue">
+          <div class="avatar">🧑‍🏫</div>
+          <div class="name">Professor Blue</div>
+          <div class="desc">μ<sub>2</sub> ≈ 85 &nbsp;·&nbsp; lenient grader</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="subtext" style="margin-bottom:0;">This is exactly the GMM setup: each score x<sub>i</sub> was generated by <em>one</em> of K Gaussians, but the label z<sub>i</sub> telling you which one is <strong>latent</strong> — hidden from the data. That hidden label is the entire source of the summation trapped inside the log.</p>
+  </section>
+
+  <!-- ============ 2. LATENT VARIABLES ============ -->
+  <section>
+    <div class="kicker"><span class="num">02</span><h2>Inventing a Confession: λ<sub>ik</sub></h2></div>
+    <p class="subtext">Since we can't observe which professor graded which paper, we introduce an artificial number for every (paper, professor) pair that <strong>guesses</strong> at the answer — not with a hard yes/no, but with a soft probability.</p>
+
+    <div class="callout define">
+      <div class="icon">📐</div>
+      <div class="body"><span class="label">Definition</span>
+      For every data point <em>i</em> and every cluster <em>k</em>, define <strong>λ<sub>ik</sub></strong> — how much we currently believe paper <em>i</em> belongs to professor <em>k</em>. These aren't real, observed quantities. They're auxiliary parameters we get to invent purely to make the math tractable.</div>
+    </div>
+
+    <div class="equation-card">
+      <div class="eq-label">Constraints on λ</div>
+      <div class="eq">Σ<sub>k=1</sub><sup>K</sup> λ<sub>ik</sub> = 1 &nbsp;&nbsp;&nbsp;&nbsp; 0 ≤ λ<sub>ik</sub> ≤ 1</div>
+      <div class="eq-note">For each student i, their "belief mass" across all K professors adds up to exactly 1 — a full probability distribution over who graded their paper.</div>
+    </div>
+
+    <div class="card">
+      <h4>Reading a single λ</h4>
+      <p>If λ<sub>7,1</sub> = 0.9 and λ<sub>7,2</sub> = 0.1, that means: given what we currently know, student 7's paper is 90% likely to have come from Professor Gold's stack, and only 10% likely to be Professor Blue's. Extreme scores near 60 or 90 get confident, lopsided λ's; ambiguous scores near 74 sit close to 50/50.</p>
+    </div>
+  </section>
+
+  <!-- ============ 3. JENSEN'S INEQUALITY ============ -->
+  <section>
+    <div class="kicker"><span class="num">03</span><h2>Jensen's Inequality: A Bound You Can Actually Climb</h2></div>
+    <p class="subtext">Here's the payoff for inventing λ. Because <strong>log is a concave function</strong>, Jensen's Inequality guarantees that the log of an average is always at least as large as the average of the logs. Plugging in λ as weights lets us pull the log <em>inside</em> the sum over k — turning an intractable expression into a lower bound we can actually differentiate.</p>
+
+    <div class="diagram">
+      <div class="jensen-svg-wrap">
+        <svg width="440" height="220" viewBox="0 0 440 220" style="max-width:100%;">
+          <defs>
+            <linearGradient id="curveFade" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#d9b872" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#d9b872" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- axes -->
+          <line x1="30" y1="190" x2="420" y2="190" stroke="#2a3040" stroke-width="1"/>
+          <line x1="30" y1="190" x2="30" y2="20" stroke="#2a3040" stroke-width="1"/>
+          <!-- concave log-like curve -->
+          <path d="M 40 175 Q 140 30 400 35" fill="none" stroke="#d9b872" stroke-width="2.5"/>
+          <path d="M 40 175 Q 140 30 400 35 L 400 190 L 40 190 Z" fill="url(#curveFade)" opacity="0.5"/>
+          <!-- chord (secant line) = the Jensen lower bound -->
+          <line x1="95" y1="128" x2="330" y2="52" stroke="#6fa3c9" stroke-width="2.5" stroke-dasharray="6 4"/>
+          <!-- points -->
+          <circle cx="95" cy="128" r="5" fill="#6fa3c9"/>
+          <circle cx="330" cy="52" r="5" fill="#6fa3c9"/>
+          <circle cx="212" cy="88" r="5" fill="#f5f1e8"/>
+          <line x1="212" y1="88" x2="212" y2="103" stroke="#f5f1e8" stroke-width="1" stroke-dasharray="2 3"/>
+          <circle cx="212" cy="103" r="4" fill="#c97b6b"/>
+          <text x="212" y="128" fill="#9aa1af" font-family="JetBrains Mono, monospace" font-size="11" text-anchor="middle">gap we accept</text>
+          <text x="70" y="205" fill="#6b7280" font-family="JetBrains Mono, monospace" font-size="11">true log L(θ)</text>
+          <text x="340" y="45" fill="#6fa3c9" font-family="JetBrains Mono, monospace" font-size="11">bound (tight here)</text>
+        </svg>
+      </div>
+      <p class="subtext" style="margin-top:6px;margin-bottom:0;text-align:center;">The gold curve is the true, unwieldy log-likelihood. The blue dashed chord is the lower bound Jensen's Inequality gives us — always resting at or below the curve, and <strong>touching it exactly</strong> at the current λ.</p>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div class="body"><span class="label">Hill-climbing in the fog</span>
+      Imagine climbing a mountain (the true log-likelihood) in thick fog — you can't see its real shape. But at your current position, you <em>can</em> construct a flat platform that touches the mountain exactly where you stand and never pokes above it. Climb to the highest point of that platform, and you're guaranteed to be at least as high on the real mountain too. That platform is the Jensen lower bound; each E-step rebuilds it, each M-step climbs it.</div>
+    </div>
+
+    <div class="equation-card">
+      <div class="eq-label">The modified objective — a maximizable lower bound</div>
+      <div class="eq">Σ<sub>i=1</sub><sup>n</sup> Σ<sub>k=1</sub><sup>K</sup> λ<sub>ik</sub> · log ( <span class="frac"><span class="num">π<sub>k</sub> 𝒩(x<sub>i</sub> | μ<sub>k</sub>, σ<sub>k</sub>²)</span><span class="den">λ<sub>ik</sub></span></span> )</div>
+      <div class="eq-note">The log now sits directly next to a single Gaussian term — no sum trapped underneath it. This is what makes closed-form derivatives possible.</div>
+    </div>
+  </section>
+
+  <!-- ============ 4. ALTERNATING OPTIMIZATION ============ -->
+  <section>
+    <div class="kicker"><span class="num">04</span><h2>The Key Insight: Split the Problem in Two</h2></div>
+    <p class="subtext">The modified objective still has two families of unknowns tangled together: the λ's and θ = (μ, σ², π). The trick is to never solve for both at once. Instead, <strong>freeze one, solve the other exactly, then swap.</strong> Each half turns out to have a clean, closed-form answer.</p>
+
+    <div class="diagram">
+      <div class="loop-row">
+        <div class="loop-box e">
+          <div class="lbl">Expectation</div>
+          <div class="ti">E-step</div>
+        </div>
+        <div class="loop-arrow">⇌</div>
+        <div class="loop-box m">
+          <div class="lbl">Maximization</div>
+          <div class="ti">M-step</div>
+        </div>
+      </div>
+      <div class="loop-repeat">⟲ &nbsp; repeat until the parameters stop moving</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Step</th><th>Fix</th><th>Solve for</th><th>Why it's easy</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="step-name">M-step</td>
+            <td>λ (responsibilities)</td>
+            <td>θ = (μ, σ², π)</td>
+            <td>Partial derivatives decouple across clusters — each becomes a familiar <span class="eq">weighted</span> mean / variance / proportion.</td>
+          </tr>
+          <tr>
+            <td class="step-name">E-step</td>
+            <td>θ = (μ, σ², π)</td>
+            <td>λ (responsibilities)</td>
+            <td>Decouples across data points — each student's λ is solved independently via Bayes' Theorem.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:19px;color:#f0ece1;margin:32px 0 14px;">M-step: Fixing λ, Solving for θ</h3>
+    <p class="subtext" style="margin-top:0;">With λ<sub>ik</sub> held fixed, the closed-form solutions look almost identical to ordinary MLE for a single Gaussian — except every term now carries a λ<sub>ik</sub> weight, so points more "confidently" assigned to cluster k pull its estimate harder.</p>
+
+    <div class="equation-card">
+      <div class="eq-label">Weighted mean</div>
+      <div class="eq">μ<sub>k</sub> = <span class="frac"><span class="num">Σ<sub>i</sub> λ<sub>ik</sub> x<sub>i</sub></span><span class="den">Σ<sub>i</sub> λ<sub>ik</sub></span></span></div>
+    </div>
+    <div class="equation-card">
+      <div class="eq-label">Weighted variance</div>
+      <div class="eq">σ<sub>k</sub>² = <span class="frac"><span class="num">Σ<sub>i</sub> λ<sub>ik</sub> (x<sub>i</sub> − μ<sub>k</sub>)²</span><span class="den">Σ<sub>i</sub> λ<sub>ik</sub></span></span></div>
+    </div>
+    <div class="equation-card">
+      <div class="eq-label">Mixing weight</div>
+      <div class="eq">π<sub>k</sub> = <span class="frac"><span class="num">Σ<sub>i</sub> λ<sub>ik</sub></span><span class="den">n</span></span></div>
+      <div class="eq-note">The expected fraction of all n students that belong to cluster k.</div>
+    </div>
+
+    <h3 style="font-size:19px;color:#f0ece1;margin:32px 0 14px;">E-step: Fixing θ, Solving for λ</h3>
+    <p class="subtext" style="margin-top:0;">With θ held fixed, each student's λ<sub>ik</sub> is solved on its own — completely independent of every other student. The answer is just an application of Bayes' Theorem: given the score x<sub>i</sub> and the current professor profiles, what's the posterior probability of each professor?</p>
+
+    <div class="equation-card">
+      <div class="eq-label">Responsibility via Bayes' Theorem</div>
+      <div class="eq">λ<sub>ik</sub> = P(z<sub>i</sub> = k | x<sub>i</sub>, θ) = <span class="frac"><span class="num">π<sub>k</sub> 𝒩(x<sub>i</sub> | μ<sub>k</sub>, σ<sub>k</sub>²)</span><span class="den">Σ<sub>j</sub> π<sub>j</sub> 𝒩(x<sub>i</sub> | μ<sub>j</sub>, σ<sub>j</sub>²)</span></span></div>
+      <div class="eq-note">Numerator: how plausible is score x<sub>i</sub> under professor k's profile, weighted by how common that professor is. Denominator: normalize across all professors so the λ's sum to 1.</div>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div class="body"><span class="label">Why this is Bayes, not a guess</span>
+      "Responsibility" is just posterior probability wearing a different name. Before seeing the score (the prior) we believe cluster k occurs with probability π<sub>k</sub>. After seeing the score x<sub>i</sub> (the likelihood 𝒩(x<sub>i</sub>|μ<sub>k</sub>,σ<sub>k</sub>²)), Bayes' rule updates that belief into λ<sub>ik</sub> — the posterior.</div>
+    </div>
+  </section>
+
+  <!-- ============ 5. INTERACTIVE SIMULATOR ============ -->
+  <section>
+    <div class="kicker"><span class="num">05</span><h2>Watch the Loop Untangle the Gradebook</h2></div>
+    <p class="subtext">Below are the 25 unlabeled exam scores from Professors Gold and Blue. The simulator starts with a deliberately bad guess at μ<sub>1</sub> and μ<sub>2</sub>. Step through E and M repeatedly and watch responsibilities (dot color) and cluster estimates (triangle markers) converge — while the log-likelihood only ever goes up.</p>
+
+    <div class="sim">
+      <div class="sim-top">
+        <div>
+          <div class="sim-title">EM Alternator — 1D Gradebook</div>
+          <div class="sim-sub">25 exam scores · 2 latent professors</div>
+        </div>
+        <div class="sim-badge" id="phaseBadge">Ready — run E-step</div>
+      </div>
+
+      <div class="numberline-wrap">
+        <div id="band1" class="band" style="background:var(--gold);"></div>
+        <div id="band2" class="band" style="background:var(--blue);"></div>
+        <div class="numberline" id="numberline">
+          <div class="axis-tick" style="left:0%">50</div>
+          <div class="axis-tick" style="left:25%">62.5</div>
+          <div class="axis-tick" style="left:50%">75</div>
+          <div class="axis-tick" style="left:75%">87.5</div>
+          <div class="axis-tick" style="left:100%">100</div>
+          <div id="dotsLayer"></div>
+          <div id="marker1" class="marker gold-m"></div>
+          <div id="marker2" class="marker blue-m"></div>
+          <div id="marker1label" class="marker-label" style="color:var(--gold);">μ₁</div>
+          <div id="marker2label" class="marker-label" style="color:var(--blue);">μ₂</div>
+        </div>
+      </div>
+
+      <div class="sim-legend">
+        <span><span class="swatch" style="background:var(--gold);"></span> high λ toward Prof. Gold</span>
+        <span><span class="swatch" style="background:var(--blue);"></span> high λ toward Prof. Blue</span>
+        <span><span class="swatch" style="background:linear-gradient(90deg,var(--gold),var(--blue));"></span> ambiguous / mixed</span>
+      </div>
+
+      <div class="sim-controls">
+        <button class="sim-btn" id="stepBtn">Run E-step →</button>
+        <button class="sim-btn secondary" id="resetBtn">↺ Reset</button>
+      </div>
+
+      <div class="sim-stats">
+        <div class="stat"><div class="k">Iteration</div><div class="v" id="statIter">0</div></div>
+        <div class="stat"><div class="k">μ₁ (Gold)</div><div class="v gold-txt" id="statMu1">65.00</div></div>
+        <div class="stat"><div class="k">μ₂ (Blue)</div><div class="v blue-txt" id="statMu2">80.00</div></div>
+        <div class="stat"><div class="k">π₁ / π₂</div><div class="v" id="statPi">0.50 / 0.50</div></div>
+        <div class="stat"><div class="k">σ₁² / σ₂²</div><div class="v" id="statSigma">100.0 / 100.0</div></div>
+      </div>
+
+      <div class="ll-track">
+        <div class="ll-lbl">Log-likelihood after each M-step (should only climb)</div>
+        <div class="ll-bars" id="llBars"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. SUMMARY ============ -->
+  <section style="border-bottom:none;">
+    <div class="kicker"><span class="num">06</span><h2>Where This Leaves Us</h2></div>
+    <div class="takeaway">
+      <h3>TL;DR — Setting the Stage for EM</h3>
+      <ul>
+        <li><strong>The problem:</strong> a sum inside a log makes direct MLE on a mixture model intractable — no closed form, tangled derivatives.</li>
+        <li><strong>The trick:</strong> invent responsibilities λ<sub>ik</sub>, and use <strong>Jensen's Inequality</strong> to build a tight lower bound that <em>can</em> be maximized directly.</li>
+        <li><strong>The split:</strong> alternate between two easy sub-problems — <strong>M-step</strong> (weighted mean/variance/proportion, given λ) and <strong>E-step</strong> (Bayes'-rule posterior, given θ).</li>
+        <li><strong>The guarantee:</strong> because each step only ever climbs the current lower bound, the true log-likelihood never decreases across iterations.</li>
+        <li><strong>What's next:</strong> formalize this loop as the full <strong>Expectation-Maximization algorithm</strong>, with a convergence criterion and a proof that it never gets worse.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Machine Learning Techniques · Lecture 25 · Expectation–Maximization Framework</footer>
+</div>
+
+<script>
+(function(){
+  // ---------- data: 25 anonymous exam scores from two latent graders ----------
+  const scores = [59,62,66,64,70,61,68,63,72,60,58,73,84,88,91,82,79,90,86,89,80,92,76,78,94];
+  const n = scores.length;
+  const MIN_X = 50, MAX_X = 100;
+
+  // ---------- state ----------
+  let mu = [65, 80];          // deliberately imperfect starting guess
+  let sigma2 = [100, 100];
+  let pi = [0.5, 0.5];
+  let lambda = scores.map(()=>[0.5,0.5]); // no info yet
+  let iteration = 0;
+  let nextPhase = 'E';   // 'E' or 'M'
+  let llHistory = [];
+
+  const dotsLayer = document.getElementById('dotsLayer');
+  const marker1 = document.getElementById('marker1');
+  const marker2 = document.getElementById('marker2');
+  const marker1label = document.getElementById('marker1label');
+  const marker2label = document.getElementById('marker2label');
+  const band1 = document.getElementById('band1');
+  const band2 = document.getElementById('band2');
+  const stepBtn = document.getElementById('stepBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const phaseBadge = document.getElementById('phaseBadge');
+  const llBars = document.getElementById('llBars');
+
+  function toPct(x){ return ((x - MIN_X) / (MAX_X - MIN_X)) * 100; }
+
+  function gauss(x, m, s2){
+    return (1/Math.sqrt(2*Math.PI*s2)) * Math.exp(-((x-m)*(x-m))/(2*s2));
+  }
+
+  function lerpColor(hexA, hexB, t){
+    const a = hexA.match(/\w\w/g).map(h=>parseInt(h,16));
+    const b = hexB.match(/\w\w/g).map(h=>parseInt(h,16));
+    const c = a.map((v,i)=> Math.round(v + (b[i]-v)*t));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+
+  function computeLL(){
+    let ll = 0;
+    for(let i=0;i<n;i++){
+      const mix = pi[0]*gauss(scores[i],mu[0],sigma2[0]) + pi[1]*gauss(scores[i],mu[1],sigma2[1]);
+      ll += Math.log(Math.max(mix, 1e-12));
+    }
+    return ll;
+  }
+
+  function buildDots(){
+    dotsLayer.innerHTML = '';
+    scores.forEach((x,i)=>{
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.style.left = toPct(x) + '%';
+      d.style.background = 'rgb(154,161,175)'; // neutral until first E-step
+      d.dataset.idx = i;
+      dotsLayer.appendChild(d);
+    });
+  }
+
+  function render(){
+    // dots
+    const dots = dotsLayer.querySelectorAll('.dot');
+    dots.forEach((d,i)=>{
+      d.style.left = toPct(scores[i]) + '%';
+      const t = lambda[i][1]; // weight toward professor blue
+      d.style.background = lerpColor('d9b872','6fa3c9', t);
+    });
+
+    // markers
+    marker1.style.left = toPct(mu[0]) + '%';
+    marker2.style.left = toPct(mu[1]) + '%';
+    marker1label.style.left = toPct(mu[0]) + '%';
+    marker2label.style.left = toPct(mu[1]) + '%';
+
+    // sigma bands
+    const s1 = Math.sqrt(sigma2[0]);
+    const s2 = Math.sqrt(sigma2[1]);
+    const w1 = toPct(mu[0]+s1) - toPct(mu[0]-s1);
+    const w2 = toPct(mu[1]+s2) - toPct(mu[1]-s2);
+    band1.style.left = toPct(mu[0]) + '%';
+    band1.style.width = Math.max(w1,4) + '%';
+    band2.style.left = toPct(mu[1]) + '%';
+    band2.style.width = Math.max(w2,4) + '%';
+
+    // stats
+    document.getElementById('statIter').textContent = iteration;
+    document.getElementById('statMu1').textContent = mu[0].toFixed(2);
+    document.getElementById('statMu2').textContent = mu[1].toFixed(2);
+    document.getElementById('statPi').textContent = pi[0].toFixed(2) + ' / ' + pi[1].toFixed(2);
+    document.getElementById('statSigma').textContent = sigma2[0].toFixed(1) + ' / ' + sigma2[1].toFixed(1);
+
+    // ll bars
+    llBars.innerHTML = '';
+    const maxAbs = Math.max(...llHistory.map(v=>Math.abs(v)), 1);
+    const minLL = Math.min(...llHistory, 0);
+    const range = (Math.max(...llHistory,0) - minLL) || 1;
+    llHistory.forEach(v=>{
+      const bar = document.createElement('div');
+      bar.className = 'll-bar';
+      const h = 8 + ((v - minLL) / range) * 50;
+      bar.style.height = h + 'px';
+      llBars.appendChild(bar);
+    });
+
+    // phase badge + button label
+    if(nextPhase === 'E'){
+      phaseBadge.textContent = 'Next: E-step (update responsibilities)';
+      stepBtn.textContent = 'Run E-step →';
+    } else {
+      phaseBadge.textContent = 'Next: M-step (update μ, σ², π)';
+      stepBtn.textContent = 'Run M-step →';
+    }
+  }
+
+  function runEStep(){
+    for(let i=0;i<n;i++){
+      const r0 = pi[0]*gauss(scores[i],mu[0],sigma2[0]);
+      const r1 = pi[1]*gauss(scores[i],mu[1],sigma2[1]);
+      const norm = (r0+r1) || 1e-12;
+      lambda[i][0] = r0/norm;
+      lambda[i][1] = r1/norm;
+    }
+    nextPhase = 'M';
+  }
+
+  function runMStep(){
+    for(let k=0;k<2;k++){
+      let Nk = 0, sumX = 0;
+      for(let i=0;i<n;i++){ Nk += lambda[i][k]; sumX += lambda[i][k]*scores[i]; }
+      const newMu = sumX / Nk;
+      let sumSq = 0;
+      for(let i=0;i<n;i++){ sumSq += lambda[i][k]*Math.pow(scores[i]-newMu,2); }
+      mu[k] = newMu;
+      sigma2[k] = Math.max(sumSq / Nk, 4); // floor to avoid degenerate collapse
+      pi[k] = Nk / n;
+    }
+    iteration += 1;
+    llHistory.push(computeLL());
+    if(llHistory.length > 14) llHistory.shift();
+    nextPhase = 'E';
+  }
+
+  stepBtn.addEventListener('click', ()=>{
+    if(nextPhase === 'E'){ runEStep(); } else { runMStep(); }
+    render();
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    mu = [65,80];
+    sigma2 = [100,100];
+    pi = [0.5,0.5];
+    lambda = scores.map(()=>[0.5,0.5]);
+    iteration = 0;
+    nextPhase = 'E';
+    llHistory = [];
+    buildDots();
+    render();
+  });
+
+  buildDots();
+  render();
+})();
+</script>
+</body>
+</html>

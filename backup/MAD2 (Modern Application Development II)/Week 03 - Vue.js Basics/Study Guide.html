@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue.js — Master Study Guide | MAD2 Week 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #f4f5f9;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1a1a2e;
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Typography */
+  h1, h2, h3, h4, h5 { font-family: 'Inter', sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code, pre, .mono { font-family: 'JetBrains Mono', 'Cascadia Code', monospace; font-size: 0.875em; }
+  pre { background: #f0f1f4; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: #eef0f5; padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; }
+  pre code { background: none; padding: 0; border-radius: 0; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1e4f8a 0%, #2c3e6b 100%);
+    color: #fff;
+    padding: 2.5rem 2rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(30,79,138,0.25);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -30%;
+    width: 400px; height: 400px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: -40%; left: -20%;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .header h1 { font-size: 2.2rem; font-weight: 900; position: relative; z-index: 1; }
+  .header h1 span { color: #e8c55a; }
+  .header .subtitle { font-size: 1.05rem; opacity: 0.85; margin-top: 0.35rem; font-weight: 400; position: relative; z-index: 1; }
+
+  /* Card */
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem 1.75rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-left: 4px solid #ddd;
+    transition: box-shadow 0.2s;
+  }
+  .card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+  .card h2 { font-size: 1.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #2c3e6b; }
+  .card p { margin-bottom: 0.5rem; }
+
+  /* Colored left borders */
+  .bdr-blue { border-left-color: #1e4f8a; }
+  .bdr-gold { border-left-color: #b5872a; }
+  .bdr-teal { border-left-color: #2c6b5d; }
+  .bdr-rust { border-left-color: #a8482a; }
+  .bdr-purple { border-left-color: #5a3e8a; }
+  .bdr-green { border-left-color: #3d7a4a; }
+
+  /* Section divider */
+  .divider {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin: 2rem 0 1.5rem;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: #888;
+  }
+  .divider::after { content: ''; flex: 1; height: 1px; background: #dde0e8; }
+
+  /* Pill badge */
+  .pill {
+    display: inline-block;
+    padding: 0.2em 0.7em;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pill-blue { background: #e5edf7; color: #1e4f8a; }
+  .pill-gold { background: #f3edda; color: #b5872a; }
+  .pill-teal { background: #e2eeeb; color: #2c6b5d; }
+  .pill-rust { background: #f1e3dd; color: #a8482a; }
+  .pill-purple { background: #ece6f3; color: #5a3e8a; }
+  .pill-green { background: #e4f0e7; color: #3d7a4a; }
+  .pill-red { background: #f8e2e2; color: #b33; }
+
+  /* Tree */
+  .tree { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.9; padding: 0.5rem 0; }
+  .tree .highlight { color: #1e4f8a; font-weight: 600; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid #e8eaef; }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; }
+
+  /* Progress bar */
+  .pbar { display: flex; align-items: center; gap: 0.75rem; margin: 0.3rem 0; }
+  .pbar-label { width: 100px; font-size: 0.82rem; font-weight: 500; text-align: right; }
+  .pbar-track { flex: 1; height: 10px; background: #e8eaef; border-radius: 999px; overflow: hidden; }
+  .pbar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+  .pbar-val { width: 2rem; font-size: 0.75rem; font-weight: 600; color: #666; }
+
+  /* Stars */
+  .stars { display: inline-flex; gap: 2px; }
+  .stars .star { color: #e8c55a; font-size: 1rem; }
+  .stars .star-o { color: #dde0e8; }
+
+  /* List spacing */
+  ul, ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  li { margin-bottom: 0.25rem; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+  /* Trap boxes */
+  .trap { background: #fff5f0; border-left-color: #a8482a; }
+  .trap strong { color: #a8482a; }
+  .trap code { background: #f5e4dd; }
+
+  /* Mental model */
+  .mental { background: #f6f3fc; border-left-color: #5a3e8a; }
+  .mental strong { color: #5a3e8a; }
+
+  /* Interconnection */
+  .icmap { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.8; padding: 0.5rem 0; white-space: pre; overflow-x: auto; }
+
+  /* PYQ badges */
+  .pyq { font-size: 0.72rem; font-weight: 600; color: #a8482a; background: #f1e3dd; display: inline-block; padding: 0.15em 0.5em; border-radius: 4px; margin-top: 0.25rem; }
+
+  /* Warning sign */
+  .warn { color: #a8482a; font-weight: 700; }
+
+  /* Pattern highlight */
+  .pattern { background: #e5edf7; border-left-color: #1e4f8a; }
+  .pattern strong { color: #1e4f8a; }
+
+  /* Topic tag */
+  .tag { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 0.1em 0.5em; border-radius: 4px; margin-right: 0.3rem; text-transform: uppercase; letter-spacing: 0.03em; vertical-align: middle; }
+  .tag-vuex { background: #ece6f3; color: #5a3e8a; }
+  .tag-router { background: #e5edf7; color: #1e4f8a; }
+  .tag-watch { background: #e2eeeb; color: #2c6b5d; }
+  .tag-slot { background: #f3edda; color: #b5872a; }
+  .tag-lifecycle { background: #e4f0e7; color: #3d7a4a; }
+  .tag-reactivity { background: #f1e3dd; color: #a8482a; }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.5rem; }
+    body { padding: 1rem 0.75rem; }
+    .card { padding: 1rem; }
+    .pbar-label { width: 70px; font-size: 0.75rem; }
+  }
+
+  /* Print */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+    .header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .pbar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .stars .star { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Vue.js <span>— Master Study Guide</span></h1>
+  <div class="subtitle">MAD2 · Week 3 · IIT Madras</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 1. MASTER TOPIC MAP -->
+<div class="card bdr-blue">
+  <h2><span class="pill pill-blue">Map</span> Master Topic Map</h2>
+  <div class="tree">
+    Week 3<br>
+    └── <span class="highlight">Vue.js</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Components (props, emit, events)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Slots (default, named)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Scoped Slots<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Watch (deep, immediate)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Computed (vs methods, vs watch)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Lifecycle Hooks (created, mounted, updated, destroyed)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Router (routes, params, guards)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;├── Vuex (state, getters, mutations, actions, modules)<br>
+    &nbsp;&nbsp;&nbsp;&nbsp;└── Reactivity System (Proxy, dependency tracking)
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 2. TOPIC DEEP DIVES -->
+<div class="divider">Topic Deep Dives</div>
+
+<!-- Components -->
+<div class="card bdr-blue">
+  <h2><span class="pill pill-blue">01</span> Components</h2>
+
+  <h3>Props</h3>
+  <ul>
+    <li><strong>Static props:</strong> <code>prop-name="value"</code></li>
+    <li><strong>Dynamic props:</strong> <code>:prop-name="dataVar"</code> (v-bind)</li>
+    <li><strong>Validation:</strong> <code>type: String, required: true, default: 'fallback', validator: fn</code></li>
+    <li><strong>One-way data flow:</strong> parent → child; child never mutates props</li>
+    <li>Props are read-only in the child</li>
+  </ul>
+
+  <h3>Emit</h3>
+  <ul>
+    <li><code>this.$emit('event-name', payload)</code></li>
+    <li>Parent listens: <code>@event-name="handler"</code></li>
+    <li><code>v-model</code> is syntactic sugar for <code>:value + @input</code> (Vue 2) or <code>:modelValue + @update:modelValue</code> (Vue 3)</li>
+  </ul>
+
+  <h3>Parent-Child Communication</h3>
+  <ul>
+    <li><strong>Parent → Child:</strong> props</li>
+    <li><strong>Child → Parent:</strong> <code>$emit</code></li>
+    <li><strong>Alternative — Event Bus:</strong> <code>new Vue()</code> as hub (Vue 2) / <code>mitt</code> (Vue 3)</li>
+    <li><strong>Provide/Inject:</strong> for deeply nested components; <code>provide()</code> in ancestor, <code>inject</code> in descendant</li>
+  </ul>
+
+  <div class="pyq"><strong>PYQ:</strong> Component communication questions — Explain the one-way data flow pattern in Vue. How does $emit enable child-to-parent communication?</div>
+</div>
+
+<!-- Slots -->
+<div class="card bdr-gold">
+  <h2><span class="pill pill-gold">02</span> Slots</h2>
+  <ul>
+    <li><strong>Default slot:</strong> <code>&lt;slot&gt;&lt;/slot&gt;</code> — catches everything not named</li>
+    <li><strong>Named slots:</strong> <code>&lt;slot name="header"&gt;&lt;/slot&gt;</code> → <code>&lt;template v-slot:header&gt;</code></li>
+    <li><strong>Slot props:</strong> <code>&lt;slot :item="item"&gt;&lt;/slot&gt;</code> — child can pass data into the slot</li>
+    <li><strong>Fallback content:</strong> <code>&lt;slot&gt;Default content&lt;/slot&gt;</code> — shown when no slot content provided</li>
+    <li><strong>Shorthand:</strong> <code>v-slot:header</code> → <code>#header</code></li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Slot rendering questions — What is the output when a named slot is provided but the child defines multiple named slots?</div>
+</div>
+
+<!-- Scoped Slots -->
+<div class="card bdr-teal">
+  <h2><span class="pill pill-teal">03</span> Scoped Slots</h2>
+  <ul>
+    <li>Child passes data to parent via <code>&lt;slot :data="data"&gt;&lt;/slot&gt;</code></li>
+    <li>Parent accesses: <code>&lt;template v-slot:default="slotProps"&gt;{{ slotProps.data }}&lt;/template&gt;</code></li>
+    <li><strong>Destructuring:</strong> <code>v-slot="{ item, index }"</code></li>
+    <li><strong>Named scoped slots:</strong> <code>v-slot:column="props"</code></li>
+    <li><strong>Use cases:</strong> reusable list renderers, table column templates, data-formatting wrappers</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Scoped slot output — Given a scoped slot passing <code>user.name</code> and <code>user.age</code>, what is the rendered output?</div>
+</div>
+
+<!-- Watch -->
+<div class="card bdr-rust">
+  <h2><span class="pill pill-rust">04</span> Watch</h2>
+  <ul>
+    <li><strong>Basic:</strong> <code>watch: { dataVar(newVal, oldVal) { … } }</code></li>
+    <li><strong>Deep watch:</strong> <code>watch: { obj: { handler() {}, deep: true } }</code> — watches nested properties</li>
+    <li><strong>Immediate:</strong> <code>immediate: true</code> — runs handler immediately on creation</li>
+    <li><strong>Multiple sources (Vue 3):</strong> <code>watch([refA, refB], ([a, b], [oldA, oldB]) => …)</code></li>
+    <li><strong>vs Computed:</strong> Use watch for side effects (API calls, async); use computed for derived values</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Watch output questions — Given a deep watcher on <code>user.profile.city</code>, does changing <code>user.profile.city</code> trigger the handler?</div>
+</div>
+
+<!-- Computed -->
+<div class="card bdr-purple">
+  <h2><span class="pill pill-purple">05</span> Computed</h2>
+  <ul>
+    <li><strong>Definition:</strong> properties that are computed reactively based on other reactive data</li>
+    <li><strong>Caching:</strong> computed properties are cached based on their reactive dependencies; only re-evaluate when dependencies change</li>
+    <li><strong>Getter only:</strong> <code>computed: { fullName() { return this.first + ' ' + this.last } }</code></li>
+    <li><strong>Getter/Setter:</strong> <code>computed: { fullName: { get() {}, set(val) {} } }</code></li>
+    <li><strong>vs Methods:</strong> methods re-run on every render, computed caches; use methods for arguments, computed for derived state</li>
+    <li><strong>vs Watch:</strong> computed for derived state (pure), watch for side effects (impure)</li>
+    <li><strong>Dependency tracking:</strong> Vue tracks which reactive dependencies the computed uses; when those change, computed invalidates</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Computed property output — If <code>count</code> is 5 and <code>computed: { double() { return this.count * 2 } }</code>, what is <code>double</code>?</div>
+</div>
+
+<!-- Lifecycle -->
+<div class="card bdr-green">
+  <h2><span class="pill pill-green">06</span> Lifecycle Hooks</h2>
+  <h3>Execution Order</h3>
+  <table>
+    <tr><th>Hook</th><th>When It Runs</th><th>What You Can Do</th></tr>
+    <tr><td><code>beforeCreate</code></td><td>After init, before reactivity</td><td>—</td></tr>
+    <tr><td><code>created</code></td><td>Reactivity ready, no DOM</td><td>Fetch data, init non-DOM</td></tr>
+    <tr><td><code>beforeMount</code></td><td>Before DOM render</td><td>Last-minute changes</td></tr>
+    <tr><td><code>mounted</code></td><td>DOM attached</td><td>Access DOM, third-party libs</td></tr>
+    <tr><td><code>beforeUpdate</code></td><td>Before re-render</td><td>Log pre-update state</td></tr>
+    <tr><td><code>updated</code></td><td>After re-render</td><td>DOM updated</td></tr>
+    <tr><td><code>beforeDestroy</code></td><td>Before teardown</td><td>Cleanup, remove listeners</td></tr>
+    <tr><td><code>destroyed</code></td><td>Component gone</td><td>—</td></tr>
+  </table>
+  <h3 style="margin-top:0.75rem;">Key Points</h3>
+  <ul>
+    <li><strong>API calls in created vs mounted:</strong> Both work; <code>created</code> is slightly earlier (no DOM needed for fetch)</li>
+    <li><strong>Cleanup in beforeDestroy:</strong> Remove event listeners, clear intervals, unsubscribe from stores</li>
+    <li><strong>keep-alive hooks:</strong> <code>activated</code> / <code>deactivated</code> when toggling cached components</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> When does X happen? — In which lifecycle hook is the DOM first available? (Answer: mounted)</div>
+</div>
+
+<!-- Router -->
+<div class="card bdr-blue">
+  <h2><span class="pill pill-blue">07</span> Router</h2>
+  <ul>
+    <li><strong>Setup:</strong> <code>createRouter</code> (Vue 3) with <code>createWebHistory</code> or <code>createWebHashHistory</code></li>
+    <li><strong>Dynamic routing:</strong> <code>/user/:id</code> → accessed via <code>$route.params.id</code></li>
+    <li><strong>Nested routes:</strong> children array under parent route</li>
+    <li><strong>Navigation guards:</strong>
+      <ul>
+        <li><code>beforeEach</code> (global) — auth checks, redirects</li>
+        <li><code>beforeEnter</code> (per-route)</li>
+        <li><code>beforeResolve</code> — after guards but before navigation</li>
+        <li><code>afterEach</code> — post-navigation analytics</li>
+        <li>In-component: <code>beforeRouteEnter</code>, <code>beforeRouteUpdate</code>, <code>beforeRouteLeave</code></li>
+      </ul>
+    </li>
+    <li><strong>Lazy loading:</strong> <code>component: () => import('./Comp.vue')</code></li>
+    <li><strong>$route vs $router:</strong> <code>$route</code> is current route (params, query); <code>$router</code> is the instance (push, replace, go)</li>
+    <li><strong>Named routes/views:</strong> <code>name: 'user'</code> → <code>router.push({ name: 'user', params: { id: 1 } })</code></li>
+    <li><strong>Navigation methods:</strong> <code>push</code> (adds history), <code>replace</code> (no history), <code>go</code> (back/forward)</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Router guard output — If <code>beforeEach</code> redirects to /login when no token, what happens when navigating to /dashboard without a token?</div>
+</div>
+
+<!-- Vuex -->
+<div class="card bdr-purple">
+  <h2><span class="pill pill-purple">08</span> Vuex</h2>
+  <table>
+    <tr><th>Concept</th><th>Purpose</th><th>Details</th></tr>
+    <tr><td><strong>State</strong></td><td>Single state tree</td><td>One object for all app state</td></tr>
+    <tr><td><strong>Getters</strong></td><td>Computed properties for store</td><td>Derive state, can return functions</td></tr>
+    <tr><td><strong>Mutations</strong></td><td>Synchronous state changes</td><td>Must be sync; trackable via DevTools; <code>commit</code> to invoke</td></tr>
+    <tr><td><strong>Actions</strong></td><td>Async operations</td><td>Can call API, then <code>commit</code> mutations; <code>dispatch</code> to invoke</td></tr>
+    <tr><td><strong>Modules</strong></td><td>Namespaced store sections</td><td><code>namespaced: true</code> to isolate</td></tr>
+  </table>
+  <h3 style="margin-top:0.75rem;">Helper Functions</h3>
+  <ul>
+    <li><code>mapState</code>, <code>mapGetters</code>, <code>mapMutations</code>, <code>mapActions</code></li>
+    <li>Spread into <code>computed</code> or <code>methods</code>: <code>...mapState(['count'])</code></li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Vuex async action output — What is the sequence of events when an action fetches data and commits a mutation?</div>
+</div>
+
+<!-- Reactivity System -->
+<div class="card bdr-rust">
+  <h2><span class="pill pill-rust">09</span> Reactivity System</h2>
+  <table>
+    <tr><th>Feature</th><th>Vue 2 (Object.defineProperty)</th><th>Vue 3 (Proxy)</th></tr>
+    <tr><td>Detection</td><td>Get/set on existing keys</td><td>Any property get/set</td></tr>
+    <tr><td>New properties</td><td>Not reactive (<code>$set</code> needed)</td><td>Automatically reactive</td></tr>
+    <tr><td>Array index</td><td>Not detected</td><td>Detected</td></tr>
+    <tr><td>Array.length</td><td>Not detected</td><td>Detected</td></tr>
+    <tr><td>Delete</td><td>Not detected (<code>$delete</code> needed)</td><td>Detected</td></tr>
+  </table>
+  <h3 style="margin-top:0.75rem;">Dependency Tracking</h3>
+  <ul>
+    <li>Each reactive property has a <strong>Dep</strong> (dependency) instance</li>
+    <li>When a getter runs, the current watcher subscribes to the Dep</li>
+    <li>When a setter fires, the Dep notifies all subscribed watchers</li>
+    <li><strong>Composition API:</strong> <code>ref()</code> (primitive values), <code>reactive()</code> (objects)</li>
+  </ul>
+  <div class="pyq"><strong>PYQ:</strong> Reactivity limitations — In Vue 2, can you set <code>this.items[0] = newVal</code> and expect reactivity? Why or why not?</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 3. QUESTION TYPES CATALOG -->
+<div class="divider">Question Types Catalog</div>
+
+<div class="card bdr-teal">
+  <h2>Question Types</h2>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Type</th><th>Example</th></tr>
+    <tr><td><span class="pill pill-blue">Conceptual MCQ</span></td><td>"What is a Vue component?"</td></tr>
+    <tr><td><span class="pill pill-gold">Output Prediction</span></td><td>Template rendering with slot</td></tr>
+    <tr><td><span class="pill pill-rust">Fill Output</span></td><td>computed property returns ___</td></tr>
+    <tr><td><span class="pill pill-red">Find Error</span></td><td>Missing key in v-for</td></tr>
+    <tr><td><span class="pill pill-green">Code Correction</span></td><td>Fix reactivity issue</td></tr>
+    <tr><td><span class="pill pill-purple">Execution Order</span></td><td>Lifecycle hook order</td></tr>
+    <tr><td><span class="pill pill-blue">True/False</span></td><td>"Vuex mutations can be async" → False</td></tr>
+    <tr><td><span class="pill pill-teal">MSQ</span></td><td>Which are lifecycle hooks?</td></tr>
+    <tr><td><span class="pill pill-gold">Scenario Based</span></td><td>"Need to share state across components..."</td></tr>
+    <tr><td><span class="pill pill-rust">Assertion Reason</span></td><td>A: computed is cached, R: methods re-run</td></tr>
+    <tr><td><span class="pill pill-purple">Matching</span></td><td>Hook to its use case</td></tr>
+    <tr><td><span class="pill pill-green">Short Answer</span></td><td>Difference between watch and computed</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 4. CODING QUESTION TYPES -->
+<div class="divider">Coding Question Types</div>
+
+<div class="card bdr-green">
+  <h2>Coding Question Patterns</h2>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Concept</th><th>Patterns</th></tr>
+    <tr><td><span class="pill pill-rust">watch</span></td><td>Deep watch, immediate, multiple sources</td></tr>
+    <tr><td><span class="pill pill-purple">computed</span></td><td>Derived state, getter/setter</td></tr>
+    <tr><td><span class="pill pill-blue">v-for</span></td><td>List rendering, with key, with index</td></tr>
+    <tr><td><span class="pill pill-teal">v-if</span></td><td>Conditional rendering, v-show vs v-if</td></tr>
+    <tr><td><span class="pill pill-gold">slots</span></td><td>Default, named, scoped</td></tr>
+    <tr><td><span class="pill pill-blue">router</span></td><td>Navigation guards, dynamic routes</td></tr>
+    <tr><td><span class="pill pill-purple">Vuex</span></td><td>Actions with API calls, getters, mutations</td></tr>
+    <tr><td><span class="pill pill-green">methods</span></td><td>Event handlers, computed alternatives</td></tr>
+    <tr><td><span class="pill pill-rust">props</span></td><td>Validation, type checking, required</td></tr>
+    <tr><td><span class="pill pill-teal">emit</span></td><td>Custom events, v-model</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 5. TRICKY QUESTIONS -->
+<div class="divider">Tricky Questions <span style="font-size:0.85rem;">⚠️</span></div>
+
+<div class="grid-2">
+  <div class="card trap">
+    <strong>⚠️ Reactivity with array index</strong><br>
+    Vue 2 can't detect <code>arr[0] = newVal</code>. Use <code>Vue.set(arr, 0, newVal)</code> or <code>splice</code>.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Async Vuex mutations</strong><br>
+    Mutating state outside a mutation handler violates Vuex rules; DevTools can't track it.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Computed vs Watch</strong><br>
+    Computed doesn't work for side effects (API calls, async). Use watch for that.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Slot scope</strong><br>
+    Parent cannot access child data in slots unless child uses <strong>scoped slots</strong>.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Navigation guard redirect loop</strong><br>
+    Guard that redirects unconditionally causes infinite redirect. Check target first.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Lifecycle with keep-alive</strong><br>
+    <code>activated</code>/<code>deactivated</code> run on toggle; <code>mounted</code> runs only once.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Props mutation</strong><br>
+    Never mutate props in child — one-way data flow violation. Use local copy or emit.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Vuex module namespace</strong><br>
+    Without <code>namespaced: true</code>, getters/mutations register globally — collisions possible.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Router params change</strong><br>
+    Component is <strong>reused</strong>, not remounted. Use <code>watch: { '$route'(to, from) {} }</code>.
+  </div>
+  <div class="card trap">
+    <strong>⚠️ Event bus memory leak</strong><br>
+    Forgetting <code>$off</code> in <code>beforeDestroy</code> causes memory leaks and duplicate handlers.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 6. HIDDEN PATTERNS -->
+<div class="divider">Hidden Patterns</div>
+
+<div class="card bdr-gold pattern">
+  <h2>Annual Exam Pattern</h2>
+  <p>Every year, the following question types appear:</p>
+  <table>
+    <tr><th>#</th><th>Topic</th><th>Frequency</th></tr>
+    <tr><td>1</td><td>Vuex async question</td><td><span class="pill pill-purple">Every Year</span></td></tr>
+    <tr><td>2</td><td>Router question</td><td><span class="pill pill-blue">Every Year</span></td></tr>
+    <tr><td>3</td><td>Watch/Computed question</td><td><span class="pill pill-teal">Every Year</span></td></tr>
+    <tr><td>4</td><td>Storage question (related to Vue)</td><td><span class="pill pill-gold">Every Year</span></td></tr>
+    <tr><td>5</td><td>Component communication question</td><td><span class="pill pill-rust">Every Year</span></td></tr>
+    <tr><td>6</td><td>Lifecycle question</td><td><span class="pill pill-green">Every Year</span></td></tr>
+    <tr><td>7</td><td>Slot question</td><td><span class="pill pill-gold">Every Year</span></td></tr>
+    <tr><td>8</td><td>Reactivity question</td><td><span class="pill pill-rust">Every Year</span></td></tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 7. INTERCONNECTION MAP -->
+<div class="divider">Interconnection Map</div>
+
+<div class="card bdr-purple">
+  <h2>Vue.js Architecture — How Everything Connects</h2>
+  <div class="icmap">
+┌─────────────────────────────┐
+│      Vue Instance / App     │
+└─────────────┬───────────────┘
+              │
+              ▼
+┌─────────────────────────────┐
+│    Reactive Data (ref/reactive) │
+└──┬──────────┬───────────────┘
+   │          │
+   ▼          ▼
+┌────────┐ ┌────────┐
+│Computed│ │ Watch  │
+│(derive)│ │(effect)│
+└────┬───┘ └────┬───┘
+     │          │
+     ▼          ▼
+┌─────────────────────────────┐
+│    Components (props ↓, emit ↑) │
+└──┬──────────────────────────┘
+   │
+   ├──→ Slots / Scoped Slots
+   │
+   ▼
+┌─────────────────────────────┐
+│  Vuex (state management)    │
+├──→ Getters (computed for store)
+├──→ Mutations (sync updates)
+└──→ Actions (async operations)
+   │
+   ▼
+┌─────────────────────────────┐
+│  Router (navigation)        │
+├──→ Routes / Dynamic Segments
+├──→ Navigation Guards
+└──→ Lazy Loading
+   │
+   ▼
+┌─────────────────────────────┐
+│      Lifecycle Hooks         │
+└─────────────────────────────┘
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 8. FREQUENCY ANALYSIS -->
+<div class="divider">Frequency Analysis</div>
+
+<div class="card bdr-rust">
+  <h2>Topic Frequency (Past Exams)</h2>
+  <div class="pbar"><span class="pbar-label">Vuex</span><div class="pbar-track"><div class="pbar-fill" style="width:91%;background:#5a3e8a;"></div></div><span class="pbar-val">11</span></div>
+  <div class="pbar"><span class="pbar-label">Watch</span><div class="pbar-track"><div class="pbar-fill" style="width:75%;background:#2c6b5d;"></div></div><span class="pbar-val">9</span></div>
+  <div class="pbar"><span class="pbar-label">Computed</span><div class="pbar-track"><div class="pbar-fill" style="width:66%;background:#1e4f8a;"></div></div><span class="pbar-val">8</span></div>
+  <div class="pbar"><span class="pbar-label">Router</span><div class="pbar-track"><div class="pbar-fill" style="width:58%;background:#b5872a;"></div></div><span class="pbar-val">7</span></div>
+  <div class="pbar"><span class="pbar-label">Slots</span><div class="pbar-track"><div class="pbar-fill" style="width:50%;background:#a8482a;"></div></div><span class="pbar-val">6</span></div>
+  <div class="pbar"><span class="pbar-label">Components</span><div class="pbar-track"><div class="pbar-fill" style="width:50%;background:#a8482a;"></div></div><span class="pbar-val">6</span></div>
+  <div class="pbar"><span class="pbar-label">Lifecycle</span><div class="pbar-track"><div class="pbar-fill" style="width:41%;background:#3d7a4a;"></div></div><span class="pbar-val">5</span></div>
+  <div class="pbar"><span class="pbar-label">Reactivity</span><div class="pbar-track"><div class="pbar-fill" style="width:33%;background:#5a3e8a;"></div></div><span class="pbar-val">4</span></div>
+  <div class="pbar"><span class="pbar-label">v-for/v-if</span><div class="pbar-track"><div class="pbar-fill" style="width:33%;background:#2c6b5d;"></div></div><span class="pbar-val">4</span></div>
+  <div class="pbar"><span class="pbar-label">Props/Emit</span><div class="pbar-track"><div class="pbar-fill" style="width:33%;background:#b5872a;"></div></div><span class="pbar-val">4</span></div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 9. PROBABILITY RATINGS -->
+<div class="divider">Probability Ratings</div>
+
+<div class="card bdr-teal">
+  <h2>Exam Appearance Probability</h2>
+  <div class="tbl-wrap">
+  <table>
+    <tr><th>Topic</th><th>Probability</th></tr>
+    <tr><td>Vuex</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></span> Almost Guaranteed</td></tr>
+    <tr><td>Watch / Computed</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></span> Almost Guaranteed</td></tr>
+    <tr><td>Router</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span></span> Very High</td></tr>
+    <tr><td>Lifecycle</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span></span> Very High</td></tr>
+    <tr><td>Slots</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span></span> Very High</td></tr>
+    <tr><td>Components</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span><span class="star-o">★</span></span> Medium</td></tr>
+    <tr><td>Reactivity</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span><span class="star-o">★</span></span> Medium</td></tr>
+    <tr><td>Props / Emit</td><td><span class="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star-o">★</span><span class="star-o">★</span></span> Medium</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 10. COMMON TRAPS -->
+<div class="divider">Common Traps</div>
+
+<div class="card bdr-rust trap">
+  <h2>Mistakes That Cost Marks</h2>
+  <table>
+    <tr><th>Trap</th><th>❌ Wrong</th><th>✅ Correct</th></tr>
+    <tr>
+      <td><strong>Vuex async mutations</strong></td>
+      <td>"mutations can be async"</td>
+      <td>"mutations must be synchronous, actions handle async"</td>
+    </tr>
+    <tr>
+      <td><strong>Computed with side effects</strong></td>
+      <td>"computed can change data"</td>
+      <td>"computed should only derive, no side effects"</td>
+    </tr>
+    <tr>
+      <td><strong>v-for without :key</strong></td>
+      <td>"key is optional"</td>
+      <td>"key is required for Vue to track nodes"</td>
+    </tr>
+    <tr>
+      <td><strong>Array reactivity</strong></td>
+      <td>"arr[0] = x triggers update"</td>
+      <td>"Vue 2 can't detect index assignment"</td>
+    </tr>
+    <tr>
+      <td><strong>Router param change</strong></td>
+      <td>"component remounts"</td>
+      <td>"component is reused, use watch on $route"</td>
+    </tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
+<!-- 11. MENTAL MODELS -->
+<div class="divider">Mental Models</div>
+
+<div class="grid-2">
+  <div class="card mental"><strong>🧠 Vue Component</strong><br>Custom HTML element</div>
+  <div class="card mental"><strong>🧠 Reactive Data</strong><br>Whiteboard with magnets</div>
+  <div class="card mental"><strong>🧠 Computed</strong><br>Calculator display (auto-updates)</div>
+  <div class="card mental"><strong>🧠 Watch</strong><br>Motion sensor (triggers on change)</div>
+  <div class="card mental"><strong>🧠 Vuex</strong><br>Bank ledger (single source of truth)</div>
+  <div class="card mental"><strong>🧠 Mutations</strong><br>Bank deposit slip (recorded transaction)</div>
+  <div class="card mental"><strong>🧠 Actions</strong><br>Bank manager (approves and processes)</div>
+  <div class="card mental"><strong>🧠 Getters</strong><br>ATM screen (shows balance)</div>
+  <div class="card mental"><strong>🧠 Router</strong><br>Building directory / signposts</div>
+  <div class="card mental"><strong>🧠 Slots</strong><br>USB ports (you decide what plugs in)</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- 12. FINAL CHEAT SHEET -->
+<div class="divider">Final Cheat Sheet</div>
+
+<!-- 10 Most Expected Questions -->
+<div class="card bdr-blue">
+  <h2><span class="pill pill-blue">Q</span> 10 Most Expected Questions</h2>
+  <ol>
+    <li>Explain the Vue reactivity system. How does Vue 3 improve over Vue 2?</li>
+    <li>What is the difference between <code>computed</code> and <code>watch</code>? When would you use each?</li>
+    <li>How does <code>v-model</code> work? Explain its relationship to <code>:value</code> and <code>@input</code>.</li>
+    <li>Describe the Vue component lifecycle. List all hooks in order.</li>
+    <li>What are Vuex mutations and actions? Why must mutations be synchronous?</li>
+    <li>Explain scoped slots with an example. How do they differ from regular slots?</li>
+    <li>How do Vue Router navigation guards work? Explain <code>beforeEach</code> with auth example.</li>
+    <li>What is the purpose of <code>:key</code> in <code>v-for</code>? What happens if it's missing?</li>
+    <li>How does prop validation work? List all available validators.</li>
+    <li>What is the difference between <code>v-if</code> and <code>v-show</code>? When to use each?</li>
+  </ol>
+</div>
+
+<!-- 10 Vuex Questions -->
+<div class="card bdr-purple">
+  <h2><span class="pill pill-purple">Vuex</span> 10 Vuex Questions</h2>
+  <ol>
+    <li>What is the Vuex state tree? Why a single source of truth?</li>
+    <li>How do getters work? How are they different from computed properties?</li>
+    <li>Why are mutations synchronous? Can you call async code inside a mutation?</li>
+    <li>What is the difference between <code>commit</code> and <code>dispatch</code>?</li>
+    <li>Explain the Vuex data flow: Component → Action → Mutation → State → Component.</li>
+    <li>How do you handle side effects (API calls) in Vuex?</li>
+    <li>What are Vuex modules? When would you namespace a module?</li>
+    <li>How do <code>mapState</code>, <code>mapGetters</code>, <code>mapMutations</code>, <code>mapActions</code> work?</li>
+    <li>Can two mutations run concurrently? What issue might arise?</li>
+    <li>How would you structure a Vuex store for a large application?</li>
+  </ol>
+</div>
+
+<!-- 10 Router Questions -->
+<div class="card bdr-blue">
+  <h2><span class="pill pill-blue">Router</span> 10 Router Questions</h2>
+  <ol>
+    <li>How do you set up Vue Router with <code>createRouter</code> and <code>createWebHistory</code>?</li>
+    <li>What are dynamic route segments? How do you access route params?</li>
+    <li>Explain nested routes with <code>children</code>.</li>
+    <li>What are the different types of navigation guards?</li>
+    <li>How does <code>beforeEach</code> redirect unauthenticated users to /login?</li>
+    <li>How do you lazily load routes? Why is this beneficial?</li>
+    <li>What is the difference between <code>$route</code> and <code>$router</code>?</li>
+    <li>How do <code>router.push</code>, <code>router.replace</code>, and <code>router.go</code> differ?</li>
+    <li>What happens when a route param changes (e.g., <code>/user/1</code> to <code>/user/2</code>)?</li>
+    <li>How do you pass props to route components?</li>
+  </ol>
+</div>
+
+<!-- 5 Watch/Computed Patterns -->
+<div class="card bdr-teal">
+  <h2><span class="pill pill-teal">Watch/Computed</span> 5 Watch/Computed Patterns</h2>
+  <ol>
+    <li><strong>Computed derived state:</strong> <code>fullName() { return this.first + ' ' + this.last }</code></li>
+    <li><strong>Computed with getter/setter:</strong> <code>fullName: { get() {}, set(v) { … } }</code></li>
+    <li><strong>Watch with deep:</strong> <code>deep: true</code> for nested object changes</li>
+    <li><strong>Watch with immediate:</strong> <code>immediate: true</code> to run on creation</li>
+    <li><strong>Watch multiple sources (Vue 3):</strong> <code>watch([a, b], ([newA, newB], [oldA, oldB]) => …)</code></li>
+  </ol>
+</div>
+
+<!-- 5 Slot Patterns -->
+<div class="card bdr-gold">
+  <h2><span class="pill pill-gold">Slots</span> 5 Slot Patterns</h2>
+  <ol>
+    <li><strong>Default slot:</strong> <code>&lt;slot&gt;fallback&lt;/slot&gt;</code></li>
+    <li><strong>Named slot:</strong> <code>&lt;slot name="header"/&gt;</code> → <code>v-slot:header</code></li>
+    <li><strong>Scoped slot:</strong> <code>&lt;slot :item="item"/&gt;</code> → <code>v-slot="{ item }"</code></li>
+    <li><strong>Named scoped slot:</strong> <code>&lt;slot name="row" :data="d"/&gt;</code> → <code>v-slot:row="{ data }"</code></li>
+    <li><strong>Slot forwarding:</strong> Wrapper component forwards all slots to child</li>
+  </ol>
+</div>
+
+<!-- 5 Lifecycle Questions -->
+<div class="card bdr-green">
+  <h2><span class="pill pill-green">Lifecycle</span> 5 Lifecycle Questions</h2>
+  <ol>
+    <li>List all Vue 2 lifecycle hooks in order of execution.</li>
+    <li>In which hook is the DOM first available? (<code>mounted</code>)</li>
+    <li>Where should API calls be made: <code>created</code> or <code>mounted</code>? Why?</li>
+    <li>When do <code>activated</code> and <code>deactivated</code> hooks run? (with <code>keep-alive</code>)</li>
+    <li>What cleanup should you do in <code>beforeDestroy</code>?</li>
+  </ol>
+</div>
+
+<!-- FOOTER -->
+<div style="text-align:center;padding:2rem 0 1rem;font-size:0.8rem;color:#999;">
+  <strong>Vue.js — Master Study Guide</strong> · MAD2 Week 3 · IIT Madras<br>
+  Created for exam preparation · Updated July 2026
+</div>
+
+</div>
+</body>
+</html>

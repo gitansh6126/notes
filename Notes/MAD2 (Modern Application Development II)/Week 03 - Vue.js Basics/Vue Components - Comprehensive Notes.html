@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Components — Comprehensive Notes | MAD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f9; --surface: #ffffff; --ink: #1a1e2b; --ink-soft: #505770; --ink-faint: #8b91a5; --line: #dde0e9;
+    --blue: #1e4f8a; --blue-soft: #e9eef7; --gold: #b5872a; --gold-soft: #f6ecd3; --gold-deep: #8f6a1c;
+    --rust: #a8482a; --rust-soft: #f7e6df; --teal: #2c6b5d; --teal-soft: #e2efec; --purple: #5a3e8a; --purple-soft: #ede7f5;
+    --green: #3d7a4a; --green-soft: #e6f0e8; --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color: var(--ink); line-height: 1.7; padding: 0; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  h1,h2,h3,h4,h5 { font-family: 'Inter',sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code,pre,.mono { font-family: 'JetBrains Mono','Cascadia Code',monospace; }
+  pre { background: #1a1e2b; color: #e8eaef; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: var(--blue-soft); padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; font-size: 0.85em; }
+  pre code { background: none; padding: 0; border-radius: 0; font-weight: 400; }
+  .hljs-keyword { color: #c792ea; } .hljs-string { color: #c3e88d; } .hljs-number { color: #f78c6c; }
+  .hljs-comment { color: #546e7a; font-style: italic; } .hljs-function { color: #82aaff; } .hljs-title { color: #ffcb6b; }
+  .hljs-built_in { color: #89ddff; } .hljs-attr { color: #f07178; } .hljs-tag { color: #f07178; } .hljs-name { color: #f07178; }
+  .hljs-selector-tag { color: #c792ea; } .hljs-literal { color: #f78c6c; } .hljs-params { color: #eeffff; }
+  .hljs-variable { color: #eeffff; } .hljs-property { color: #c3e88d; }
+
+  .hero { background: linear-gradient(135deg,#1a1e2b 0%,#2c3e6b 50%,#1e4f8a 100%); color: #fff; padding: 3rem 0 2.5rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -60%; right: -20%; width: 500px; height: 500px; background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -40%; left: -10%; width: 350px; height: 350px; background: rgba(255,255,255,0.02); border-radius: 50%; pointer-events: none; }
+  .hero h1 { font-size: 2.4rem; font-weight: 900; position: relative; z-index: 1; line-height: 1.2; }
+  .hero h1 span { color: #e8c55a; }
+  .hero .subtitle { font-size: 1.1rem; opacity: 0.85; margin-top: 0.4rem; font-weight: 400; position: relative; z-index: 1; }
+  .hero .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; opacity: 0.7; position: relative; z-index: 1; flex-wrap: wrap; }
+  .hero .meta span { display: flex; align-items: center; gap: 0.35rem; }
+
+  .section { margin-bottom: 2.5rem; }
+  .sec-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--line); }
+  .sec-num { font-size: 0.75rem; font-weight: 800; color: var(--blue); background: var(--blue-soft); padding: 0.2em 0.7em; border-radius: 999px; letter-spacing: 0.04em; }
+  .sec-header h2 { font-size: 1.5rem; margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .sec-intro { font-size: 1rem; color: var(--ink-soft); margin-bottom: 1.25rem; line-height: 1.8; }
+
+  .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--line); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card h2 { font-size: 1.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--blue); }
+  .card p { margin-bottom: 0.5rem; } .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+  .bdr-blue { border-left-color: var(--blue); } .bdr-gold { border-left-color: var(--gold); }
+  .bdr-teal { border-left-color: var(--teal); } .bdr-rust { border-left-color: var(--rust); }
+  .bdr-purple { border-left-color: var(--purple); } .bdr-green { border-left-color: var(--green); }
+
+  .concept-card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+  .concept-card h3 { color: var(--gold-deep); font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  .callout { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; border-left: 4px solid; }
+  .callout-info { background: var(--blue-soft); border-color: var(--blue); }
+  .callout-warning { background: var(--rust-soft); border-color: var(--rust); }
+  .callout-tip { background: var(--green-soft); border-color: var(--green); }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p { margin-bottom: 0.25rem; font-size: 0.9rem; } .callout-body p:last-child { margin-bottom: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; } .tbl-wrap table { margin-bottom: 0; }
+
+  .code-block { background: #1a1e2b; border-radius: var(--radius); margin-bottom: 1.25rem; overflow: hidden; box-shadow: var(--shadow); }
+  .cb-label { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #2a2e3b; color: #8b91a5; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .cb-label .cb-lang { color: var(--gold); }
+  .code-block pre { margin: 0; border-radius: 0; }
+
+  .flowchart { display: flex; flex-direction: column; align-items: center; padding: 1.5rem; gap: 0.5rem; font-family: 'JetBrains Mono',monospace; font-size: 0.82rem; }
+  .fc-box { display: flex; align-items: center; justify-content: center; padding: 0.7rem 1.2rem; background: var(--surface); border: 2px solid var(--blue); border-radius: 8px; font-weight: 600; color: var(--blue); text-align: center; min-width: 140px; box-shadow: var(--shadow); }
+  .fc-box.gold { border-color: var(--gold); color: var(--gold-deep); background: var(--gold-soft); }
+  .fc-box.teal { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+  .fc-box.rust { border-color: var(--rust); color: var(--rust); background: var(--rust-soft); }
+  .fc-box.purple { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .fc-box.green { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .fc-box.small { min-width: 100px; padding: 0.5rem 0.8rem; font-size: 0.75rem; }
+  .fc-arrow { color: var(--ink-faint); font-size: 1.2rem; line-height: 1; }
+  .fc-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+  .diagram { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); overflow-x: auto; }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .qa-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden; }
+  .qa-q { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; background: var(--blue-soft); color: var(--blue); font-size: 0.9rem; transition: 0.2s; }
+  .qa-q:hover { background: #dce4f5; }
+  .qa-q .qa-toggle { font-size: 1.1rem; transition: transform 0.3s; }
+  .qa-q.open .qa-toggle { transform: rotate(45deg); }
+  .qa-a { padding: 1rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.9rem; display: none; }
+  .qa-a.open { display: block; } .qa-a p { margin-bottom: 0.4rem; } .qa-a ul { padding-left: 1.25rem; margin-bottom: 0.4rem; } .qa-a code { font-size: 0.82em; }
+
+  .cheat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .cheat-item { background: var(--surface); border-radius: 8px; padding: 1rem 1.25rem; box-shadow: var(--shadow); border-left: 3px solid var(--blue); }
+  .cheat-item h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blue); margin-bottom: 0.4rem; }
+  .cheat-item code { display: block; margin-bottom: 0.2rem; font-size: 0.8rem; }
+  .cheat-item .cheat-desc { font-size: 0.78rem; color: var(--ink-soft); }
+
+  .summary-box { background: linear-gradient(135deg,var(--blue-soft),var(--teal-soft)); border-radius: var(--radius); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border: 1px solid rgba(30,79,138,0.15); }
+  .summary-box h3 { color: var(--blue); margin-bottom: 0.75rem; }
+  .summary-box ul { padding-left: 1.25rem; }
+  .summary-box li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .pill { display: inline-block; padding: 0.2em 0.7em; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-blue { background: var(--blue-soft); color: var(--blue); } .pill-gold { background: var(--gold-soft); color: var(--gold-deep); }
+  .pill-teal { background: var(--teal-soft); color: var(--teal); } .pill-rust { background: var(--rust-soft); color: var(--rust); }
+  .pill-purple { background: var(--purple-soft); color: var(--purple); }
+
+  .takeaway-list { list-style: none; padding: 0; }
+  .takeaway-list li { padding: 0.5rem 0 0.5rem 1.5rem; position: relative; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+  .takeaway-list li:last-child { border-bottom: none; }
+  .takeaway-list li::before { content: '>'; position: absolute; left: 0; color: var(--teal); font-weight: 700; font-family: 'JetBrains Mono',monospace; }
+
+  .glossary-term { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .gt-word { font-weight: 700; color: var(--blue); font-family: 'JetBrains Mono',monospace; font-size: 0.85rem; }
+  .glossary-term .gt-def { color: var(--ink-soft); }
+
+  .footer { text-align: center; padding: 2rem 0; color: var(--ink-faint); font-size: 0.8rem; border-top: 1px solid var(--line); margin-top: 2rem; }
+
+  .folder-tree { font-family: 'JetBrains Mono',monospace; font-size: 0.82rem; line-height: 2; padding: 0.5rem 1rem; }
+  .folder-tree .dir { color: var(--blue); font-weight: 600; }
+  .folder-tree .file { color: var(--ink); }
+  .folder-tree .highlight { color: var(--gold-deep); font-weight: 600; }
+
+  @media print {
+    body { background: #fff; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 1.5rem 0; }
+    .card,.concept-card,.qa-card,.callout,.summary-box,.diagram,.code-block,.cheat-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    .qa-a { display: block !important; } .qa-q .qa-toggle { display: none; }
+    .fc-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .callout-info,.callout-warning,.callout-tip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sec-header { border-bottom-color: #ccc; }
+  }
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 1.6rem; } .hero { padding: 2rem 0 1.5rem; }
+    .container { padding: 0 16px; } .card { padding: 1rem 1.25rem; }
+    .glossary-term { grid-template-columns: 1fr; gap: 0.2rem; }
+    .fc-row { flex-direction: column; } .fc-arrow { transform: rotate(90deg); }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.3rem; } .sec-header h2 { font-size: 1.2rem; } .card { padding: 0.85rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Vue <span>Components</span></h1>
+    <div class="subtitle">Single File Components, Props, Events &amp; Component Architecture</div>
+    <div class="meta">
+      <span>MAD2: Modern Application Development II</span>
+      <span>Week 04 &middot; Vue Components</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section class="section" id="overview">
+  <div class="sec-header"><span class="sec-num">01</span><h2>Overview</h2></div>
+  <p class="sec-intro">
+    A <strong>component</strong> is a self-contained, reusable piece of UI that encapsulates its own template, 
+    script, and style. Components are the fundamental building blocks of any Vue application. 
+    Instead of one monolithic file, you split the UI into independent, composable pieces.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F9F0; What is a Component?</h3>
+    <p>Think of components like <strong>Lego bricks</strong>. Each brick has a specific shape and purpose. You can combine bricks to build anything from a small house to a castle. If you need a window, you use the window brick &mdash; you do not carve a window into a wall brick.</p>
+    <ul>
+      <li><strong>Encapsulated</strong> &mdash; each component owns its template, logic, and styles.</li>
+      <li><strong>Reusable</strong> &mdash; write once, use anywhere in the app.</li>
+      <li><strong>Composable</strong> &mdash; components contain other components (parent-child hierarchy).</li>
+      <li><strong>Communicative</strong> &mdash; components talk via props (down) and events (up).</li>
+    </ul>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>From Pages to Components</strong>
+      <p>In the Flask Tic Tac Toe demo, the entire UI was one HTML file. In Vanilla JS, we used the DOM directly. Vue <strong>components</strong> are the next level &mdash; they let you split the UI into logical, self-contained pieces that each manage their own slice of the UI.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. COMPONENT CONCEPT ==================== -->
+<section class="section" id="component-concept">
+  <div class="sec-header"><span class="sec-num">02</span><h2>What is a Component? (Deep Dive)</h2></div>
+  <p class="sec-intro">
+    A Vue component is a reusable instance with a name. You define it once, then use it as a custom HTML element.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4E6; Components vs Traditional HTML</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Aspect</th><th>Traditional Page</th><th>Component-Based</th></tr></thead>
+        <tbody>
+          <tr><td>Code organisation</td><td>One big HTML file</td><td>Many small .vue files</td></tr>
+          <tr><td>Reusability</td><td>Copy-paste</td><td>Import and use as &lt;MyComponent /&gt;</td></tr>
+          <tr><td>Scope</td><td>Global (CSS, JS all global)</td><td>Encapsulated (scoped CSS, local state)</td></tr>
+          <tr><td>Data flow</td><td>Global variables / jQuery</td><td>Props down, events up</td></tr>
+          <tr><td>Testing</td><td>Hard (monolithic)</td><td>Easy (isolated units)</td></tr>
+          <tr><td>Team work</td><td>Merge conflicts on big files</td><td>Each dev works on different components</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Minimal component definition (Options API)</span><span class="cb-lang">Vue</span></div>
+    <pre><code><span class="hljs-comment">// A component is just an object with options</span>
+<span class="hljs-keyword">const</span> <span class="hljs-title class_">GameCell</span> = {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'value'</span>, <span class="hljs-string">'index'</span>],
+  <span class="hljs-attr">template</span>: <span class="hljs-string">`
+    &lt;button
+      :class="['cell', { taken: value, x: value==='X', o: value==='O' }]"
+      @click="$emit('select', index)"
+    &gt;
+      {{ value }}
+    &lt;/button&gt;
+  `</span>
+};
+
+<span class="hljs-comment">// Use it in a parent:</span>
+<span class="hljs-comment">// &lt;GameCell v-for="..." :value="cell" :index="i" @select="makeMove" /&gt;</span></code></pre>
+  </div>
+</section>
+
+<!-- ==================== 3. SINGLE FILE COMPONENTS ==================== -->
+<section class="section" id="sfc">
+  <div class="sec-header"><span class="sec-num">03</span><h2>Single File Components (SFC)</h2></div>
+  <p class="sec-intro">
+    The <strong>.vue</strong> file is Vue's single-file component format. It packages template, script, and 
+    style into one file &mdash; the component in its entirety.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4C4; Three Sections of a .vue File</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="10" rx="8" width="600" height="220" fill="none" stroke="#8b91a5" stroke-width="1.5" stroke-dasharray="6,3"/>
+        <text x="320" y="32" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="11" fill="#8b91a5">MyComponent.vue</text>
+
+        <rect x="40" y="50" rx="8" width="560" height="46" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+        <text x="55" y="70" font-family="JetBrains Mono,monospace" font-size="10" fill="#1e4f8a">&lt;template&gt;</text>
+        <text x="55" y="86" font-family="JetBrains Mono,monospace" font-size="10" fill="#1e4f8a">  &lt;div class="wrapper"&gt;{{ message }}&lt;/div&gt;</text>
+        <text x="55" y="102" font-family="JetBrains Mono,monospace" font-size="10" fill="#1e4f8a">&lt;/template&gt;</text>
+
+        <rect x="40" y="110" rx="8" width="560" height="52" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="55" y="130" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">&lt;script&gt;</text>
+        <text x="55" y="146" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">  export default { data() { return { message: 'Hello' } } }</text>
+        <text x="55" y="162" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">&lt;/script&gt;</text>
+
+        <rect x="40" y="175" rx="8" width="560" height="40" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="55" y="195" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">&lt;style scoped&gt;</text>
+        <text x="55" y="211" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">  .wrapper { color: blue; }</text>
+        <text x="55" y="227" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">&lt;/style&gt;</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4C1; Folder Structure (Scalable App)</h3>
+    <div class="folder-tree">
+      <span class="dir">src/</span>
+      <br>&nbsp;&nbsp;<span class="dir">components/</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">GameBoard.vue</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file highlight">GameCell.vue</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">GameStatus.vue</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">AppHeader.vue</span>
+      <br>&nbsp;&nbsp;<span class="dir">views/</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">HomePage.vue</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">GamePage.vue</span>
+      <br>&nbsp;&nbsp;<span class="dir">assets/</span>
+      <br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">main.css</span>
+      <br>&nbsp;&nbsp;<span class="file">App.vue</span> <span style="color:var(--ink-faint);">// Root component</span>
+      <br>&nbsp;&nbsp;<span class="file">main.js</span> <span style="color:var(--ink-faint);">// Entry point</span>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Full .vue component for a Tic Tac Toe cell</span><span class="cb-lang">Vue (SFC)</span></div>
+    <pre><code><span class="hljs-comment">&lt;!-- GameCell.vue --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+    <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span>
+    <span class="hljs-attr">:class</span>=<span class="hljs-string">"{ taken: value, x: value === 'X', o: value === 'O' }"</span>
+    @<span class="hljs-attr">click</span>=<span class="hljs-string">"handleClick"</span>
+  &gt;</span>
+    {{ value }}
+  <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">'GameCell'</span>,
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">value</span>: { <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>, <span class="hljs-attr">default</span>: <span class="hljs-string">''</span> },
+    <span class="hljs-attr">index</span>: { <span class="hljs-attr">type</span>: <span class="hljs-title class_">Number</span>, <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span> }
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-title function_">handleClick</span>() {
+      <span class="hljs-variable language_">this</span>.$emit(<span class="hljs-string">'cell-clicked'</span>, <span class="hljs-variable language_">this</span>.index);
+    }
+  }
+}
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">style</span> <span class="hljs-attr">scoped</span>&gt;</span>
+<span class="hljs-selector-class">.cell</span> {
+  <span class="hljs-attr">width</span>: 80px; <span class="hljs-attr">height</span>: 80px; <span class="hljs-attr">font-size</span>: 2rem;
+  <span class="hljs-attr">border</span>: 2px solid <span class="hljs-number">#1e4f8a</span>; <span class="hljs-attr">border-radius</span>: 8px;
+  <span class="hljs-attr">background</span>: <span class="hljs-number">#fff</span>; <span class="hljs-attr">cursor</span>: pointer;
+}
+<span class="hljs-selector-class">.taken</span> { <span class="hljs-attr">cursor</span>: default; <span class="hljs-attr">background</span>: <span class="hljs-number">#eef</span>; }
+<span class="hljs-selector-class">.x</span> { <span class="hljs-attr">color</span>: <span class="hljs-number">#a8482a</span>; }
+<span class="hljs-selector-class">.o</span> { <span class="hljs-attr">color</span>: <span class="hljs-number">#2c6b5d</span>; }
+<span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Scoped CSS</strong>
+      <p>The <code>scoped</code> attribute on <code>&lt;style&gt;</code> tells Vue to add a unique data attribute to every element in this component and rewrite the CSS selectors to include that attribute. This means styles in <code>GameCell.vue</code> cannot leak out and affect other components.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. COMPONENT HIERARCHY ==================== -->
+<section class="section" id="hierarchy">
+  <div class="sec-header"><span class="sec-num">04</span><h2>Component Hierarchy</h2></div>
+  <p class="sec-intro">
+    Vue applications are organised as a <strong>tree of components</strong>. There is a single root component 
+    (usually <code>App.vue</code>) that contains child components, which may contain their own children.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F333; The Component Tree</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrC" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/>
+          </marker>
+        </defs>
+        <rect x="260" y="10" rx="10" width="180" height="40" fill="#1e4f8a" opacity="0.9"/>
+        <text x="350" y="35" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#fff">App.vue (Root)</text>
+
+        <line x1="300" y1="50" x2="160" y2="85" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrC)"/>
+        <text x="230" y="72" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#1e4f8a">props down</text>
+
+        <line x1="350" y1="50" x2="350" y2="85" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrC)"/>
+        <line x1="400" y1="50" x2="540" y2="85" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrC)"/>
+
+        <rect x="70" y="90" rx="8" width="180" height="36" fill="#2c6b5d" opacity="0.85"/>
+        <text x="160" y="113" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#fff">GameHeader.vue</text>
+
+        <rect x="260" y="90" rx="8" width="180" height="36" fill="#b5872a" opacity="0.85"/>
+        <text x="350" y="113" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#fff">GameBoard.vue</text>
+
+        <rect x="455" y="90" rx="8" width="180" height="36" fill="#2c6b5d" opacity="0.85"/>
+        <text x="545" y="113" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="600" fill="#fff">GameFooter.vue</text>
+
+        <line x1="305" y1="126" x2="150" y2="165" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrC)"/>
+        <line x1="350" y1="126" x2="350" y2="165" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrC)"/>
+        <line x1="395" y1="126" x2="550" y2="165" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrC)"/>
+
+        <rect x="60" y="170" rx="6" width="120" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="120" y="190" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell 0</text>
+        <rect x="195" y="170" rx="6" width="120" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="255" y="190" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell 1</text>
+        <rect x="325" y="170" rx="6" width="120" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="385" y="190" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell 2</text>
+        <rect x="460" y="170" rx="6" width="120" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="520" y="190" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell ...</text>
+
+        <line x1="120" y1="202" x2="120" y2="230" stroke="#5a3e8a" stroke-width="1" marker-end="url(#arrC)" stroke-dasharray="3,2"/>
+        <line x1="520" y1="202" x2="520" y2="230" stroke="#5a3e8a" stroke-width="1" marker-end="url(#arrC)" stroke-dasharray="3,2"/>
+
+        <rect x="50" y="235" rx="6" width="140" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="120" y="255" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell 6</text>
+        <rect x="455" y="235" rx="6" width="140" height="32" fill="#5a3e8a" opacity="0.75"/>
+        <text x="525" y="255" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#fff">GameCell 8</text>
+
+        <text x="350" y="290" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8b91a5">Each GameCell.vue instance is independent</text>
+
+        <rect x="200" y="302" rx="6" width="300" height="24" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1"/>
+        <text x="350" y="318" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="600" fill="#1e4f8a">Props flow DOWN &middot; Events flow UP</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F517; Unidirectional Data Flow</h3>
+    <p>Data flows in one direction only:</p>
+    <div class="flowchart">
+      <div class="fc-row">
+        <div class="fc-box teal" style="min-width:180px;">Parent Component</div>
+      </div>
+      <div class="fc-row">
+        <div class="fc-box small green">props &#x2193;</div>
+        <div class="fc-arrow" style="font-size:0.8rem;">&harr;</div>
+        <div class="fc-box small rust">events (emit) &#x2191;</div>
+      </div>
+      <div class="fc-row">
+        <div class="fc-box gold" style="min-width:180px;">Child Component</div>
+      </div>
+    </div>
+    <ul style="margin-top:0.5rem;">
+      <li><strong>Parent &#x2192; Child:</strong> Passes data via <strong>props</strong>.</li>
+      <li><strong>Child &#x2192; Parent:</strong> Sends messages via <strong>events</strong> (<code>$emit</code>).</li>
+      <li><strong>Never</strong> mutate props in a child. They are read-only.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 5. PROPS ==================== -->
+<section class="section" id="props">
+  <div class="sec-header"><span class="sec-num">05</span><h2>Props &mdash; Parent to Child Communication</h2></div>
+  <p class="sec-intro">
+    <strong>Props</strong> are custom attributes you can register on a component. They allow a parent 
+    to pass data down to a child. Props are <strong>read-only</strong> in the child &mdash; the child 
+    must never mutate them.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4E6; Declaring Props</h3>
+    <div class="grid-2">
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Array syntax (simple)</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-comment">// Child component</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'title'</span>, <span class="hljs-string">'likes'</span>, <span class="hljs-string">'published'</span>]
+}</code></pre>
+      </div>
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Object syntax (typed)</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-comment">// Object syntax with validation</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">title</span>: { <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>, <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span> },
+    <span class="hljs-attr">likes</span>: { <span class="hljs-attr">type</span>: <span class="hljs-title class_">Number</span>, <span class="hljs-attr">default</span>: <span class="hljs-number">0</span> },
+    <span class="hljs-attr">published</span>: { <span class="hljs-attr">type</span>: <span class="hljs-title class_">Boolean</span>, <span class="hljs-attr">default</span>: <span class="hljs-literal">false</span> }
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4DD; Passing Props from Parent</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Parent passes props to child</span><span class="cb-lang">Vue template</span></div>
+      <pre><code><span class="hljs-comment">&lt;!-- Static prop: passed as string literal --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span> <span class="hljs-attr">value</span>=<span class="hljs-string">"X"</span> /&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Dynamic prop: bound with : (v-bind) --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span> <span class="hljs-attr">:value</span>=<span class="hljs-string">"board[3]"</span> <span class="hljs-attr">:index</span>=<span class="hljs-string">"3"</span> /&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Using v-for --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span>
+  <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>
+  <span class="hljs-attr">:value</span>=<span class="hljs-string">"cell"</span>
+  <span class="hljs-attr">:index</span>=<span class="hljs-string">"i"</span>
+  @<span class="hljs-attr">cell-clicked</span>=<span class="hljs-string">"makeMove"</span>
+/&gt;</span></code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-rust">
+    <h3>&#x26A0; Props Validation</h3>
+    <p>Always validate your props. It catches bugs and serves as documentation:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>Complete prop validation</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-attr">props</span>: {
+  <span class="hljs-attr">value</span>: {
+    <span class="hljs-attr">type</span>: <span class="hljs-title class_">String</span>,
+    <span class="hljs-attr">default</span>: <span class="hljs-string">''</span>,
+    <span class="hljs-attr">validator</span>(val) {
+      <span class="hljs-keyword">return</span> [<span class="hljs-string">''</span>, <span class="hljs-string">'X'</span>, <span class="hljs-string">'O'</span>].<span class="hljs-title function_">includes</span>(val);
+    }
+  },
+  <span class="hljs-attr">index</span>: {
+    <span class="hljs-attr">type</span>: <span class="hljs-title class_">Number</span>,
+    <span class="hljs-attr">required</span>: <span class="hljs-literal">true</span>
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Props Are Read-Only!</strong>
+      <p>Never assign to a prop inside a child component: <code>this.value = 'X'</code>. If you need to modify the data, emit an event and let the parent do it. Mutating props leads to unpredictable behaviour and Vue warns you in the console.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. EVENTS & EMIT ==================== -->
+<section class="section" id="events">
+  <div class="sec-header"><span class="sec-num">06</span><h2>Events &amp; $emit() &mdash; Child to Parent</h2></div>
+  <p class="sec-intro">
+    When a child needs to communicate something to its parent (a button click, a completed action), 
+    it <strong>emits</strong> an event. The parent listens and responds.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4E4; The emit Mechanism</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 660 160" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrDn" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2c6b5d"/>
+          </marker>
+          <marker id="arrUp" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#a8482a"/>
+          </marker>
+        </defs>
+        <rect x="40" y="10" rx="8" width="200" height="44" fill="#2c6b5d" opacity="0.9"/>
+        <text x="140" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#fff">Parent Component</text>
+        <text x="140" y="47" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#fff">@cell-clicked="makeMove"</text>
+
+        <line x1="140" y1="54" x2="140" y2="95" stroke="#1e4f8a" stroke-width="2"/>
+        <line x1="140" y1="95" x2="370" y2="95" stroke="#1e4f8a" stroke-width="2"/>
+        <line x1="370" y1="95" x2="370" y2="54" stroke="#1e4f8a" stroke-width="2"/>
+        <line x1="370" y1="54" x2="240" y2="54" stroke="#2c6b5d" stroke-width="2" marker-end="url(#arrDn)"/>
+
+        <rect x="260" y="100" rx="8" width="220" height="44" fill="#a8482a" opacity="0.9"/>
+        <text x="370" y="120" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#fff">Child Component</text>
+        <text x="370" y="137" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#fff">this.$emit('cell-clicked', this.index)</text>
+
+        <line x1="370" y1="100" x2="370" y2="80" stroke="#a8482a" stroke-width="2" marker-end="url(#arrUp)"/>
+        <text x="430" y="82" font-family="Inter,sans-serif" font-size="10" fill="#a8482a" font-weight="600">emit &#x2191;</text>
+        <text x="430" y="50" font-family="Inter,sans-serif" font-size="10" fill="#2c6b5d" font-weight="600">&#x2193; props</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-rust">
+    <h3>&#x1F4DD; $emit in Action</h3>
+    <div class="grid-2">
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Child emits</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-comment">// GameCell.vue (child)</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">props</span>: [<span class="hljs-string">'value'</span>, <span class="hljs-string">'index'</span>],
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-title function_">handleClick</span>() {
+      <span class="hljs-comment">// Emit event named 'cell-clicked'</span>
+      <span class="hljs-comment">// with the index as payload</span>
+      <span class="hljs-variable language_">this</span>.$emit(<span class="hljs-string">'cell-clicked'</span>, <span class="hljs-variable language_">this</span>.index);
+    }
+  }
+}</code></pre>
+      </div>
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Parent listens</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-comment">// GameBoard.vue (parent)</span>
+<span class="hljs-comment">// Template:</span>
+<span class="hljs-comment">// &lt;GameCell</span>
+<span class="hljs-comment">//   v-for="..."</span>
+<span class="hljs-comment">//   @cell-clicked="makeMove"</span>
+<span class="hljs-comment">// /&gt;</span>
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-title function_">makeMove</span>(index) {
+      <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'Cell clicked:'</span>, index);
+      <span class="hljs-comment">// Update board[index] = this.turn</span>
+    }
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4CB; Event Payloads &amp; Multiple Arguments</h3>
+    <p>You can pass additional data with the event:</p>
+    <div class="code-block">
+      <div class="cb-label"><span>Emitting with payload</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-comment">// Child: emit with multiple payload values</span>
+<span class="hljs-variable language_">this</span>.$emit(<span class="hljs-string">'move-made'</span>, index, turn);
+
+<span class="hljs-comment">// Parent: receives them as arguments</span>
+<span class="hljs-comment">// Template: @move-made="handleMove"</span>
+<span class="hljs-title function_">handleMove</span>(index, turn) {
+  <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">`<span class="hljs-subst">${turn}</span> played at cell <span class="hljs-subst">${index}</span>`</span>);
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Event Naming Convention</strong>
+      <p>Use <strong>kebab-case</strong> for event names: <code>$emit('cell-clicked')</code> and listen as <code>@cell-clicked</code>. While Vue also handles camelCase, kebab-case is the HTML-standard convention and works consistently across template and script.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 7. PROPS & EVENTS TOGETHER ==================== -->
+<section class="section" id="props-events-flow">
+  <div class="sec-header"><span class="sec-num">07</span><h2>Props &amp; Events Together: The Data Flow</h2></div>
+  <p class="sec-intro">
+    Props and events form the complete communication system. Here is the entire cycle in a Tic Tac Toe component architecture.
+  </p>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F504; Complete Communication Flow</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">User clicks a cell</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">GameCell handles @click</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box purple">GameCell calls this.$emit('cell-clicked', index)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">GameBoard receives @cell-clicked="makeMove"</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box rust">GameBoard updates this.board[index] = this.turn</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Vue reactivity updates the prop "value" for that cell</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">GameCell re-renders with new value</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Parent template showing full wiring</span><span class="cb-lang">Vue</span></div>
+    <pre><code><span class="hljs-comment">&lt;!-- GameBoard.vue --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"board"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span>
+      <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span>
+      <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>
+      <span class="hljs-attr">:value</span>=<span class="hljs-string">"cell"</span>          <span class="hljs-comment">&lt;!-- prop down --&gt;</span>
+      <span class="hljs-attr">:index</span>=<span class="hljs-string">"i"</span>            <span class="hljs-comment">&lt;!-- prop down --&gt;</span>
+      @<span class="hljs-attr">cell-clicked</span>=<span class="hljs-string">"makeMove"</span>  <span class="hljs-comment">&lt;!-- event up --&gt;</span>
+    /&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">import</span> <span class="hljs-title class_">GameCell</span> <span class="hljs-keyword">from</span> <span class="hljs-string">'./GameCell.vue'</span>;
+
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-attr">components</span>: { <span class="hljs-title class_">GameCell</span> },
+  data() {
+    <span class="hljs-keyword">return</span> { board: [<span class="hljs-string">''</span>]*<span class="hljs-number">9</span>, turn: <span class="hljs-string">'X'</span>, gameOver: <span class="hljs-literal">false</span> }
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-title function_">makeMove</span>(index) {
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.gameOver || <span class="hljs-variable language_">this</span>.board[index]) <span class="hljs-keyword">return</span>;
+      <span class="hljs-variable language_">this</span>.board[index] = <span class="hljs-variable language_">this</span>.turn;
+      <span class="hljs-comment">// ... check win, toggle turn ...</span>
+    }
+  }
+}
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>The Golden Rule</strong>
+      <p>Props go <strong>down</strong> through the component tree. Events go <strong>up</strong>. Data in a child component is <strong>never</strong> directly modified by the child &mdash; instead, the child asks the parent to do it via an event. This pattern keeps data flow predictable and debuggable.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. REUSABILITY ==================== -->
+<section class="section" id="reusability">
+  <div class="sec-header"><span class="sec-num">08</span><h2>Reusability &amp; Modular Architecture</h2></div>
+  <p class="sec-intro">
+    Components are designed for <strong>reuse</strong>. A well-designed component can be used in many places 
+    without modification.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F504; Making Components Reusable</h3>
+    <p>A component is reusable when it is <strong>self-contained</strong> and communicates only through its public API:</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Public API</th><th>Description</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Props</strong></td><td>Input data from parent</td><td><code>:value="cell"</code></td></tr>
+          <tr><td><strong>Events</strong></td><td>Output messages to parent</td><td><code>$emit('cell-clicked', i)</code></td></tr>
+          <tr><td><strong>Slots</strong></td><td>Content injection points</td><td><code>&lt;slot /&gt;</code> in layout components</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:0.5rem;">A reusable <code>GameCell</code> knows nothing about the game rules, the board, or the turn logic. It just shows a value and emits a click. The parent (<code>GameBoard</code>) holds all the game logic.</p>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4DD; Reusability Example: Different Contexts</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Same GameCell used in different games</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-comment">&lt;!-- Tic Tac Toe --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(c,i) in board"</span>
+  <span class="hljs-attr">:value</span>=<span class="hljs-string">"c"</span> <span class="hljs-attr">:index</span>=<span class="hljs-string">"i"</span>
+  @<span class="hljs-attr">cell-clicked</span>=<span class="hljs-string">"handleTicTacToeMove"</span>
+/&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Minesweeper (same component!) --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">GameCell</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(c,i) in minefield"</span>
+  <span class="hljs-attr">:value</span>=<span class="hljs-string">"c.display"</span> <span class="hljs-attr">:index</span>=<span class="hljs-string">"i"</span>
+  @<span class="hljs-attr">cell-clicked</span>=<span class="hljs-string">"revealCell"</span>
+/&gt;</span></code></pre>
+    </div>
+  </div>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F3D7;&#xFE0F; Benefits of Modular Architecture</h3>
+    <ul>
+      <li><strong>Separation of concerns</strong> &mdash; each component does one thing.</li>
+      <li><strong>Easier testing</strong> &mdash; test GameCell in isolation without the full game.</li>
+      <li><strong>Parallel development</strong> &mdash; one developer builds GameCell, another builds GameBoard.</li>
+      <li><strong>Readability</strong> &mdash; template shows the component tree clearly.</li>
+      <li><strong>Maintainability</strong> &mdash; fix a bug in GameCell once; it is fixed everywhere.</li>
+      <li><strong>Design system</strong> &mdash; build a library of reusable UI components (buttons, inputs, cards).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 9. BEST PRACTICES ==================== -->
+<section class="section" id="best-practices">
+  <div class="sec-header"><span class="sec-num">09</span><h2>Best Practices</h2></div>
+
+  <div class="card bdr-teal">
+    <h3>&#x2705; Component Design Guidelines</h3>
+    <ul>
+      <li><strong>One component, one concern</strong> &mdash; if a component does too much, split it.</li>
+      <li><strong>Props as public API</strong> &mdash; design props carefully; they are the contract with the parent.</li>
+      <li><strong>Validate props</strong> &mdash; always use object syntax with <code>type</code>, <code>required</code>, <code>default</code>.</li>
+      <li><strong>Never mutate props</strong> &mdash; use <code>$emit</code> to request changes.</li>
+      <li><strong>Kebab-case events</strong> &mdash; <code>$emit('cell-clicked')</code> not <code>$emit('cellClicked')</code>.</li>
+      <li><strong>Scoped styles</strong> &mdash; always use <code>&lt;style scoped&gt;</code> in SFCs.</li>
+      <li><strong>Name your components</strong> &mdash; <code>name: 'GameCell'</code> helps debugging in Vue DevTools.</li>
+      <li><strong>Flat props</strong> &mdash; avoid passing entire objects when only a few properties are needed.</li>
+      <li><strong>Small components</strong> &mdash; if a .vue file exceeds 300 lines, consider splitting it.</li>
+      <li><strong>Document prop contracts</strong> &mdash; use JSDoc comments or Storybook for shared components.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 10. COMMON MISTAKES ==================== -->
+<section class="section" id="mistakes">
+  <div class="sec-header"><span class="sec-num">10</span><h2>Common Mistakes</h2></div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 1: Mutating Props Directly</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-comment">// GameCell.vue</span>
+<span class="hljs-attr">props</span>: [<span class="hljs-string">'value'</span>],
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-title function_">handleClick</span>() {
+    <span class="hljs-variable language_">this</span>.value = <span class="hljs-string">'X'</span>;  <span class="hljs-comment">// &#x2716; BAD: props are read-only!</span>
+  }
+}</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Emit an event: <code>this.$emit('cell-clicked', this.index)</code> and let the parent update the data.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 2: Missing <code>components</code> Registration</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-comment">// Parent uses GameCell but forgot to register it</span>
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> {
+  <span class="hljs-comment">// components: { GameCell }  // missing!</span>
+  data() { ... }
+}</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Always import and register child components in the <code>components</code> option.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 3: Using CamelCase Events Without Translation</h3>
+    <p>HTML attributes are case-insensitive. <code>@cellClicked</code> in a template will not match <code>$emit('cellClicked')</code>. Vue's template compiler handles this for in-DOM templates inconsistently. Stick to <strong>kebab-case</strong> for events: <code>$emit('cell-clicked')</code> and <code>@cell-clicked</code>.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 4: Passing Too Many Props</h3>
+    <p>If a component has 10+ props, it is probably doing too much. Consider splitting it. A component with many props becomes hard to use and test. Use <strong>composition</strong> (smaller components composed together) or provide shared state via a store.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 5: Forgetting <code>scoped</code> in Styles</h3>
+    <p>Without <code>scoped</code>, CSS in a .vue file is global and can affect other components. Always use <code>&lt;style scoped&gt;</code> unless you intentionally want global styles.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 6: Creating Components When Not Needed</h3>
+    <p>Not everything needs to be a component. If a piece of UI is used exactly once and is small, it may be simpler to keep it inline. Over-componentisation adds complexity. Use components when you need <strong>reusability</strong> or <strong>encapsulation</strong>.</p>
+  </div>
+</section>
+
+<!-- ==================== 11. INTERVIEW & EXAM ==================== -->
+<section class="section" id="qa">
+  <div class="sec-header"><span class="sec-num">11</span><h2>Interview &amp; Exam Questions</h2></div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q1: What is a Vue component and why use them?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>A <strong>Vue component</strong> is a reusable, self-contained unit of UI with its own template, script, and styles. Components are used to split the UI into smaller, manageable pieces. Benefits: reusability, encapsulation, easier testing, parallel development, and maintainability. Components communicate via props (down) and events (up).</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q2: How do props work in Vue? What is unidirectional data flow?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Props</strong> are custom attributes that a parent component passes to a child. The child declares its expected props and receives them as properties on <code>this</code>. <strong>Unidirectional data flow</strong> means data moves in one direction: parent &rarr; child via props. Children cannot modify props directly; they emit events to request changes. This makes data flow predictable and easier to debug.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q3: What is the difference between array syntax and object syntax for props?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Array syntax</strong> (<code>props: ['title', 'likes']</code>) is simple but provides no validation. <strong>Object syntax</strong> (<code>props: { title: { type: String, required: true } }</code>) allows type checking, required flags, default values, and custom validators. Use object syntax for any component that others will use &mdash; it documents the expected API and catches bugs early.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q4: How does $emit work? What is the event payload?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>$emit(eventName, ...args)</code> fires a custom event on the component instance. The parent listens with <code>@event-name="handler"</code>. The first argument is the event name (kebab-case convention), and subsequent arguments become the payload passed to the parent's handler. Example: <code>this.$emit('cell-clicked', index)</code> &rarr; parent receives <code>index</code> as the first argument to <code>makeMove(index)</code>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q5: What are Single File Components (.vue)?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>An <strong>SFC</strong> is a file with the <code>.vue</code> extension that encapsulates a component's template (<code>&lt;template&gt;</code>), logic (<code>&lt;script&gt;</code>), and styles (<code>&lt;style scoped&gt;</code>) in one file. The build tool (Vite) compiles these into JavaScript. Scoped styles are automatically scoped to the component by adding a unique data attribute to each element.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q6: Explain the component hierarchy in a Vue application.</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>A Vue app has a single <strong>root component</strong> (usually <code>App.vue</code>) mounted to a DOM element. The root component contains child components, which may contain their own children, forming a <strong>component tree</strong>. Data flows down via props; events flow up via $emit. This hierarchy mirrors the UI structure and makes the application modular and maintainable.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q7: What is scoped CSS and why is it important?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Scoped CSS</strong> (<code>&lt;style scoped&gt;</code>) tells Vue to process the CSS so it only applies to the current component. Vue adds a unique data attribute (like <code>data-v-abc123</code>) to every element in the component and rewrites the CSS selectors to include that attribute. Without scoped CSS, styles leak globally and can unintentionally affect other components.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q8: How would you design a reusable GameCell component?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>A reusable GameCell should: (1) Accept <code>value</code> prop (what to display) and <code>index</code> prop (its position). (2) Emit a <code>cell-clicked</code> event with the index. (3) Have scoped CSS for its visual appearance. (4) Know <strong>nothing</strong> about the game rules, whose turn it is, or how to check for a win. Those responsibilities belong to the parent component.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q9: What is the <code>components</code> option and when is it needed?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>The <code>components</code> option registers child components so they can be used in the parent's template. Without registration, Vue does not know what <code>&lt;GameCell /&gt;</code> refers to. In Vue 3's Options API: <code>export default { components: { GameCell } }</code>. In the Composition API with <code>&lt;script setup&gt;</code>, imported components are automatically available in the template.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q10: Compare building a Tic Tac Toe UI in a single Vue file vs using separate components.</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Single file:</strong> Everything in one Vue component. Simple for a small demo, but all logic and template are mixed. Harder to test, reuse, or scale. <strong>Separate components:</strong> GameBoard (logic + layout), GameCell (reusable cell), GameStatus (score display). Each piece is independently testable, reusable across projects, and maintainable by separate developers. The modular approach is essential for real applications.</p>
+    </div>
+  </div>
+
+  <div class="divider">Exam Focus</div>
+
+  <div class="card bdr-rust" style="background:#fff8f5;">
+    <h3>&#x1F4DD; Common Exam Questions</h3>
+    <ol>
+      <li><strong>Define a Vue component.</strong> What are the three sections of an SFC?</li>
+      <li><strong>Explain the props mechanism.</strong> How does a parent pass data to a child? Why are props read-only?</li>
+      <li><strong>How does $emit work?</strong> Write a child component that emits a custom event with a payload.</li>
+      <li><strong>Draw a component tree</strong> for a Tic Tac Toe app with App, GameBoard, GameCell, and GameStatus.</li>
+      <li><strong>What is unidirectional data flow?</strong> Why is it important for maintainability?</li>
+      <li><strong>Compare array vs object syntax for props.</strong> When would you use each?</li>
+      <li><strong>What is scoped CSS?</strong> How does Vue prevent styles from leaking between components?</li>
+      <li><strong>Design a reusable Button component</strong> with props for label, variant (primary/secondary), and disabled state. How would it emit a click event?</li>
+      <li><strong>What are the benefits</strong> of breaking a UI into components instead of building it monolithically?</li>
+      <li><strong>Explain the communication cycle:</strong> user clicks a GameCell &rarr; how does GameBoard update the board?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== 12. CHEAT SHEET ==================== -->
+<section class="section" id="cheatsheet">
+  <div class="sec-header"><span class="sec-num">12</span><h2>Quick Revision Cheat Sheet</h2></div>
+
+  <div class="cheat-grid">
+    <div class="cheat-item">
+      <h4>Component Structure</h4>
+      <code>&lt;template&gt; &lt;/template&gt;</code>
+      <code>&lt;script&gt; export default {} &lt;/script&gt;</code>
+      <code>&lt;style scoped&gt; &lt;/style&gt;</code>
+      <span class="cheat-desc">Three mandatory sections of an SFC.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Component Registration</h4>
+      <code>import Child from './Child.vue'</code>
+      <code>export default { components: { Child } }</code>
+      <code>&lt;Child /&gt; (in template)</code>
+      <span class="cheat-desc">Import, register, use.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Props (Parent &rarr; Child)</h4>
+      <code>props: { name: { type: String, required: true } }</code>
+      <code>Pass: &lt;Child :name="val" /&gt;</code>
+      <code>Access: this.name / {{ name }}</code>
+      <span class="cheat-desc">Props are read-only. Never mutate.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Events (Child &rarr; Parent)</h4>
+      <code>this.$emit('event-name', payload)</code>
+      <code>Listen: @event-name="handler"</code>
+      <code>handler(payload) { ... }</code>
+      <span class="cheat-desc">Kebab-case names recommended.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Prop Validation Types</h4>
+      <code>String, Number, Boolean</code>
+      <code>Array, Object, Function</code>
+      <code>Date, Symbol</code>
+      <code>Custom: validator(val) { ... }</code>
+      <span class="cheat-desc">Supports all native constructors + custom.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Data Flow</h4>
+      <code>Parent &rarr; props &rarr; Child</code>
+      <code>Child &rarr; $emit &rarr; Parent</code>
+      <code>Unidirectional (one-way)</code>
+      <span class="cheat-desc">Predictable, debuggable, testable.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Scoped CSS</h4>
+      <code>&lt;style scoped&gt; .class {} &lt;/style&gt;</code>
+      <code>Vue adds data-v-hash to elements</code>
+      <code>Prevents style leaks</code>
+      <span class="cheat-desc">Default for all component styles.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Reusability Rules</h4>
+      <code>One concern per component</code>
+      <code>Props as public API</code>
+      <code>Events as feedback channel</code>
+      <code>Scoped styles for isolation</code>
+      <span class="cheat-desc">Design components to be reused.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Parent Template Wiring</h4>
+      <code>&lt;Child :prop="val" @event="fn" /&gt;</code>
+      <code>Props: dynamic with :, static without</code>
+      <code>Events: @kebab-case name</code>
+      <span class="cheat-desc">Full parent-child communication.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Don'ts</h4>
+      <code>Don't mutate props</code>
+      <code>Don't forget components registration</code>
+      <code>Don't skip scoped styles</code>
+      <code>Don't create too many tiny components</code>
+      <span class="cheat-desc">Common pitfalls to avoid.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 13. KEY TAKEAWAYS ==================== -->
+<section class="section" id="takeaways">
+  <div class="sec-header"><span class="sec-num">13</span><h2>Key Takeaways</h2></div>
+  <div class="card bdr-teal">
+    <ul class="takeaway-list">
+      <li><strong>Components</strong> are self-contained UI units. They are the building blocks of every Vue application.</li>
+      <li><strong>Single File Components (.vue)</strong> package template, script, and style into one file for full encapsulation.</li>
+      <li><strong>Props</strong> flow <strong>down</strong> from parent to child. They are read-only and form the component's public input API.</li>
+      <li><strong>Events</strong> flow <strong>up</strong> via <code>$emit()</code>. The child requests changes; the parent decides whether to act.</li>
+      <li><strong>Unidirectional data flow</strong> makes applications predictable and easy to debug. Data always moves in one direction.</li>
+      <li><strong>Scoped CSS</strong> prevents style conflicts. Always use <code>&lt;style scoped&gt;</code> in SFCs.</li>
+      <li><strong>Reusability</strong> is achieved by designing components with a clear public API (props + events) and no hidden dependencies.</li>
+      <li><strong>Component hierarchy</strong> mirrors the UI tree. App.vue at the root, children branching down.</li>
+      <li><strong>Validation</strong> on props catches bugs early. Use object syntax with type checking and defaults.</li>
+      <li><strong>Small focused components</strong> beat large monolithic ones. Split when a component does more than one thing.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 14. SUMMARY ==================== -->
+<section class="section" id="summary">
+  <div class="sec-header"><span class="sec-num">14</span><h2>Summary</h2></div>
+  <div class="summary-box">
+    <h3>&#x1F4D6; Lecture at a Glance</h3>
+    <p>Vue components are the fundamental unit of UI organisation. A <strong>Single File Component</strong> (<code>.vue</code>) encapsulates template (HTML), script (JS), and scoped styles (CSS) in one file. Components form a <strong>tree</strong> with a root (<code>App.vue</code>) and nested children.</p>
+    <ul>
+      <li><strong>Props</strong> carry data from parent to child. They are read-only and validated via type declarations.</li>
+      <li><strong>Events</strong> (<code>$emit</code>) carry messages from child to parent. The parent listens with <code>@event</code>.</li>
+      <li><strong>Unidirectional data flow</strong> &mdash; props down, events up &mdash; keeps data flow predictable.</li>
+      <li><strong>Scoped CSS</strong> isolates styles to their component. No style leaks, no conflicts.</li>
+      <li><strong>Reusability</strong> comes from a clean public API: props for input, events for output, slots for content.</li>
+      <li><strong>Component hierarchy</strong> mirrors the UI. Each component owns one piece of the interface.</li>
+      <li>The same <code>GameCell</code> component can power Tic Tac Toe, Minesweeper, or any grid-based game.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F504; Component Communication Summary</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">App.vue (Root)</div>
+      <div class="fc-row">
+        <div class="fc-box small green">:board prop &#x2193;</div>
+        <div class="fc-box small rust">@reset event &#x2191;</div>
+      </div>
+      <div class="fc-box teal">GameBoard.vue</div>
+      <div class="fc-row">
+        <div class="fc-box small green">:value :index props &#x2193;</div>
+        <div class="fc-box small rust">@cell-clicked event &#x2191;</div>
+      </div>
+      <div class="fc-row">
+        <div class="fc-box purple" style="min-width:80px;">GameCell 0</div>
+        <div class="fc-box purple" style="min-width:80px;">GameCell 1</div>
+        <div class="fc-box purple" style="min-width:80px;">GameCell ...</div>
+      </div>
+      <div class="fc-label" style="margin-top:0.5rem;">Props flow down. Events flow up. Data never goes sideways.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 15. GLOSSARY ==================== -->
+<section class="section" id="glossary">
+  <div class="sec-header"><span class="sec-num">15</span><h2>Glossary</h2></div>
+  <div class="card bdr-purple">
+    <div class="glossary-term"><span class="gt-word">Component</span><span class="gt-def">A reusable, self-contained unit of UI with its own template, data, methods, and styles.</span></div>
+    <div class="glossary-term"><span class="gt-word">SFC (Single File Component)</span><span class="gt-def">A .vue file that contains template, script, and style for one component in a single file.</span></div>
+    <div class="glossary-term"><span class="gt-word">Props</span><span class="gt-def">Custom attributes passed from a parent component to a child. Read-only in the child.</span></div>
+    <div class="glossary-term"><span class="gt-word">$emit</span><span class="gt-def">A method that fires a custom event on a component, used for child-to-parent communication.</span></div>
+    <div class="glossary-term"><span class="gt-word">Unidirectional Data Flow</span><span class="gt-def">A pattern where data moves in one direction: parent to child via props, child to parent via events.</span></div>
+    <div class="glossary-term"><span class="gt-word">Scoped CSS</span><span class="gt-def">A style block with the scoped attribute that restricts CSS rules to the current component only.</span></div>
+    <div class="glossary-term"><span class="gt-word">Component Hierarchy</span><span class="gt-def">The tree structure of parent-child relationships between components in an application.</span></div>
+    <div class="glossary-term"><span class="gt-word">Component Registration</span><span class="gt-def">The act of declaring a child component in the components option so it can be used in the template.</span></div>
+    <div class="glossary-term"><span class="gt-word">Prop Validation</span><span class="gt-def">Specifying type, required flag, default value, and custom validator for a prop using object syntax.</span></div>
+    <div class="glossary-term"><span class="gt-word">Root Component</span><span class="gt-def">The topmost component (usually App.vue) that is mounted via createApp().mount().</span></div>
+    <div class="glossary-term"><span class="gt-word">Event Payload</span><span class="gt-def">The additional data passed from $emit to the parent's event handler after the event name.</span></div>
+    <div class="glossary-term"><span class="gt-word">v-bind (:)</span><span class="gt-def">Directive for dynamically binding an attribute or prop to an expression. Shorthand is colon.</span></div>
+  </div>
+</section>
+
+<div style="border-top:1px solid var(--line); padding-top:1.5rem; margin-top:1.5rem; text-align:center;">
+  <a href="#overview" style="color:var(--blue); text-decoration:none; font-weight:500;">&#x2191; Back to Top</a>
+</div>
+
+</div>
+
+<footer class="footer">
+  <p>MAD2 &mdash; Week 04: Vue Components &middot; Comprehensive Notes</p>
+  <p style="margin-top:0.25rem; font-size:0.7rem;">Built for study &amp; revision purposes</p>
+</footer>
+
+<script>
+function toggleQA(el) {
+  let answer = el.nextElementSibling;
+  let toggle = el.querySelector('.qa-toggle');
+  answer.classList.toggle('open');
+  el.classList.toggle('open');
+  toggle.textContent = answer.classList.contains('open') ? '\u00d7' : '+';
+}
+</script>
+
+</body>
+</html>

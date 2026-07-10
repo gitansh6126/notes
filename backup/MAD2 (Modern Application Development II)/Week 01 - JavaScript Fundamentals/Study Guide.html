@@ -1,0 +1,1504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScript Basics — Master Study Guide | MAD2 Week 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f4f5f9;
+  color: #1a1a2e;
+  line-height: 1.7;
+  padding: 0;
+}
+a { color: #1e4f8a; text-decoration: none; }
+a:hover { text-decoration: underline; }
+::selection { background: #1e4f8a22; color: #1e4f8a; }
+
+/* ─── Container ─── */
+.container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+/* ─── Header ─── */
+.header {
+  background: linear-gradient(135deg, #1e4f8a 0%, #2c6b5d 50%, #5a3e8a 100%);
+  color: #fff;
+  padding: 3rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  opacity: 0.5;
+  pointer-events: none;
+}
+.header h1 {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  position: relative;
+  z-index: 1;
+}
+.header .subtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 0.4rem;
+  letter-spacing: 0.04em;
+  position: relative;
+  z-index: 1;
+}
+.header .badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(4px);
+  padding: 0.3rem 1.2rem;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-top: 1rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Section ─── */
+.section { margin-bottom: 3rem; }
+.section-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  margin-bottom: 1.5rem; padding-bottom: 0.5rem;
+  border-bottom: 3px solid #e0e3ed;
+}
+.section-header .icon { font-size: 1.5rem; }
+.section-header h2 {
+  font-size: 1.5rem; font-weight: 700; color: #1a1a2e;
+  letter-spacing: -0.01em;
+}
+.section-header .count {
+  margin-left: auto;
+  font-size: 0.75rem; font-weight: 600; color: #888;
+  background: #e8eaf0; padding: 0.2rem 0.7rem; border-radius: 100px;
+}
+
+/* ─── Card ─── */
+.card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.06);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.08); }
+.card-border-blue { border-left: 4px solid #1e4f8a; }
+.card-border-gold { border-left: 4px solid #b5872a; }
+.card-border-teal { border-left: 4px solid #2c6b5d; }
+.card-border-rust { border-left: 4px solid #a8482a; }
+.card-border-purple { border-left: 4px solid #5a3e8a; }
+.card-border-green { border-left: 4px solid #3d7a4a; }
+
+/* ─── Card Grid ─── */
+.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 768px) { .card-grid { grid-template-columns: 1fr; } }
+.card-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+@media (max-width: 900px) { .card-grid-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 550px) { .card-grid-3 { grid-template-columns: 1fr; } }
+
+.card-title {
+  font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+.card-title .badge { font-size: 0.7rem; padding: 0.15rem 0.6rem; border-radius: 100px; font-weight: 600; }
+.badge-blue { background: #1e4f8a18; color: #1e4f8a; }
+.badge-gold { background: #b5872a18; color: #b5872a; }
+.badge-teal { background: #2c6b5d18; color: #2c6b5d; }
+.badge-rust { background: #a8482a18; color: #a8482a; }
+.badge-purple { background: #5a3e8a18; color: #5a3e8a; }
+.badge-green { background: #3d7a4a18; color: #3d7a4a; }
+
+/* ─── Code ─── */
+code, .code-inline {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.85em;
+  background: #f0f1f5;
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  color: #a8482a;
+}
+pre {
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  margin: 0.75rem 0;
+  tab-size: 2;
+}
+pre .kw { color: #cba6f7; }   /* keyword */
+pre .str { color: #a6e3a1; }  /* string */
+pre .cmt { color: #6c7086; font-style: italic; } /* comment */
+pre .fn { color: #89b4fa; }   /* function */
+pre .num { color: #fab387; }  /* number */
+pre .op { color: #89dceb; }   /* operator */
+pre .pr { color: #f5c2e7; }   /* property */
+pre .bo { color: #f9e2af; }   /* boolean */
+
+.callout {
+  padding: 1rem 1.25rem; border-radius: 10px; margin: 1rem 0;
+  display: flex; gap: 0.75rem; align-items: flex-start;
+  font-size: 0.92rem;
+}
+.callout-info { background: #e8f0fe; border-left: 4px solid #1e4f8a; }
+.callout-warning { background: #fef7e0; border-left: 4px solid #b5872a; }
+.callout-tip { background: #e6f4ea; border-left: 4px solid #3d7a4a; }
+.callout .emoji { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.05rem; }
+
+/* ─── Table ─── */
+.table-wrap { overflow-x: auto; margin: 0.75rem 0; }
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.9rem;
+}
+thead th {
+  background: #f0f1f5; color: #1a1a2e;
+  font-weight: 600; text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid #d0d3de;
+}
+tbody td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid #eaecf0;
+}
+tbody tr:nth-child(even) { background: #f8f9fb; }
+tbody tr:hover { background: #eef0f5; }
+
+/* ─── Pill ─── */
+.pill {
+  display: inline-block; padding: 0.2rem 0.75rem;
+  border-radius: 100px; font-size: 0.72rem; font-weight: 600;
+}
+.pill-easy { background: #3d7a4a18; color: #3d7a4a; }
+.pill-medium { background: #b5872a18; color: #b5872a; }
+.pill-hard { background: #a8482a18; color: #a8482a; }
+
+/* ─── Progress Bar ─── */
+.progress-wrap { display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0; }
+.progress-label { flex: 0 0 130px; font-size: 0.85rem; font-weight: 500; color: #444; }
+.progress-bar {
+  flex: 1; height: 10px; background: #e8eaf0; border-radius: 100px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 100px;
+  background: linear-gradient(90deg, #1e4f8a, #2c6b5d);
+  transition: width 0.6s ease;
+}
+.progress-num { font-size: 0.8rem; font-weight: 600; color: #666; flex: 0 0 30px; text-align: right; }
+
+/* ─── Stars ─── */
+.stars { color: #b5872a; letter-spacing: 2px; font-size: 0.9rem; }
+.star-empty { color: #d0d3de; }
+
+/* ─── Tree ─── */
+.tree { padding-left: 0.5rem; }
+.tree-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.35rem 0; position: relative;
+  font-size: 0.92rem;
+}
+.tree-line {
+  display: flex; align-items: center; gap: 2px;
+  color: #b0b3bf; font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem; font-weight: 400;
+}
+.tree-children { padding-left: 2.2rem; position: relative; }
+.tree-children::before {
+  content: ''; position: absolute; left: 0.75rem; top: 0; bottom: 0;
+  width: 2px; background: #d0d3de;
+}
+.tree-leaf {
+  position: relative; padding-left: 1.5rem;
+}
+.tree-leaf::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  width: 1rem; height: 2px; background: #d0d3de;
+}
+.tree-label { font-weight: 500; }
+.tree-label-sub { color: #666; font-size: 0.82rem; }
+
+/* ─── Arrow Flow ─── */
+.flow { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+.flow-box {
+  background: #fff; border: 2px solid #d0d3de; border-radius: 10px;
+  padding: 0.6rem 1.5rem; font-weight: 600; font-size: 0.9rem;
+  text-align: center; min-width: 140px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.flow-box:hover { border-color: #1e4f8a; background: #e8f0fe; }
+.flow-arrow {
+  color: #b0b3bf; font-size: 1.3rem; line-height: 1;
+}
+.flow-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+/* ─── Trap ─── */
+.trap { margin-bottom: 0.75rem; }
+.trap-text { font-size: 0.88rem; line-height: 1.6; }
+.trap-wrong { color: #a8482a; }
+.trap-right { color: #3d7a4a; }
+
+/* ─── Mental Model ─── */
+.mental-card { text-align: center; min-height: 120px; display: flex; flex-direction: column; justify-content: center; }
+.mental-card .concept { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: #888; font-weight: 600; }
+.mental-card .analogy { font-size: 1rem; font-weight: 600; margin-top: 0.25rem; }
+
+/* ─── PYQ ─── */
+.pyq {
+  background: #fdf6ec; border: 1px solid #e8d5a8; border-radius: 10px;
+  padding: 1rem 1.25rem; margin: 0.75rem 0;
+}
+.pyq-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.05em; color: #b5872a; margin-bottom: 0.35rem;
+}
+.pyq p { font-size: 0.9rem; margin: 0.2rem 0; }
+
+/* ─── Grid for PYQs ─── */
+.pyq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 600px) { .pyq-grid { grid-template-columns: 1fr; } }
+
+/* ─── Frequency Guide ─── */
+.freq-card { padding: 1rem; }
+.freq-card .topic { font-size: 0.82rem; font-weight: 500; }
+
+/* ─── Cheat Sheet ─── */
+.cheat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+@media (max-width: 650px) { .cheat-grid { grid-template-columns: 1fr; } }
+.cheat-item { font-size: 0.85rem; padding: 0.35rem 0; border-bottom: 1px solid #eaecf0; display: flex; gap: 0.5rem; }
+.cheat-item:last-child { border-bottom: none; }
+.cheat-num { color: #b0b3bf; font-weight: 600; flex-shrink: 0; }
+
+/* ─── Divider ─── */
+.divider { margin: 1.5rem 0; border: 0; height: 2px; background: linear-gradient(90deg, transparent, #d0d3de, transparent); }
+
+/* ─── Misc ─── */
+.mt-1 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 1rem; }
+.flex { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+/* ─── Hide / Show ─── */
+.toc { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+.toc a {
+  font-size: 0.8rem; font-weight: 500; padding: 0.4rem 1rem;
+  background: #fff; border-radius: 100px; color: #444;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: all 0.2s;
+}
+.toc a:hover { background: #1e4f8a; color: #fff; text-decoration: none; transform: translateY(-1px); }
+
+/* ─── Query Grid ─── */
+.query-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 650px) { .query-grid { grid-template-columns: 1fr; } }
+
+/* ─── Keyword highlight in tables ─── */
+td code { font-size: 0.8em; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header class="header">
+  <h1>JavaScript Basics — Master Study Guide</h1>
+  <p class="subtitle">MAD2 · Week 1 · IIT Madras</p>
+  <span class="badge">&#9733; Comprehensive Exam Preparation &#9733;</span>
+</header>
+
+<div class="container">
+
+  <!-- ══════ TOC ══════ -->
+  <nav class="toc">
+    <a href="#map">Topic Map</a>
+    <a href="#variables">Variables</a>
+    <a href="#scope">Scope</a>
+    <a href="#hoisting">Hoisting</a>
+    <a href="#this">this</a>
+    <a href="#closures">Closures</a>
+    <a href="#prototype">Prototype</a>
+    <a href="#classes">Classes</a>
+    <a href="#bind">bind/call/apply</a>
+    <a href="#arrow">Arrow Functions</a>
+    <a href="#questions">Question Types</a>
+    <a href="#coding">Coding Types</a>
+    <a href="#tricky">Tricky Questions</a>
+    <a href="#patterns">Hidden Patterns</a>
+    <a href="#interconnection">Interconnection</a>
+    <a href="#frequency">Frequency</a>
+    <a href="#probability">Probability</a>
+    <a href="#traps">Common Traps</a>
+    <a href="#mental">Mental Models</a>
+    <a href="#cheatsheet">Cheat Sheet</a>
+  </nav>
+
+  <!-- ═══════════════ 1. MASTER TOPIC MAP ═══════════════ -->
+  <div class="section" id="map">
+    <div class="section-header">
+      <span class="icon">&#128218;</span>
+      <h2>Master Topic Map</h2>
+      <span class="count">Week 1 Overview</span>
+    </div>
+    <div class="card card-border-blue">
+      <div class="tree">
+        <div class="tree-item"><span class="tree-line">&#9500;&#9472;</span><span class="tree-label">Week 1</span></div>
+        <div class="tree-children">
+          <div class="tree-item"><span class="tree-line">&#9492;&#9472;</span><span class="tree-label">JavaScript Basics</span></div>
+          <div class="tree-children">
+            <div class="tree-leaf tree-item"><span class="tree-label">Variables (var, let, const)</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Scope (Global, Function, Block)</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Hoisting</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label"><code>this</code> Keyword</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Closures</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Prototype &amp; Inheritance</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Classes (ES6)</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">bind() / call() / apply()</span></div>
+            <div class="tree-leaf tree-item"><span class="tree-label">Arrow Functions</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 2. TOPIC DEEP DIVES ═══════════════ -->
+  <!-- ───── Variables ───── -->
+  <div class="section" id="variables">
+    <div class="section-header">
+      <span class="icon">&#128200;</span>
+      <h2>Variables — <code>var</code> vs <code>let</code> vs <code>const</code></h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Comparison Table <span class="badge badge-blue">Core</span></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Feature</th><th><code>var</code></th><th><code>let</code></th><th><code>const</code></th></tr></thead>
+          <tbody>
+            <tr><td>Scope</td><td>Function</td><td>Block</td><td>Block</td></tr>
+            <tr><td>Hoisting</td><td>Yes (initialized <code>undefined</code>)</td><td>Yes (not initialized — TDZ)</td><td>Yes (not initialized — TDZ)</td></tr>
+            <tr><td>Reassignment</td><td>&#10003; Allowed</td><td>&#10003; Allowed</td><td>&#10007; Not allowed</td></tr>
+            <tr><td>Redeclaration</td><td>&#10003; Allowed</td><td>&#10007; Not allowed</td><td>&#10007; Not allowed</td></tr>
+            <tr><td>Temporal Dead Zone</td><td>No</td><td>Yes</td><td>Yes</td></tr>
+            <tr><td>Global Object Property</td><td>Yes (<code>window.varName</code>)</td><td>No</td><td>No</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-gold">
+        <div class="card-title">Code Examples <span class="badge badge-gold">var</span></div>
+        <pre><span class="cmt">// var — function scoped, hoisted</span>
+<span class="kw">var</span> a = <span class="num">5</span>;
+<span class="kw">function</span> <span class="fn">test</span>() {
+  <span class="kw">var</span> b = <span class="num">10</span>; <span class="cmt">// function scoped</span>
+}
+<span class="kw">if</span> (<span class="kw">true</span>) {
+  <span class="kw">var</span> c = <span class="num">15</span>; <span class="cmt">// NOT block scoped!</span>
+}
+console.log(c); <span class="cmt">// 15</span></pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Code Examples <span class="badge badge-teal">let / const</span></div>
+        <pre><span class="cmt">// let — block scoped, TDZ</span>
+console.log(x); <span class="cmt">// ReferenceError (TDZ)</span>
+<span class="kw">let</span> x = <span class="num">5</span>;
+
+<span class="kw">if</span> (<span class="kw">true</span>) {
+  <span class="kw">let</span> y = <span class="num">10</span>;  <span class="cmt">// block scoped</span>
+}
+<span class="cmt">// console.log(y); // ReferenceError</span>
+
+<span class="kw">const</span> obj = { a: <span class="num">1</span> };
+obj.a = <span class="num">2</span>;       <span class="cmt">// &#10003; allowed (mutation)</span>
+<span class="cmt">// obj = {};    // &#10007; TypeError (reassignment)</span></pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Output Prediction</div>
+      <div class="pyq-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ 1 &#9733;</div>
+          <pre>console.log(a);
+<span class="kw">var</span> a = <span class="num">5</span>;</pre>
+          <p><strong>Output:</strong> <code>undefined</code><br><span class="trap-right">&#9654; Hoisting moves declaration, not init</span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ 2 &#9733;</div>
+          <pre>console.log(b);
+<span class="kw">let</span> b = <span class="num">5</span>;</pre>
+          <p><strong>Output:</strong> <code>ReferenceError</code><br><span class="trap-right">&#9654; TDZ — accessed before initialization</span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ 3 &#9733;</div>
+          <pre><span class="kw">const</span> x = <span class="num">5</span>;
+x = <span class="num">10</span>;</pre>
+          <p><strong>Output:</strong> <code>TypeError</code><br><span class="trap-right">&#9654; Assignment to constant variable</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Scope ───── -->
+  <div class="section" id="scope">
+    <div class="section-header">
+      <span class="icon">&#128270;</span>
+      <h2>Scope</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-blue">
+        <div class="card-title">Global Scope</div>
+        <p style="font-size:0.9rem;margin-bottom:0.5rem;">Variables declared outside any function or block. Accessible everywhere.</p>
+        <pre><span class="kw">var</span> globalVar = <span class="str">"I'm global"</span>;
+<span class="kw">let</span> globalLet = <span class="str">"Also global"</span>;
+
+<span class="kw">function</span> <span class="fn">foo</span>() {
+  console.log(globalVar); <span class="cmt">// accessible</span>
+}</pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Function Scope</div>
+        <p style="font-size:0.9rem;margin-bottom:0.5rem;"><code>var</code> is function-scoped. Visible inside the function only.</p>
+        <pre><span class="kw">function</span> <span class="fn">bar</span>() {
+  <span class="kw">var</span> secret = <span class="str">"hidden"</span>;
+  console.log(secret); <span class="cmt">// "hidden"</span>
+}
+<span class="cmt">// console.log(secret); // ReferenceError</span></pre>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title">Block Scope</div>
+        <p style="font-size:0.9rem;margin-bottom:0.5rem;"><code>let</code> / <code>const</code> are block-scoped (<code>{ }</code>).</p>
+        <pre><span class="kw">if</span> (<span class="kw">true</span>) {
+  <span class="kw">let</span> blockScoped = <span class="str">"inside"</span>;
+  <span class="kw">var</span> notBlockScoped = <span class="str">"leaks"</span>;
+}
+console.log(notBlockScoped); <span class="cmt">// "leaks"</span>
+<span class="cmt">// console.log(blockScoped); // ReferenceError</span></pre>
+      </div>
+    </div>
+
+    <div class="card card-border-gold">
+      <div class="card-title">Lexical Scope <span class="badge badge-gold">Important</span></div>
+      <p style="font-size:0.9rem;margin-bottom:0.5rem;">Inner functions have access to variables of outer (parent) functions. Scope is determined by where functions are <em>written</em>, not where they are <em>called</em>.</p>
+      <pre><span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">let</span> outerVar = <span class="str">"I'm outside"</span>;
+  <span class="kw">function</span> <span class="fn">inner</span>() {
+    console.log(outerVar); <span class="cmt">// "I'm outside"</span>
+  }
+  inner();
+}
+outer();</pre>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Nested Function Scope</div>
+      <div class="card-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">var</span> x = <span class="num">10</span>;
+<span class="kw">function</span> <span class="fn">a</span>() {
+  console.log(x);
+  <span class="kw">function</span> <span class="fn">b</span>() {
+    <span class="kw">var</span> x = <span class="num">20</span>;
+    console.log(x);
+  }
+  b();
+}
+a();</pre>
+          <p><strong>Output:</strong> <code>10</code>, <code>20</code><br><span class="trap-right">&#9654; inner <code>x</code> shadows outer in <code>b</code></span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">let</span> a = <span class="num">1</span>;
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  console.log(a);
+  <span class="kw">let</span> a = <span class="num">2</span>;
+}
+outer();</pre>
+          <p><strong>Output:</strong> <code>ReferenceError</code><br><span class="trap-right">&#9654; TDZ for <code>let</code> in function scope</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Hoisting ───── -->
+  <div class="section" id="hoisting">
+    <div class="section-header">
+      <span class="icon">&#8682;</span>
+      <h2>Hoisting</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-blue">
+        <div class="card-title">Variable Hoisting <span class="badge badge-blue">var</span></div>
+        <pre><span class="cmt">// What you write:</span>
+console.log(a);
+<span class="kw">var</span> a = <span class="num">5</span>;
+
+<span class="cmt">// What JS sees at runtime:</span>
+<span class="kw">var</span> a;          <span class="cmt">// hoisted (undefined)</span>
+console.log(a); <span class="cmt">// undefined</span>
+a = <span class="num">5</span>;          <span class="cmt">// init stays</span></pre>
+        <p style="font-size:0.85rem;margin-top:0.5rem;">Only the <strong>declaration</strong> is hoisted, not the initialization.</p>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Function Hoisting <span class="badge badge-teal">Declaration</span></div>
+        <pre><span class="cmt">// Function declarations are hoisted entirely</span>
+<span class="fn">sayHi</span>(); <span class="cmt">// "Hello!" — works!</span>
+<span class="kw">function</span> <span class="fn">sayHi</span>() {
+  console.log(<span class="str">"Hello!"</span>);
+}
+
+<span class="cmt">// Function expressions are NOT hoisted</span>
+<span class="fn">sayBye</span>(); <span class="cmt">// TypeError — not a function</span>
+<span class="kw">var</span> sayBye = <span class="kw">function</span>() {
+  console.log(<span class="str">"Bye!"</span>);
+};</pre>
+      </div>
+    </div>
+
+    <div class="card card-border-purple">
+      <div class="card-title">Temporal Dead Zone (TDZ) <span class="badge badge-purple">let / const</span></div>
+      <pre><span class="cmt">// let and const are hoisted but NOT initialized</span>
+<span class="cmt">// They exist in the "TDZ" from start of scope → declaration</span>
+{
+  <span class="cmt">// TDZ starts here for 'x'</span>
+  <span class="cmt">// console.log(x); // ReferenceError</span>
+  <span class="kw">let</span> x = <span class="num">5</span>;
+  <span class="cmt">// TDZ ends</span>
+  console.log(x); <span class="cmt">// 5</span>
+}</pre>
+      <div class="callout callout-info mt-1">
+        <span class="emoji">&#128161;</span>
+        <div><strong>Memory Aid:</strong> <code>var</code> gets a welcome party (undefined). <code>let</code>/<code>const</code> arrive but stay invisible until their line.</div>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Hoisting</div>
+      <div class="pyq">
+        <div class="pyq-label">PYQ &#9733;</div>
+        <pre>console.log(<span class="fn">foo</span>());
+<span class="kw">function</span> <span class="fn">foo</span>() { <span class="kw">return</span> <span class="num">1</span>; }
+<span class="kw">var</span> foo = <span class="kw">function</span>() { <span class="kw">return</span> <span class="num">2</span>; };</pre>
+        <p><strong>Output:</strong> <code>1</code> <span class="trap-right">&#9654; Declaration hoisted above expression, function body wins</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── this ───── -->
+  <div class="section" id="this">
+    <div class="section-header">
+      <span class="icon">&#128073;</span>
+      <h2>The <code>this</code> Keyword</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Four Binding Rules</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Rule</th><th>Pattern</th><th><code>this</code> value</th></tr></thead>
+          <tbody>
+            <tr><td>1. Default</td><td>Standalone function call</td><td><code>window</code> (browser) / <code>global</code> (Node) / <code>undefined</code> (strict)</td></tr>
+            <tr><td>2. Implicit</td><td>Method call: <code>obj.method()</code></td><td>The object before the dot</td></tr>
+            <tr><td>3. Explicit</td><td><code>.call()</code>, <code>.apply()</code>, <code>.bind()</code></td><td>Provided value</td></tr>
+            <tr><td>4. <code>new</code></td><td><code>new Constructor()</code></td><td>Newly created instance</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-border-gold">
+        <div class="card-title">Default Binding</div>
+        <pre><span class="kw">function</span> <span class="fn">show</span>() {
+  console.log(<span class="kw">this</span>);
+}
+show(); <span class="cmt">// window (non-strict)</span></pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Implicit Binding</div>
+        <pre><span class="kw">const</span> obj = {
+  name: <span class="str">"MAD2"</span>,
+  <span class="fn">greet</span>() { console.log(<span class="kw">this</span>.name); }
+};
+obj.greet(); <span class="cmt">// "MAD2"</span></pre>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title">Explicit Binding</div>
+        <pre><span class="kw">function</span> <span class="fn">greet</span>() {
+  console.log(<span class="kw">this</span>.name);
+}
+<span class="kw">const</span> user = { name: <span class="str">"Exam"</span> };
+greet.call(user);   <span class="cmt">// "Exam"</span>
+greet.apply(user);  <span class="cmt">// "Exam"</span>
+<span class="kw">const</span> bound = greet.bind(user);
+bound();            <span class="cmt">// "Exam"</span></pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">Arrow Function <code>this</code> (Lexical) <span class="badge badge-rust">Tricky</span></div>
+      <pre><span class="kw">const</span> obj = {
+  name: <span class="str">"MAD2"</span>,
+  regular: <span class="kw">function</span>() { console.log(<span class="kw">this</span>.name); },
+  arrow: () => { console.log(<span class="kw">this</span>.name); }
+};
+obj.regular(); <span class="cmt">// "MAD2" (own this)</span>
+obj.arrow();   <span class="cmt">// undefined (inherits from outer scope)</span></pre>
+      <div class="callout callout-warning mt-1">
+        <span class="emoji">&#9888;&#65039;</span>
+        <div>Arrow functions <strong>do not have their own</strong> <code>this</code>. They inherit it from the enclosing (parent) scope — lexically, not dynamically.</div>
+      </div>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Common Traps Table</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Pattern</th><th>What <code>this</code> refers to</th></tr></thead>
+          <tbody>
+            <tr><td><code>obj.method()</code></td><td><code>obj</code></td></tr>
+            <tr><td><code>const fn = obj.method; fn()</code></td><td><code>window</code> (lost context)</td></tr>
+            <tr><td><code>setTimeout(obj.method, 100)</code></td><td><code>window</code></td></tr>
+            <tr><td>Arrow function in object method</td><td>Outer scope (not the object)</td></tr>
+            <tr><td>Callback inside method</td><td><code>window</code> (unless arrow)</td></tr>
+            <tr><td>Event handler (<code>element.onclick</code>)</td><td>The element</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — <code>this</code> Patterns</div>
+      <div class="pyq-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733; Implicit</div>
+          <pre><span class="kw">const</span> obj = {
+  x: <span class="num">42</span>,
+  <span class="fn">getX</span>() { <span class="kw">return</span> <span class="kw">this</span>.x; }
+};
+console.log(obj.getX());</pre>
+          <p><strong>Answer:</strong> <code>42</code></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733; Lost Context</div>
+          <pre><span class="kw">const</span> obj = {
+  x: <span class="num">42</span>,
+  <span class="fn">getX</span>() { <span class="kw">return</span> <span class="kw">this</span>.x; }
+};
+<span class="kw">const</span> fn = obj.getX;
+console.log(fn());</pre>
+          <p><strong>Answer:</strong> <code>undefined</code> (in strict) / <code>window.x</code></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733; Arrow + setTimeout</div>
+          <pre><span class="kw">const</span> obj = {
+  x: <span class="num">10</span>,
+  <span class="fn">log</span>() {
+    setTimeout(() => {
+      console.log(<span class="kw">this</span>.x);
+    }, <span class="num">0</span>);
+  }
+};
+obj.log();</pre>
+          <p><strong>Answer:</strong> <code>10</code> (arrow inherits from <code>log</code>'s <code>this</code>)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Closures ───── -->
+  <div class="section" id="closures">
+    <div class="section-header">
+      <span class="icon">&#128161;</span>
+      <h2>Closures</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Definition</div>
+      <p style="font-size:0.9rem;">A closure is a function that <strong>"remembers"</strong> the variables from its lexical scope even after the outer function has returned.</p>
+      <pre><span class="kw">function</span> <span class="fn">outer</span>(x) {
+  <span class="kw">return</span> <span class="kw">function</span> <span class="fn">inner</span>(y) {
+    <span class="kw">return</span> x + y;  <span class="cmt">// 'x' is from outer scope</span>
+  };
+}
+<span class="kw">const</span> add5 = outer(<span class="num">5</span>);
+console.log(add5(<span class="num">3</span>)); <span class="cmt">// 8 — closure "remembers" x=5</span></pre>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-border-teal">
+        <div class="card-title">Data Privacy</div>
+        <pre><span class="kw">function</span> <span class="fn">counter</span>() {
+  <span class="kw">let</span> count = <span class="num">0</span>;
+  <span class="kw">return</span> {
+    increment: () => ++count,
+    get: () => count
+  };
+}
+<span class="kw">const</span> c = counter();
+console.log(c.get()); <span class="cmt">// 0</span>
+c.increment();
+console.log(c.get()); <span class="cmt">// 1</span></pre>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title">Currying</div>
+        <pre><span class="kw">const</span> <span class="fn">multiply</span> = a => b => a * b;
+<span class="kw">const</span> double = multiply(<span class="num">2</span>);
+console.log(double(<span class="num">5</span>)); <span class="cmt">// 10</span></pre>
+      </div>
+      <div class="card card-border-gold">
+        <div class="card-title">Loop Problem</div>
+        <pre><span class="cmt">// Using var — all log 3</span>
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  setTimeout(() => console.log(i), <span class="num">100</span>);
+}
+<span class="cmt">// Output: 3, 3, 3</span>
+
+<span class="cmt">// Fix with let — 0, 1, 2</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  setTimeout(() => console.log(i), <span class="num">100</span>);
+}</pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Closure Output</div>
+      <div class="pyq-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  setTimeout(() => console.log(i), i * <span class="num">100</span>);
+}</pre>
+          <p><strong>Output:</strong> <code>3 3 3</code> <span class="trap-right">&#9654; All closures share same <code>i</code></span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">function</span> <span class="fn">createCounter</span>(start) {
+  <span class="kw">return</span> <span class="kw">function</span>() {
+    <span class="kw">return</span> start++;
+  };
+}
+<span class="kw">const</span> cnt = createCounter(<span class="num">5</span>);
+console.log(cnt());
+console.log(cnt());</pre>
+          <p><strong>Output:</strong> <code>5</code>, <code>6</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Prototype ───── -->
+  <div class="section" id="prototype">
+    <div class="section-header">
+      <span class="icon">&#128736;</span>
+      <h2>Prototype &amp; Inheritance</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Prototype Chain</div>
+      <pre><span class="cmt">// Every JS object has a [[Prototype]]</span>
+<span class="kw">const</span> arr = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+console.log(arr.__proto__ === Array.prototype);     <span class="cmt">// true</span>
+console.log(Array.prototype.__proto__ === Object.prototype); <span class="cmt">// true</span>
+console.log(Object.prototype.__proto__);             <span class="cmt">// null (end of chain)</span>
+
+<span class="cmt">// Property lookup walks up the chain</span>
+arr.hasOwnProperty(<span class="str">"length"</span>); <span class="cmt">// from Array.prototype?</span></pre>
+      <div class="callout callout-info mt-1">
+        <span class="emoji">&#128161;</span>
+        <div><strong><code>__proto__</code></strong> is the actual prototype link of an object. <strong><code>prototype</code></strong> is a property on constructor functions (used with <code>new</code>).</div>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-teal">
+        <div class="card-title">Inheritance via Prototypes</div>
+        <pre><span class="kw">function</span> <span class="fn">Animal</span>(name) {
+  <span class="kw">this</span>.name = name;
+}
+Animal.prototype.speak = <span class="kw">function</span>() {
+  console.log(<span class="kw">this</span>.name + <span class="str">" makes noise"</span>);
+};
+
+<span class="kw">function</span> <span class="fn">Dog</span>(name) {
+  Animal.call(<span class="kw">this</span>, name);
+}
+Dog.prototype = Object.create(Animal.prototype);
+Dog.prototype.bark = <span class="kw">function</span>() {
+  console.log(<span class="str">"Woof!"</span>);
+};
+
+<span class="kw">const</span> d = <span class="kw">new</span> Dog(<span class="str">"Rex"</span>);
+d.speak(); <span class="cmt">// "Rex makes noise"</span>
+d.bark();  <span class="cmt">// "Woof!"</span></pre>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title">ES6 Classes = Syntactic Sugar</div>
+        <pre><span class="kw">class</span> Animal {
+  constructor(name) { <span class="kw">this</span>.name = name; }
+  speak() { console.log(<span class="kw">this</span>.name + <span class="str">" makes noise"</span>); }
+}
+<span class="kw">class</span> Dog <span class="kw">extends</span> Animal {
+  constructor(name) { <span class="kw">super</span>(name); }
+  bark() { console.log(<span class="str">"Woof!"</span>); }
+}
+<span class="kw">const</span> d = <span class="kw">new</span> Dog(<span class="str">"Rex"</span>);
+d.speak();</pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Prototype Look-up</div>
+      <div class="pyq">
+        <div class="pyq-label">PYQ &#9733;</div>
+        <pre><span class="kw">function</span> <span class="fn">Foo</span>() {}
+Foo.prototype.x = <span class="num">10</span>;
+
+<span class="kw">const</span> a = <span class="kw">new</span> Foo();
+Foo.prototype = { x: <span class="num">20</span> };
+<span class="kw">const</span> b = <span class="kw">new</span> Foo();
+
+console.log(a.x, b.x);</pre>
+        <p><strong>Output:</strong> <code>10 20</code> <span class="trap-right">&#9654; <code>a</code> links to old prototype, <code>b</code> to new</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Classes ───── -->
+  <div class="section" id="classes">
+    <div class="section-header">
+      <span class="icon">&#128218;</span>
+      <h2>ES6 Classes</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-blue">
+        <div class="card-title">Class Declaration</div>
+        <pre><span class="kw">class</span> Person {
+  constructor(name, age) {
+    <span class="kw">this</span>.name = name;
+    <span class="kw">this</span>.age = age;
+  }
+  greet() { <span class="kw">return</span> <span class="str">`Hi, I'm <span class="pr">${this.name}</span>`</span>; }
+  <span class="kw">static</span> isPerson(obj) {
+    <span class="kw">return</span> obj <span class="kw">instanceof</span> Person;
+  }
+  <span class="kw">get</span> info() { <span class="kw">return</span> <span class="str">`<span class="pr">${this.name}</span> (<span class="pr">${this.age}</span>)`</span>; }
+  <span class="kw">set</span> info(val) {
+    [<span class="kw">this</span>.name, <span class="kw">this</span>.age] = val.split(<span class="str">" "</span>);
+  }
+}</pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Inheritance</div>
+        <pre><span class="kw">class</span> Student <span class="kw">extends</span> Person {
+  constructor(name, age, rollNo) {
+    <span class="kw">super</span>(name, age); <span class="cmt">// must call super first!</span>
+    <span class="kw">this</span>.rollNo = rollNo;
+  }
+  greet() {
+    <span class="kw">return</span> <span class="kw">super</span>.greet() + <span class="str">` and I'm student #<span class="pr">${this.rollNo}</span>`</span>;
+  }
+}
+
+<span class="kw">const</span> s = <span class="kw">new</span> Student(<span class="str">"Alice"</span>, <span class="num">20</span>, <span class="num">101</span>);
+console.log(s.greet()); <span class="cmt">// "Hi, I'm Alice and I'm student #101"</span></pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Class Output</div>
+      <div class="pyq">
+        <div class="pyq-label">PYQ &#9733;</div>
+        <pre><span class="kw">class</span> A {
+  constructor() { <span class="kw">this</span>.x = <span class="num">1</span>; }
+  method() { console.log(<span class="kw">this</span>.x); }
+}
+<span class="kw">class</span> B <span class="kw">extends</span> A {
+  constructor() {
+    <span class="kw">super</span>();
+    <span class="kw">this</span>.x = <span class="num">2</span>;
+  }
+  method() { console.log(<span class="kw">this</span>.x + <span class="num">1</span>); }
+}
+<span class="kw">const</span> b = <span class="kw">new</span> B();
+b.method();</pre>
+        <p><strong>Output:</strong> <code>3</code></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── bind / call / apply ───── -->
+  <div class="section" id="bind">
+    <div class="section-header">
+      <span class="icon">&#128279;</span>
+      <h2><code>bind()</code> / <code>call()</code> / <code>apply()</code></h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="card-title">Comparison Table</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method</th><th>Invokes?</th><th>Arguments</th><th>Returns</th></tr></thead>
+          <tbody>
+            <tr><td><code>call(thisArg, arg1, arg2, ...)</code></td><td>&#10003; Immediately</td><td>List</td><td>Function result</td></tr>
+            <tr><td><code>apply(thisArg, [argsArray])</code></td><td>&#10003; Immediately</td><td>Array</td><td>Function result</td></tr>
+            <tr><td><code>bind(thisArg, arg1, ...)</code></td><td>&#10007; Returns new function</td><td>List</td><td>Bound function</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-border-gold">
+        <div class="card-title"><code>call</code></div>
+        <pre><span class="kw">function</span> <span class="fn">introduce</span>(city) {
+  console.log(<span class="str">`I'm <span class="pr">${this.name}</span> from <span class="pr">${city}</span>`</span>);
+}
+introduce.call({name: <span class="str">"Ram"</span>}, <span class="str">"Chennai"</span>);
+<span class="cmt">// "I'm Ram from Chennai"</span></pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title"><code>apply</code></div>
+        <pre><span class="kw">function</span> <span class="fn">sum</span>(a, b, c) { <span class="kw">return</span> a + b + c; }
+console.log(sum.apply(<span class="kw">null</span>, [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>]));
+<span class="cmt">// 6 — spread array as args</span>
+
+<span class="cmt">// Borrowing methods:</span>
+<span class="kw">const</span> args = [<span class="num">1</span>, <span class="num">2</span>, <span class="num">3</span>];
+<span class="kw">const</span> max = Math.max.apply(<span class="kw">null</span>, args);
+console.log(max); <span class="cmt">// 3</span></pre>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title"><code>bind</code></div>
+        <pre><span class="kw">function</span> <span class="fn">log</span>(prefix, message) {
+  console.log(<span class="str">`<span class="pr">${prefix}</span>: <span class="pr">${message}</span>`</span>);
+}
+<span class="kw">const</span> logError = log.bind(<span class="kw">null</span>, <span class="str">"ERROR"</span>);
+logError(<span class="str">"Something broke"</span>);
+<span class="cmt">// "ERROR: Something broke"</span>
+
+<span class="cmt">// Fix this:</span>
+<span class="kw">const</span> bound = obj.method.bind(obj);</pre>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Output Prediction</div>
+      <div class="pyq-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">const</span> obj = { x: <span class="num">1</span> };
+<span class="kw">function</span> <span class="fn">foo</span>() { console.log(<span class="kw">this</span>.x); }
+foo.call(obj);</pre>
+          <p><strong>Answer:</strong> <code>1</code></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">const</span> obj = { x: <span class="num">1</span> };
+<span class="kw">function</span> <span class="fn">foo</span>() { console.log(<span class="kw">this</span>.x); }
+<span class="kw">const</span> bound = foo.bind(obj);
+bound.call({ x: <span class="num">2</span> });</pre>
+          <p><strong>Answer:</strong> <code>1</code> <span class="trap-right">&#9654; bind cannot be overwritten</span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">function</span> <span class="fn">foo</span>(a, b) { <span class="kw">return</span> a + b; }
+<span class="kw">const</span> bar = foo.bind(<span class="kw">null</span>, <span class="num">2</span>);
+console.log(bar(<span class="num">3</span>));</pre>
+          <p><strong>Answer:</strong> <code>5</code> <span class="trap-right">&#9654; Partial application</span></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ───── Arrow Functions ───── -->
+  <div class="section" id="arrow">
+    <div class="section-header">
+      <span class="icon">&#10132;</span>
+      <h2>Arrow Functions</h2>
+      <span class="count">Deep Dive</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-blue">
+        <div class="card-title">Syntax Variations</div>
+        <pre><span class="cmt">// Basic</span>
+<span class="kw">const</span> <span class="fn">add</span> = (a, b) => a + b;
+
+<span class="cmt">// Single param — parens optional</span>
+<span class="kw">const</span> <span class="fn">square</span> = x => x * x;
+
+<span class="cmt">// No params</span>
+<span class="kw">const</span> <span class="fn">now</span> = () => Date.now();
+
+<span class="cmt">// Block body — explicit return</span>
+<span class="kw">const</span> <span class="fn">sum</span> = (a, b) => {
+  <span class="kw">const</span> result = a + b;
+  <span class="kw">return</span> result;
+};
+
+<span class="cmt">// Returning object literal</span>
+<span class="kw">const</span> <span class="fn">getObj</span> = () => ({ key: <span class="str">"value"</span> });</pre>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">Key Differences</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Feature</th><th>Regular Function</th><th>Arrow Function</th></tr></thead>
+            <tbody>
+              <tr><td><code>this</code> binding</td><td>Dynamic (call-site)</td><td>Lexical (parent scope)</td></tr>
+              <tr><td>Constructor</td><td>&#10003; <code>new fn()</code></td><td>&#10007; <code>TypeError</code></td></tr>
+              <tr><td><code>arguments</code></td><td>Array-like object</td><td>Not available</td></tr>
+              <tr><td><code>prototype</code></td><td>Has <code>prototype</code></td><td>No <code>prototype</code></td></tr>
+              <tr><td>Implicit return</td><td>No</td><td>Yes (single expression)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-border-rust">
+      <div class="card-title">PYQ — Arrow vs Regular</div>
+      <div class="pyq-grid">
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">const</span> obj = {
+  x: <span class="num">5</span>,
+  <span class="fn">method</span>: () => console.log(<span class="kw">this</span>.x)
+};
+obj.method();</pre>
+          <p><strong>Answer:</strong> <code>undefined</code> <span class="trap-right">&#9654; Arrow inherits from outer (global) scope</span></p>
+        </div>
+        <div class="pyq">
+          <div class="pyq-label">PYQ &#9733;</div>
+          <pre><span class="kw">const</span> Fn = () => {};
+<span class="kw">new</span> Fn();</pre>
+          <p><strong>Answer:</strong> <code>TypeError: Fn is not a constructor</code></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 3. QUESTION TYPES CATALOG ═══════════════ -->
+  <div class="section" id="questions">
+    <div class="section-header">
+      <span class="icon">&#128221;</span>
+      <h2>Question Types Catalog</h2>
+      <span class="count">13 Types</span>
+    </div>
+
+    <div class="query-grid">
+      <div class="card card-border-blue"><div class="card-title">Conceptual MCQ</div><p style="font-size:0.85rem;">"What is a closure?"<br>Choose the correct definition.</p></div>
+      <div class="card card-border-teal"><div class="card-title">Output Prediction</div><p style="font-size:0.85rem;"><code>console.log(foo());</code><br>Predict the logged value.</p></div>
+      <div class="card card-border-green"><div class="card-title">Fill Output</div><p style="font-size:0.85rem;"><code>_____ === undefined</code><br>Fill in the blank.</p></div>
+      <div class="card card-border-rust"><div class="card-title">Find Error</div><p style="font-size:0.85rem;">Identify the bug in the code snippet.</p></div>
+      <div class="card card-border-purple"><div class="card-title">Code Correction</div><p style="font-size:0.85rem;">Fix the hoisting issue in the given code.</p></div>
+      <div class="card card-border-gold"><div class="card-title">Execution Order</div><p style="font-size:0.85rem;">"What runs first?"<br>Sequence of execution.</p></div>
+      <div class="card card-border-blue"><div class="card-title">True / False</div><p style="font-size:0.85rem;">"var is block-scoped" → <strong>False</strong></p></div>
+      <div class="card card-border-teal"><div class="card-title">MSQ</div><p style="font-size:0.85rem;">"Select all correct statements about closures"</p></div>
+      <div class="card card-border-green"><div class="card-title">Scenario Based</div><p style="font-size:0.85rem;">"You need private data in a module..."</p></div>
+      <div class="card card-border-rust"><div class="card-title">Assertion Reason</div><p style="font-size:0.85rem;">Assertion (A) + Reason (R) pair.</p></div>
+      <div class="card card-border-purple"><div class="card-title">Matching</div><p style="font-size:0.85rem;">Match the term to its definition.</p></div>
+      <div class="card card-border-gold"><div class="card-title">Numeric</div><p style="font-size:0.85rem;">"What is <code>2 + '2'</code>?" → <code>"22"</code></p></div>
+    </div>
+    <div class="card card-border-blue" style="text-align:center;">
+      <span style="font-size:0.9rem;"><strong>Bonus:</strong> Short Answer — "Explain closures with an example."</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 4. CODING QUESTION TYPES ═══════════════ -->
+  <div class="section" id="coding">
+    <div class="section-header">
+      <span class="icon">&#128187;</span>
+      <h2>Coding Question Types</h2>
+      <span class="count">Patterns</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Method / Concept</th><th>Common Question Patterns</th></tr></thead>
+          <tbody>
+            <tr><td><code>map()</code></td><td>Transform array, extract properties</td></tr>
+            <tr><td><code>filter()</code></td><td>Filter by condition, remove falsy</td></tr>
+            <tr><td><code>reduce()</code></td><td>Sum, flatten, group by</td></tr>
+            <tr><td><code>forEach()</code></td><td>Side effects, logging</td></tr>
+            <tr><td><code>find()</code></td><td>Find first match</td></tr>
+            <tr><td><code>bind()</code></td><td>Fix <code>this</code>, partial application</td></tr>
+            <tr><td><code>call()</code> / <code>apply()</code></td><td>Borrow methods, variadic args</td></tr>
+            <tr><td><code>this</code></td><td>All 4 binding rules</td></tr>
+            <tr><td><code>prototype</code></td><td>Chain lookup, inheritance</td></tr>
+            <tr><td><code>closures</code></td><td>Loop problem, module pattern</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 5. TRICKY QUESTIONS ═══════════════ -->
+  <div class="section" id="tricky">
+    <div class="section-header">
+      <span class="icon">&#9888;&#65039;</span>
+      <h2>Tricky Questions</h2>
+      <span class="count">10 Must-Know</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>this</code> in nested arrow</div>
+        <pre><span class="kw">const</span> obj = {
+  x: <span class="num">1</span>,
+  outer() {
+    <span class="kw">const</span> inner = () => {
+      console.log(<span class="kw">this</span>.x);
+    };
+    inner();
+  }
+};
+obj.outer(); <span class="cmt">// 1 (arrow inherits from outer)</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> Closure + setTimeout loop</div>
+        <pre><span class="cmt">// var i — prints 3,3,3</span>
+<span class="cmt">// let i — prints 0,1,2</span>
+<span class="kw">for</span> (<span class="kw">var</span> i = <span class="num">0</span>; i < <span class="num">3</span>; i++) {
+  (<span class="kw">function</span>(j) {
+    setTimeout(() => console.log(j), <span class="num">100</span>);
+  })(i);
+} <span class="cmt">// 0,1,2 (IIFE fix)</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> Function hoisting</div>
+        <pre><span class="fn">foo</span>(); <span class="cmt">// 1</span>
+<span class="kw">function</span> <span class="fn">foo</span>() { console.log(<span class="num">1</span>); }
+<span class="kw">var</span> foo = <span class="kw">function</span>() { console.log(<span class="num">2</span>); };</pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>typeof null</code></div>
+        <pre>console.log(<span class="kw">typeof</span> <span class="kw">null</span>);      <span class="cmt">// "object" (bug)</span>
+console.log(<span class="kw">typeof</span> <span class="kw">undefined</span>); <span class="cmt">// "undefined"</span>
+console.log(<span class="kw">null</span> === <span class="kw">undefined</span>); <span class="cmt">// false</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>[] == ![]</code></div>
+        <pre><span class="cmt">// [] == ![]  →  [] == false  →  "" == false  →  0 == 0  → true</span>
+console.log([] == ![]); <span class="cmt">// true</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> Event handler <code>this</code></div>
+        <pre>btn.addEventListener(<span class="str">"click"</span>, <span class="kw">function</span>() {
+  console.log(<span class="kw">this</span>); <span class="cmt">// btn element</span>
+});
+btn.addEventListener(<span class="str">"click"</span>, () => {
+  console.log(<span class="kw">this</span>); <span class="cmt">// window (lexical)</span>
+});</pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> Late prototype modification</div>
+        <pre><span class="kw">function</span> <span class="fn">Foo</span>() {}
+Foo.prototype.x = <span class="num">10</span>;
+<span class="kw">const</span> a = <span class="kw">new</span> Foo();
+Foo.prototype = { x: <span class="num">20</span> };
+console.log(a.x); <span class="cmt">// 10 (still old proto)</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>new</code> + arrow</div>
+        <pre><span class="kw">const</span> Fn = () => {};
+<span class="kw">new</span> Fn(); <span class="cmt">// TypeError: Fn is not a constructor</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>bind</code> chaining</div>
+        <pre><span class="kw">function</span> <span class="fn">foo</span>() { console.log(<span class="kw">this</span>.x); }
+<span class="kw">const</span> a = foo.bind({ x: <span class="num">1</span> });
+<span class="kw">const</span> b = a.bind({ x: <span class="num">2</span> });
+b(); <span class="cmt">// 1 (first bind wins)</span></pre>
+      </div>
+      <div class="card card-border-rust">
+        <div class="card-title"><span style="color:#a8482a;">&#9888;&#65039;</span> <code>const</code> mutation</div>
+        <pre><span class="kw">const</span> obj = { a: <span class="num">1</span> };
+obj.a = <span class="num">2</span>;       <span class="cmt">// &#10003; allowed</span>
+obj.b = <span class="num">3</span>;       <span class="cmt">// &#10003; allowed</span>
+<span class="cmt">// obj = {}; // &#10007; TypeError</span>
+console.log(obj); <span class="cmt">// { a: 2, b: 3 }</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 6. HIDDEN PATTERNS ═══════════════ -->
+  <div class="section" id="patterns">
+    <div class="section-header">
+      <span class="icon">&#128374;</span>
+      <h2>Hidden Patterns — Yearly Exam Blueprint</h2>
+      <span class="count">Guaranteed Topics</span>
+    </div>
+
+    <div class="card card-border-gold">
+      <p style="font-size:0.9rem;margin-bottom:1rem;">Every year, these topics appear without fail. The question types may vary but the concepts repeat.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;">
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span><code>this</code> binding</span>
+          <span class="pill pill-hard">1 Q / year</span>
+        </div>
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span>Closures</span>
+          <span class="pill pill-hard">1 Q / year</span>
+        </div>
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span>Hoisting</span>
+          <span class="pill pill-medium">1 Q / year</span>
+        </div>
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span>let / var / const</span>
+          <span class="pill pill-medium">1 Q / year</span>
+        </div>
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span>Arrow Functions</span>
+          <span class="pill pill-medium">1 Q / year</span>
+        </div>
+        <div class="flex-between" style="padding:0.5rem 0.75rem;background:#f8f9fb;border-radius:8px;">
+          <span>Prototype</span>
+          <span class="pill pill-medium">1 Q / year</span>
+        </div>
+      </div>
+      <div class="callout callout-warning mt-1">
+        <span class="emoji">&#9888;&#65039;</span>
+        <div><strong>Strategy:</strong> Master these 6 topics and you cover ~60%+ of the JavaScript section marks.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 7. INTERCONNECTION MAP ═══════════════ -->
+  <div class="section" id="interconnection">
+    <div class="section-header">
+      <span class="icon">&#128259;</span>
+      <h2>Interconnection Map</h2>
+      <span class="count">Concept Flow</span>
+    </div>
+
+    <div class="card card-border-blue" style="padding:2rem;">
+      <div class="flow">
+        <div class="flow-box">Variables <span style="color:#888;font-weight:400;">(let, var, const)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Scope <span style="color:#888;font-weight:400;">(Global, Function, Block)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Hoisting <span style="color:#888;font-weight:400;">(&amp; Temporal Dead Zone)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Execution Context <span style="color:#888;font-weight:400;">(Creation + Execution)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box"><code>this</code> <span style="color:#888;font-weight:400;">(4 Binding Rules)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Closures <span style="color:#888;font-weight:400;">(Functions + Lexical Scope)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Prototype <span style="color:#888;font-weight:400;">(Inheritance Chain)</span></div>
+        <div class="flow-arrow">&#8595;</div>
+        <div class="flow-box">Classes <span style="color:#888;font-weight:400;">(ES6 Syntactic Sugar)</span></div>
+      </div>
+      <div class="callout callout-info mt-1">
+        <span class="emoji">&#128161;</span>
+        <div>Each concept builds on the previous. If you understand <strong>Scope</strong>, you understand <strong>Hoisting</strong> and <strong>Closures</strong>.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 8. FREQUENCY ANALYSIS ═══════════════ -->
+  <div class="section" id="frequency">
+    <div class="section-header">
+      <span class="icon">&#128200;</span>
+      <h2>Frequency Analysis</h2>
+      <span class="count">Exam Weightage</span>
+    </div>
+
+    <div class="card card-border-blue">
+      <div class="progress-wrap"><span class="progress-label"><code>this</code> binding</span><div class="progress-bar"><div class="progress-fill" style="width:100%;background:linear-gradient(90deg,#a8482a,#e07040);"></div></div><span class="progress-num">12</span></div>
+      <div class="progress-wrap"><span class="progress-label">Closures</span><div class="progress-bar"><div class="progress-fill" style="width:83%;background:linear-gradient(90deg,#b5872a,#e8b84b);"></div></div><span class="progress-num">10</span></div>
+      <div class="progress-wrap"><span class="progress-label">Hoisting</span><div class="progress-bar"><div class="progress-fill" style="width:67%;background:linear-gradient(90deg,#1e4f8a,#4a8fd4);"></div></div><span class="progress-num">8</span></div>
+      <div class="progress-wrap"><span class="progress-label">Scope</span><div class="progress-bar"><div class="progress-fill" style="width:58%;background:linear-gradient(90deg,#2c6b5d,#5aad94);"></div></div><span class="progress-num">7</span></div>
+      <div class="progress-wrap"><span class="progress-label">Variables (let/var/const)</span><div class="progress-bar"><div class="progress-fill" style="width:58%;background:linear-gradient(90deg,#5a3e8a,#9b7fd4);"></div></div><span class="progress-num">7</span></div>
+      <div class="progress-wrap"><span class="progress-label">Prototype</span><div class="progress-bar"><div class="progress-fill" style="width:50%;background:linear-gradient(90deg,#3d7a4a,#7fbf8a);"></div></div><span class="progress-num">6</span></div>
+      <div class="progress-wrap"><span class="progress-label">Arrow Functions</span><div class="progress-bar"><div class="progress-fill" style="width:42%;background:linear-gradient(90deg,#b5872a,#e8b84b);"></div></div><span class="progress-num">5</span></div>
+      <div class="progress-wrap"><span class="progress-label">Classes</span><div class="progress-bar"><div class="progress-fill" style="width:33%;background:linear-gradient(90deg,#1e4f8a,#4a8fd4);"></div></div><span class="progress-num">4</span></div>
+      <div class="progress-wrap"><span class="progress-label">bind / call / apply</span><div class="progress-bar"><div class="progress-fill" style="width:33%;background:linear-gradient(90deg,#a8482a,#e07040);"></div></div><span class="progress-num">4</span></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 9. PROBABILITY RATINGS ═══════════════ -->
+  <div class="section" id="probability">
+    <div class="section-header">
+      <span class="icon">&#11088;</span>
+      <h2>Probability Ratings</h2>
+      <span class="count">Likelihood</span>
+    </div>
+
+    <div class="card card-border-gold">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Topic</th><th>Probability</th></tr></thead>
+          <tbody>
+            <tr><td><code>this</code></td><td><span class="stars">★★★★★</span> Almost Guaranteed</td></tr>
+            <tr><td>Closures</td><td><span class="stars">★★★★★</span> Almost Guaranteed</td></tr>
+            <tr><td>Hoisting</td><td><span class="stars">★★★★☆</span> Very High</td></tr>
+            <tr><td>Scope</td><td><span class="stars">★★★★☆</span> Very High</td></tr>
+            <tr><td>Prototype</td><td><span class="stars">★★★☆☆</span> Medium</td></tr>
+            <tr><td>Arrow Functions</td><td><span class="stars">★★★☆☆</span> Medium</td></tr>
+            <tr><td>Classes</td><td><span class="stars">★★☆☆☆</span> Rare</td></tr>
+            <tr><td>bind / call / apply</td><td><span class="stars">★★☆☆☆</span> Rare</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 10. COMMON TRAPS ═══════════════ -->
+  <div class="section" id="traps">
+    <div class="section-header">
+      <span class="icon">&#10071;</span>
+      <h2>Common Traps</h2>
+      <span class="count">Student Mistakes</span>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-border-rust trap">
+        <p class="trap-text"><strong>1. Hoisting</strong><br><span class="trap-wrong">&#10060; Student Thinks:</span> "var a = 5 is moved to top"<br><span class="trap-right">&#9989; Actually:</span> "Only declaration is hoisted, not initialization"</p>
+      </div>
+      <div class="card card-border-rust trap">
+        <p class="trap-text"><strong>2. this in closure</strong><br><span class="trap-wrong">&#10060; Student Thinks:</span> "this refers to outer function"<br><span class="trap-right">&#9989; Actually:</span> "this is determined by how function is called"</p>
+      </div>
+      <div class="card card-border-rust trap">
+        <p class="trap-text"><strong>3. const immutability</strong><br><span class="trap-wrong">&#10060; Student Thinks:</span> "const obj = {} can't be modified"<br><span class="trap-right">&#9989; Actually:</span> "const prevents reassignment, not mutation"</p>
+      </div>
+      <div class="card card-border-rust trap">
+        <p class="trap-text"><strong>4. typeof null</strong><br><span class="trap-wrong">&#10060; Student Thinks:</span> "null is an object"<br><span class="trap-right">&#9989; Actually:</span> "typeof null returns 'object' (legacy bug)"</p>
+      </div>
+      <div class="card card-border-rust trap">
+        <p class="trap-text"><strong>5. Arrow function this</strong><br><span class="trap-wrong">&#10060; Student Thinks:</span> "arrow functions have their own this"<br><span class="trap-right">&#9989; Actually:</span> "arrow functions inherit this from parent scope"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 11. MENTAL MODELS ═══════════════ -->
+  <div class="section" id="mental">
+    <div class="section-header">
+      <span class="icon">&#129504;</span>
+      <h2>Mental Models</h2>
+      <span class="count">Analogies</span>
+    </div>
+
+    <div class="card-grid-3">
+      <div class="card card-border-blue mental-card">
+        <div class="concept">Execution Context</div>
+        <div class="analogy">&#128221; A stack of sticky notes</div>
+      </div>
+      <div class="card card-border-teal mental-card">
+        <div class="concept">Scope</div>
+        <div class="analogy">&#127968; Rooms in a house<br><span style="font-size:0.8rem;color:#888;">(can see out, not in)</span></div>
+      </div>
+      <div class="card card-border-purple mental-card">
+        <div class="concept">Hoisting</div>
+        <div class="analogy">&#128196; Moving declarations to top of page</div>
+      </div>
+      <div class="card card-border-gold mental-card">
+        <div class="concept">Closure</div>
+        <div class="analogy">&#127890; Backpack that carries variables</div>
+      </div>
+      <div class="card card-border-green mental-card">
+        <div class="concept">Prototype</div>
+        <div class="analogy">&#127800; Family inheritance tree</div>
+      </div>
+      <div class="card card-border-rust mental-card">
+        <div class="concept"><code>this</code></div>
+        <div class="analogy">&#128100; "Who called me?"</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ 12. FINAL CHEAT SHEET ═══════════════ -->
+  <div class="section" id="cheatsheet">
+    <div class="section-header">
+      <span class="icon">&#9989;</span>
+      <h2>Final Cheat Sheet</h2>
+      <span class="count">Quick Revision</span>
+    </div>
+
+    <div class="cheat-grid">
+      <div class="card card-border-blue">
+        <div class="card-title">10 Most Expected Questions</div>
+        <div class="cheat-item"><span class="cheat-num">1.</span> Predict output of <code>this</code> in method vs standalone</div>
+        <div class="cheat-item"><span class="cheat-num">2.</span> Closure with <code>var</code> in loop</div>
+        <div class="cheat-item"><span class="cheat-num">3.</span> Hoisting with <code>var</code> vs <code>let</code> vs <code>const</code></div>
+        <div class="cheat-item"><span class="cheat-num">4.</span> <code>typeof null</code> vs <code>typeof undefined</code></div>
+        <div class="cheat-item"><span class="cheat-num">5.</span> Arrow function <code>this</code> in object method</div>
+        <div class="cheat-item"><span class="cheat-num">6.</span> Prototype chain modification</div>
+        <div class="cheat-item"><span class="cheat-num">7.</span> <code>bind()</code> vs <code>call()</code> vs <code>apply()</code></div>
+        <div class="cheat-item"><span class="cheat-num">8.</span> TDZ with <code>let</code> in block</div>
+        <div class="cheat-item"><span class="cheat-num">9.</span> <code>new</code> keyword + arrow function</div>
+        <div class="cheat-item"><span class="cheat-num">10.</span> <code>const</code> reassignment vs mutation</div>
+      </div>
+      <div class="card card-border-teal">
+        <div class="card-title">5 Coding Patterns</div>
+        <div class="cheat-item"><span class="cheat-num">1.</span> <code>map</code> + arrow: <code>arr.map(x =&gt; x * 2)</code></div>
+        <div class="cheat-item"><span class="cheat-num">2.</span> <code>filter</code> + <code>Boolean</code>: <code>arr.filter(Boolean)</code></div>
+        <div class="cheat-item"><span class="cheat-num">3.</span> <code>reduce</code> sum: <code>arr.reduce((a,b) =&gt; a+b, 0)</code></div>
+        <div class="cheat-item"><span class="cheat-num">4.</span> Closure counter pattern</div>
+        <div class="cheat-item"><span class="cheat-num">5.</span> Borrow method: <code>Array.prototype.slice.call(args)</code></div>
+      </div>
+      <div class="card card-border-purple">
+        <div class="card-title">5 Tricky Concepts</div>
+        <div class="cheat-item"><span class="cheat-num">1.</span> <code>this</code> in nested arrow functions</div>
+        <div class="cheat-item"><span class="cheat-num">2.</span> Closure + setTimeout + var</div>
+        <div class="cheat-item"><span class="cheat-num">3.</span> Function declaration vs expression hoisting</div>
+        <div class="cheat-item"><span class="cheat-num">4.</span> <code>[] == ![]</code> coercion chain</div>
+        <div class="cheat-item"><span class="cheat-num">5.</span> <code>bind</code> cannot be re-bound</div>
+      </div>
+      <div class="card card-border-gold">
+        <div class="card-title">5 Output Prediction Types</div>
+        <div class="cheat-item"><span class="cheat-num">1.</span> Hoisting: <code>console.log(x); var x = 5;</code></div>
+        <div class="cheat-item"><span class="cheat-num">2.</span> TDZ: <code>console.log(x); let x = 5;</code></div>
+        <div class="cheat-item"><span class="cheat-num">3.</span> Closure loop: <code>for(var i...){ setTimeout... }</code></div>
+        <div class="cheat-item"><span class="cheat-num">4.</span> this binding: <code>obj.method()</code> vs standalone</div>
+        <div class="cheat-item"><span class="cheat-num">5.</span> Arrow vs regular: <code>this</code> in object</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ FOOTER ══════ -->
+  <hr class="divider">
+  <div style="text-align:center;padding:1.5rem 0;color:#888;font-size:0.85rem;">
+    <p>JavaScript Basics — Master Study Guide &bull; MAD2 Week 1 &bull; IIT Madras</p>
+    <p style="margin-top:0.25rem;">Built for exam preparation. Review each topic, practice PYQs, and master the patterns.</p>
+    <p style="margin-top:0.5rem;font-size:0.8rem;">&#9733; Last updated July 2026 &#9733;</p>
+  </div>
+
+</div>
+</body>
+</html>

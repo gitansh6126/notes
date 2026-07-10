@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 26 — The Expectation-Maximization Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0e17;
+    --panel:#0f1420;
+    --panel-2:#131926;
+    --border:rgba(217,184,114,0.16);
+    --border-strong:rgba(217,184,114,0.32);
+    --gold:#d9b872;
+    --gold-soft:rgba(217,184,114,0.12);
+    --gold-glow:rgba(217,184,114,0.35);
+    --blue:#6fa3c9;
+    --blue-soft:rgba(111,163,201,0.14);
+    --text:#e9e6dd;
+    --text-dim:#9aa1af;
+    --text-faint:#6b7280;
+    --red:#c97b6b;
+    --green:#8fb996;
+    --purple:#a48fd6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  body{
+    background-image:linear-gradient(rgba(217,184,114,0.035) 1px, transparent 1px),linear-gradient(90deg, rgba(217,184,114,0.035) 1px, transparent 1px);
+    background-size:38px 38px;background-attachment:fixed;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px 100px;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;font-weight:600;letter-spacing:-0.01em;margin:0;}
+  code,.mono,.eq{font-family:'JetBrains Mono',monospace;}
+
+  .hero{padding:78px 0 46px;border-bottom:1px solid var(--border);}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:12.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);background:var(--gold-soft);border:1px solid var(--border-strong);padding:6px 14px;border-radius:100px;margin-bottom:26px;}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px var(--gold-glow);}
+  .hero h1{font-size:clamp(32px,5vw,50px);line-height:1.08;color:#f5f1e8;max-width:16ch;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  .hero p.lede{margin-top:22px;font-size:18px;line-height:1.65;color:var(--text-dim);max-width:58ch;}
+
+  .recap{margin-top:30px;border:1px solid var(--border);border-left:3px solid var(--purple);background:rgba(164,143,214,0.08);border-radius:10px;padding:16px 20px;display:flex;gap:12px;}
+  .recap .icon{font-size:17px;}
+  .recap .body{font-size:14px;line-height:1.6;color:var(--text-dim);}
+  .recap .body b{color:var(--text);}
+  .recap .label{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple);margin-bottom:4px;}
+
+  section{padding:56px 0;border-bottom:1px solid var(--border);}
+  section:last-of-type{border-bottom:none;}
+  .kicker{display:flex;align-items:baseline;gap:12px;margin-bottom:22px;}
+  .kicker .num{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:14px;opacity:0.7;}
+  .kicker h2{font-size:clamp(22px,3vw,30px);color:#f5f1e8;}
+  .subtext{color:var(--text-dim);font-size:16px;line-height:1.7;margin:14px 0 24px;}
+  .subtext strong{color:var(--text);font-weight:600;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:24px 26px;margin-bottom:18px;}
+  .card h4{font-size:17px;color:#f0ece1;margin-bottom:10px;}
+  .card p{color:var(--text-dim);font-size:15px;line-height:1.7;margin:0 0 10px;}
+  .card p:last-child{margin-bottom:0;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+
+  .callout{border-radius:var(--radius);padding:18px 22px;margin:22px 0;display:flex;gap:14px;border:1px solid;}
+  .callout .icon{font-size:19px;line-height:1.5;flex-shrink:0;}
+  .callout .body{font-size:15px;line-height:1.65;color:var(--text-dim);}
+  .callout .body strong{color:var(--text);}
+  .callout .label{display:block;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;font-weight:600;}
+  .callout.insight{background:var(--gold-soft);border-color:var(--border-strong);}
+  .callout.insight .label{color:var(--gold);}
+  .callout.define{background:var(--blue-soft);border-color:rgba(111,163,201,0.35);}
+  .callout.define .label{color:var(--blue);}
+  .callout.warn{background:rgba(201,123,107,0.09);border-color:rgba(201,123,107,0.35);}
+  .callout.warn .label{color:var(--red);}
+
+  .equation-card{background:#0c111c;border:1px solid var(--border);border-left:3px solid var(--gold);border-radius:10px;padding:20px 24px;margin:18px 0;overflow-x:auto;}
+  .equation-card .eq-label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;}
+  .equation-card .eq{font-size:17px;color:#f5f1e8;white-space:nowrap;}
+  .equation-card .eq-note{margin-top:12px;font-size:13.5px;color:var(--text-faint);font-family:'Inter',sans-serif;font-style:italic;}
+
+  /* annotated pseudocode */
+  .code-card{background:#0c111c;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:22px 0;}
+  .code-card .code-head{background:var(--panel-2);padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text-faint);border-bottom:1px solid var(--border);letter-spacing:0.05em;text-transform:uppercase;}
+  .code-card pre{margin:0;padding:20px 22px;overflow-x:auto;}
+  .code-card code{font-family:'JetBrains Mono',monospace;font-size:13.5px;line-height:1.9;color:#dcd8cc;}
+  .code-card .kw{color:var(--blue);}
+  .code-card .cm{color:var(--text-faint);font-style:italic;}
+  .code-card .gd{color:var(--gold);}
+
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius);margin:22px 0;}
+  table{width:100%;border-collapse:collapse;font-size:14.5px;min-width:560px;}
+  thead th{background:var(--panel-2);text-align:left;padding:13px 16px;font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--gold);border-bottom:1px solid var(--border-strong);}
+  tbody td{padding:13px 16px;border-bottom:1px solid var(--border);color:var(--text-dim);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody td.step-name{color:var(--text);font-weight:600;}
+
+  .diagram{border:1px solid var(--border);border-radius:var(--radius);background:radial-gradient(circle at 30% 20%, rgba(217,184,114,0.05), transparent 60%), var(--panel);padding:30px;margin:24px 0;}
+
+  /* compare panels: kmeans vs em */
+  .compare-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .compare-panel{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#0c111c;}
+  .compare-panel .panel-head{padding:10px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;border-bottom:1px solid var(--border);}
+  .compare-panel.km .panel-head{color:var(--red);background:rgba(201,123,107,0.08);}
+  .compare-panel.em .panel-head{color:var(--gold);background:var(--gold-soft);}
+  .compare-panel svg{display:block;width:100%;height:auto;}
+  .compare-cap{padding:10px 16px 14px;font-size:12.5px;color:var(--text-faint);line-height:1.5;}
+
+  /* ---------- SIMULATOR (shared styling w/ lecture 25 look) ---------- */
+  .sim{border:1px solid var(--border-strong);border-radius:var(--radius);background:linear-gradient(180deg, rgba(217,184,114,0.05), transparent 30%), var(--panel);padding:26px;margin-top:26px;}
+  .sim-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:22px;}
+  .sim-top .sim-title{font-family:'Fraunces',serif;font-size:19px;color:#f0ece1;}
+  .sim-top .sim-sub{font-size:13px;color:var(--text-faint);margin-top:3px;}
+  .sim-badge{font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:100px;background:var(--gold-soft);border:1px solid var(--border-strong);color:var(--gold);}
+
+  .preset-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px;}
+  .preset-btn{
+    flex:1;min-width:150px;text-align:left;
+    background:#0c111c;border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;cursor:pointer;color:var(--text-dim);
+    transition:all 0.15s ease;
+  }
+  .preset-btn .pname{font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;color:var(--text);display:block;margin-bottom:3px;}
+  .preset-btn .pdesc{font-size:12px;color:var(--text-faint);}
+  .preset-btn:hover{border-color:var(--border-strong);}
+  .preset-btn.active{border-color:var(--gold);background:var(--gold-soft);}
+  .preset-btn.active .pname{color:var(--gold);}
+
+  .numberline-wrap{position:relative;padding:50px 10px 30px;}
+  .numberline{position:relative;height:2px;background:var(--border-strong);border-radius:2px;margin:0 6px;}
+  .axis-tick{position:absolute;top:8px;transform:translateX(-50%);font-size:10.5px;color:var(--text-faint);font-family:'JetBrains Mono',monospace;}
+  .axis-tick::before{content:"";position:absolute;top:-14px;left:50%;width:1px;height:6px;background:var(--border-strong);}
+  .band{position:absolute;top:-13px;height:28px;border-radius:14px;opacity:0.16;pointer-events:none;transform:translateX(-50%);}
+  .marker{position:absolute;top:-13px;width:0;height:0;border-left:8px solid transparent;border-right:8px solid transparent;transform:translateX(-50%);filter:drop-shadow(0 0 6px rgba(0,0,0,0.4));}
+  .marker.gold-m{border-top:14px solid var(--gold);}
+  .marker.blue-m{border-top:14px solid var(--blue);}
+  .marker-label{position:absolute;top:-34px;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:10.5px;white-space:nowrap;}
+  .dot2{position:absolute;top:-5px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:1.5px solid rgba(255,255,255,0.5);transition:background 0.5s ease, left 0.6s ease;}
+
+  .sim-controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:36px;}
+  button.sim-btn{font-family:'Inter',sans-serif;font-weight:600;font-size:14px;padding:11px 20px;border-radius:9px;cursor:pointer;border:1px solid var(--border-strong);background:var(--gold-soft);color:var(--gold);transition:all 0.15s ease;}
+  button.sim-btn:hover:not(:disabled){background:var(--gold);color:#0a0e17;}
+  button.sim-btn:disabled{opacity:0.35;cursor:not-allowed;}
+  button.sim-btn.secondary{background:transparent;color:var(--text-dim);border-color:var(--border);}
+  button.sim-btn.secondary:hover{border-color:var(--text-dim);color:var(--text);}
+
+  .sim-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-top:24px;}
+  .stat{background:#0c111c;border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+  .stat .k{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text-faint);}
+  .stat .v{font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--text);margin-top:4px;}
+  .stat .v.gold-txt{color:var(--gold);}
+  .stat .v.blue-txt{color:var(--blue);}
+  .stat .v.warn-txt{color:var(--red);}
+
+  .compare-history{margin-top:24px;}
+  .ch-lbl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-faint);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.07em;}
+  .ch-row{display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .ch-name{width:130px;flex-shrink:0;font-size:12.5px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+  .ch-bar-track{flex:1;background:#0c111c;border:1px solid var(--border);border-radius:6px;height:20px;position:relative;overflow:hidden;}
+  .ch-bar-fill{height:100%;border-radius:5px;transition:width 0.5s ease;}
+  .ch-val{width:70px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-faint);flex-shrink:0;}
+
+  .takeaway{background:linear-gradient(135deg, rgba(217,184,114,0.1), rgba(111,163,201,0.06));border:1px solid var(--border-strong);border-radius:var(--radius);padding:28px 30px;}
+  .takeaway h3{color:var(--gold);font-size:20px;margin-bottom:14px;}
+  .takeaway ul{margin:0;padding-left:20px;color:var(--text-dim);font-size:15px;line-height:1.8;}
+  .takeaway li strong{color:var(--text);}
+
+  footer{padding:40px 0 10px;text-align:center;color:var(--text-faint);font-size:12.5px;font-family:'JetBrains Mono',monospace;}
+
+  @media (max-width:640px){
+    .wrap{padding:0 16px 70px;}
+    .hero{padding:56px 0 34px;}
+    .hero h1{max-width:100%;}
+    .grid-2, .grid-3, .compare-row{grid-template-columns:1fr;}
+    section{padding:42px 0;}
+    .equation-card .eq{font-size:14.5px;}
+    .card{padding:19px 18px;}
+    table{min-width:480px;}
+    .ch-name{width:96px;font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow"><span class="dot"></span>Unsupervised Learning · Lecture 26</div>
+    <h1>The <em>Expectation-Maximization</em> Algorithm</h1>
+    <p class="lede">Last time we found that two easy sub-problems — reweighting responsibilities, and re-estimating parameters — could stand in for one hard one. Today we wire them into a loop, give it a stopping rule, and confront its one real weakness: where you start determines where you end up.</p>
+    <div class="recap">
+      <div class="icon">↩</div>
+      <div class="body"><span class="label">Recap from Lecture 25</span>
+      We invented responsibilities <b>λ<sub>ik</sub></b> and used <b>Jensen's Inequality</b> to build a lower bound on the log-likelihood. The M-step gave closed-form weighted mean/variance/π; the E-step gave λ via <b>Bayes' Theorem</b>. Today those two steps become one named algorithm.</div>
+    </div>
+  </div>
+
+  <!-- ============ 1. THE FULL LOOP ============ -->
+  <section>
+    <div class="kicker"><span class="num">01</span><h2>Naming the Loop: EM</h2></div>
+    <p class="subtext">The Expectation-Maximization algorithm is nothing more than <strong>E-step, M-step, repeat</strong> — run until the parameters stop moving in any meaningful way. What makes it worth naming is the guarantee underneath it: because each M-step maximizes the exact bound the E-step just built, the true log-likelihood <strong>never decreases</strong> from one iteration to the next.</p>
+
+    <div class="code-card">
+      <div class="code-head">Pseudocode — EM for a Gaussian Mixture Model</div>
+      <pre><code><span class="kw">initialize</span> θ₀ = (μ, σ², π)          <span class="cm">// e.g. from K-Means — see §3</span>
+t ← 0
+
+<span class="kw">repeat</span>:
+    <span class="cm">// E-step: responsibilities given current θ</span>
+    <span class="kw">for</span> each point i, cluster k:
+        <span class="gd">λ_ik ← P(z_i = k | x_i, θ_t)</span>      <span class="cm">// Bayes' rule</span>
+
+    <span class="cm">// M-step: parameters given fresh λ</span>
+    <span class="kw">for</span> each cluster k:
+        <span class="gd">μ_k  ← weighted mean</span>(λ<sub>·k</sub>, x)
+        <span class="gd">σ_k² ← weighted variance</span>(λ<sub>·k</sub>, x, μ_k)
+        <span class="gd">π_k  ← weighted share</span>(λ<sub>·k</sub>)
+
+    θ_(t+1) ← (μ, σ², π)
+    t ← t + 1
+
+<span class="kw">until</span> |log L(θ_t) − log L(θ_t₋₁)| &lt; ε
+
+<span class="kw">return</span> θ_t</code></pre>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div class="body"><span class="label">The convergence guarantee, in one line</span>
+      Every E-step rebuilds a lower bound that <strong>touches</strong> the true log-likelihood exactly at the current θ. Every M-step climbs that bound to its peak. Climbing a platform that touches the real mountain and never pokes above it can only take you to equal or higher ground on the real mountain too — hence log L never drops.</div>
+    </div>
+
+    <div class="card">
+      <h4>What "convergence" actually checks</h4>
+      <p>In practice you don't wait for parameters to stop moving by exactly zero — floating point noise never quite settles. Instead you fix a small tolerance ε (say 10⁻⁶) and stop once successive log-likelihood values differ by less than ε, or after a maximum iteration count as a safety net.</p>
+    </div>
+  </section>
+
+  <!-- ============ 2. EM vs K-MEANS ============ -->
+  <section>
+    <div class="kicker"><span class="num">02</span><h2>EM vs. K-Means: Same Job, Different Commitment</h2></div>
+    <p class="subtext">K-Means (Lloyd's Algorithm) looks like a special case of this loop — assign points, recompute centers, repeat — but it makes a much stronger, much earlier commitment than EM does.</p>
+
+    <div class="diagram">
+      <div class="compare-row">
+        <div class="compare-panel km">
+          <div class="panel-head">K-Means — hard assignment</div>
+          <svg viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+            <line x1="130" y1="10" x2="130" y2="160" stroke="#c97b6b" stroke-width="2" stroke-dasharray="5 4"/>
+            <circle cx="60" cy="40" r="6" fill="#d9b872"/><circle cx="45" cy="70" r="6" fill="#d9b872"/>
+            <circle cx="80" cy="100" r="6" fill="#d9b872"/><circle cx="55" cy="120" r="6" fill="#d9b872"/>
+            <circle cx="95" cy="55" r="6" fill="#d9b872"/><circle cx="70" cy="140" r="6" fill="#d9b872"/>
+            <circle cx="110" cy="80" r="6" fill="#d9b872"/>
+            <circle cx="200" cy="40" r="6" fill="#6fa3c9"/><circle cx="215" cy="70" r="6" fill="#6fa3c9"/>
+            <circle cx="180" cy="100" r="6" fill="#6fa3c9"/><circle cx="205" cy="120" r="6" fill="#6fa3c9"/>
+            <circle cx="165" cy="55" r="6" fill="#6fa3c9"/><circle cx="190" cy="140" r="6" fill="#6fa3c9"/>
+            <circle cx="150" cy="80" r="6" fill="#6fa3c9"/>
+            <circle cx="128" cy="90" r="6" fill="#c97b6b"/>
+          </svg>
+          <div class="compare-cap">A single boundary (Voronoi edge) slices the space. The point right on the line is forced fully into one bucket — no middle ground.</div>
+        </div>
+        <div class="compare-panel em">
+          <div class="panel-head">EM — soft assignment</div>
+          <svg viewBox="0 0 260 170" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="blob1" cx="30%" cy="45%" r="60%"><stop offset="0%" stop-color="#d9b872" stop-opacity="0.35"/><stop offset="100%" stop-color="#d9b872" stop-opacity="0"/></radialGradient>
+              <radialGradient id="blob2" cx="75%" cy="55%" r="60%"><stop offset="0%" stop-color="#6fa3c9" stop-opacity="0.35"/><stop offset="100%" stop-color="#6fa3c9" stop-opacity="0"/></radialGradient>
+            </defs>
+            <rect x="0" y="0" width="260" height="170" fill="url(#blob1)"/>
+            <rect x="0" y="0" width="260" height="170" fill="url(#blob2)"/>
+            <circle cx="60" cy="40" r="6" fill="#d9b872"/><circle cx="45" cy="70" r="6" fill="#d9b872"/>
+            <circle cx="80" cy="100" r="6" fill="#dbbb8a"/><circle cx="55" cy="120" r="6" fill="#d9b872"/>
+            <circle cx="95" cy="55" r="6" fill="#d9b872"/><circle cx="70" cy="140" r="6" fill="#d9b872"/>
+            <circle cx="110" cy="80" r="6" fill="#c9bd9c"/>
+            <circle cx="200" cy="40" r="6" fill="#6fa3c9"/><circle cx="215" cy="70" r="6" fill="#6fa3c9"/>
+            <circle cx="180" cy="100" r="6" fill="#8fa4bb"/><circle cx="205" cy="120" r="6" fill="#6fa3c9"/>
+            <circle cx="165" cy="55" r="6" fill="#89a8c2"/><circle cx="190" cy="140" r="6" fill="#6fa3c9"/>
+            <circle cx="150" cy="80" r="6" fill="#9c9db3"/>
+            <circle cx="128" cy="90" r="6" fill="#a89ca7"/>
+          </svg>
+          <div class="compare-cap">No hard line — density blends smoothly. The point in the middle is genuinely ambiguous, and its color (a blended λ) says so honestly.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dimension</th><th>K-Means</th><th>EM (GMM)</th></tr></thead>
+        <tbody>
+          <tr><td class="step-name">Assignment</td><td>Hard — each point belongs to exactly one cluster</td><td>Soft — λ<sub>ik</sub> gives a full probability distribution over clusters</td></tr>
+          <tr><td class="step-name">What's estimated</td><td>Cluster centers only</td><td>Centers, variances/covariances, and mixing weights</td></tr>
+          <tr><td class="step-name">Cluster shape</td><td>Implicitly spherical, equal-sized (Voronoi cells)</td><td>Elliptical, differently sized/oriented — fits the data's real spread</td></tr>
+          <tr><td class="step-name">Overlapping regions</td><td>Forces a hard, sometimes arbitrary cut</td><td>Expresses genuine ambiguity with intermediate λ</td></tr>
+          <tr><td class="step-name">Update rule</td><td>Arithmetic mean of assigned points</td><td>Probability-weighted mean, variance, and share</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout define">
+      <div class="icon">📎</div>
+      <div class="body"><span class="label">K-Means is EM's limiting case</span>
+      Shrink every Gaussian's variance toward zero and force λ<sub>ik</sub> to round to 0 or 1 (whichever cluster is closest), and the EM updates collapse exactly into K-Means's assign-then-average loop. K-Means isn't a different algorithm so much as EM with all its statistical nuance switched off.</div>
+    </div>
+  </section>
+
+  <!-- ============ 3. LOCAL MAXIMA ============ -->
+  <section>
+    <div class="kicker"><span class="num">03</span><h2>The Catch: Only a Local Maximum</h2></div>
+    <p class="subtext">The convergence guarantee from §1 promises the log-likelihood <em>never decreases</em>. It does not promise EM finds the <strong>best possible</strong> parameters. Like gradient ascent on any bumpy surface, EM can walk uphill straight into a foothill and stop there, satisfied, while a taller peak sits untouched elsewhere in the landscape.</p>
+
+    <div class="callout warn">
+      <div class="icon">⚠️</div>
+      <div class="body"><span class="label">Why this happens</span>
+      Each M-step only ever climbs the <em>current</em> Jensen bound — it has no way to see over the ridge to a better bound elsewhere. Once θ settles into a point where the bound's peak coincides with a local maximum of the true log-likelihood, EM has no mechanism to escape. Where you initialize μ, σ², and π decides which foothill you're standing on.</div>
+    </div>
+
+    <div class="card">
+      <h4>Same gradebook, different starting guess</h4>
+      <p>Try the simulator below with the identical 25 exam scores from Lecture 25 — but this time, choose <em>how</em> EM is initialized before it runs. A sensible starting spread finds the real Gold/Blue split. A symmetric or overconfident starting guess can get stuck somewhere noticeably worse, and EM will report back as if it succeeded — the log-likelihood did climb, it's just climbing the wrong hill.</p>
+    </div>
+
+    <!-- ============ SIMULATOR ============ -->
+    <div class="sim">
+      <div class="sim-top">
+        <div>
+          <div class="sim-title">Initialization Roulette</div>
+          <div class="sim-sub">Same 25 scores as Lecture 25 · pick a starting guess · run to convergence</div>
+        </div>
+        <div class="sim-badge" id="phaseBadge2">Pick an initialization</div>
+      </div>
+
+      <div class="preset-row" id="presetRow">
+        <div class="preset-btn active" data-preset="good">
+          <span class="pname">Balanced start</span>
+          <span class="pdesc">μ₁=65, μ₂=80 — spread across the real gap</span>
+        </div>
+        <div class="preset-btn" data-preset="twin">
+          <span class="pname">Identical twins</span>
+          <span class="pdesc">μ₁=μ₂=74 — can't tell the professors apart</span>
+        </div>
+        <div class="preset-btn" data-preset="overconfident">
+          <span class="pname">Overconfident</span>
+          <span class="pdesc">μ₁=60, μ₂=63, tiny variance — commits too early</span>
+        </div>
+      </div>
+
+      <div class="numberline-wrap">
+        <div id="band1b" class="band" style="background:var(--gold);"></div>
+        <div id="band2b" class="band" style="background:var(--blue);"></div>
+        <div class="numberline" id="numberline2">
+          <div class="axis-tick" style="left:0%">50</div>
+          <div class="axis-tick" style="left:25%">62.5</div>
+          <div class="axis-tick" style="left:50%">75</div>
+          <div class="axis-tick" style="left:75%">87.5</div>
+          <div class="axis-tick" style="left:100%">100</div>
+          <div id="dotsLayer2"></div>
+          <div id="marker1b" class="marker gold-m"></div>
+          <div id="marker2b" class="marker blue-m"></div>
+          <div id="marker1labelb" class="marker-label" style="color:var(--gold);">μ₁</div>
+          <div id="marker2labelb" class="marker-label" style="color:var(--blue);">μ₂</div>
+        </div>
+      </div>
+
+      <div class="sim-controls">
+        <button class="sim-btn" id="runBtn">Run to convergence →</button>
+        <button class="sim-btn secondary" id="resetBtn2">↺ Reset comparison</button>
+      </div>
+
+      <div class="sim-stats">
+        <div class="stat"><div class="k">Iterations to stop</div><div class="v" id="statIter2">—</div></div>
+        <div class="stat"><div class="k">μ₁ / μ₂ final</div><div class="v" id="statMu2">— / —</div></div>
+        <div class="stat"><div class="k">Final log-likelihood</div><div class="v gold-txt" id="statLL2">—</div></div>
+        <div class="stat"><div class="k">Outcome</div><div class="v" id="statOutcome">—</div></div>
+      </div>
+
+      <div class="compare-history">
+        <div class="ch-lbl">Best log-likelihood reached, by initialization tried so far</div>
+        <div id="chRows"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. INITIALIZATION STRATEGY ============ -->
+  <section>
+    <div class="kicker"><span class="num">04</span><h2>A Practical Fix: Let K-Means Go First</h2></div>
+    <p class="subtext">Since EM's outcome depends so heavily on its starting point, a common and effective strategy is to <strong>not start blind</strong>. Run the cheap, fast K-Means algorithm first, then hand its results to EM as a warm start.</p>
+
+    <div class="diagram">
+      <div class="grid-3" style="text-align:center;">
+        <div class="card" style="margin-bottom:0;">
+          <h4 style="color:var(--gold);">1 · Run K-Means</h4>
+          <p>Fast, hard clustering gives rough cluster centers with almost no computation.</p>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <h4 style="color:var(--gold);">2 · Convert to θ₀</h4>
+          <p>Use each K-Means cluster's points to compute an initial mean, variance, and mixing weight per cluster.</p>
+        </div>
+        <div class="card" style="margin-bottom:0;">
+          <h4 style="color:var(--gold);">3 · Hand off to EM</h4>
+          <p>EM refines these into soft, statistically grounded estimates — starting from a sensible neighborhood, not a coin flip.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div class="body"><span class="label">Why this helps</span>
+      K-Means is cheap enough to re-run from several random starts and keep the best one by its own objective, giving EM a head start that's already roughly in the right neighborhood — turning "which foothill did we land on" from a coin flip into a much better bet.</div>
+    </div>
+  </section>
+
+  <!-- ============ 5. GENERALITY ============ -->
+  <section>
+    <div class="kicker"><span class="num">05</span><h2>Beyond GMMs</h2></div>
+    <p class="subtext">Nothing about the E/M split is specific to Gaussians. Any model with a hidden variable that, once revealed, makes the likelihood factor nicely — Hidden Markov Models, mixture-of-experts, missing-data regression, topic models — can be fit with the same two-step recipe: guess the hidden structure's distribution, then maximize as if that guess were true, and repeat.</p>
+  </section>
+
+  <!-- ============ 6. TAKEAWAY ============ -->
+  <section style="border-bottom:none;">
+    <div class="kicker"><span class="num">06</span><h2>Where This Leaves Us</h2></div>
+    <div class="takeaway">
+      <h3>TL;DR</h3>
+      <ul>
+        <li><strong>EM = E-step + M-step, looped</strong> until log-likelihood stops improving by more than ε.</li>
+        <li>Its guarantee is <strong>monotonic improvement</strong>, not global optimality — it converges to <em>a</em> local maximum, not necessarily <em>the</em> best one.</li>
+        <li>Versus K-Means: EM trades a hard, geometric assignment for a <strong>soft, probabilistic</strong> one that also models variance and shape.</li>
+        <li>Because initialization decides which local maximum you land on, a common fix is to <strong>seed EM with K-Means</strong> output.</li>
+        <li>The E/M recipe generalizes far past GMMs — anywhere a latent variable would make the likelihood easy <em>if only you knew it.</em></li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>Machine Learning Techniques · Lecture 26 · The Expectation-Maximization Algorithm</footer>
+</div>
+
+<script>
+(function(){
+  const scores = [59,62,66,64,70,61,68,63,72,60,58,73,84,88,91,82,79,90,86,89,80,92,76,78,94];
+  const n = scores.length;
+  const MIN_X = 50, MAX_X = 100;
+
+  const presets = {
+    good:          { name:'Balanced start',   mu:[65,80], sigma2:[100,100], pi:[0.5,0.5], color:'var(--gold)' },
+    twin:          { name:'Identical twins',  mu:[74,74], sigma2:[100,100], pi:[0.5,0.5], color:'var(--purple)' },
+    overconfident: { name:'Overconfident',    mu:[60,63], sigma2:[9,9],     pi:[0.5,0.5], color:'var(--red)' }
+  };
+
+  let currentPreset = 'good';
+  let bestResults = {}; // preset -> {ll, mu, iters}
+
+  const dotsLayer2 = document.getElementById('dotsLayer2');
+  const marker1b = document.getElementById('marker1b');
+  const marker2b = document.getElementById('marker2b');
+  const marker1labelb = document.getElementById('marker1labelb');
+  const marker2labelb = document.getElementById('marker2labelb');
+  const band1b = document.getElementById('band1b');
+  const band2b = document.getElementById('band2b');
+  const runBtn = document.getElementById('runBtn');
+  const resetBtn2 = document.getElementById('resetBtn2');
+  const phaseBadge2 = document.getElementById('phaseBadge2');
+  const chRows = document.getElementById('chRows');
+
+  function toPct(x){ return ((x - MIN_X) / (MAX_X - MIN_X)) * 100; }
+  function gauss(x, m, s2){ return (1/Math.sqrt(2*Math.PI*s2)) * Math.exp(-((x-m)*(x-m))/(2*s2)); }
+  function lerpColor(hexA, hexB, t){
+    const a = hexA.match(/\w\w/g).map(h=>parseInt(h,16));
+    const b = hexB.match(/\w\w/g).map(h=>parseInt(h,16));
+    const c = a.map((v,i)=> Math.round(v + (b[i]-v)*t));
+    return `rgb(${c[0]},${c[1]},${c[2]})`;
+  }
+  function computeLL(mu, sigma2, pi){
+    let ll = 0;
+    for(let i=0;i<n;i++){
+      const mix = pi[0]*gauss(scores[i],mu[0],sigma2[0]) + pi[1]*gauss(scores[i],mu[1],sigma2[1]);
+      ll += Math.log(Math.max(mix, 1e-12));
+    }
+    return ll;
+  }
+
+  function buildDots(){
+    dotsLayer2.innerHTML = '';
+    scores.forEach((x)=>{
+      const d = document.createElement('div');
+      d.className = 'dot2';
+      d.style.left = toPct(x) + '%';
+      d.style.background = 'rgb(154,161,175)';
+      dotsLayer2.appendChild(d);
+    });
+  }
+
+  function renderState(mu, sigma2, lambda){
+    const dots = dotsLayer2.querySelectorAll('.dot2');
+    dots.forEach((d,i)=>{
+      const t = lambda ? lambda[i][1] : 0.5;
+      d.style.background = lerpColor('d9b872','6fa3c9', t);
+    });
+    marker1b.style.left = toPct(mu[0]) + '%';
+    marker2b.style.left = toPct(mu[1]) + '%';
+    marker1labelb.style.left = toPct(mu[0]) + '%';
+    marker2labelb.style.left = toPct(mu[1]) + '%';
+    const s1 = Math.sqrt(sigma2[0]), s2 = Math.sqrt(sigma2[1]);
+    const w1 = toPct(mu[0]+s1) - toPct(mu[0]-s1);
+    const w2 = toPct(mu[1]+s2) - toPct(mu[1]-s2);
+    band1b.style.left = toPct(mu[0]) + '%';
+    band1b.style.width = Math.max(w1,4) + '%';
+    band2b.style.left = toPct(mu[1]) + '%';
+    band2b.style.width = Math.max(w2,4) + '%';
+  }
+
+  function selectPreset(key){
+    currentPreset = key;
+    document.querySelectorAll('.preset-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.preset === key);
+    });
+    const p = presets[key];
+    buildDots();
+    renderState(p.mu, p.sigma2, null);
+    document.getElementById('statIter2').textContent = '—';
+    document.getElementById('statMu2').textContent = '— / —';
+    document.getElementById('statLL2').textContent = '—';
+    document.getElementById('statOutcome').textContent = '—';
+    phaseBadge2.textContent = 'Ready to run: ' + p.name;
+  }
+
+  function runToConvergence(){
+    const p = presets[currentPreset];
+    let mu = [...p.mu], sigma2 = [...p.sigma2], pi = [...p.pi];
+    let lambda = scores.map(()=>[0.5,0.5]);
+    let prevLL = computeLL(mu, sigma2, pi);
+    let iters = 0;
+    const maxIters = 60, eps = 1e-5;
+
+    for(iters=1; iters<=maxIters; iters++){
+      // E-step
+      for(let i=0;i<n;i++){
+        const r0 = pi[0]*gauss(scores[i],mu[0],sigma2[0]);
+        const r1 = pi[1]*gauss(scores[i],mu[1],sigma2[1]);
+        const norm = (r0+r1) || 1e-12;
+        lambda[i][0] = r0/norm; lambda[i][1] = r1/norm;
+      }
+      // M-step
+      for(let k=0;k<2;k++){
+        let Nk=0, sumX=0;
+        for(let i=0;i<n;i++){ Nk += lambda[i][k]; sumX += lambda[i][k]*scores[i]; }
+        const newMu = sumX/Nk;
+        let sumSq=0;
+        for(let i=0;i<n;i++){ sumSq += lambda[i][k]*Math.pow(scores[i]-newMu,2); }
+        mu[k]=newMu; sigma2[k]=Math.max(sumSq/Nk,4); pi[k]=Nk/n;
+      }
+      const ll = computeLL(mu, sigma2, pi);
+      if(Math.abs(ll - prevLL) < eps){ prevLL = ll; break; }
+      prevLL = ll;
+    }
+
+    renderState(mu, sigma2, lambda);
+    document.getElementById('statIter2').textContent = iters;
+    document.getElementById('statMu2').textContent = mu[0].toFixed(2) + ' / ' + mu[1].toFixed(2);
+    document.getElementById('statLL2').textContent = prevLL.toFixed(2);
+
+    const spread = Math.abs(mu[0]-mu[1]);
+    let outcome, outcomeColor;
+    if(spread > 12){ outcome = 'Found the real split ✓'; outcomeColor='var(--green)'; }
+    else if(spread < 2){ outcome = 'Stuck — means merged ✗'; outcomeColor='var(--red)'; }
+    else { outcome = 'Partial / weak split'; outcomeColor='var(--red)'; }
+    const outcomeEl = document.getElementById('statOutcome');
+    outcomeEl.textContent = outcome;
+    outcomeEl.style.color = outcomeColor;
+
+    bestResults[currentPreset] = { ll: prevLL, name: presets[currentPreset].name, color: presets[currentPreset].color };
+    renderComparison();
+    phaseBadge2.textContent = 'Converged in ' + iters + ' iterations';
+  }
+
+  function renderComparison(){
+    chRows.innerHTML = '';
+    const lls = Object.values(bestResults).map(r=>r.ll);
+    if(lls.length === 0) return;
+    const maxLL = Math.max(...lls);
+    const minLL = Math.min(...lls);
+    const range = (maxLL - minLL) || 1;
+    Object.keys(presets).forEach(key=>{
+      const r = bestResults[key];
+      const row = document.createElement('div');
+      row.className = 'ch-row';
+      const name = document.createElement('div');
+      name.className = 'ch-name';
+      name.textContent = presets[key].name;
+      const track = document.createElement('div');
+      track.className = 'ch-bar-track';
+      const fill = document.createElement('div');
+      fill.className = 'ch-bar-fill';
+      if(r){
+        const pct = 12 + ((r.ll - minLL)/range) * 85;
+        fill.style.width = pct + '%';
+        fill.style.background = presets[key].color;
+      } else {
+        fill.style.width = '0%';
+      }
+      track.appendChild(fill);
+      const val = document.createElement('div');
+      val.className = 'ch-val';
+      val.textContent = r ? r.ll.toFixed(1) : 'not run';
+      row.appendChild(name); row.appendChild(track); row.appendChild(val);
+      chRows.appendChild(row);
+    });
+  }
+
+  document.querySelectorAll('.preset-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=> selectPreset(btn.dataset.preset));
+  });
+  runBtn.addEventListener('click', runToConvergence);
+  resetBtn2.addEventListener('click', ()=>{
+    bestResults = {};
+    renderComparison();
+    selectPreset(currentPreset);
+  });
+
+  selectPreset('good');
+  renderComparison();
+})();
+</script>
+</body>
+</html>

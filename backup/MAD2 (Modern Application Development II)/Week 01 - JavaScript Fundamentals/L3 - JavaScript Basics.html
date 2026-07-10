@@ -1,0 +1,342 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L3 – JavaScript Basics — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 3</div>
+  <h1>JavaScript Basics</h1>
+  <p>Understanding <b>primitive types</b>, <b>operators</b>, <b>type coercion</b>, and the foundational building blocks of JavaScript. Master the quirks that trip up every beginner.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span>Primitive Types</div>
+<div class="card">
+  <h2>The 7 Primitive Types + BigInt</h2>
+  <div class="def">
+    JavaScript has <b>7 primitive data types</b> (immutable, not objects) plus <b>BigInt</b> for arbitrary-precision integers. Everything else is an Object.
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);">
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">Type</th>
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">Example</th>
+      <th style="text-align:left;padding:8px;color:var(--cyan);font-weight:600;">typeof Result</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">string</td>
+      <td style="padding:8px;"><code>"hello"</code>, <code>'world'</code>, <code>`hi`</code></td>
+      <td style="padding:8px;"><code>"string"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">number</td>
+      <td style="padding:8px;"><code>42</code>, <code>3.14</code>, <code>Infinity</code>, <code>NaN</code></td>
+      <td style="padding:8px;"><code>"number"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">boolean</td>
+      <td style="padding:8px;"><code>true</code>, <code>false</code></td>
+      <td style="padding:8px;"><code>"boolean"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">undefined</td>
+      <td style="padding:8px;"><code>undefined</code></td>
+      <td style="padding:8px;"><code>"undefined"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">null</td>
+      <td style="padding:8px;"><code>null</code></td>
+      <td style="padding:8px;"><code>"object"</code> ← historical bug</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">symbol</td>
+      <td style="padding:8px;"><code>Symbol("id")</code></td>
+      <td style="padding:8px;"><code>"symbol"</code></td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;">bigint</td>
+      <td style="padding:8px;"><code>9007199254740991n</code></td>
+      <td style="padding:8px;"><code>"bigint"</code></td>
+    </tr>
+  </table>
+
+  <pre><code><span class="cmt">// typeof operator</span>
+<span class="fn">typeof</span> <span class="str">"hello"</span>;      <span class="cmt">// "string"</span>
+<span class="fn">typeof</span> <span class="dv">42</span>;            <span class="cmt">// "number"</span>
+<span class="fn">typeof</span> <span class="kw">true</span>;         <span class="cmt">// "boolean"</span>
+<span class="fn">typeof</span> <span class="kw">undefined</span>;    <span class="cmt">// "undefined"</span>
+<span class="fn">typeof</span> <span class="kw">null</span>;         <span class="cmt">// "object"  ← famous bug!</span>
+<span class="fn">typeof</span> <span class="fn">Symbol</span>(<span class="str">"id"</span>); <span class="cmt">// "symbol"</span>
+<span class="fn">typeof</span> <span class="dv">1n</span>;            <span class="cmt">// "bigint"</span></code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>typeof null === "object"</b> — This is a well-known bug from the first version of JavaScript that cannot be fixed because it would break existing code. Always use <code>value === null</code> to check for null.</div>
+  </div>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">Primitive types are like <b>atoms</b> — the smallest indivisible units. Objects are like <b>molecules</b> — composed of atoms and other molecules. You can't change an atom (immutable), but you can replace it. You <i>can</i> change parts of a molecule (mutable).</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Type Coercion</div>
+<div class="card">
+  <h2>Implicit vs Explicit Conversion</h2>
+  <div class="def">
+    JavaScript is a <b>dynamically typed</b> language, meaning types are converted automatically (implicit coercion) or manually (explicit coercion).
+  </div>
+
+  <h3>Explicit Conversion (Intentional)</h3>
+  <pre><code><span class="fn">String</span>(<span class="dv">123</span>);       <span class="cmt">// "123"</span>
+<span class="fn">Number</span>(<span class="str">"456"</span>);     <span class="cmt">// 456</span>
+<span class="fn">Boolean</span>(<span class="dv">0</span>);         <span class="cmt">// false</span>
+<span class="fn">parseInt</span>(<span class="str">"42px"</span>);   <span class="cmt">// 42</span>
+<span class="fn">parseFloat</span>(<span class="str">"3.14"</span>); <span class="cmt">// 3.14</span></code></pre>
+
+  <h3>Implicit Coercion (Surprising)</h3>
+  <pre><code><span class="str">"5"</span> - <span class="dv">3</span>;     <span class="cmt">// 2  (string coerced to number)</span>
+<span class="str">"5"</span> + <span class="dv">3</span>;     <span class="cmt">// "53"  (number coerced to string!)</span>
+<span class="str">"5"</span> * <span class="str">"2"</span>;   <span class="cmt">// 10  (both coerced to number)</span>
+<span class="dv">0</span> == <span class="kw">false</span>;  <span class="cmt">// true  (loose equality coerces)</span>
+<span class="dv">0</span> === <span class="kw">false</span>; <span class="cmt">// false  (strict equality, no coercion)</span></code></pre>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">== (Loose Equality)</div>
+      <div class="c-desc">Coerces types before comparing. Avoid this operator. <code>0 == ""</code> → true, <code>false == "0"</code> → true.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">=== (Strict Equality)</div>
+      <div class="c-desc">No coercion. Returns false if types differ. Always use <code>===</code> and <code>!==</code> in modern code.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Truthy &amp; Falsy Values</div>
+<div class="card">
+  <h2>What Evaluates to true/false?</h2>
+  <div class="def">
+    In a boolean context (if, while, &&, ||), values are coerced to boolean. Only <b>6 falsy values</b> exist.
+  </div>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Falsy (all 6)</div>
+      <div class="c-desc"><code>false</code>, <code>0</code>, <code>""</code> (empty string), <code>null</code>, <code>undefined</code>, <code>NaN</code></div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Truthy (everything else)</div>
+      <div class="c-desc"><code>"0"</code>, <code>"false"</code>, <code>[]</code>, <code>{}</code>, <code>Infinity</code>, <code>-1</code>, all functions</div>
+    </div>
+  </div>
+  <pre><code><span class="kw">if</span> (<span class="str">"0"</span>) { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// logs! (non-empty string)</span>
+<span class="kw">if</span> ([])   { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// logs! (empty array is truthy)</span>
+<span class="kw">if</span> (<span class="dv">0</span>)    { <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"truthy"</span>); }  <span class="cmt">// does NOT log</span></code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Checking array length incorrectly.</b> <code>if (arr)</code> is truthy even for empty arrays. Always check <code>if (arr.length > 0)</code> or <code>if (arr.length)</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Operators</div>
+<div class="card">
+  <h2>Arithmetic, Comparison, Logical, Assignment</h2>
+
+  <h3>Arithmetic</h3>
+  <pre><code><span class="dv">10</span> + <span class="dv">3</span>;  <span class="cmt">// 13  (addition)</span>
+<span class="dv">10</span> - <span class="dv">3</span>;  <span class="cmt">// 7   (subtraction)</span>
+<span class="dv">10</span> * <span class="dv">3</span>;  <span class="cmt">// 30  (multiplication)</span>
+<span class="dv">10</span> / <span class="dv">3</span>;  <span class="cmt">// 3.333... (division → always float)</span>
+<span class="dv">10</span> % <span class="dv">3</span>;  <span class="cmt">// 1   (modulus)</span>
+<span class="dv">2</span> ** <span class="dv">3</span>;  <span class="cmt">// 8   (exponentiation, ES2016)</span></code></pre>
+
+  <h3>Logical Operators</h3>
+  <pre><code><span class="cmt">// Short-circuit evaluation</span>
+<span class="kw">true</span>  || <span class="fn">anything</span>;  <span class="cmt">// short-circuits (returns true)</span>
+<span class="kw">false</span> && <span class="fn">anything</span>;  <span class="cmt">// short-circuits (returns false)</span>
+
+<span class="cmt">// Common patterns</span>
+<span class="kw">const</span> name = user.<span class="prop">name</span> || <span class="str">"Guest"</span>;  <span class="cmt">// default value (older)</span>
+<span class="kw">const</span> age  = user.<span class="prop">age</span>  ?? <span class="dv">18</span>;       <span class="cmt">// nullish coalescing (ES2020)</span>
+<span class="kw">const</span> street = user?.<span class="prop">address</span>?.<span class="prop">street</span>; <span class="cmt">// optional chaining (ES2020)</span></code></pre>
+
+  <h3>Special Values: NaN</h3>
+  <p><b>NaN</b> (Not-a-Number) is a peculiar value. It is the <b>only</b> value that is not equal to itself.</p>
+  <pre><code><span class="fn">typeof</span> <span class="fn">NaN</span>;       <span class="cmt">// "number"  (ironic!)</span>
+<span class="fn">NaN</span> === <span class="fn">NaN</span>;      <span class="cmt">// false  (the only exception)</span>
+<span class="fn">isNaN</span>(<span class="str">"abc"</span>);    <span class="cmt">// true</span>
+<span class="fn">Number</span>.<span class="fn">isNaN</span>(<span class="str">"abc"</span>); <span class="cmt">// false  (stricter check, doesn't coerce)</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Template Literals &amp; String Methods</div>
+<div class="card">
+  <h2>Modern String Handling</h2>
+  <div class="def">
+    Template literals (backtick strings from ES6) allow <b>interpolation</b> and <b>multi-line</b> strings. Combined with built-in string methods, they make text manipulation clean and readable.
+  </div>
+  <pre><code><span class="kw">const</span> name = <span class="str">"Alice"</span>;
+<span class="kw">const</span> age  = <span class="dv">30</span>;
+
+<span class="cmt">// Template literal with interpolation</span>
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`My name is <span class="prop">${</span>name<span class="prop">}</span> and I am <span class="prop">${</span>age<span class="prop">}</span> years old.`</span>);
+
+<span class="cmt">// Multi-line without \n</span>
+<span class="kw">const</span> poem = <span class="str">`Roses are red,
+Violets are blue,
+JavaScript is fun,
+And so are you.`</span>;
+
+<span class="cmt">// Useful string methods</span>
+<span class="str">"hello"</span>.<span class="fn">toUpperCase</span>();          <span class="cmt">// "HELLO"</span>
+<span class="str">"  trim  "</span>.<span class="fn">trim</span>();             <span class="cmt">// "trim"</span>
+<span class="str">"abc"</span>.<span class="fn">repeat</span>(<span class="dv">3</span>);               <span class="cmt">// "abcabcabc"</span>
+<span class="str">"hello world"</span>.<span class="fn">includes</span>(<span class="str">"world"</span>); <span class="cmt">// true</span>
+<span class="str">"a,b,c"</span>.<span class="fn">split</span>(<span class="str">","</span>);             <span class="cmt">// ["a","b","c"]</span>
+<span class="str">"hello"</span>.<span class="fn">startsWith</span>(<span class="str">"he"</span>);       <span class="cmt">// true</span>
+<span class="str">"hello"</span>.<span class="fn">endsWith</span>(<span class="str">"lo"</span>);         <span class="cmt">// true</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Industry Context</div>
+<div class="card">
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">Understanding type coercion is not just an academic exercise — it's the source of <b>countless production bugs</b>. A 2022 study of 1,500+ JavaScript repositories found that <b>loose equality (==)</b> was involved in ~12% of all bugs. Linters like ESLint enforce the use of <code>===</code> and <code>!==</code> to eliminate entire categories of bugs. Most tech companies (Google, Meta, Netflix) require strict equality in their style guides.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between null and undefined?</div>
+    <div class="a">A: <b>undefined</b> means a variable has been declared but not assigned a value. <b>null</b> is an intentional assignment meaning "no value" or "empty". Use <code>??</code> (nullish coalescing) to handle both cases.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: Why is typeof null === "object"?</div>
+    <div class="a">A: It's a bug from the original 1995 implementation. The type tag for objects was 0, and null's representation (0x00) was incorrectly classified. It can't be fixed due to backward compatibility — thousands of sites rely on this behavior.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is NaN and how do you check for it?</div>
+    <div class="a">A: NaN (Not-a-Number) is a numeric value representing an invalid number. Use <code>Number.isNaN(x)</code> for a reliable check (doesn't coerce), or <code>x !== x</code> (NaN is the only value not equal to itself).</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between == and ===?</div>
+    <div class="a">A: <code>==</code> performs type coercion before comparison (e.g., <code>5 == "5"</code> → true). <code>===</code> requires both value and type to be identical (strict equality). Always use <code>===</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>7 primitives</b> string, number, boolean, null, undefined, symbol, bigint</div>
+    <div class="rev-item"><b>typeof null</b> "object" (bug)</div>
+    <div class="rev-item"><b>6 falsy</b> false, 0, "", null, undefined, NaN</div>
+    <div class="rev-item"><b>===</b> strict equality (no coercion)</div>
+    <div class="rev-item"><b>NaN !== NaN</b> only self-unequal value</div>
+    <div class="rev-item"><b>??</b> nullish coalescing (null/undefined only)</div>
+    <div class="rev-item"><b>?.</b> optional chaining (safe access)</div>
+    <div class="rev-item"><b>``</b> template literals with ${}</div>
+    <div class="rev-item"><b>Number.isNaN</b> strict NaN check</div>
+    <div class="rev-item"><b>String("")</b> explicit conversion</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

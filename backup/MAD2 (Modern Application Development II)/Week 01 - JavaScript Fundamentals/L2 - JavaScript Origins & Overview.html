@@ -1,0 +1,321 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L2 – JavaScript Origins &amp; Overview — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 2</div>
+  <h1>JavaScript Origins &amp; Overview</h1>
+  <p>A deep dive into the <b>history</b> of JavaScript, its <b>standardization</b> through ECMAScript, the engines that power it, and the process that shapes its future.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span>The Birth of JavaScript</div>
+<div class="card">
+  <h2>From 10 Days to a World Language</h2>
+  <div class="def">
+    In <b>May 1995</b>, Brendan Eich was hired by Netscape to embed the Scheme programming language into their browser. Instead, he created a new language in just <b>10 days</b> — initially called <b>Mocha</b>, then <b>LiveScript</b>, and finally <b>JavaScript</b>.
+  </div>
+  <h3>Timeline</h3>
+  <ul>
+    <li><b>1995</b> — Brendan Eich creates Mocha/LiveScript at Netscape</li>
+    <li><b>1996</b> — Netscape ships JavaScript in Netscape Navigator 2.0</li>
+    <li><b>1996</b> — Microsoft reverse-engineers JS as JScript for IE3</li>
+    <li><b>1997</b> — ECMA International standardizes as ECMAScript (ES1)</li>
+    <li><b>1998</b> — ES2, minor updates for ISO conformance</li>
+    <li><b>1999</b> — ES3: regex, try/catch, do-while, switch improvements</li>
+    <li><b>2009</b> — ES5: strict mode, JSON, Array methods (forEach, map, filter)</li>
+    <li><b>2015</b> — ES6/ES2015: let/const, arrow functions, classes, modules, promises, template literals, destructuring</li>
+    <li><b>2016+</b> — Yearly release cycle: ES2016, ES2017 (async/await), ES2018, ES2019, ES2020 (optional chaining, nullish coalescing), ES2021, ES2022, ES2023 — incremental improvements every year</li>
+  </ul>
+
+  <svg viewBox="0 0 600 140" style="width:100%;margin:10px 0;border-radius:10px;">
+    <rect width="600" height="140" fill="#12161F" rx="10"/>
+    <text x="300" y="25" text-anchor="middle" fill="#E7EAF2" font-family="Sora,sans-serif" font-size="13" font-weight="700">ECMAScript Evolution Timeline</text>
+    <rect x="20" y="45" width="70" height="40" rx="6" fill="#3E3320"/>
+    <text x="55" y="65" text-anchor="middle" fill="#F0B450" font-family="JetBrains Mono,monospace" font-size="10">ES3</text>
+    <text x="55" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">1999</text>
+    <rect x="100" y="45" width="70" height="40" rx="6" fill="#234436"/>
+    <text x="135" y="65" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="10">ES5</text>
+    <text x="135" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">2009</text>
+    <rect x="180" y="45" width="100" height="40" rx="6" fill="#26264A"/>
+    <text x="230" y="65" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono,monospace" font-size="10">ES6/ES2015</text>
+    <text x="230" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">2015 (Major)</text>
+    <rect x="290" y="45" width="70" height="40" rx="6" fill="#1A3A4A"/>
+    <text x="325" y="65" text-anchor="middle" fill="#7DD3FC" font-family="JetBrains Mono,monospace" font-size="10">ES2017</text>
+    <text x="325" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">async/await</text>
+    <rect x="370" y="45" width="90" height="40" rx="6" fill="#3A1A1A"/>
+    <text x="415" y="65" text-anchor="middle" fill="#F05050" font-family="JetBrains Mono,monospace" font-size="10">ES2020</text>
+    <text x="415" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">?., ??</text>
+    <rect x="470" y="45" width="110" height="40" rx="6" fill="#234436"/>
+    <text x="525" y="65" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono,monospace" font-size="10">ES2023</text>
+    <text x="525" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora,sans-serif" font-size="9">toSpliced, findLast</text>
+    <line x1="20" y1="105" x2="585" y2="105" stroke="#232A38" stroke-width="2"/>
+    <polygon points="580,105 590,100 590,110" fill="#232A38"/>
+  </svg>
+</div>
+
+<div class="section-tag"><span class="n">2</span>JavaScript Engines</div>
+<div class="card">
+  <h2>The Engines That Run the Web</h2>
+  <div class="def">
+    A JavaScript engine is a program that <b>executes JavaScript code</b>. Modern engines use JIT (Just-In-Time) compilation to achieve near-native performance.
+  </div>
+
+  <table style="width:100%;border-collapse:collapse;margin:10px 0;font-size:13px;">
+    <tr style="border-bottom:1px solid var(--line);">
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Engine</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Browser</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Written In</th>
+      <th style="text-align:left;padding:8px;color:var(--green);font-weight:600;">Other Runtimes</th>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>V8</b></td>
+      <td style="padding:8px;">Chrome, Edge, Opera</td>
+      <td style="padding:8px;">C++</td>
+      <td style="padding:8px;">Node.js, Deno, Electron</td>
+    </tr>
+    <tr style="border-bottom:1px solid var(--line);">
+      <td style="padding:8px;"><b>SpiderMonkey</b></td>
+      <td style="padding:8px;">Firefox</td>
+      <td style="padding:8px;">C++, Rust</td>
+      <td style="padding:8px;">GNOME Shell</td>
+    </tr>
+    <tr>
+      <td style="padding:8px;"><b>JavaScriptCore</b></td>
+      <td style="padding:8px;">Safari</td>
+      <td style="padding:8px;">C++</td>
+      <td style="padding:8px;">Bun, React Native</td>
+    </tr>
+  </table>
+
+  <h3>How a JS Engine Works</h3>
+  <ol>
+    <li><b>Parsing</b> — source code → Abstract Syntax Tree (AST)</li>
+    <li><b>Interpretation</b> — baseline compiler produces bytecode quickly</li>
+    <li><b>Profiling</b> — monitor hot functions (frequently executed)</li>
+    <li><b>Optimization</b> — JIT recompiles hot paths to optimized machine code</li>
+    <li><b>Deoptimization</b> — if assumptions fail, fall back to interpreted bytecode</li>
+  </ol>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A JS engine is like a <b>simultaneous translator</b> at the UN. The interpreter translates on the fly (slow but immediately usable). The JIT compiler is like the translator who learns the speaker's patterns and pre-writes the translation for common phrases — much faster, but needs to backtrack if the speaker says something unexpected.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>The TC39 Process</div>
+<div class="card">
+  <h2>How JavaScript Gets New Features</h2>
+  <div class="def">
+    <b>TC39</b> (Technical Committee 39) is the committee that evolves the ECMAScript specification. It includes representatives from all major browser vendors, companies, and the community.
+  </div>
+  <h3>The 5-stage Proposal Process</h3>
+  <ul>
+    <li><b>Stage 0 — Strawman:</b> Any idea submitted by a TC39 member. No requirements.</li>
+    <li><b>Stage 1 — Proposal:</b> A champion identified, problem described, API shape sketched. Polyfills and demos expected.</li>
+    <li><b>Stage 2 — Draft:</b> Formal spec text. Committee has committed to reviewing and eventually including (if it progresses).</li>
+    <li><b>Stage 3 — Candidate:</b> Spec complete, implementations needed. Browser vendors begin experimental implementation.</li>
+    <li><b>Stage 4 — Finished:</b> At least two independent implementations pass test suites. Feature is included in the next ECMAScript release.</li>
+  </ul>
+
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">The TC39 process is one of the most <b>open and transparent</b> language specification processes. Anyone can follow proposals on GitHub (tc39/proposals). Features like <b>optional chaining</b> (obj?.prop) and <b>nullish coalescing</b> (a ?? b) went from Stage 0 to Stage 4 over ~2 years. <b>Records &amp; Tuples</b> (immutable data structures) are currently at Stage 2 as of 2024.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Strict Mode</div>
+<div class="card">
+  <h2>"use strict" — Cleaner, Safer JS</h2>
+  <div class="def">
+    Introduced in ES5, strict mode opts into a <b>restricted variant</b> of JavaScript that eliminates silent errors and prevents dangerous patterns.
+  </div>
+  <pre><code><span class="cmt">// Global strict mode (file-level)</span>
+<span class="str">"use strict"</span>;
+<span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"This file runs in strict mode"</span>);
+
+<span class="cmt">// Function-level strict mode</span>
+<span class="kw">function</span> <span class="fn">strictFn</span>() {
+  <span class="str">"use strict"</span>;
+  <span class="cmt">// only this function is strict</span>
+}
+
+<span class="cmt">// What changes in strict mode:</span>
+x = <span class="dv">5</span>;           <span class="cmt">// ❌ ReferenceError (undeclared var)</span>
+<span class="kw">delete</span> <span class="fn">Array</span>;     <span class="cmt">// ❌ TypeError (can't delete non-configurable)</span>
+<span class="kw">arguments</span>.<span class="fn">callee</span>; <span class="cmt">// ❌ TypeError (deprecated)</span></code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Always use strict mode in modern JavaScript. ES6 modules are <b>strict by default</b> — no need for explicit <code>"use strict"</code> when using modules.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span>Browser vs Node.js APIs</div>
+<div class="card">
+  <h2>Two Runtimes, Two API Sets</h2>
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Browser APIs</div>
+      <div class="c-desc">DOM (document, element, events), window, fetch, localStorage, console, setTimeout, Canvas, WebSockets, Web Workers, History API, Geolocation</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Node.js APIs</div>
+      <div class="c-desc">fs, path, http, process, os, crypto, stream, buffer, child_process, cluster, readline</div>
+    </div>
+  </div>
+  <h3>Shared APIs (Both Environments)</h3>
+  <ul>
+    <li><b>console</b> — log, error, warn, table, time</li>
+    <li><b>setTimeout / setInterval</b> — timer functions</li>
+    <li><b>fetch</b> — HTTP requests (Node 18+)</li>
+    <li><b>TextEncoder / TextDecoder</b> — encoding utilities</li>
+    <li><b>URL / URLSearchParams</b> — URL handling</li>
+  </ul>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using browser APIs in Node.js.</b> <code>document</code>, <code>window</code>, <code>localStorage</code> are not available in Node.js. Similarly, <code>require('fs')</code> does not exist in the browser. Always check the runtime environment before using platform-specific APIs.</div>
+  </div>
+
+  <div class="tip-box">
+    <div class="t-label">Quick Tip</div>
+    <div class="t-text">To check if code is running in a browser: <code>typeof window !== "undefined"</code>. For Node.js: <code>typeof process !== "undefined" && process.release.name === "node"</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: Why is JavaScript called JavaScript if it's not related to Java?</div>
+    <div class="a">A: Marketing. Netscape wanted to capitalize on Java's popularity. The language was originally named Mocha, then LiveScript. Just before release, they rebranded to JavaScript. The official standard name is ECMAScript.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between V8 and Node.js?</div>
+    <div class="a">A: V8 is the <b>JavaScript engine</b> that compiles and executes JS code. Node.js is a <b>runtime</b> built on top of V8 that adds APIs like fs, http, and path. Think of V8 as the car engine and Node.js as the entire car.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is the "TC39" and what does it do?</div>
+    <div class="a">A: TC39 (Technical Committee 39) is the committee under ECMA International that maintains and evolves the ECMAScript specification. They review proposals, provide feedback, and vote on feature inclusion through a 5-stage process (Stage 0 → Stage 4).</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What does JIT compilation mean for JavaScript?</div>
+    <div class="a">A: JIT (Just-In-Time) compilation means the engine compiles hot functions to native machine code at runtime, achieving near-native performance. This is why JavaScript can be 50-100x faster today than in 1995, enabling complex applications like Figma, VS Code, and Google Docs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>1995</b> Brendan Eich, 10 days</div>
+    <div class="rev-item"><b>ES3 (1999)</b> regex, try/catch</div>
+    <div class="rev-item"><b>ES5 (2009)</b> strict mode, JSON</div>
+    <div class="rev-item"><b>ES6/2015</b> let/const, arrow, class</div>
+    <div class="rev-item"><b>V8</b> Chrome, Node, Deno, Edge</div>
+    <div class="rev-item"><b>SpiderMonkey</b> Firefox</div>
+    <div class="rev-item"><b>JSC</b> Safari, Bun</div>
+    <div class="rev-item"><b>TC39</b> 5 stages (0→4)</div>
+    <div class="rev-item"><b>Strict mode</b> safer JS, opt-in</div>
+    <div class="rev-item"><b>Yearly releases</b> since 2015</div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>

@@ -1,0 +1,1622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenvalues &amp; Eigenvectors &mdash; Premium Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===========================
+     HERO
+  =========================== */
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
+
+  /* ===========================
+     MAIN
+  =========================== */
+  main { padding: 56px 0 90px; }
+
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+
+  /* ===========================
+     EQUATION PANEL
+  =========================== */
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  /* ===========================
+     MULTI-LINE EQUATIONS
+  =========================== */
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
+  }
+
+  /* ===========================
+     DERIVATION TIMELINE
+  =========================== */
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+
+  /* ===========================
+     SYMBOL LEGEND
+  =========================== */
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+
+  /* ===========================
+     BELOW-EQUATION COMPONENTS
+  =========================== */
+
+  /* English Explanation */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  /* Intuition */
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  /* Numerical Example */
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  /* Interpretation */
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  /* Common Mistakes */
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  /* ===========================
+     SVG ILLUSTRATIONS
+  =========================== */
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* ===========================
+     CALLOUTS
+  =========================== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  /* ===========================
+     PARAMETER CARDS
+  =========================== */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .param-card.gold .p-sym .katex { color: var(--gold); }
+
+  /* ===========================
+     COMPARE
+  =========================== */
+  .compare-wrap {
+    background: linear-gradient(180deg, #161b2a, #10141f);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 32px 28px 28px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .compare-wrap .cp-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7d859c;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .compare-card {
+    background: #0d0f17;
+    border: 1px solid #282e44;
+    border-radius: 10px;
+    padding: 20px 18px;
+    text-align: center;
+  }
+  .compare-card .cc-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 9px;
+    border-radius: 100px;
+    margin-bottom: 14px;
+    display: inline-block;
+  }
+  .compare-card.ok .cc-tag { background: rgba(44,107,93,0.25); color: #7fc4b0; }
+  .compare-card.blocked .cc-tag { background: rgba(168,72,42,0.25); color: #e0967a; }
+  .compare-card .cc-line {
+    font-size: 14px;
+    margin: 10px 0;
+    min-height: 28px;
+    color: #dbe0ef;
+  }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .compare-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">IIT Madras &middot; MLT &middot; Week 1</div>
+    <h1>Eigenvalues, eigenvectors &amp;<br>the algebra of <em>PCA</em></h1>
+    <p>The eigendecomposition of the covariance matrix, the characteristic equation, the spectral theorem, and how eigenvalues rank principal components &mdash; the mathematical core that PCA runs on.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Eigenvectors</a>
+      <a href="#s2" class="nav-pill">&sect;2 Eigenvalues</a>
+      <a href="#s3" class="nav-pill">&sect;3 Characteristic Equation</a>
+      <a href="#s4" class="nav-pill">&sect;4 Finding Eigenpairs</a>
+      <a href="#s5" class="nav-pill">&sect;5 Eigendecomposition</a>
+      <a href="#s6" class="nav-pill">&sect;6 Spectral Theorem</a>
+      <a href="#s7" class="nav-pill">&sect;7 Eigenvalues of $\mathbf{C}$ &amp; PCA</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- ================================================================
+         SECTION 1: EIGENVECTORS
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Eigenvectors</h2>
+      </div>
+      <p class="sec-intro">
+        An eigenvector of a matrix is a special non-zero vector that, when the matrix
+        <strong>multiplies</strong> it, only <strong>stretches or compresses</strong> it &mdash;
+        it does not change direction.
+      </p>
+
+      <div class="eq-panel" id="eq-eigenvec">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Eigenvalue Equation</div>
+        $$\mathbf{A}\mathbf{v} = \lambda\,\mathbf{v}$$
+        <div class="eq-caption">Multiplying $\mathbf{v}$ by $\mathbf{A}$ just scales $\mathbf{v}$ by $\lambda$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;For a square matrix $\mathbf{A}$, a vector $\mathbf{v}$ is an eigenvector if
+          multiplying $\mathbf{A}$ by $\mathbf{v}$ produces a result that is a
+          <strong>scalar multiple</strong> of $\mathbf{v}$ itself. The scalar $\lambda$ is the
+          corresponding eigenvalue.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{A}$</td>
+              <td class="leg-meaning">A $d \times d$ square matrix</td>
+              <td class="leg-example">$\mathbf{A} = \begin{pmatrix}2 &amp; 1\\1 &amp; 2\end{pmatrix}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{v}$</td>
+              <td class="leg-meaning">Eigenvector &mdash; direction stays the same</td>
+              <td class="leg-example">$\mathbf{v} = \begin{pmatrix}1\\1\end{pmatrix}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda$</td>
+              <td class="leg-meaning">Eigenvalue &mdash; how much $\mathbf{v}$ is scaled</td>
+              <td class="leg-example">$\lambda = 3$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{v} \neq \mathbf{0}$</td>
+              <td class="leg-meaning">Eigenvectors are always non-zero</td>
+              <td class="leg-example">Zero vector is excluded</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine you have a square rubber sheet. When you <strong>shear</strong> it with a
+          transformation matrix, most vectors change their direction. But certain special
+          directions &mdash; the <span class="highlight">eigenvectors</span> &mdash;
+          simply get <strong>stretched or compressed</strong> along their own line.
+          <br><br>
+          An eigenvector says: <strong>"I know which way to point so that the transformation
+          only changes my length, not my direction."</strong> The eigenvalue $\lambda$ tells you
+          the new length relative to the original.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: Eigenvector vs Non-Eigenvector</div>
+        <svg viewBox="0 0 860 240" xmlns="http://www.w3.org/2000/svg">
+          <!-- Left: eigenvector -->
+          <rect x="20" y="10" width="380" height="220" rx="10" fill="#f5f6fa" stroke="#dde0e9" stroke-width="1"/>
+          <text x="210" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#505770" font-weight="600">Eigenvector (direction preserved)</text>
+          <!-- Original arrow -->
+          <line x1="120" y1="180" x2="260" y2="80" stroke="#2c6b5d" stroke-width="2.5"/>
+          <polygon points="260,80 248,86 254,72" fill="#2c6b5d"/>
+          <text x="180" y="145" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">$\mathbf{v}$</text>
+          <!-- Transformed arrow (same direction, longer) -->
+          <line x1="120" y1="195" x2="320" y2="65" stroke="#2c6b5d" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="320,65 308,71 314,57" fill="#2c6b5d" opacity="0.5"/>
+          <text x="245" y="105" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d" opacity="0.7">$\lambda\mathbf{v}$</text>
+          <!-- Annotation -->
+          <text x="210" y="220" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Same line, only length changes</text>
+
+          <!-- Right: non-eigenvector -->
+          <rect x="460" y="10" width="380" height="220" rx="10" fill="#f5f6fa" stroke="#dde0e9" stroke-width="1"/>
+          <text x="650" y="35" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#505770" font-weight="600">Non-Eigenvector (direction changes)</text>
+          <line x1="560" y1="180" x2="700" y2="80" stroke="#a8482a" stroke-width="2.5"/>
+          <polygon points="700,80 688,86 694,72" fill="#a8482a"/>
+          <text x="620" y="145" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">$\mathbf{w}$</text>
+          <!-- Transformed arrow (different direction) -->
+          <line x1="560" y1="195" x2="780" y2="120" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <polygon points="780,120 768,126 774,112" fill="#a8482a" opacity="0.5"/>
+          <text x="710" y="170" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a" opacity="0.7">$\mathbf{A}\mathbf{w}$</text>
+          <text x="650" y="220" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Direction changes &mdash; not an eigenvector</text>
+        </svg>
+        <div class="svg-caption">Left: $\mathbf{v}$ stays on the same line after $\mathbf{A}$ acts on it (eigenvector). Right: $\mathbf{w}$ rotates off its original line.</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Quick Verification</div>
+        <div class="num-setup"><strong>Given:</strong> $\mathbf{A} = \begin{pmatrix}2 &amp; 1\\1 &amp; 2\end{pmatrix}$, $\mathbf{v} = \begin{pmatrix}1\\1\end{pmatrix}$, $\lambda = 3$.</div>
+        <div class="num-setup" style="margin-top:8px;">$\displaystyle \mathbf{A}\mathbf{v} = \begin{pmatrix}2 &amp; 1\\1 &amp; 2\end{pmatrix}\begin{pmatrix}1\\1\end{pmatrix} = \begin{pmatrix}3\\3\end{pmatrix} = 3\begin{pmatrix}1\\1\end{pmatrix} = \lambda\mathbf{v}$ &check;</div>
+        <div class="num-result">$\mathbf{v} = [1,1]^{\!\top}$ is an eigenvector with eigenvalue $\lambda = 3$</div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Any scalar multiple is also an eigenvector:</strong> If $\mathbf{v}$
+            is an eigenvector, so is $2\mathbf{v}$, $-3\mathbf{v}$, etc. We typically
+            <em>normalize</em> eigenvectors to unit length.
+          </p>
+          <p>
+            &#x2716; <strong>The zero vector is never an eigenvector:</strong> The definition
+            requires $\mathbf{v} \neq \mathbf{0}$, because $\mathbf{A}\mathbf{0} = \mathbf{0}$
+            always holds trivially.
+          </p>
+          <p>
+            &#x2716; <strong>Eigenvectors are not unique:</strong> The direction matters, not the
+            length. Two eigenvectors with the same eigenvalue span a subspace.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 2: EIGENVALUES
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Eigenvalues</h2>
+      </div>
+      <p class="sec-intro">
+        The eigenvalue $\lambda$ measures <strong>how much</strong> the eigenvector is scaled.
+        Positive eigenvalues mean stretch; negative mean reversal; zero means the matrix
+        collapses that direction entirely.
+      </p>
+
+      <div class="eq-panel" id="eq-eigenval">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Eigenvalue Meaning</div>
+        $$\mathbf{A}\mathbf{v}_i = \lambda_i\,\mathbf{v}_i, \qquad i = 1, 2, \dots, d$$
+        <div class="eq-caption">A $d \times d$ matrix has at most $d$ eigenvalue-eigenvector pairs</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The $i$-th eigenvalue $\lambda_i$ and its eigenvector $\mathbf{v}_i$ satisfy
+          $\mathbf{A}\mathbf{v}_i = \lambda_i \mathbf{v}_i$. A $d \times d$ matrix has exactly
+          $d$ eigenvalues (counting multiplicity and including complex values), each paired with
+          its own eigenvector.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\lambda_i$</td>
+              <td class="leg-meaning">The $i$-th eigenvalue (a scalar)</td>
+              <td class="leg-example">$\lambda_1 = 3$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{v}_i$</td>
+              <td class="leg-meaning">The $i$-th eigenvector (a direction)</td>
+              <td class="leg-example">$\mathbf{v}_1 = \tfrac{1}{\sqrt{2}}[1,1]^{\!\top}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda &gt; 0$</td>
+              <td class="leg-meaning">Eigenvector is stretched (same direction)</td>
+              <td class="leg-example">$\lambda = 3$ &rarr; tripled</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda &lt; 0$</td>
+              <td class="leg-meaning">Eigenvector is reversed and scaled</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda = 0$</td>
+              <td class="leg-meaning">Matrix collapses that direction &mdash; $\mathbf{A}$ is singular</td>
+              <td class="leg-example">Matrix not invertible</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Think of the eigenvalues as the <strong>"power ratings"</strong> of each eigenvector
+          direction. A large eigenvalue means the matrix <span class="highlight">amplifies</span>
+          that direction strongly. A small eigenvalue means it barely affects it.
+          <br><br>
+          In PCA, the eigenvalues of the covariance matrix tell you <strong>how much variance</strong>
+          each principal component captures. The largest eigenvalue corresponds to the direction of
+          maximum spread in the data.
+        </div>
+      </div>
+
+      <div class="param-grid">
+        <div class="param-card gold">
+          <span class="p-sym">$\lambda_1 = 5$</span>
+          <h4>Large eigenvalue</h4>
+          <p>Strong stretch &mdash; high variance direction</p>
+        </div>
+        <div class="param-card gold">
+          <span class="p-sym">$\lambda_2 = 0.3$</span>
+          <h4>Small eigenvalue</h4>
+          <p>Weak stretch &mdash; low variance direction</p>
+        </div>
+        <div class="param-card gold">
+          <span class="p-sym">$\lambda_3 = 0$</span>
+          <h4>Zero eigenvalue</h4>
+          <p>No variance &mdash; data lies on a lower subspace</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Eigenvalues can be negative:</strong> Unlike variances (which are
+            always $\geq 0$), eigenvalues of a general matrix can be negative. For symmetric
+            matrices like covariance matrices, they are always non-negative.
+          </p>
+          <p>
+            &#x2716; <strong>Eigenvalues can be complex:</strong> Non-symmetric matrices may have
+            complex eigenvalues. PCA only deals with real, non-negative eigenvalues because
+            covariance matrices are symmetric.
+          </p>
+          <p>
+            &#x2716; <strong>Counting eigenvalues:</strong> A $d \times d$ matrix has exactly $d$
+            eigenvalues (with multiplicity), even if some are equal (repeated).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: CHARACTERISTIC EQUATION
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Characteristic Equation</h2>
+      </div>
+      <p class="sec-intro">
+        To <strong>find</strong> the eigenvalues, we solve the characteristic equation &mdash;
+        a polynomial whose roots are the eigenvalues of $\mathbf{A}$.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-char">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Characteristic Equation</div>
+        $$\det(\mathbf{A} - \lambda\,\mathbf{I}) = 0$$
+        <div class="eq-caption">The eigenvalues are the roots of this degree-$d$ polynomial in $\lambda$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;Subtract $\lambda$ from each diagonal entry of $\mathbf{A}$ (by forming
+          $\mathbf{A} - \lambda\mathbf{I}$), then compute the <strong>determinant</strong>. Set
+          the result equal to zero. The values of $\lambda$ that satisfy this equation are
+          the eigenvalues.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\det(\cdot)$</td>
+              <td class="leg-meaning">Determinant of a square matrix</td>
+              <td class="leg-example">$\det\begin{pmatrix}a &amp; b\\c &amp; d\end{pmatrix} = ad-bc$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{I}$</td>
+              <td class="leg-meaning">Identity matrix ($1$s on diagonal, $0$s elsewhere)</td>
+              <td class="leg-example">$\mathbf{I}_2 = \begin{pmatrix}1 &amp; 0\\0 &amp; 1\end{pmatrix}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda\mathbf{I}$</td>
+              <td class="leg-meaning">Scalar $\lambda$ times identity &mdash; puts $\lambda$ on diagonal</td>
+              <td class="leg-example">$\lambda\mathbf{I} = \begin{pmatrix}\lambda &amp; 0\\0 &amp; \lambda\end{pmatrix}$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The equation $\mathbf{A}\mathbf{v} = \lambda\mathbf{v}$ can be rewritten as
+          $(\mathbf{A} - \lambda\mathbf{I})\mathbf{v} = \mathbf{0}$. For a <strong>non-zero</strong>
+          solution $\mathbf{v}$ to exist, the matrix $(\mathbf{A} - \lambda\mathbf{I})$ must be
+          <span class="highlight">singular</span> (non-invertible). A matrix is singular exactly
+          when its determinant is zero &mdash; hence $\det(\mathbf{A} - \lambda\mathbf{I}) = 0$.
+        </div>
+      </div>
+
+      <div class="derivation-timeline">
+        <div class="dt-label">&#9654; Step-by-Step: 2 &times; 2 Case</div>
+
+        <div class="dt-step">
+          <div class="dt-num">1</div>
+          <div class="dt-text">Start with $\mathbf{A} = \begin{pmatrix}a &amp; b\\c &amp; d\end{pmatrix}$</div>
+          <div class="dt-formula">$\mathbf{A}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">2</div>
+          <div class="dt-text">Form $\mathbf{A} - \lambda\mathbf{I}$</div>
+          <div class="dt-formula">$\begin{pmatrix}a-\lambda &amp; b\\c &amp; d-\lambda\end{pmatrix}$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">3</div>
+          <div class="dt-text">Compute the determinant</div>
+          <div class="dt-formula">$(a-\lambda)(d-\lambda) - bc$</div>
+        </div>
+        <div class="dt-arrow">&#8595;</div>
+
+        <div class="dt-step">
+          <div class="dt-num">4</div>
+          <div class="dt-text">Set equal to zero and solve for $\lambda$</div>
+          <div class="dt-formula">$\lambda^2 - (a+d)\lambda + (ad-bc) = 0$</div>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>Shortcut for 2 &times; 2</strong>
+          <p>For $\mathbf{A} = \begin{pmatrix}a &amp; b\\c &amp; d\end{pmatrix}$, the characteristic polynomial is $\lambda^2 - \operatorname{tr}(\mathbf{A})\lambda + \det(\mathbf{A}) = 0$, where $\operatorname{tr}(\mathbf{A}) = a + d$ is the trace.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Computing $\det(\mathbf{A}) - \lambda$ instead of $\det(\mathbf{A} - \lambda\mathbf{I})$:</strong> The $\lambda$ must be subtracted from each diagonal entry <em>before</em> taking the determinant.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting the identity matrix:</strong> $\mathbf{A} - \lambda\mathbf{I}$ means subtracting $\lambda$ only from the diagonal, not from every entry.
+          </p>
+          <p>
+            &#x2716; <strong>Sign errors in the quadratic formula:</strong> Double-check the signs when expanding $(a-\lambda)(d-\lambda) - bc$.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: FINDING EIGENPAIRS
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Finding Eigenpairs (Worked Example)</h2>
+      </div>
+      <p class="sec-intro">
+        A complete worked example: given a $2 \times 2$ matrix, find both eigenvalues
+        from the characteristic equation, then solve for the corresponding eigenvectors.
+      </p>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Step 1: Find Eigenvalues</div>
+        <div class="num-setup"><strong>Matrix:</strong> $\mathbf{A} = \begin{pmatrix}4 &amp; 2\\1 &amp; 3\end{pmatrix}$</div>
+        <div class="num-setup" style="margin-top:10px;">
+          <strong>Characteristic equation:</strong><br>
+          $\det(\mathbf{A} - \lambda\mathbf{I}) = (4-\lambda)(3-\lambda) - (2)(1) = 0$<br>
+          $\lambda^2 - 7\lambda + 12 - 2 = 0$<br>
+          $\lambda^2 - 7\lambda + 10 = 0$<br>
+          $(\lambda - 5)(\lambda - 2) = 0$
+        </div>
+        <div class="num-result">$\lambda_1 = 5, \qquad \lambda_2 = 2$</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Step 2: Find Eigenvector for $\lambda_1 = 5$</div>
+        <div class="num-setup">Solve $(\mathbf{A} - 5\mathbf{I})\mathbf{v} = \mathbf{0}$:</div>
+        <div class="num-setup" style="margin-top:10px;">
+          $\begin{pmatrix}4-5 &amp; 2\\1 &amp; 3-5\end{pmatrix}\begin{pmatrix}v_1\\v_2\end{pmatrix} = \begin{pmatrix}-1 &amp; 2\\1 &amp; -2\end{pmatrix}\begin{pmatrix}v_1\\v_2\end{pmatrix} = \begin{pmatrix}0\\0\end{pmatrix}$
+        </div>
+        <div class="num-setup">
+          Both rows give: $-v_1 + 2v_2 = 0 \;\Rightarrow\; v_1 = 2v_2$
+        </div>
+        <div class="num-result">$\mathbf{v}_1 = \begin{pmatrix}2\\1\end{pmatrix}$ &rarr; normalized: $\hat{\mathbf{v}}_1 = \dfrac{1}{\sqrt{5}}\begin{pmatrix}2\\1\end{pmatrix}$</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Step 3: Find Eigenvector for $\lambda_2 = 2$</div>
+        <div class="num-setup">Solve $(\mathbf{A} - 2\mathbf{I})\mathbf{v} = \mathbf{0}$:</div>
+        <div class="num-setup" style="margin-top:10px;">
+          $\begin{pmatrix}4-2 &amp; 2\\1 &amp; 3-2\end{pmatrix}\begin{pmatrix}v_1\\v_2\end{pmatrix} = \begin{pmatrix}2 &amp; 2\\1 &amp; 1\end{pmatrix}\begin{pmatrix}v_1\\v_2\end{pmatrix} = \begin{pmatrix}0\\0\end{pmatrix}$
+        </div>
+        <div class="num-setup">
+          Both rows give: $v_1 + v_2 = 0 \;\Rightarrow\; v_1 = -v_2$
+        </div>
+        <div class="num-result">$\mathbf{v}_2 = \begin{pmatrix}1\\-1\end{pmatrix}$ &rarr; normalized: $\hat{\mathbf{v}}_2 = \dfrac{1}{\sqrt{2}}\begin{pmatrix}1\\-1\end{pmatrix}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>Verification</strong>
+          <p>
+            Check: $\mathbf{A}\hat{\mathbf{v}}_1 = \begin{pmatrix}4 &amp; 2\\1 &amp; 3\end{pmatrix}\begin{pmatrix}2/\sqrt{5}\\1/\sqrt{5}\end{pmatrix} = \begin{pmatrix}10/\sqrt{5}\\5/\sqrt{5}\end{pmatrix} = 5\begin{pmatrix}2/\sqrt{5}\\1/\sqrt{5}\end{pmatrix} = \lambda_1\hat{\mathbf{v}}_1$ &check;
+            <br><br>
+            The two eigenvectors are <strong>orthogonal</strong> (perpendicular): $\hat{\mathbf{v}}_1 \cdot \hat{\mathbf{v}}_2 = \frac{2}{\sqrt{10}} - \frac{1}{\sqrt{10}} = 0$. This is guaranteed for symmetric matrices by the spectral theorem.
+          </p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Setting the wrong row to zero:</strong> After subtracting $\lambda\mathbf{I}$, both rows should give the same equation (for a non-defective matrix). Use the simpler row.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting to normalize:</strong> Eigenvectors can be scaled arbitrarily. Normalize to unit length for comparisons and for the eigendecomposition.
+          </p>
+          <p>
+            &#x2716; <strong>Confusing $\lambda_1$ with $\mathbf{v}_1$:</strong> The eigenvalue is a scalar; the eigenvector is a vector. They always come as a <em>pair</em>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: EIGENDECOMPOSITION
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Eigendecomposition</h2>
+      </div>
+      <p class="sec-intro">
+        A matrix can be <strong>factored</strong> into its eigenvectors and eigenvalues. This
+        decomposition reveals the matrix's fundamental action: stretch along each eigenvector
+        direction by the corresponding eigenvalue.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-eigdec">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Eigendecomposition</div>
+        $$\mathbf{A} = \mathbf{V}\,\boldsymbol{\Lambda}\,\mathbf{V}^{-1}$$
+        <div class="eq-caption">$\mathbf{V}$ holds eigenvectors as columns, $\boldsymbol{\Lambda}$ is diagonal with eigenvalues</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The matrix $\mathbf{A}$ equals the matrix of eigenvectors $\mathbf{V}$
+          (columns are $\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_d$), multiplied by the
+          diagonal matrix of eigenvalues $\boldsymbol{\Lambda} = \operatorname{diag}(\lambda_1, \dots, \lambda_d)$,
+          multiplied by the inverse of $\mathbf{V}$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{V}$</td>
+              <td class="leg-meaning">$d \times d$ matrix; column $i$ is $\mathbf{v}_i$</td>
+              <td class="leg-example">$\mathbf{V} = [\mathbf{v}_1 \; \mathbf{v}_2]$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\boldsymbol{\Lambda}$</td>
+              <td class="leg-meaning">Diagonal matrix; entry $(i,i)$ is $\lambda_i$</td>
+              <td class="leg-example">$\boldsymbol{\Lambda} = \begin{pmatrix}\lambda_1 &amp; 0\\0 &amp; \lambda_2\end{pmatrix}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{V}^{-1}$</td>
+              <td class="leg-meaning">Inverse of the eigenvector matrix</td>
+              <td class="leg-example">Exists when eigenvectors are independent</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{V}^{-1}\mathbf{A}\mathbf{V}$</td>
+              <td class="leg-meaning">= $\boldsymbol{\Lambda}$ &mdash; diagonalization</td>
+              <td class="leg-example">Change of basis to eigenbasis</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Eigendecomposition says: <strong>every linear transformation</strong> can be broken into
+          three simple steps:
+          <br><br>
+          1. <strong>Change basis</strong> to the eigenvector directions ($\mathbf{V}^{-1}$)<br>
+          2. <strong>Stretch</strong> each direction independently by $\lambda_i$ ($\boldsymbol{\Lambda}$)<br>
+          3. <strong>Change back</strong> to the original basis ($\mathbf{V}$)
+          <br><br>
+          This is why eigenvectors are so powerful: they turn a complicated matrix operation into
+          <span class="highlight">independent scalings along perpendicular axes</span>.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example ($d = 2$)</div>
+        <div class="num-setup"><strong>From Section 4:</strong> $\lambda_1 = 5$, $\mathbf{v}_1 = \frac{1}{\sqrt{5}}[2,1]^{\!\top}$, $\lambda_2 = 2$, $\mathbf{v}_2 = \frac{1}{\sqrt{2}}[1,-1]^{\!\top}$</div>
+        <div class="num-setup" style="margin-top:10px;">
+          $\displaystyle \mathbf{V} = \begin{pmatrix}2/\sqrt{5} &amp; 1/\sqrt{2}\\1/\sqrt{5} &amp; -1/\sqrt{2}\end{pmatrix}, \quad
+          \boldsymbol{\Lambda} = \begin{pmatrix}5 &amp; 0\\0 &amp; 2\end{pmatrix}$
+        </div>
+        <div class="num-setup">
+          $\displaystyle \mathbf{A} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^{-1} = \begin{pmatrix}4 &amp; 2\\1 &amp; 3\end{pmatrix}$ &check;
+        </div>
+        <div class="num-result">$\mathbf{A} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^{-1}$ reconstructs the original matrix</div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Key property</strong>
+          <p>When $\mathbf{A}$ is <strong>symmetric</strong>, $\mathbf{V}$ is orthogonal ($\mathbf{V}^{-1} = \mathbf{V}^{\!\top}$), so $\mathbf{A} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^{\!\top}$. This is exactly the form PCA uses.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Mixing up the order:</strong> It is $\mathbf{V}\boldsymbol{\Lambda}\mathbf{V}^{-1}$, not $\mathbf{V}^{-1}\boldsymbol{\Lambda}\mathbf{V}$. The eigenvector matrix "sandwiches" the eigenvalue matrix.
+          </p>
+          <p>
+            &#x2716; <strong>Not all matrices are diagonalizable:</strong> If a matrix does not have $d$ independent eigenvectors, the decomposition does not exist. Symmetric matrices always are.
+          </p>
+          <p>
+            &#x2716; <strong>Eigenvector order must match eigenvalue order:</strong> Column $i$ of $\mathbf{V}$ must correspond to $\lambda_i$ in $\boldsymbol{\Lambda}$.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 6: SPECTRAL THEOREM
+    ================================================================ -->
+    <section class="section" id="s6">
+      <div class="sec-header">
+        <span class="sec-num">06</span>
+        <h2>Spectral Theorem</h2>
+      </div>
+      <p class="sec-intro">
+        The spectral theorem is the result that makes PCA possible. It guarantees that every
+        symmetric matrix has real eigenvalues and orthonormal eigenvectors.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-spectral">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Spectral Theorem (for Symmetric Matrices)</div>
+        $$\mathbf{A} = \mathbf{Q}\,\boldsymbol{\Lambda}\,\mathbf{Q}^{\!\top}, \qquad \mathbf{Q}^{\!\top}\mathbf{Q} = \mathbf{I}$$
+        <div class="eq-caption">Every real symmetric matrix has real eigenvalues and orthonormal eigenvectors</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;If $\mathbf{A}$ is a <strong>real symmetric</strong> matrix ($\mathbf{A} = \mathbf{A}^{\!\top}$),
+          then it can be decomposed as $\mathbf{Q}\boldsymbol{\Lambda}\mathbf{Q}^{\!\top}$, where
+          $\mathbf{Q}$ is an <strong>orthogonal</strong> matrix (its columns are orthonormal eigenvectors)
+          and $\boldsymbol{\Lambda}$ is diagonal with <strong>real</strong> eigenvalues.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Key Property</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{A} = \mathbf{A}^{\!\top}$</td>
+              <td class="leg-meaning">Symmetric matrix</td>
+              <td class="leg-example">$A_{ij} = A_{ji}$ for all $i,j$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{Q}$</td>
+              <td class="leg-meaning">Orthogonal matrix (eigenvectors as columns)</td>
+              <td class="leg-example">$\mathbf{Q}^{-1} = \mathbf{Q}^{\!\top}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mathbf{Q}^{\!\top}\mathbf{Q} = \mathbf{I}$</td>
+              <td class="leg-meaning">Columns are orthonormal: unit length and perpendicular</td>
+              <td class="leg-example">$\hat{\mathbf{v}}_i \cdot \hat{\mathbf{v}}_j = \delta_{ij}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda_i \in \mathbb{R}$</td>
+              <td class="leg-meaning">All eigenvalues are real (no complex numbers)</td>
+              <td class="leg-example">Critical for PCA to work</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The spectral theorem says symmetric matrices are the <strong>"nicest"</strong> matrices
+          in linear algebra. They always have:
+          <br><br>
+          &#x2022; <strong>Real eigenvalues</strong> (no weird rotations or complex scaling)<br>
+          &#x2022; <strong>Orthogonal eigenvectors</strong> (perfectly perpendicular directions)<br>
+          &#x2022; <strong>An orthonormal eigenbasis</strong> (the eigenvectors form a rotated coordinate system)
+          <br><br>
+          Since the covariance matrix $\mathbf{C}$ is always symmetric ($\mathbf{C} = \mathbf{C}^{\!\top}$), the
+          spectral theorem <span class="highlight">guarantees PCA will work</span>.
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: Orthogonal Eigenvectors of a Symmetric Matrix</div>
+        <svg viewBox="0 0 460 300" xmlns="http://www.w3.org/2000/svg">
+          <!-- Axes -->
+          <line x1="230" y1="280" x2="230" y2="20" stroke="#dde0e9" stroke-width="1"/>
+          <line x1="10" y1="150" x2="450" y2="150" stroke="#dde0e9" stroke-width="1"/>
+          <!-- Data cloud (elliptical) -->
+          <ellipse cx="230" cy="150" rx="180" ry="70" fill="none" stroke="#b5872a" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.4" transform="rotate(-30 230 150)"/>
+          <!-- Eigenvector 1 (long, along major axis) -->
+          <line x1="230" y1="150" x2="395" y2="55" stroke="#2c6b5d" stroke-width="2.5"/>
+          <polygon points="395,55 383,61 389,47" fill="#2c6b5d"/>
+          <text x="405" y="50" font-family="'JetBrains Mono', monospace" font-size="13" fill="#2c6b5d" font-weight="600">$\hat{\mathbf{v}}_1$</text>
+          <text x="405" y="68" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">$\lambda_1 = 5$</text>
+          <!-- Eigenvector 2 (short, along minor axis) -->
+          <line x1="230" y1="150" x2="140" y2="75" stroke="#a8482a" stroke-width="2.5"/>
+          <polygon points="140,75 152,81 146,67" fill="#a8482a"/>
+          <text x="120" y="68" font-family="'JetBrains Mono', monospace" font-size="13" fill="#a8482a" font-weight="600">$\hat{\mathbf{v}}_2$</text>
+          <text x="120" y="86" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">$\lambda_2 = 1.5$</text>
+          <!-- Right angle mark -->
+          <rect x="230" y="150" width="12" height="12" fill="none" stroke="#8b91a5" stroke-width="1" transform="rotate(-30 230 150)" opacity="0.5"/>
+          <!-- Label -->
+          <text x="230" y="295" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">$\hat{\mathbf{v}}_1 \perp \hat{\mathbf{v}}_2$ &mdash; always perpendicular for symmetric matrices</text>
+        </svg>
+        <div class="svg-caption">The eigenvectors of a symmetric matrix are orthogonal (perpendicular). The longer arrow corresponds to the larger eigenvalue.</div>
+      </div>
+
+      <div class="compare-wrap">
+        <div class="cp-label">&#9654; General Matrix vs Symmetric Matrix</div>
+        <div class="compare-grid">
+          <div class="compare-card blocked" id="cardGen">
+            <span class="cc-tag">General Matrix</span>
+            <div class="cc-line">Eigenvalues may be complex</div>
+            <div class="cc-line">Eigenvectors may not be orthogonal</div>
+            <div class="cc-line">May not be diagonalizable</div>
+            <div class="cc-line">$\mathbf{A} \neq \mathbf{A}^{\!\top}$ in general</div>
+          </div>
+          <div class="compare-card ok" id="cardSym">
+            <span class="cc-tag">Symmetric Matrix</span>
+            <div class="cc-line">Eigenvalues are always real</div>
+            <div class="cc-line">Eigenvectors are always orthogonal</div>
+            <div class="cc-line">Always diagonalizable ($\mathbf{A} = \mathbf{Q}\boldsymbol{\Lambda}\mathbf{Q}^{\!\top}$)</div>
+            <div class="cc-line">$\mathbf{A} = \mathbf{A}^{\!\top}$</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>The spectral theorem only applies to symmetric matrices:</strong> Do not assume eigenvectors are orthogonal for non-symmetric matrices.
+          </p>
+          <p>
+            &#x2716; <strong>Orthonormal vs orthogonal:</strong> Orthogonal means perpendicular; orthonormal means perpendicular <em>and</em> unit length. The spectral theorem gives orthonormal eigenvectors after normalization.
+          </p>
+          <p>
+            &#x2716; <strong>The covariance matrix is always symmetric:</strong> $\mathbf{C} = \frac{1}{n}\mathbf{X}\mathbf{X}^{\!\top}$, and $(\mathbf{X}\mathbf{X}^{\!\top})^{\!\top} = \mathbf{X}\mathbf{X}^{\!\top}$, so PCA always satisfies the spectral theorem.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 7: EIGENVALUES OF COVARIANCE MATRIX & PCA
+    ================================================================ -->
+    <section class="section" id="s7">
+      <div class="sec-header">
+        <span class="sec-num">07</span>
+        <h2>Eigenvalues of $\mathbf{C}$ &amp; PCA</h2>
+      </div>
+      <p class="sec-intro">
+        The eigenvalues of the covariance matrix $\mathbf{C}$ directly tell you <strong>how much
+        variance</strong> each principal component captures. This is the bridge between
+        linear algebra and dimensionality reduction.
+      </p>
+
+      <div class="eq-panel multiline" id="eq-pca">
+        <span class="eq-num">Equation (6)</span>
+        <div class="eq-label">PCA: Eigendecomposition of the Covariance Matrix</div>
+        $$\mathbf{C} = \mathbf{Q}\,\boldsymbol{\Lambda}\,\mathbf{Q}^{\!\top}, \qquad \text{variance along PC}_i = \lambda_i$$
+        <div class="eq-caption">Eigenvalues of $\mathbf{C}$ = variances along principal component directions</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;Decompose the covariance matrix $\mathbf{C}$ into eigenvectors $\mathbf{Q}$
+          (the principal component directions) and eigenvalues $\boldsymbol{\Lambda}$
+          (the variance along each direction). The <strong>largest eigenvalue</strong>
+          $\lambda_1$ gives the variance of the first principal component, $\lambda_2$ the second,
+          and so on.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>PCA Role</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\mathbf{C}$</td>
+              <td class="leg-meaning">Covariance matrix of centered data</td>
+              <td class="leg-example">$\mathbf{C} = \frac{1}{n}\mathbf{X}\mathbf{X}^{\!\top}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\hat{\mathbf{v}}_i$</td>
+              <td class="leg-meaning">$i$-th eigenvector of $\mathbf{C}$</td>
+              <td class="leg-example">Direction of $i$-th principal component</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\lambda_i$</td>
+              <td class="leg-meaning">$i$-th eigenvalue of $\mathbf{C}$</td>
+              <td class="leg-example">Variance explained by PC$_i$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\frac{\lambda_i}{\sum_j \lambda_j}$</td>
+              <td class="leg-meaning">Fraction of total variance</td>
+              <td class="leg-example">Percentage explained by PC$_i$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sum_{i=1}^{k} \lambda_i$</td>
+              <td class="leg-meaning">Total variance captured by top $k$ PCs</td>
+              <td class="leg-example">Choose $k$ for dimensionality reduction</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          PCA is simply this: compute $\mathbf{C}$, find its eigenvalues, sort them from
+          largest to smallest, and keep only the top $k$.
+          <br><br>
+          The eigenvalue $\lambda_i$ measures how much "spread" the data has along direction
+          $\hat{\mathbf{v}}_i$. If $\lambda_1 \gg \lambda_2 \gg \lambda_3$, then the data is
+          mostly spread along $\hat{\mathbf{v}}_1$, a bit along $\hat{\mathbf{v}}_2$, and
+          almost none along $\hat{\mathbf{v}}_3$. You can safely <span class="highlight">drop
+          the directions with tiny eigenvalues</span> without losing much information.
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example: Choosing $k$</div>
+        <div class="num-setup"><strong>Given eigenvalues of $\mathbf{C}$:</strong> $\lambda_1 = 4.2$, $\lambda_2 = 1.8$, $\lambda_3 = 0.3$, $\lambda_4 = 0.1$</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>PC</th><th>$\lambda_i$</th><th>Variance %</th><th>Cumulative %</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>PC$_1$</td><td>$4.2$</td><td>$\frac{4.2}{6.4} = 65.6\%$</td><td>$65.6\%$</td></tr>
+            <tr><td>PC$_2$</td><td>$1.8$</td><td>$\frac{1.8}{6.4} = 28.1\%$</td><td>$93.8\%$</td></tr>
+            <tr><td>PC$_3$</td><td>$0.3$</td><td>$\frac{0.3}{6.4} = 4.7\%$</td><td>$98.4\%$</td></tr>
+            <tr><td>PC$_4$</td><td>$0.1$</td><td>$\frac{0.1}{6.4} = 1.6\%$</td><td>$100.0\%$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-setup">Total variance: $\sum \lambda_i = 4.2 + 1.8 + 0.3 + 0.1 = 6.4$</div>
+        <div class="num-result">Keep $k = 2$ PCs: captures $93.8\%$ of total variance</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>Why this works</strong>
+          <p>
+            The total variance in the data equals the sum of all eigenvalues: $\sum_{i=1}^{d} \lambda_i = \operatorname{tr}(\mathbf{C})$. Each eigenvalue tells you what <em>fraction</em> of that total lives along its eigenvector direction. By keeping the top $k$ eigenvalues, you retain the most variance with the fewest dimensions.
+            <br><br>
+            The <strong>eigenvectors</strong> $\hat{\mathbf{v}}_1, \dots, \hat{\mathbf{v}}_k$ become the new axes (principal components), and the data is <strong>projected</strong> onto these axes to reduce dimensionality.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Key property: trace = total variance</strong>
+          <p>$\operatorname{tr}(\mathbf{C}) = \sum_{i=1}^{d} C_{ii} = \sum_{i=1}^{d} \sigma_i^2 = \sum_{i=1}^{d} \lambda_i$. The sum of the diagonal entries equals the sum of the eigenvalues, which equals the total variance.</p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Eigenvalues are not the same as variance of individual features:</strong> The diagonal entries of $\mathbf{C}$ are the feature variances; the eigenvalues are the variances along the <em>rotated</em> principal component axes.
+          </p>
+          <p>
+            &#x2716; <strong>Eigenvalues must be sorted:</strong> Always sort $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_d$ before choosing $k$. The numbering is by size, not by the order they were computed.
+          </p>
+          <p>
+            &#x2716; <strong>Small eigenvalues are not zero:</strong> A small eigenvalue means low variance, not zero. Only truly zero eigenvalues mean the data is perfectly collinear.
+          </p>
+        </div>
+      </div>
+
+      <div class="callout good">
+        <div class="co-icon">&#8594;</div>
+        <div class="co-body">
+          <strong>PCA in one sentence</strong>
+          <p>Eigendecompose $\mathbf{C}$, sort eigenvalues largest-first, keep the top $k$ eigenvectors as the new axes, and project the data onto them. That is PCA.</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>IIT MADRAS &middot; MLT &middot; WEEK 1 &mdash; EIGENVALUES, EIGENVECTORS &amp; PCA ALGEBRA</p>
+</footer>
+
+</body>
+</html>

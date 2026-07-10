@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deep Dive: Reactivity Under the Hood — Study Notes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  :root{
+    --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+    --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+    --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+    --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+    --code-bg:#0D1118; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 15% 10%, rgba(139,147,255,0.08), transparent 40%),radial-gradient(circle at 85% 30%, rgba(74,222,148,0.06), transparent 40%),var(--bg);
+    color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .hero{border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px; background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;}
+  .hero::after{content:""; position:absolute; top:-40%; right:-10%; width:280px;height:280px;border-radius:50%; background:radial-gradient(circle, rgba(139,147,255,0.12), transparent 70%);}
+  .eyebrow{font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--violet); margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .eyebrow::before{content:"●"; font-size:10px;}
+  h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+  .hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+  .section-tag{font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted); margin:38px 0 10px; display:flex; align-items:center; gap:10px;}
+  .section-tag .n{width:22px;height:22px;border-radius:6px;background:var(--panel-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; color:var(--violet); font-weight:700; font-size:11px;}
+  .card{border:1px solid var(--line); border-radius:var(--radius); background:var(--panel); padding:24px 26px; margin-bottom:18px;}
+  .card h2{font-size:19px; margin:0 0 10px; font-weight:700;}
+  .card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+  .emoji-h{display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;}
+  .emoji-h .e{font-size:20px;}
+  .analogy-box{background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+  .analogy-box .a-text{font-size:13.5px; color:#E9D9B8;} .analogy-box .a-text b{color:var(--amber);}
+  .industry-box{background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+  .industry-box .i-text{font-size:13.5px; color:#D5D8FF;} .industry-box .i-text b{color:var(--violet);}
+  .mistake-box{background:var(--red-dim); border:1px solid rgba(240,80,80,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+  .mistake-box .m-text{font-size:13.5px; color:#F0B0B0;} .mistake-box .m-text b{color:var(--red);}
+  .tip-box{background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25); border-radius:10px; padding:14px 16px; margin:12px 0;}
+  .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+  .tip-box .t-text{font-size:13.5px; color:#C9E8F8;} .tip-box .t-text b{color:var(--cyan);}
+  pre{background:var(--code-bg); border:1px solid var(--line); border-radius:10px; padding:16px 18px; overflow-x:auto; margin:12px 0; font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;}
+  code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;} .fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+
+  .track-vis{display:flex; align-items:center; justify-content:center; gap:8px; margin:20px 0; flex-wrap:wrap;}
+  .track-step{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:14px 18px; text-align:center; flex:1; min-width:100px;}
+  .track-step .ts-icon{font-size:28px; margin-bottom:4px;}
+  .track-step .ts-label{font-size:12px; font-weight:600;}
+  .track-step .ts-desc{font-size:11px; color:var(--muted);}
+  .track-step.track .ts-label{color:var(--cyan);}
+  .track-step.trigger .ts-label{color:var(--amber);}
+  .track-step.update .ts-label{color:var(--green);}
+  .track-arrow{color:var(--muted); font-size:24px;}
+  @media (max-width:640px){.track-vis{flex-direction:column;}.track-arrow{transform:rotate(90deg);}}
+
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:13.5px;}
+  th,td{border:1px solid var(--line); padding:12px 14px; text-align:left;}
+  th{background:var(--panel-2); color:var(--violet); font-weight:600;}
+  td{background:var(--panel); color:var(--text);}
+
+  .qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+  .qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+  .qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+
+  .rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+  .rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+  .rev-item b{color:var(--violet);}
+  @media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+
+  ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+  li{margin:4px 0; color:var(--text);}
+
+  .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">AppDev2 · Vue.js</div>
+    <h1>Deep Dive: How Reactivity Works Under the Hood</h1>
+    <p>Peeling back Vue's abstraction layer to understand how it intercepts JavaScript object modifications — using native browser capabilities to track access and trigger updates.</p>
+  </div>
+
+  <!-- ====== SECTION 1: REACTIVE SYSTEM ====== -->
+  <div class="section-tag"><span class="n">1</span> THE REACTIVE SYSTEM</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def"><b>Reactivity</b> is the mechanism by which Vue keeps the DOM synchronized with application state automatically. At its core, a reactive system must catch exactly when an object property is <b style="color:var(--cyan)">accessed</b> (to track dependencies) and when it is <b style="color:var(--amber)">modified</b> (to trigger updates).</p>
+
+    <div class="emoji-h"><span class="e">🧠</span> Intuition</div>
+    <p style="font-size:14.5px;">Think of reactivity as a <b>subscription service</b>. When a component renders and reads a data property, it "subscribes" to that property. Later, when the property changes, Vue "notifies" all subscribers to re-render. The magic is that Vue sets up these subscriptions automatically — you never manually subscribe or unsubscribe.</p>
+
+    <div class="track-vis">
+      <div class="track-step track">
+        <div class="ts-icon">👀</div>
+        <div class="ts-label">TRACK</div>
+        <div class="ts-desc">Property accessed → log dependents</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step trigger">
+        <div class="ts-icon">⚡</div>
+        <div class="ts-label">TRIGGER</div>
+        <div class="ts-desc">Property modified → notify dependents</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step update">
+        <div class="ts-icon">🔄</div>
+        <div class="ts-label">UPDATE</div>
+        <div class="ts-desc">Virtual DOM diff → patch real DOM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 2: Object.defineProperty ====== -->
+  <div class="section-tag"><span class="n">2</span> <span class="fn">Object.defineProperty</span> — VUE 2</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> The Core Mechanism</div>
+    <p class="def">Vue 2 uses <b>Object.defineProperty()</b> to intercept property reads and writes. During component initialization, Vue iterates over every property in the <code>data</code> object and converts it into a getter/setter pair using property descriptors.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> How It Works — Step by Step</div>
+    <pre><code><span class="cmt">// 1. Your data object</span>
+<span class="kw">const</span> data = { count: <span class="str">10</span> };
+
+<span class="cmt">// 2. Vue creates a reactive proxy</span>
+<span class="kw">const</span> reactiveData = {};
+
+<span class="cmt">// 3. Vue overrides the property with getter/setter</span>
+<span class="fn">Object.defineProperty</span>(reactiveData, <span class="str">'count'</span>, {
+  <span class="fn">get</span>() {
+    <span class="fn">track</span>();  <span class="cmt">// Record: "this component depends on count"</span>
+    <span class="kw">return</span> data.count;
+  },
+  <span class="fn">set</span>(newValue) {
+    <span class="kw">if</span> (newValue !== data.count) {
+      data.count = newValue;
+      <span class="fn">trigger</span>();  <span class="cmt">// Notify: "count changed, re-render dependents"</span>
+    }
+  }
+});
+
+<span class="cmt">// 4. When any code reads reactiveData.count → get() fires → track()</span>
+<span class="fn">console</span>.log(reactiveData.count);  <span class="cmt">// "Dependency Tracking!" → 10</span>
+
+<span class="cmt">// 5. When any code writes reactiveData.count = X → set() fires → trigger()</span>
+reactiveData.count = <span class="str">20</span>;  <span class="cmt">// "DOM Update Triggered!"</span></code></pre>
+
+    <div class="emoji-h"><span class="e">🧠</span> Deep Understanding — Track &amp; Trigger</div>
+    <p style="font-size:14px; color:var(--muted);">The <code>track()</code> and <code>trigger()</code> functions above are simplified. In Vue's actual implementation:</p>
+    <ul>
+      <li><b>track():</b> Uses a global <code>Dep</code> (Dependency) class. Each reactive property has its own <code>Dep</code> instance. When a component renders and reads a property, <code>track()</code> adds that component's watcher to the property's subscriber list.</li>
+      <li><b>trigger():</b> When a property is set, <code>trigger()</code> iterates over all subscribed watchers and tells them to re-evaluate. The watcher then schedules a re-render of the component.</li>
+      <li><b>Watcher:</b> Each component has a corresponding "watcher" object that manages its render function. The watcher is the subscriber that gets notified when dependencies change.</li>
+    </ul>
+  </div>
+
+  <!-- ====== SECTION 3: PROXY ====== -->
+  <div class="section-tag"><span class="n">3</span> <span class="fn">Proxy</span> — VUE 3</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Vue 3's Improved Approach</div>
+    <p class="def">Vue 3 replaces <code>Object.defineProperty</code> with the <b>Proxy API</b>. A Proxy wraps an entire object and intercepts all operations (get, set, delete, has, etc.) through a single handler, rather than modifying individual properties one by one.</p>
+
+    <div class="emoji-h"><span class="e">💻</span> Proxy vs defineProperty</div>
+    <pre><code><span class="cmt">// Vue 2: Object.defineProperty — must know all keys upfront</span>
+<span class="fn">Object.defineProperty</span>(obj, <span class="str">'knownKey'</span>, { get, set });
+<span class="cmt">// ❌ New properties added later are NOT reactive</span>
+<span class="cmt">// ❌ Arrays can't be intercepted by index</span>
+<span class="cmt">// ❌ Must loop over all keys on initialization</span>
+
+<span class="cmt">// Vue 3: Proxy — wraps the entire object</span>
+<span class="kw">const</span> reactiveObj = <span class="kw">new</span> <span class="fn">Proxy</span>(target, {
+  <span class="fn">get</span>(target, key, receiver) {
+    <span class="fn">track</span>(target, key);
+    <span class="kw">return</span> <span class="fn">Reflect</span>.<span class="fn">get</span>(target, key, receiver);
+  },
+  <span class="fn">set</span>(target, key, value, receiver) {
+    <span class="kw">const</span> oldValue = target[key];
+    <span class="kw">const</span> result = <span class="fn">Reflect</span>.<span class="fn">set</span>(target, key, value, receiver);
+    <span class="kw">if</span> (oldValue !== value) {
+      <span class="fn">trigger</span>(target, key);
+    }
+    <span class="kw">return</span> result;
+  },
+  <span class="fn">deleteProperty</span>(target, key) {
+    <span class="kw">const</span> hadKey = <span class="fn">Reflect</span>.<span class="fn">has</span>(target, key);
+    <span class="kw">const</span> result = <span class="fn">Reflect</span>.<span class="fn">deleteProperty</span>(target, key);
+    <span class="kw">if</span> (hadKey) { <span class="fn">trigger</span>(target, key); }
+    <span class="kw">return</span> result;
+  }
+});
+
+<span class="cmt">// ✅ New properties are automatically reactive</span>
+reactiveObj.newKey = <span class="str">'hello'</span>;  <span class="cmt">// Works!</span>
+<span class="cmt">// ✅ Array index access works</span>
+reactiveObj.arr[<span class="str">0</span>] = <span class="str">'new'</span>;      <span class="cmt">// Works!</span>
+<span class="cmt">// ✅ Property deletion is tracked</span>
+<span class="kw">delete</span> reactiveObj.something;  <span class="cmt">// Works!</span></code></pre>
+
+    <div class="tip-box">
+      <div class="t-label">Key Difference</div>
+      <div class="t-text"><b>Object.defineProperty</b> modifies individual properties at initialization — cannot detect new properties or array index changes. <b>Proxy</b> wraps the entire object and intercepts all operations dynamically — no need for <code>Vue.set()</code> or <code>Vue.delete()</code>.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 4: VIRTUAL DOM ====== -->
+  <div class="section-tag"><span class="n">4</span> VIRTUAL DOM — EFFICIENT UPDATES</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🎯</span> Definition</div>
+    <p class="def">The <b>Virtual DOM (VDOM)</b> is a lightweight JavaScript object tree that mirrors the structure of the real DOM. When data changes, Vue creates a new VDOM tree and uses a <b>diffing algorithm</b> to compute the minimal set of real DOM operations needed to synchronize the two.</p>
+
+    <div class="emoji-h"><span class="e">🔄</span> How Vue Knows What Changed</div>
+    <p style="font-size:14.5px;">The complete flow from data change to DOM update:</p>
+    <ol>
+      <li><b>Data mutation:</b> A reactive setter fires (e.g., <code>this.count = 5</code>).</li>
+      <li><b>Notify watchers:</b> The property's <code>Dep</code> notifies all subscribed component watchers.</li>
+      <li><b>Schedule update:</b> Vue queues the re-render (microtask) — multiple data changes in the same tick are batched.</li>
+      <li><b>Re-render:</b> The component's render function executes, producing a new Virtual DOM tree.</li>
+      <li><b>Diff (Patch):</b> Vue compares the new VDOM with the old VDOM using a <b>patching algorithm</b> that identifies exactly which nodes changed.</li>
+      <li><b>DOM patch:</b> Only the specific DOM nodes that changed are updated — the rest are left untouched.</li>
+    </ol>
+
+    <pre><code><span class="cmt">// Simplified VDOM diffing idea</span>
+<span class="kw">function</span> <span class="fn">patch</span>(oldVNode, newVNode) {
+  <span class="kw">if</span> (oldVNode.type !== newVNode.type) {
+    <span class="cmt">// Replace entire element</span>
+    <span class="kw">return</span> <span class="fn">replaceNode</span>(oldVNode, newVNode);
+  }
+  <span class="kw">if</span> (oldVNode.text !== newVNode.text) {
+    <span class="cmt">// Update only text content</span>
+    oldVNode.el.textContent = newVNode.text;
+  }
+  <span class="cmt">// Recursively diff children...</span>
+}</code></pre>
+  </div>
+
+  <!-- ====== SECTION 5: ANALOGY & INDUSTRY ====== -->
+  <div class="section-tag"><span class="n">5</span> REAL-WORLD CONTEXT</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🏠</span> Real-Life Analogy — Restaurant Order System</div>
+    <div class="analogy-box">
+      <div class="a-label">Analogy — Restaurant Order System</div>
+      <div class="a-text"><b>Reactivity is like a smart restaurant order board.</b><br><br>
+      <b>Data = Menu items:</b> Inventory of ingredients (state).<br>
+      <b>Getter = Reading the board:</b> When a chef looks at the order board, they note which orders they're working on (dependency tracking).<br>
+      <b>Setter = A new order arrives:</b> The board updates, and a bell rings (trigger) to notify all chefs (subscribers).<br>
+      <b>Virtual DOM = The order pad:</b> Before telling the kitchen what to cook, the waiter writes the order on a pad and compares it with the previous version — only changed items are communicated.<br><br>
+      Without reactivity, the head chef would have to walk around and tell every station individually what changed. With reactivity, the board updates once and everyone who depends on it sees the change automatically.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">💼</span> Industry Applications</div>
+    <div class="industry-box">
+      <div class="i-label">Industry Application</div>
+      <div class="i-text"><b>Trello / Kanban boards:</b> When a user drags a card from "To Do" to "Done," the card's status property changes. Reactivity propagates this change to: (1) re-render the card in the new column, (2) update the column counters, (3) trigger an API call to persist the change, (4) notify real-time collaborators via WebSockets. All of this happens automatically because each UI element is a reactive subscriber to the card's status property.</div>
+    </div>
+    <div class="industry-box">
+      <div class="i-label">Industry Application</div>
+      <div class="i-text"><b>Figma / collaborative design tools:</b> Every property of every design element (x, y, width, height, fill color, etc.) is reactive. When one user re-sizes a rectangle, hundreds of dependent properties (child elements, constraints, ruler guides, property panel values) update simultaneously — all driven by a reactive dependency graph.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 6: PERFORMANCE & MISTAKES ====== -->
+  <div class="section-tag"><span class="n">6</span> PERFORMANCE &amp; COMMON MISTAKES</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚡</span> Performance Benefits</div>
+    <ul>
+      <li><b>Minimal DOM operations:</b> Virtual DOM diffing ensures only changed nodes are touched.</li>
+      <li><b>Batched updates:</b> Multiple data changes within the same tick are batched into a single re-render.</li>
+      <li><b>Computed caching:</b> Computed properties only re-evaluate when dependencies change.</li>
+      <li><b>Targeted re-renders:</b> Only components whose dependencies changed re-render — not the entire page.</li>
+      <li><b>Keyed lists:</b> <code>:key</code> in <code>v-for</code> enables efficient list reordering without recreating all nodes.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">⚠</span> Common Mistakes</div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake (Vue 2)</div>
+      <div class="m-text"><b>Adding new properties to reactive objects.</b> In Vue 2, <code>this.obj.newProp = value</code> creates a non-reactive property. Always use <code>Vue.set(this.obj, 'newProp', value)</code> or initialize all properties upfront. Vue 3's Proxy handles this automatically.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake (Vue 2)</div>
+      <div class="m-text"><b>Modifying arrays by direct index.</b> <code>this.arr[0] = 'new'</code> doesn't trigger reactivity in Vue 2. Use <code>Vue.set(this.arr, 0, 'new')</code> or array methods like <code>splice</code>, <code>push</code>, <code>pop</code> (which Vue 2 patches to be reactive).</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Common Mistake</div>
+      <div class="m-text"><b>Mutating props in child components.</b> Since props are reactive, if a child mutates a prop directly (<code>this.propValue = x</code>), it triggers a warning and can cause unpredictable behavior. Emit an event to let the parent handle the mutation.</div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION 7: REVISION ====== -->
+  <div class="section-tag"><span class="n">7</span> REVISION CHEAT SHEET</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
+    <ul>
+      <li><b>Reactivity</b> = automatic DOM sync when state changes.</li>
+      <li><b>Vue 2:</b> <code>Object.defineProperty</code> — property-by-property getter/setter interception.</li>
+      <li><b>Vue 3:</b> <code>Proxy</code> — wraps entire object, handles new properties and arrays natively.</li>
+      <li><b>Track:</b> When a property is read, Vue records the component as a dependent.</li>
+      <li><b>Trigger:</b> When a property is written, Vue notifies all dependents to re-render.</li>
+      <li><b>Virtual DOM:</b> Lightweight JS tree for efficient diffing and minimal DOM patching.</li>
+      <li><b>Batching:</b> Multiple changes in one tick = one re-render.</li>
+      <li>Vue 2 gotchas: <code>Vue.set()</code> for new properties, <code>splice</code> for array mutations.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📊</span> Vue 2 vs Vue 3 Reactivity</div>
+    <table>
+      <tr><th>Feature</th><th>Vue 2 (Object.defineProperty)</th><th>Vue 3 (Proxy)</th></tr>
+      <tr><td><b>New properties</b></td><td>❌ Requires <code>Vue.set()</code></td><td>✅ Automatic</td></tr>
+      <tr><td><b>Array index</b></td><td>❌ Requires <code>splice</code></td><td>✅ Automatic</td></tr>
+      <tr><td><b>Property deletion</b></td><td>❌ Requires <code>Vue.delete()</code></td><td>✅ Automatic</td></tr>
+      <tr><td><b>Initialization</b></td><td>Must loop all keys upfront</td><td>No pre-scan needed</td></tr>
+      <tr><td><b>Browser support</b></td><td>IE9+</td><td>IE11+ (not polyfillable)</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">❓</span> Interview Questions</div>
+    <div class="qa-box">
+      <div class="q">Q: How does Vue's reactivity system work internally?</div>
+      <div class="a"><b>A:</b> Vue converts each property in <code>data</code> into getter/setter pairs using <code>Object.defineProperty()</code> (Vue 2) or <code>Proxy</code> (Vue 3). When a component renders, its render function reads reactive properties, triggering the getter which records the component as a dependent. When a property changes, the setter fires and notifies all recorded dependents, scheduling a re-render. The re-render produces a new Virtual DOM tree, which is diffed against the old one to apply minimal real DOM updates.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: What are the limitations of Object.defineProperty that Proxy fixes?</div>
+      <div class="a"><b>A:</b> (1) <code>defineProperty</code> cannot detect new properties added to an object — <code>Vue.set()</code> is needed. (2) It cannot detect array index assignments — <code>arr[0] = x</code> doesn't trigger reactivity. (3) It cannot detect property deletion. (4) It requires scanning all properties at initialization. <code>Proxy</code> fixes all of these by intercepting operations on the entire object dynamically.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: What is the Virtual DOM and why does Vue use it?</div>
+      <div class="a"><b>A:</b> The Virtual DOM is a lightweight JavaScript representation of the real DOM. Vue uses it for performance — instead of touching the real DOM (which is slow) on every data change, Vue builds a new VDOM tree, diffs it against the previous one, and computes the minimal set of DOM mutations required. This avoids expensive layout recalculations and ensures smooth updates.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">AppDev2 · Vue.js Reactivity Internals — study card</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe — Basic Vue | MAD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f9; --surface: #ffffff; --ink: #1a1e2b; --ink-soft: #505770; --ink-faint: #8b91a5; --line: #dde0e9;
+    --blue: #1e4f8a; --blue-soft: #e9eef7; --gold: #b5872a; --gold-soft: #f6ecd3; --gold-deep: #8f6a1c;
+    --rust: #a8482a; --rust-soft: #f7e6df; --teal: #2c6b5d; --teal-soft: #e2efec; --purple: #5a3e8a; --purple-soft: #ede7f5;
+    --green: #3d7a4a; --green-soft: #e6f0e8; --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color: var(--ink); line-height: 1.7; padding: 0; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  h1,h2,h3,h4,h5 { font-family: 'Inter',sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code,pre,.mono { font-family: 'JetBrains Mono','Cascadia Code',monospace; }
+  pre { background: #1a1e2b; color: #e8eaef; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: var(--blue-soft); padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; font-size: 0.85em; }
+  pre code { background: none; padding: 0; border-radius: 0; font-weight: 400; }
+  .hljs-keyword { color: #c792ea; } .hljs-string { color: #c3e88d; } .hljs-number { color: #f78c6c; }
+  .hljs-comment { color: #546e7a; font-style: italic; } .hljs-function { color: #82aaff; } .hljs-title { color: #ffcb6b; }
+  .hljs-built_in { color: #89ddff; } .hljs-attr { color: #f07178; } .hljs-tag { color: #f07178; } .hljs-name { color: #f07178; }
+  .hljs-selector-tag { color: #c792ea; } .hljs-literal { color: #f78c6c; } .hljs-params { color: #eeffff; }
+  .hljs-variable { color: #eeffff; } .hljs-property { color: #c3e88d; }
+
+  .hero { background: linear-gradient(135deg,#1a1e2b 0%,#2c3e6b 50%,#1e4f8a 100%); color: #fff; padding: 3rem 0 2.5rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -60%; right: -20%; width: 500px; height: 500px; background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -40%; left: -10%; width: 350px; height: 350px; background: rgba(255,255,255,0.02); border-radius: 50%; pointer-events: none; }
+  .hero h1 { font-size: 2.4rem; font-weight: 900; position: relative; z-index: 1; line-height: 1.2; }
+  .hero h1 span { color: #e8c55a; }
+  .hero .subtitle { font-size: 1.1rem; opacity: 0.85; margin-top: 0.4rem; font-weight: 400; position: relative; z-index: 1; }
+  .hero .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; opacity: 0.7; position: relative; z-index: 1; flex-wrap: wrap; }
+  .hero .meta span { display: flex; align-items: center; gap: 0.35rem; }
+
+  .section { margin-bottom: 2.5rem; }
+  .sec-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--line); }
+  .sec-num { font-size: 0.75rem; font-weight: 800; color: var(--blue); background: var(--blue-soft); padding: 0.2em 0.7em; border-radius: 999px; letter-spacing: 0.04em; }
+  .sec-header h2 { font-size: 1.5rem; margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .sec-intro { font-size: 1rem; color: var(--ink-soft); margin-bottom: 1.25rem; line-height: 1.8; }
+
+  .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--line); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card h2 { font-size: 1.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; color: var(--ink); }
+  .card h3 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--blue); }
+  .card p { margin-bottom: 0.5rem; } .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+  .bdr-blue { border-left-color: var(--blue); } .bdr-gold { border-left-color: var(--gold); }
+  .bdr-teal { border-left-color: var(--teal); } .bdr-rust { border-left-color: var(--rust); }
+  .bdr-purple { border-left-color: var(--purple); } .bdr-green { border-left-color: var(--green); }
+
+  .concept-card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+  .concept-card h3 { color: var(--gold-deep); font-size: 1.05rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  .callout { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; border-left: 4px solid; }
+  .callout-info { background: var(--blue-soft); border-color: var(--blue); }
+  .callout-warning { background: var(--rust-soft); border-color: var(--rust); }
+  .callout-tip { background: var(--green-soft); border-color: var(--green); }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p { margin-bottom: 0.25rem; font-size: 0.9rem; } .callout-body p:last-child { margin-bottom: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; } .tbl-wrap table { margin-bottom: 0; }
+
+  .code-block { background: #1a1e2b; border-radius: var(--radius); margin-bottom: 1.25rem; overflow: hidden; box-shadow: var(--shadow); }
+  .cb-label { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #2a2e3b; color: #8b91a5; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .cb-label .cb-lang { color: var(--gold); }
+  .code-block pre { margin: 0; border-radius: 0; }
+
+  .flowchart { display: flex; flex-direction: column; align-items: center; padding: 1.5rem; gap: 0.5rem; font-family: 'JetBrains Mono',monospace; font-size: 0.82rem; }
+  .fc-box { display: flex; align-items: center; justify-content: center; padding: 0.7rem 1.2rem; background: var(--surface); border: 2px solid var(--blue); border-radius: 8px; font-weight: 600; color: var(--blue); text-align: center; min-width: 140px; box-shadow: var(--shadow); }
+  .fc-box.gold { border-color: var(--gold); color: var(--gold-deep); background: var(--gold-soft); }
+  .fc-box.teal { border-color: var(--teal); color: var(--teal); background: var(--teal-soft); }
+  .fc-box.rust { border-color: var(--rust); color: var(--rust); background: var(--rust-soft); }
+  .fc-box.purple { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .fc-box.green { border-color: var(--green); color: var(--green); background: var(--green-soft); }
+  .fc-box.small { min-width: 100px; padding: 0.5rem 0.8rem; font-size: 0.75rem; }
+  .fc-arrow { color: var(--ink-faint); font-size: 1.2rem; line-height: 1; }
+  .fc-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+
+  .diagram { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); overflow-x: auto; }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  .qa-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden; }
+  .qa-q { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; background: var(--blue-soft); color: var(--blue); font-size: 0.9rem; transition: 0.2s; }
+  .qa-q:hover { background: #dce4f5; }
+  .qa-q .qa-toggle { font-size: 1.1rem; transition: transform 0.3s; }
+  .qa-q.open .qa-toggle { transform: rotate(45deg); }
+  .qa-a { padding: 1rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.9rem; display: none; }
+  .qa-a.open { display: block; } .qa-a p { margin-bottom: 0.4rem; } .qa-a ul { padding-left: 1.25rem; margin-bottom: 0.4rem; } .qa-a code { font-size: 0.82em; }
+
+  .cheat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+  .cheat-item { background: var(--surface); border-radius: 8px; padding: 1rem 1.25rem; box-shadow: var(--shadow); border-left: 3px solid var(--blue); }
+  .cheat-item h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blue); margin-bottom: 0.4rem; }
+  .cheat-item code { display: block; margin-bottom: 0.2rem; font-size: 0.8rem; }
+  .cheat-item .cheat-desc { font-size: 0.78rem; color: var(--ink-soft); }
+
+  .summary-box { background: linear-gradient(135deg,var(--blue-soft),var(--teal-soft)); border-radius: var(--radius); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border: 1px solid rgba(30,79,138,0.15); }
+  .summary-box h3 { color: var(--blue); margin-bottom: 0.75rem; }
+  .summary-box ul { padding-left: 1.25rem; }
+  .summary-box li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .pill { display: inline-block; padding: 0.2em 0.7em; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-blue { background: var(--blue-soft); color: var(--blue); } .pill-gold { background: var(--gold-soft); color: var(--gold-deep); }
+  .pill-teal { background: var(--teal-soft); color: var(--teal); } .pill-rust { background: var(--rust-soft); color: var(--rust); }
+  .pill-purple { background: var(--purple-soft); color: var(--purple); }
+
+  .takeaway-list { list-style: none; padding: 0; }
+  .takeaway-list li { padding: 0.5rem 0 0.5rem 1.5rem; position: relative; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+  .takeaway-list li:last-child { border-bottom: none; }
+  .takeaway-list li::before { content: '>'; position: absolute; left: 0; color: var(--teal); font-weight: 700; font-family: 'JetBrains Mono',monospace; }
+
+  .glossary-term { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .gt-word { font-weight: 700; color: var(--blue); font-family: 'JetBrains Mono',monospace; font-size: 0.85rem; }
+  .glossary-term .gt-def { color: var(--ink-soft); }
+
+  .footer { text-align: center; padding: 2rem 0; color: var(--ink-faint); font-size: 0.8rem; border-top: 1px solid var(--line); margin-top: 2rem; }
+
+  @media print {
+    body { background: #fff; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 1.5rem 0; }
+    .card,.concept-card,.qa-card,.callout,.summary-box,.diagram,.code-block,.cheat-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    .qa-a { display: block !important; } .qa-q .qa-toggle { display: none; }
+    .fc-box { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .callout-info,.callout-warning,.callout-tip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sec-header { border-bottom-color: #ccc; }
+  }
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 1.6rem; } .hero { padding: 2rem 0 1.5rem; }
+    .container { padding: 0 16px; } .card { padding: 1rem 1.25rem; }
+    .glossary-term { grid-template-columns: 1fr; gap: 0.2rem; }
+    .fc-row { flex-direction: column; } .fc-arrow { transform: rotate(90deg); }
+    .cheat-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.3rem; } .sec-header h2 { font-size: 1.2rem; } .card { padding: 0.85rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Tic Tac Toe &mdash; <span>Basic Vue</span></h1>
+    <div class="subtitle">Reactive Programming, Data Binding &amp; Automatic UI Updates</div>
+    <div class="meta">
+      <span>MAD2: Modern Application Development II</span>
+      <span>Week 03 &middot; Vue.js Basics</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<section class="section" id="overview">
+  <div class="sec-header"><span class="sec-num">01</span><h2>Overview</h2></div>
+  <p class="sec-intro">
+    This demo builds Tic Tac Toe using <strong>Vue.js</strong>. Unlike Vanilla JS where you manually update the DOM, 
+    Vue's <strong>reactivity system</strong> watches your state and automatically updates the DOM when state changes. 
+    You write declarative templates; Vue handles the rest.
+  </p>
+  <div class="card bdr-blue">
+    <h3>&#x1F3AE; What Changes with Vue</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Vanilla JS</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr><td>You store state in plain variables</td><td>State lives in <code>data()</code> &mdash; reactive by default</td></tr>
+          <tr><td>You write <code>cell.textContent = value</code></td><td>Template uses <code>{{ board[i] }}</code> &mdash; auto-updates</td></tr>
+          <tr><td>You manually add/toggle CSS classes</td><td><code>:class="{ taken: board[i] }"</code> handles it</td></tr>
+          <tr><td>You attach events with <code>addEventListener</code></td><td><code>@click="handleClick(i)"</code> in the template</td></tr>
+          <tr><td>You write <code>if (board[i]) return</code> to guard</td><td>Same logic, just in methods</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. VUE BASICS ==================== -->
+<section class="section" id="vue-basics">
+  <div class="sec-header"><span class="sec-num">02</span><h2>Vue Basics</h2></div>
+  <p class="sec-intro">
+    Vue is a <strong>progressive framework</strong> for building user interfaces. You can add it to a single HTML file 
+    via CDN or use it as a full build toolchain. For this demo, we use the CDN version.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F4E6; Vue App Structure</h3>
+    <p>Every Vue application starts with a <strong>Vue app instance</strong> created by <code>createApp()</code>:</p>
+    <div class="diagram">
+      <svg viewBox="0 0 680 220" xmlns="http://www.w3.org/2000/svg">
+        <rect x="40" y="10" rx="8" width="260" height="38" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+        <text x="170" y="34" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#1e4f8a">HTML Template (declarative)</text>
+
+        <rect x="380" y="10" rx="8" width="260" height="38" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+        <text x="510" y="34" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="12" fill="#a8482a">Vue App Instance</text>
+
+        <line x1="300" y1="29" x2="375" y2="29" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrB)"/>
+
+        <rect x="40" y="70" rx="8" width="260" height="100" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="170" y="95" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#2c6b5d">Template Sections</text>
+        <text x="170" y="115" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">&#x2022; Interpolation: {{ board[i] }}</text>
+        <text x="170" y="133" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">&#x2022; Directives: v-for, v-if, @click</text>
+        <text x="170" y="151" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">&#x2022; Bindings: :class, :key</text>
+
+        <rect x="380" y="70" rx="8" width="260" height="100" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="510" y="95" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#b5872a">Options Object</text>
+        <text x="510" y="115" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">&#x2022; data() &rarr; reactive state</text>
+        <text x="510" y="133" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">&#x2022; methods &rarr; functions</text>
+        <text x="510" y="151" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#b5872a">&#x2022; computed &rarr; derived values</text>
+
+        <text x="340" y="205" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#8b91a5">Vue compiles template &rarr; virtual DOM &rarr; real DOM</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Minimal Vue app setup (CDN)</span><span class="cb-lang">HTML + JS</span></div>
+    <pre><code><span class="hljs-comment">&lt;!-- Include Vue from CDN --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://unpkg.com/vue@3/dist/vue.global.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Your template --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"app"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>{{ message }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Your script --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">const</span> { createApp } = <span class="hljs-title class_">Vue</span>;
+
+<span class="hljs-title function_">createApp</span>({
+  data() {
+    <span class="hljs-keyword">return</span> { message: <span class="hljs-string">'Hello Vue!'</span> }
+  }
+}).<span class="hljs-title function_">mount</span>(<span class="hljs-string">'#app'</span>);
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Key Insight</strong>
+      <p>Vue uses a <strong>declarative</strong> approach: you describe <em>what</em> the UI should look like as a function of state, and Vue figures out <em>how</em> to update the DOM when state changes. In Vanilla JS, you write <em>imperative</em> code describing <em>how</em> to update the DOM step by step.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. REACTIVE PROGRAMMING ==================== -->
+<section class="section" id="reactivity">
+  <div class="sec-header"><span class="sec-num">03</span><h2>Reactive Programming</h2></div>
+  <p class="sec-intro">
+    <strong>Reactivity</strong> is the core superpower of Vue. When your data changes, the DOM updates automatically. 
+    You never need to write <code>textContent = ...</code> or <code>classList.add(...)</code> again.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x26A1; How Vue's Reactivity Works</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 700 310" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrG2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2c6b5d"/>
+          </marker>
+        </defs>
+        <rect x="30" y="20" rx="12" width="200" height="60" fill="#e2efec" stroke="#2c6b5d" stroke-width="2"/>
+        <text x="130" y="45" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#2c6b5d">Step 1: You write</text>
+        <text x="130" y="65" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#2c6b5d">this.board[3] = 'X'</text>
+
+        <line x1="230" y1="50" x2="290" y2="50" stroke="#2c6b5d" stroke-width="2" marker-end="url(#arrG2)"/>
+
+        <rect x="295" y="20" rx="12" width="220" height="60" fill="#f7e6df" stroke="#a8482a" stroke-width="2"/>
+        <text x="405" y="45" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#a8482a">Step 2: Vue's Reactivity</text>
+        <text x="405" y="65" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#a8482a">Intercepts the change via Proxy</text>
+
+        <line x1="515" y1="50" x2="575" y2="50" stroke="#2c6b5d" stroke-width="2" marker-end="url(#arrG2)"/>
+
+        <rect x="580" y="20" rx="12" width="100" height="60" fill="#e9eef7" stroke="#1e4f8a" stroke-width="2"/>
+        <text x="630" y="45" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="700" fill="#1e4f8a">Step 3</text>
+        <text x="630" y="65" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10" fill="#1e4f8a">Re-render</text>
+
+        <rect x="30" y="110" rx="10" width="200" height="44" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+        <text x="130" y="137" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#1e4f8a">Reactive State (Proxy)</text>
+
+        <line x1="130" y1="154" x2="130" y2="178" stroke="#1e4f8a" stroke-width="1.5"/>
+        <line x1="130" y1="172" x2="320" y2="172" stroke="#1e4f8a" stroke-width="1.5"/>
+        <line x1="320" y1="172" x2="320" y2="195" stroke="#1e4f8a" stroke-width="1.5"/>
+
+        <rect x="220" y="200" rx="10" width="200" height="44" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+        <text x="320" y="227" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#5a3e8a">Dependency Tracking</text>
+
+        <line x1="320" y1="244" x2="320" y2="268" stroke="#5a3e8a" stroke-width="1.5"/>
+        <line x1="130" y1="268" x2="550" y2="268" stroke="#5a3e8a" stroke-width="1.5"/>
+        <line x1="550" y1="268" x2="550" y2="195" stroke="#5a3e8a" stroke-width="1.5"/>
+
+        <rect x="460" y="200" rx="10" width="200" height="44" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="560" y="227" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#b5872a">Virtual DOM Diff</text>
+
+        <rect x="30" y="200" rx="10" width="140" height="44" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="100" y="227" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="600" fill="#2c6b5d">DOM Update</text>
+
+        <line x1="130" y1="244" x2="130" y2="195" stroke="#2c6b5d" stroke-width="1.5"/>
+
+        <text x="350" y="295" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#8b91a5">All of this happens automatically — you only write Step 1</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F9E0; Reactive vs Non-Reactive</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Vanilla JS (non-reactive)</span><span class="cb-lang">JavaScript</span></div>
+      <pre><code><span class="hljs-keyword">let</span> board = [<span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>];
+board[<span class="hljs-number">1</span>] = <span class="hljs-string">'X'</span>;
+<span class="hljs-comment">// DOM is still empty! You must write:</span>
+cells[<span class="hljs-number">1</span>].<span class="hljs-property">textContent</span> = <span class="hljs-string">'X'</span>;</code></pre>
+    </div>
+    <div class="code-block">
+      <div class="cb-label"><span>Vue JS (reactive)</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-comment">// Template: {{ board[1] }}  // auto-updates!</span>
+
+<span class="hljs-attr">data()</span> {
+  <span class="hljs-keyword">return</span> { board: [<span class="hljs-string">''</span>, <span class="hljs-string">''</span>, <span class="hljs-string">''</span>] }
+},
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-title function_">makeMove</span>(i) {
+    <span class="hljs-variable language_">this</span>.board[i] = <span class="hljs-string">'X'</span>;
+    <span class="hljs-comment">// DOM updates automatically! No manual sync needed.</span>
+  }
+}</code></pre>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Real-Life Analogy: A Spreadsheet</strong>
+      <p>In Excel, when you change a cell value (<code>A1 = 10</code>), every formula that references A1 recalculates automatically. Vue's reactivity works the same way: change your data, and every part of the template that <strong>depends</strong> on that data updates automatically. You never recalculate by hand.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. DATA BINDING ==================== -->
+<section class="section" id="data-binding">
+  <div class="sec-header"><span class="sec-num">04</span><h2>Data Binding</h2></div>
+  <p class="sec-intro">
+    <strong>Data binding</strong> connects your JavaScript state to the HTML template. Vue offers several ways to bind data.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F517; Types of Binding</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Binding Type</th><th>Syntax</th><th>What It Does</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Text Interpolation</strong></td><td><code>{{ board[i] }}</code></td><td>Inserts the value as text (escaped)</td></tr>
+          <tr><td><strong>Attribute Binding</strong></td><td><code>:class="expr"</code></td><td>Binds an attribute to a JS expression (shorthand for <code>v-bind:</code>)</td></tr>
+          <tr><td><strong>Event Binding</strong></td><td><code>@click="handler"</code></td><td>Attaches an event listener (shorthand for <code>v-on:</code>)</td></tr>
+          <tr><td><strong>Two-Way Binding</strong></td><td><code>v-model="property"</code></td><td>Syncs an input field with a state property (both ways)</td></tr>
+          <tr><td><strong>HTML Binding</strong></td><td><code>v-html="rawHtml"</code></td><td>Inserts raw HTML (caution: XSS risk)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>All binding types in Tic Tac Toe</span><span class="cb-lang">Vue template</span></div>
+    <pre><code><span class="hljs-comment">&lt;!-- Text interpolation: board[i] value shows here --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+  <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span>  <span class="hljs-comment">--&gt; Loop directive</span>
+  <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>                     <span class="hljs-comment">--&gt; Attribute binding</span>
+  <span class="hljs-attr">:class</span>=<span class="hljs-string">"{ taken: cell }"</span>      <span class="hljs-comment">--&gt; Class binding</span>
+  @<span class="hljs-attr">click</span>=<span class="hljs-string">"makeMove(i)"</span>         <span class="hljs-comment">--&gt; Event binding</span>
+&gt;</span>
+  {{ cell || '&amp;nbsp;' }}          <span class="hljs-comment">--&gt; Text interpolation</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>One-Way vs Two-Way Binding</strong>
+      <p><code>v-bind</code> (<code>:</code>) is <strong>one-way</strong>: data flows from state to the template. <code>v-model</code> is <strong>two-way</strong>: changes in the input update the state and vice versa. For Tic Tac Toe, we only need one-way binding because the game board is display-only (users click buttons, not type into inputs).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 5. TEMPLATE SYNTAX & DIRECTIVES ==================== -->
+<section class="section" id="template">
+  <div class="sec-header"><span class="sec-num">05</span><h2>Template Syntax &amp; Directives</h2></div>
+  <p class="sec-intro">
+    Vue's template syntax extends HTML with special attributes called <strong>directives</strong>. 
+    Directives are prefixed with <code>v-</code> and tell Vue to do something with the DOM element.
+  </p>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F3F7; Core Directives Used in Tic Tac Toe</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Directive</th><th>Purpose</th><th>In Our Game</th></tr></thead>
+        <tbody>
+          <tr><td><code>v-for="(cell, i) in board"</code></td><td>Loops over an array, renders one element per item</td><td>Renders the 9 cell buttons</td></tr>
+          <tr><td><code>:key="i"</code></td><td>Unique identifier for each looped element</td><td>Helps Vue efficiently update cells</td></tr>
+          <tr><td><code>:class="{ taken: cell }"</code></td><td>Dynamically binds CSS classes</td><td>Adds 'taken' class when cell is filled</td></tr>
+          <tr><td><code>@click="makeMove(i)"</code></td><td>Listens for click events</td><td>Handles player moves</td></tr>
+          <tr><td><code>v-if="winner"</code></td><td>Conditionally renders an element</td><td>Shows the win/draw message</td></tr>
+          <tr><td><code>{{ expression }}</code></td><td>Evaluates expression as text</td><td>Displays board cell values</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Complete Vue template for Tic Tac Toe</span><span class="cb-lang">Vue template</span></div>
+    <pre><code><span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"app"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Tic Tac Toe&lt;/h1&gt;
+
+  <span class="hljs-comment">&lt;!-- Status --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"status"</span>&gt;</span>{{ statusMessage }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Board --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"board"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+      <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span>
+      <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>
+      <span class="hljs-attr">:class</span>=<span class="hljs-string">"[
+
+        'cell',
+        { taken: cell, x: cell === 'X', o: cell === 'O' }
+      ]"</span>
+      @<span class="hljs-attr">click</span>=<span class="hljs-string">"makeMove(i)"</span>&gt;</span>
+      {{ cell }}
+    <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+  <span class="hljs-comment">&lt;!-- Win message / Reset --&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"gameOver"</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"game-over"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">button</span> @<span class="hljs-attr">click</span>=<span class="hljs-string">"resetGame"</span>&gt;</span>Play Again<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Shorthand Reminder</strong>
+      <p><code>:</code> is shorthand for <code>v-bind:</code> (attribute binding). <code>@</code> is shorthand for <code>v-on:</code> (event binding). So <code>:class="..."</code> = <code>v-bind:class="..."</code> and <code>@click="..."</code> = <code>v-on:click="..."</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. VUE LIFECYCLE ==================== -->
+<section class="section" id="lifecycle">
+  <div class="sec-header"><span class="sec-num">06</span><h2>Vue Lifecycle Overview</h2></div>
+  <p class="sec-intro">
+    Every Vue component goes through a series of lifecycle stages from creation to destruction. 
+    You can run code at specific stages using lifecycle hooks.
+  </p>
+
+  <div class="card bdr-green">
+    <h3>&#x1F501; Lifecycle Phases</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">createApp()</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small purple">beforeCreate</div>
+        <div class="fc-box small teal">created</div>
+      </div>
+      <div class="fc-label">Data observed, but no DOM yet</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Compile Template</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small purple">beforeMount</div>
+        <div class="fc-box small teal">mounted</div>
+      </div>
+      <div class="fc-label">DOM is now available</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">App running (reactive)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-row">
+        <div class="fc-box small rust">beforeUnmount</div>
+        <div class="fc-box small">unmounted</div>
+      </div>
+      <div class="fc-label">Cleanup</div>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4CD; Where Our Game Logic Runs</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Hook</th><th>When It Runs</th><th>Use Case in Tic Tac Toe</th></tr></thead>
+        <tbody>
+          <tr><td><code>beforeCreate</code></td><td>Before data observation</td><td>Rarely used</td></tr>
+          <tr><td><code>created</code></td><td>Data ready, no DOM</td><td>Could initialise game state</td></tr>
+          <tr><td><code>beforeMount</code></td><td>Before DOM insertion</td><td>Rarely used</td></tr>
+          <tr><td><code>mounted</code></td><td>DOM is rendered</td><td>Could load saved game from localStorage</td></tr>
+          <tr><td><code>beforeUnmount</code></td><td>Before component removal</td><td>Cleanup timers/event listeners</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Using a lifecycle hook</span><span class="cb-lang">Vue</span></div>
+    <pre><code><span class="hljs-title function_">createApp</span>({
+  data() {
+    <span class="hljs-keyword">return</span> { board: [<span class="hljs-string">''</span>]*<span class="hljs-number">9</span> }
+  },
+  <span class="hljs-title function_">mounted</span>() {
+    <span class="hljs-variable language_">console</span>.<span class="hljs-title function_">log</span>(<span class="hljs-string">'Board mounted, ready to play!'</span>);
+    <span class="hljs-comment">// Could restore game from localStorage here</span>
+  }
+}).<span class="hljs-title function_">mount</span>(<span class="hljs-string">'#app'</span>);</code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>For Our Demo</strong>
+      <p>We do not need lifecycle hooks for basic Tic Tac Toe. All our logic runs in <code>methods</code> triggered by <code>@click</code>. Lifecycle hooks matter when you need to fetch data from an API (<code>mounted</code>) or clean up resources (<code>beforeUnmount</code>).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 7. AUTOMATIC UI UPDATES ==================== -->
+<section class="section" id="auto-updates">
+  <div class="sec-header"><span class="sec-num">07</span><h2>Automatic UI Updates</h2></div>
+  <p class="sec-intro">
+    The biggest difference between Vanilla JS and Vue: Vue handles DOM updates for you. 
+    You change state; Vue recalculates what changed and patches the DOM.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x2699; How Automatic Updates Work</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrB2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/>
+          </marker>
+        </defs>
+        <rect x="30" y="20" rx="10" width="180" height="50" fill="#f7e6df" stroke="#a8482a" stroke-width="2"/>
+        <text x="120" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#a8482a">Vanilla JS</text>
+        <text x="120" y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">Mutate + Manual DOM</text>
+
+        <rect x="280" y="20" rx="10" width="180" height="50" fill="#e2efec" stroke="#2c6b5d" stroke-width="2"/>
+        <text x="370" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#2c6b5d">Vue.js</text>
+        <text x="370" y="58" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">Mutate only</text>
+
+        <text x="120" y="100" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" fill="#a8482a">board[3] = 'X'</text>
+        <line x1="170" y1="100" x2="210" y2="100" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrB2)"/>
+        <text x="245" y="110" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#1e4f8a">&darr;</text>
+        <text x="245" y="125" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#1e4f8a">manual</text>
+        <text x="245" y="140" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" fill="#1e4f8a">sync</text>
+
+        <rect x="280" y="90" rx="8" width="180" height="26" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="370" y="107" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">board[3] = 'X'</text>
+
+        <rect x="30" y="110" rx="8" width="180" height="26" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="120" y="127" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">cells[3].textContent = 'X'</text>
+
+        <path d="M 370 116 L 370 145 Q 370 155 360 155 L 290 155 Q 280 155 280 145 L 280 136" stroke="#2c6b5d" stroke-width="1.5" fill="none" marker-end="url(#arrB2)"/>
+        <text x="370" y="150" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#2c6b5d">Vue handles this automatically</text>
+        <text x="370" y="168" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" fill="#2c6b5d">(virtual DOM diff &amp; patch)</text>
+
+        <rect x="30" y="165" rx="8" width="180" height="26" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="120" y="182" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">DOM updated (manually)</text>
+
+        <rect x="280" y="180" rx="8" width="180" height="26" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="370" y="197" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">DOM updated (automatically)</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-gold">
+    <h3>&#x1F4DD; Before &amp; After: The Same Move</h3>
+    <div class="grid-2">
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Vanilla JS</span><span class="cb-lang">JS</span></div>
+        <pre><code><span class="hljs-keyword">function</span> <span class="hljs-title function_">handleClick</span>(<span class="hljs-params">i</span>) {
+  <span class="hljs-keyword">if</span> (gameOver || board[i]) <span class="hljs-keyword">return</span>;
+  board[i] = turn;
+  cells[i].<span class="hljs-property">textContent</span> = turn;
+  cells[i].<span class="hljs-property">classList</span>.<span class="hljs-title function_">add</span>(<span class="hljs-string">'taken'</span>);
+
+  <span class="hljs-keyword">if</span> (<span class="hljs-title function_">checkWin</span>(turn)) {
+    status.<span class="hljs-property">textContent</span> = <span class="hljs-string">'Player ' + turn + ' wins!'</span>;
+    gameOver = <span class="hljs-literal">true</span>;
+  } <span class="hljs-keyword">else</span> {
+    turn = turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+    status.<span class="hljs-property">textContent</span> = <span class="hljs-string">'Player ' + turn + "'s turn"</span>;
+  }
+}</code></pre>
+      </div>
+      <div class="code-block" style="margin:0;">
+        <div class="cb-label"><span>Vue.js</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-attr">methods</span>: {
+  <span class="hljs-title function_">makeMove</span>(i) {
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.gameOver || <span class="hljs-variable language_">this</span>.board[i]) <span class="hljs-keyword">return</span>;
+    <span class="hljs-variable language_">this</span>.board[i] = <span class="hljs-variable language_">this</span>.turn;
+
+    <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">checkWin</span>(<span class="hljs-variable language_">this</span>.turn)) {
+      <span class="hljs-variable language_">this</span>.winner = <span class="hljs-variable language_">this</span>.turn;
+      <span class="hljs-variable language_">this</span>.gameOver = <span class="hljs-literal">true</span>;
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-variable language_">this</span>.turn = <span class="hljs-variable language_">this</span>.turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+    }
+    <span class="hljs-comment">// No DOM code! Template handles everything.</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>But You Still Need Game Logic!</strong>
+      <p>Vue only handles the <strong>DOM updates</strong>. You still write the game logic (win check, turn toggle, draw detection) yourself. Vue is not magic &mdash; it just eliminates the tedious, error-prone <code>textContent</code> and <code>classList</code> boilerplate.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. FULL VUE IMPLEMENTATION ==================== -->
+<section class="section" id="full-code">
+  <div class="sec-header"><span class="sec-num">08</span><h2>Complete Vue Tic Tac Toe</h2></div>
+  <p class="sec-intro">
+    The entire game in one HTML file using Vue 3 CDN. Notice: <strong>no DOM manipulation</strong> anywhere.
+  </p>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Complete file (runnable)</span><span class="cb-lang">HTML</span></div>
+    <pre><code><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://unpkg.com/vue@3/dist/vue.global.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">"app"</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">h2</span>&gt;</span>Tic Tac Toe (Vue)&lt;/h2&gt;
+  <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"status"</span>&gt;</span>{{ status }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"board"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">button</span>
+      <span class="hljs-attr">v-for</span>=<span class="hljs-string">"(cell, i) in board"</span>
+      <span class="hljs-attr">:key</span>=<span class="hljs-string">"i"</span>
+      <span class="hljs-attr">class</span>=<span class="hljs-string">"cell"</span>
+      <span class="hljs-attr">:class</span>=<span class="hljs-string">"{ taken: cell, x: cell==='X', o: cell==='O' }"</span>
+      @<span class="hljs-attr">click</span>=<span class="hljs-string">"makeMove(i)"</span>
+    &gt;</span>{{ cell }}<span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+  <span class="hljs-tag">&lt;<span class="hljs-name">button</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"gameOver"</span> @<span class="hljs-attr">click</span>=<span class="hljs-string">"resetGame"</span>&gt;</span>
+    Play Again
+  <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">const</span> { createApp } = <span class="hljs-title class_">Vue</span>;
+
+<span class="hljs-title function_">createApp</span>({
+  data() {
+    <span class="hljs-keyword">return</span> {
+      board: [<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>],
+      turn: <span class="hljs-string">'X'</span>,
+      winner: <span class="hljs-literal">null</span>,
+      gameOver: <span class="hljs-literal">false</span>
+    }
+  },
+  <span class="hljs-attr">computed</span>: {
+    status() {
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.winner) <span class="hljs-keyword">return</span> <span class="hljs-string">`Player <span class="hljs-subst">${this.winner}</span> wins!`</span>;
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.gameOver) <span class="hljs-keyword">return</span> <span class="hljs-string">"It's a draw!"</span>;
+      <span class="hljs-keyword">return</span> <span class="hljs-string">`Player <span class="hljs-subst">${this.turn}</span>'s turn`</span>;
+    }
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-title function_">makeMove</span>(i) {
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.gameOver || <span class="hljs-variable language_">this</span>.board[i]) <span class="hljs-keyword">return</span>;
+      <span class="hljs-variable language_">this</span>.board[i] = <span class="hljs-variable language_">this</span>.turn;
+      <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.<span class="hljs-title function_">checkWin</span>(<span class="hljs-variable language_">this</span>.turn)) {
+        <span class="hljs-variable language_">this</span>.winner = <span class="hljs-variable language_">this</span>.turn;
+        <span class="hljs-variable language_">this</span>.gameOver = <span class="hljs-literal">true</span>;
+      } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-variable language_">this</span>.board.<span class="hljs-title function_">every</span>(<span class="hljs-function"><span class="hljs-params">c</span> =></span> c)) {
+        <span class="hljs-variable language_">this</span>.gameOver = <span class="hljs-literal">true</span>;
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-variable language_">this</span>.turn = <span class="hljs-variable language_">this</span>.turn === <span class="hljs-string">'X'</span> ? <span class="hljs-string">'O'</span> : <span class="hljs-string">'X'</span>;
+      }
+    },
+    <span class="hljs-title function_">checkWin</span>(player) {
+      <span class="hljs-keyword">const</span> wins = [[<span class="hljs-number">0</span>,<span class="hljs-number">1</span>,<span class="hljs-number">2</span>],[<span class="hljs-number">3</span>,<span class="hljs-number">4</span>,<span class="hljs-number">5</span>],[<span class="hljs-number">6</span>,<span class="hljs-number">7</span>,<span class="hljs-number">8</span>],
+                    [<span class="hljs-number">0</span>,<span class="hljs-number">3</span>,<span class="hljs-number">6</span>],[<span class="hljs-number">1</span>,<span class="hljs-number">4</span>,<span class="hljs-number">7</span>],[<span class="hljs-number">2</span>,<span class="hljs-number">5</span>,<span class="hljs-number">8</span>],
+                    [<span class="hljs-number">0</span>,<span class="hljs-number">4</span>,<span class="hljs-number">8</span>],[<span class="hljs-number">2</span>,<span class="hljs-number">4</span>,<span class="hljs-number">6</span>]];
+      <span class="hljs-keyword">return</span> wins.<span class="hljs-title function_">some</span>(<span class="hljs-function"><span class="hljs-params">p</span> =></span> p.<span class="hljs-title function_">every</span>(<span class="hljs-function"><span class="hljs-params">i</span> =></span> <span class="hljs-variable language_">this</span>.board[i] === player));
+    },
+    <span class="hljs-title function_">resetGame</span>() {
+      <span class="hljs-variable language_">this</span>.board = [<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>,<span class="hljs-string">''</span>];
+      <span class="hljs-variable language_">this</span>.turn = <span class="hljs-string">'X'</span>;
+      <span class="hljs-variable language_">this</span>.winner = <span class="hljs-literal">null</span>;
+      <span class="hljs-variable language_">this</span>.gameOver = <span class="hljs-literal">false</span>;
+    }
+  }
+}).<span class="hljs-title function_">mount</span>(<span class="hljs-string">'#app'</span>);
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">style</span>&gt;</span>
+<span class="hljs-selector-class">.board</span> { <span class="hljs-attr">display</span>: grid; <span class="hljs-attr">grid-template-columns</span>: repeat(3, 80px); <span class="hljs-attr">gap</span>: 4px; }
+<span class="hljs-selector-class">.cell</span> { <span class="hljs-attr">width</span>: 80px; <span class="hljs-attr">height</span>: 80px; <span class="hljs-attr">font-size</span>: 2rem; }
+<span class="hljs-selector-class">.taken</span> { <span class="hljs-attr">cursor</span>: default; <span class="hljs-attr">background</span>: #eef; }
+<span class="hljs-selector-class">.x</span> { <span class="hljs-attr">color</span>: #a8482a; } <span class="hljs-selector-class">.o</span> { <span class="hljs-attr">color</span>: #2c6b5d; }
+<span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span></code></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Notice: No DOM Code</strong>
+      <p>Compare this with the Vanilla JS version. There are zero <code>document.querySelector</code>, zero <code>.textContent</code>, zero <code>.classList</code> calls. Vue's template bindings (<code>{{ }}</code>, <code>:class</code>, <code>@click</code>) replace all of them. The <code>computed</code> property <code>status</code> even updates automatically when <code>winner</code>, <code>gameOver</code>, or <code>turn</code> change.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 9. COMPARISON: THREE VERSIONS ==================== -->
+<section class="section" id="comparison">
+  <div class="sec-header"><span class="sec-num">09</span><h2>Three-Way Comparison</h2></div>
+  <p class="sec-intro">
+    We have now seen Tic Tac Toe built with Flask SSR, Vanilla JS, and Vue.js. Here is how they compare.
+  </p>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4CA; The Same Game, Three Architectures</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 720 180" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" rx="8" width="220" height="36" fill="#a8482a" opacity="0.85"/>
+        <text x="120" y="33" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#fff">Flask SSR</text>
+        <rect x="10" y="55" rx="6" width="220" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="120" y="70" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">State on server</text>
+        <rect x="10" y="80" rx="6" width="220" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="120" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">HTML form submit</text>
+        <rect x="10" y="105" rx="6" width="220" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="120" y="120" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">Full page reload</text>
+        <rect x="10" y="130" rx="6" width="220" height="22" fill="#f7e6df" stroke="#a8482a" stroke-width="1"/>
+        <text x="120" y="145" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#a8482a">Server renders HTML</text>
+
+        <rect x="250" y="10" rx="8" width="220" height="36" fill="#2c6b5d" opacity="0.85"/>
+        <text x="360" y="33" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#fff">Vanilla JS</text>
+        <rect x="250" y="55" rx="6" width="220" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="360" y="70" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">State in variables</text>
+        <rect x="250" y="80" rx="6" width="220" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="360" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">Manual DOM updates</text>
+        <rect x="250" y="105" rx="6" width="220" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="360" y="120" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">addEventListener</text>
+        <rect x="250" y="130" rx="6" width="220" height="22" fill="#e2efec" stroke="#2c6b5d" stroke-width="1"/>
+        <text x="360" y="145" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#2c6b5d">No page reload</text>
+
+        <rect x="490" y="10" rx="8" width="220" height="36" fill="#b5872a" opacity="0.85"/>
+        <text x="600" y="33" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="700" fill="#fff">Vue.js</text>
+        <rect x="490" y="55" rx="6" width="220" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="600" y="70" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">Reactive state in data()</text>
+        <rect x="490" y="80" rx="6" width="220" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="600" y="95" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">Automatic DOM updates</text>
+        <rect x="490" y="105" rx="6" width="220" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="600" y="120" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">@click directives</text>
+        <rect x="490" y="130" rx="6" width="220" height="22" fill="#f6ecd3" stroke="#b5872a" stroke-width="1"/>
+        <text x="600" y="145" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#b5872a">No page reload</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4CA; Detailed Comparison Table</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dimension</th><th>Flask SSR</th><th>Vanilla JS</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr><td>Where state lives</td><td>Server (session)</td><td>JS variables</td><td><code>data()</code> (reactive)</td></tr>
+          <tr><td>DOM updates</td><td>Full HTML page</td><td>Manual (<code>textContent</code>)</td><td>Automatic (reactivity)</td></tr>
+          <tr><td>Page reloads</td><td>Every move</td><td>Never</td><td>Never</td></tr>
+          <tr><td>Event handling</td><td>Form submit</td><td><code>addEventListener</code></td><td><code>@click</code> directive</td></tr>
+          <tr><td>Code complexity</td><td>Low (Python + Jinja2)</td><td>Medium (DOM API)</td><td>Medium (Vue API)</td></tr>
+          <tr><td>Reactivity</td><td>None (manual)</td><td>None (manual)</td><td>Built-in (Proxy)</td></tr>
+          <tr><td>Learning curve</td><td>Low for Python devs</td><td>Moderate</td><td>Moderate (new concepts)</td></tr>
+          <tr><td>SEO</td><td>Excellent</td><td>Poor</td><td>Needs SSR (Nuxt)</td></tr>
+          <tr><td>Offline capable</td><td>No</td><td>Yes (after load)</td><td>Yes (after load)</td></tr>
+          <tr><td>State persistence</td><td>Session cookie</td><td>None (lost on refresh)</td><td>None (need localStorage)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 10. ADVANTAGES OF VUE ==================== -->
+<section class="section" id="advantages">
+  <div class="sec-header"><span class="sec-num">10</span><h2>Advantages of Using Vue</h2></div>
+
+  <div class="grid-2">
+    <div class="card bdr-teal">
+      <h3>&#x2705; Advantages</h3>
+      <ul>
+        <li><strong>No manual DOM manipulation</strong> &mdash; Vue handles all DOM updates through reactivity.</li>
+        <li><strong>Declarative templates</strong> &mdash; you describe the UI as a function of state, not as a sequence of DOM commands.</li>
+        <li><strong>Reactivity built in</strong> &mdash; change <code>this.board[i]</code> and the cell updates automatically.</li>
+        <li><strong>Directives</strong> (<code>v-for</code>, <code>v-if</code>, <code>:class</code>) make templates expressive and concise.</li>
+        <li><strong>Computed properties</strong> derive values reactively (our <code>status</code> message).</li>
+        <li><strong>Scoped CSS</strong> (in SFCs) prevents style conflicts.</li>
+        <li><strong>Progressive</strong> &mdash; use a little (CDN) or a lot (full SFC build).</li>
+      </ul>
+    </div>
+    <div class="card bdr-rust">
+      <h3>&#x274C; Limitations</h3>
+      <ul>
+        <li><strong>Learning curve</strong> &mdash; new concepts: directives, reactivity, virtual DOM, lifecycle.</li>
+        <li><strong>Extra dependency</strong> &mdash; the Vue library must be loaded (~40 KB min+gzip).</li>
+        <li><strong>Abstraction overhead</strong> &mdash; harder to debug when you do not understand the underlying DOM.</li>
+        <li><strong>Not magic</strong> &mdash; you still write all the game logic (win check, turn management).</li>
+        <li><strong>SEO challenges</strong> &mdash; vanilla Vue renders in the browser, so search engines see an empty page (Nuxt fixes this).</li>
+        <li><strong>State lost on refresh</strong> &mdash; same as Vanilla JS (need localStorage or a backend).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Why Use Vue for Tic Tac Toe?</strong>
+      <p>Vue is overkill for a 9-cell game, but it is a perfect learning tool. The same patterns scale to real applications: reactive state, declarative templates, event handling, computed properties. Once you understand these, you can build anything from a game to a dashboard to an e-commerce site.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 11. COMMON MISTAKES ==================== -->
+<section class="section" id="mistakes">
+  <div class="sec-header"><span class="sec-num">11</span><h2>Common Mistakes</h2></div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 1: Forgetting <code>this.</code> in methods</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-attr">methods</span>: {
+  <span class="hljs-title function_">makeMove</span>(i) {
+    <span class="hljs-keyword">if</span> (gameOver || board[i]) <span class="hljs-keyword">return</span>;  <span class="hljs-comment">// &#x2716; ReferenceError!</span>
+  }
+}</code></pre>
+    </div>
+    <p><strong>Fix:</strong> Always prefix data and methods with <code>this.</code> inside Vue's options: <code>this.gameOver</code>, <code>this.board[i]</code>, <code>this.turn</code>.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 2: Mutating Arrays in Ways Vue Cannot Track</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>Wrong</span><span class="cb-lang">Vue</span></div>
+      <pre><code><span class="hljs-variable language_">this</span>.board[<span class="hljs-number">3</span>] = <span class="hljs-string">'X'</span>;          <span class="hljs-comment">// &#x2716; Vue 3 CAN track this (Proxy)</span>
+
+<span class="hljs-comment">// But in Vue 2, this would NOT be reactive:</span>
+<span class="hljs-comment">// this.board[3] = 'X';  // Vue 2 misses array index assignment!</span>
+<span class="hljs-comment">// Use Vue.set(this.board, 3, 'X') in Vue 2</span></code></pre>
+    </div>
+    <p><strong>Note:</strong> Vue 3 uses <code>Proxy</code> and detects all mutations. Vue 2 uses <code>Object.defineProperty</code> and cannot detect array index assignments. Know which version you are using.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 3: Not Using <code>:key</code> in <code>v-for</code></h3>
+    <p>Without <code>:key</code>, Vue may reuse DOM elements incorrectly when the list changes. Always provide a unique <code>:key</code> with <code>v-for</code>. For our static 9-cell board it matters less, but it is a good habit.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 4: Async Code in Computed Properties</h3>
+    <p>Computed properties must be <strong>synchronous</strong> and <strong>pure</strong> (no side effects). Putting an API call or <code>setTimeout</code> inside a computed property will break Vue's reactivity system. Use <code>methods</code> or <code>watch</code> for async operations.</p>
+  </div>
+
+  <div class="card bdr-rust" style="background:#fff5f0;">
+    <h3>&#x2716; Mistake 5: Overcomplicating with Vue when Vanilla JS Would Suffice</h3>
+    <p>Not every interactive element needs a framework. A simple toggle button, a tooltip, or a small form might be simpler with plain JS. Vue shines when you have multiple pieces of state that affect multiple DOM elements &mdash; exactly the Tic Tac Toe scenario with 9 cells + status + game-over state.</p>
+  </div>
+</section>
+
+<!-- ==================== 12. INTERVIEW & EXAM ==================== -->
+<section class="section" id="qa">
+  <div class="sec-header"><span class="sec-num">12</span><h2>Interview &amp; Exam Questions</h2></div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q1: What is Vue's reactivity system and how does it differ from Vanilla JS state management?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>Vue's reactivity system wraps your <code>data()</code> object in a <strong>Proxy</strong> (Vue 3) that intercepts get/set operations. When you read a property in a template, Vue records that the template depends on that property. When you set the property, Vue notifies all dependents and re-renders only the affected parts of the DOM. In Vanilla JS, you must manually update the DOM after every state change with <code>.textContent</code> and <code>.classList</code>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q2: Explain the difference between <code>v-if</code> and <code>v-show</code>.</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>v-if</code> conditionally renders the element (adds/removes from DOM). <code>v-show</code> always renders but toggles <code>display: none</code>. Use <code>v-if</code> for rare toggles (our "Play Again" button) since it avoids creating the DOM node until needed. Use <code>v-show</code> for frequent toggling (like a dropdown) since the element is always in the DOM.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q3: What is the purpose of <code>:key</code> in <code>v-for</code>?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>:key</code> gives Vue a unique identity for each element in a list. When the list changes (items reorder, added, removed), Vue uses the key to match old and new elements efficiently instead of re-rendering everything. Without keys, Vue's default "in-place patch" strategy can cause bugs with stateful elements like <code>&lt;input&gt;</code> fields.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q4: How does <code>v-bind</code> (<code>:</code>) differ from interpolation <code>{{ }}</code>?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>{{ }}</code> inserts text content into an element. <code>v-bind:</code> (shorthand <code>:</code>) binds a JavaScript expression to an HTML <em>attribute</em> (like <code>class</code>, <code>src</code>, <code>href</code>, or custom attributes). Example: <code>:class="{ active: isActive }"</code> binds the class attribute; <code>{{ isActive }}</code> would display the text "true" or "false".</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q5: What is a computed property and when would you use one?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>A <strong>computed property</strong> derives a value from other reactive state. It caches its result and only re-evaluates when its dependencies change. In Tic Tac Toe, <code>status</code> is computed from <code>winner</code>, <code>gameOver</code>, and <code>turn</code>. Computed properties are <strong>read-only</strong> by convention, <strong>synchronous</strong>, and <strong>pure</strong> (no side effects).</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q6: Compare the developer experience of building Tic Tac Toe in Vanilla JS vs Vue.</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Vanilla JS:</strong> You have complete control but must manually select elements, update their content, add/remove classes, and manage events. Every DOM operation is explicit. Good for learning how the browser works. <strong>Vue:</strong> You write declarative templates and focus on state and logic. Vue handles all DOM synchronization. Less boilerplate, fewer bugs from forgotten updates, but you must learn Vue's concepts (directives, reactivity, computed properties).</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q7: How does Vue 3's Proxy-based reactivity differ from Vue 2's Object.defineProperty?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><strong>Vue 2 (Object.defineProperty):</strong> Could not detect new properties added to objects or direct index assignment on arrays (<code>arr[3] = val</code>). Required <code>Vue.set()</code> for such cases. <strong>Vue 3 (Proxy):</strong> Can intercept any property access, addition, deletion, and array index assignment. No special workarounds needed. Proxy also allows Vue to handle <code>Map</code>, <code>Set</code>, and other built-in types natively.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q8: What happens when you call <code>createApp()</code> and <code>.mount()</code>?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p><code>createApp()</code> creates a Vue application instance with the given options object (data, methods, computed, etc.). It initialises the reactivity system but does not touch the DOM yet. <code>.mount('#app')</code> tells Vue to take control of the <code>#app</code> DOM element, compile its template, create the virtual DOM, render the initial DOM, and attach event listeners. After mounting, Vue's reactivity system keeps the DOM in sync with state.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q9: How would you persist the Tic Tac Toe game state across page refreshes in Vue?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>Use the <code>mounted</code> lifecycle hook to load state from <code>localStorage</code>, and use a <code>watch</code> or save manually in <code>makeMove</code> to persist state whenever it changes:</p>
+      <div class="code-block" style="margin-top:0.5rem;">
+        <div class="cb-label"><span>localStorage persistence</span><span class="cb-lang">Vue</span></div>
+        <pre><code><span class="hljs-title function_">mounted</span>() {
+  <span class="hljs-keyword">const</span> saved = <span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">getItem</span>(<span class="hljs-string">'tictactoe'</span>);
+  <span class="hljs-keyword">if</span> (saved) <span class="hljs-title class_">Object</span>.<span class="hljs-title function_">assign</span>(<span class="hljs-variable language_">this</span>, <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">parse</span>(saved));
+},
+<span class="hljs-attr">methods</span>: {
+  <span class="hljs-title function_">saveState</span>() {
+    <span class="hljs-variable language_">localStorage</span>.<span class="hljs-title function_">setItem</span>(<span class="hljs-string">'tictactoe'</span>, <span class="hljs-title class_">JSON</span>.<span class="hljs-title function_">stringify</span>({
+      board: <span class="hljs-variable language_">this</span>.board, turn: <span class="hljs-variable language_">this</span>.turn,
+      winner: <span class="hljs-variable language_">this</span>.winner, gameOver: <span class="hljs-variable language_">this</span>.gameOver
+    }));
+  }
+}</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)"><span>Q10: What is the virtual DOM and how does Vue use it?</span><span class="qa-toggle">+</span></div>
+    <div class="qa-a">
+      <p>The <strong>virtual DOM</strong> is a lightweight JavaScript object representation of the real DOM. When state changes, Vue creates a new virtual DOM tree, compares (diffs) it with the previous one, calculates the minimum set of changes needed, and applies only those changes to the real DOM. This is far more efficient than rebuilding the entire DOM. Vue's reactivity system triggers this process automatically when data changes.</p>
+    </div>
+  </div>
+
+  <div class="divider">Exam Focus</div>
+
+  <div class="card bdr-rust" style="background:#fff8f5;">
+    <h3>&#x1F4DD; Common Exam Questions</h3>
+    <ol>
+      <li><strong>Explain how Vue's reactivity system works.</strong> What is a Proxy and how does it enable automatic DOM updates?</li>
+      <li><strong>Write a Vue template</strong> that renders a list of items with <code>v-for</code>, binds a class conditionally, and handles a click event.</li>
+      <li><strong>Compare Vanilla JS and Vue</strong> for building a Tic Tac Toe game. What does Vue eliminate?</li>
+      <li><strong>What is a computed property?</strong> Write one that derives a status message from game state.</li>
+      <li><strong>What is the difference between <code>:class</code> and <code>class</code>?</strong> When would you use each?</li>
+      <li><strong>Describe the Vue 3 reactivity system</strong> using Proxy. How is it better than Vue 2's approach?</li>
+      <li><strong>How does event binding work in Vue?</strong> Show the equivalent Vanilla JS code for <code>@click="handler"</code>.</li>
+      <li><strong>What is the virtual DOM?</strong> Why does Vue use it instead of updating the real DOM directly?</li>
+      <li><strong>How would you persist</strong> the Tic Tac Toe state across page refreshes in Vue?</li>
+      <li><strong>Explain the lifecycle</strong> of a Vue component. Which hook would you use to fetch data from an API?</li>
+    </ol>
+  </div>
+</section>
+
+<!-- ==================== 13. CHEAT SHEET ==================== -->
+<section class="section" id="cheatsheet">
+  <div class="sec-header"><span class="sec-num">13</span><h2>Quick Revision Cheat Sheet</h2></div>
+
+  <div class="cheat-grid">
+    <div class="cheat-item">
+      <h4>Vue App Setup</h4>
+      <code>const { createApp } = Vue</code>
+      <code>createApp({ data(){}, methods:{} })</code>
+      <code>.mount('#app')</code>
+      <span class="cheat-desc">Create and mount a Vue application.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Data (Reactive State)</h4>
+      <code>data() { return { board: [] } }</code>
+      <code>this.board[i] = 'X'</code>
+      <code>Access in template: {{ board[i] }}</code>
+      <span class="cheat-desc">All properties returned from data() are reactive.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Methods</h4>
+      <code>methods: { handleClick(i) { ... } }</code>
+      <code>Call from template: @click="handleClick(i)"</code>
+      <code>Call from other method: this.handleClick(i)</code>
+      <span class="cheat-desc">Functions that can be called from templates or other methods.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Computed Properties</h4>
+      <code>computed: { status() { return ... } }</code>
+      <code>Used as: {{ status }} (no parentheses)</code>
+      <code>Cached, re-evaluated on dependency change</code>
+      <span class="cheat-desc">Derived values that update automatically.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Template Directives</h4>
+      <code>v-for="(item, i) in list" :key="i"</code>
+      <code>v-if="condition" / v-show="condition"</code>
+      <code>:class="{ active: bool }"</code>
+      <code>@click="handler" @submit.prevent</code>
+      <span class="cheat-desc">Core directives for loops, conditions, bindings, events.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Class &amp; Style Binding</h4>
+      <code>:class="{ className: bool }"</code>
+      <code>:class="['static', { dyn: bool }]"</code>
+      <code>:style="{ color: 'red', fontSize: '14px' }"</code>
+      <span class="cheat-desc">Object syntax for classes, camelCase for CSS properties.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Event Modifiers</h4>
+      <code>@click.stop</code> (stops propagation)</code>
+      <code>@submit.prevent</code> (prevents default)</code>
+      <code>@keyup.enter</code> (specific key)</code>
+      <span class="cheat-desc">Chain modifiers after events for common behaviours.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Lifecycle Hooks</h4>
+      <code>created()</code> &mdash; data ready, no DOM</code>
+      <code>mounted()</code> &mdash; DOM available</code>
+      <code>beforeUnmount()</code> &mdash; cleanup</code>
+      <span class="cheat-desc">Run code at specific points in the component lifecycle.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Vue 3 Reactivity</h4>
+      <code>Uses JavaScript Proxy</code>
+      <code>Intercepts get/set on all properties</code>
+      <code>Works with array index assignment</code>
+      <code>No Vue.set() needed</code>
+      <span class="cheat-desc">Vue 3's Proxy is more capable than Vue 2's defineProperty.</span>
+    </div>
+    <div class="cheat-item">
+      <h4>Vanilla JS vs Vue</h4>
+      <code>Vanilla: manual DOM (textContent)</code>
+      <code>Vue: state change &rarr; auto re-render</code>
+      <code>Vanilla: addEventListener</code>
+      <code>Vue: @click directive</code>
+      <span class="cheat-desc">Vue eliminates DOM boilerplate.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 14. KEY TAKEAWAYS ==================== -->
+<section class="section" id="takeaways">
+  <div class="sec-header"><span class="sec-num">14</span><h2>Key Takeaways</h2></div>
+  <div class="card bdr-teal">
+    <ul class="takeaway-list">
+      <li><strong>Vue's reactivity</strong> automatically syncs the DOM with your state. You change data; Vue updates the UI.</li>
+      <li><strong>Declarative templates</strong> (<code>{{ }}</code>, directives) replace imperative DOM manipulation.</li>
+      <li><strong>Directives</strong> (<code>v-for</code>, <code>:class</code>, <code>@click</code>) are the bridge between state and DOM.</li>
+      <li><strong>Computed properties</strong> derive values reactively and cache results for performance.</li>
+      <li><strong>The virtual DOM</strong> makes updates efficient by calculating only what changed before touching the real DOM.</li>
+      <li><strong>Vue eliminates</strong> the manual <code>document.querySelector</code> + <code>textContent</code> + <code>classList</code> pattern.</li>
+      <li><strong>But you still write game logic</strong> &mdash; Vue handles UI, not business logic.</li>
+      <li><strong>Vue 3 uses Proxy</strong> for reactivity, catching all property changes (including array index assignment).</li>
+      <li><strong>State is lost on refresh</strong> &mdash; the same limitation as Vanilla JS. Use localStorage or a backend for persistence.</li>
+      <li><strong>Vue scales from CDN script</strong> to full build system. The concepts you learn here apply to all Vue applications.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 15. SUMMARY ==================== -->
+<section class="section" id="summary">
+  <div class="sec-header"><span class="sec-num">15</span><h2>Summary</h2></div>
+  <div class="summary-box">
+    <h3>&#x1F4D6; Lecture at a Glance</h3>
+    <p>The Vue.js Tic Tac Toe demo introduces <strong>reactive programming</strong> for the first time. State lives in <code>data()</code> and is wrapped in Vue's Proxy-based reactivity system. You write declarative templates with directives like <code>v-for</code>, <code>:class</code>, and <code>@click</code>. When state changes, Vue automatically determines which parts of the DOM need updating and patches them efficiently through its virtual DOM.</p>
+    <ul>
+      <li><strong>Reactivity</strong> &mdash; state changes automatically trigger DOM updates via a Proxy-based system.</li>
+      <li><strong>Data binding</strong> &mdash; <code>{{ }}</code>, <code>:attr</code>, <code>@event</code> connect state to the template.</li>
+      <li><strong>Directives</strong> &mdash; <code>v-for</code> loops over arrays, <code>:class</code> binds CSS, <code>@click</code> handles events.</li>
+      <li><strong>Computed properties</strong> &mdash; derive values reactively (<code>status</code> message based on game state).</li>
+      <li><strong>Lifecycle</strong> &mdash; <code>created</code> (data ready), <code>mounted</code> (DOM ready), <code>beforeUnmount</code> (cleanup).</li>
+      <li><strong>No manual DOM</strong> &mdash; zero <code>textContent</code>, zero <code>classList</code>, zero <code>addEventListener</code>.</li>
+      <li><strong>Same game logic</strong> &mdash; win detection, turn toggling, draw checking are unchanged from Vanilla JS.</li>
+      <li><strong>Vue is progressive</strong> &mdash; start with a CDN script, scale up to a full SFC build system.</li>
+    </ul>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F504; Conceptual Flow: Vue Reactivity</h3>
+    <div class="flowchart">
+      <div class="fc-box gold">You write: this.board[i] = 'X'</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box teal">Vue Proxy intercepts the set operation</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box purple">Vue marks affected component as "dirty"</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box">Virtual DOM diff (new vs old)</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box green">Minimal real DOM patch</div>
+      <div class="fc-arrow">&#x2193;</div>
+      <div class="fc-box gold">Screen shows updated cell</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 16. GLOSSARY ==================== -->
+<section class="section" id="glossary">
+  <div class="sec-header"><span class="sec-num">16</span><h2>Glossary</h2></div>
+  <div class="card bdr-purple">
+    <div class="glossary-term"><span class="gt-word">Computed Property</span><span class="gt-def">A derived value that depends on reactive state and updates automatically. Cached until dependencies change.</span></div>
+    <div class="glossary-term"><span class="gt-word">Data Binding</span><span class="gt-def">Connecting JavaScript state to HTML template elements using {{ }}, :attr, or v-model.</span></div>
+    <div class="glossary-term"><span class="gt-word">Directive</span><span class="gt-def">A special v- prefixed attribute in Vue templates that applies reactive behaviour to the DOM (v-for, v-if, :class).</span></div>
+    <div class="glossary-term"><span class="gt-word">Lifecycle Hook</span><span class="gt-def">A function you can define (created, mounted, beforeUnmount) that Vue calls at specific points in a component's life.</span></div>
+    <div class="glossary-term"><span class="gt-word">Proxy</span><span class="gt-def">A JavaScript object wrapper that can intercept fundamental operations (get, set, delete). Vue 3 uses Proxy for reactivity.</span></div>
+    <div class="glossary-term"><span class="gt-word">Reactivity</span><span class="gt-def">The ability of a system to automatically react to data changes. In Vue, changing state triggers DOM updates.</span></div>
+    <div class="glossary-term"><span class="gt-word">Reactive State</span><span class="gt-def">Data properties returned from data() that Vue wraps in a reactive Proxy. Changes to these properties trigger re-renders.</span></div>
+    <div class="glossary-term"><span class="gt-word">Template</span><span class="gt-def">The HTML-like markup in a Vue component that declares how the UI should look as a function of state.</span></div>
+    <div class="glossary-term"><span class="gt-word">v-bind (:)</span><span class="gt-def">A directive that binds a JavaScript expression to an HTML attribute. Shorthand is : (colon).</span></div>
+    <div class="glossary-term"><span class="gt-word">v-for</span><span class="gt-def">A directive for rendering a list of items by iterating over an array. Always pair with :key.</span></div>
+    <div class="glossary-term"><span class="gt-word">v-if / v-show</span><span class="gt-def">v-if conditionally renders an element; v-show toggles display: none. v-if is lazy; v-show is always rendered.</span></div>
+    <div class="glossary-term"><span class="gt-word">v-on (@)</span><span class="gt-def">A directive that listens for DOM events. Shorthand is @. Example: @click="handler".</span></div>
+    <div class="glossary-term"><span class="gt-word">Virtual DOM</span><span class="gt-def">A lightweight JavaScript representation of the DOM. Vue diffs virtual DOM trees to minimise real DOM operations.</span></div>
+  </div>
+</section>
+
+<div style="border-top:1px solid var(--line); padding-top:1.5rem; margin-top:1.5rem; text-align:center;">
+  <a href="#overview" style="color:var(--blue); text-decoration:none; font-weight:500;">&#x2191; Back to Top</a>
+</div>
+
+</div>
+
+<footer class="footer">
+  <p>MAD2 &mdash; Week 03: Vue.js Basics &middot; Tic Tac Toe Demo &mdash; Basic Vue</p>
+  <p style="margin-top:0.25rem; font-size:0.7rem;">Built for study &amp; revision purposes</p>
+</footer>
+
+<script>
+function toggleQA(el) {
+  let answer = el.nextElementSibling;
+  let toggle = el.querySelector('.qa-toggle');
+  answer.classList.toggle('open');
+  el.classList.toggle('open');
+  toggle.textContent = answer.classList.contains('open') ? '\u00d7' : '+';
+}
+</script>
+
+</body>
+</html>

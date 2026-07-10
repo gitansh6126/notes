@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 14 — K-means Clustering (Lloyd's Algorithm)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  :root{
+    --paper:        #FBF8F1;
+    --paper-line:   #E3DCC8;
+    --paper-edge:   #D8CFB4;
+    --ink:          #232323;
+    --ink-soft:     #5B5647;
+    --ink-faint:    #948C74;
+    --pen-blue:     #1F4E8C;
+    --pen-blue-soft:#E7EEF8;
+    --pen-red:      #A32B2B;
+    --pen-red-soft: #F8E9E7;
+    --marker:       #E3A320;
+    --marker-soft:  #FBF0D6;
+    --green:        #4B6B43;
+    --green-soft:   #EFF3EC;
+    --violet:       #6A4C93;
+    --violet-soft:  #EEE8F5;
+    --coral:        #C1592B;
+    --card:         #FFFDF8;
+    --card-shadow:  rgba(60, 50, 20, 0.14);
+    --radius-sm:    6px;
+    --radius-md:    10px;
+    --serif: 'Fraunces', serif;
+    --sans:  'Inter', sans-serif;
+    --mono:  'JetBrains Mono', monospace;
+
+    /* the three cluster colors, used consistently across every diagram */
+    --c1: #1F4E8C;   /* blue store  */
+    --c2: #A32B2B;   /* red store   */
+    --c3: #4B7A4E;   /* green store */
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important; } }
+
+  a{ color:var(--pen-blue); }
+
+  .sheet{ max-width:920px; margin:0 auto; padding:0 28px 90px 64px; position:relative; }
+  .sheet::before{
+    content:""; position:absolute; top:0; bottom:0; left:38px;
+    width:2px; background:var(--pen-red); opacity:0.35;
+  }
+  @media (max-width:640px){ .sheet{ padding:0 18px 70px 34px; } .sheet::before{ left:16px; } }
+
+  .navbar{
+    position:sticky; top:0; z-index:50;
+    background:rgba(251,248,241,0.92); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--paper-edge);
+  }
+  .navwrap{
+    max-width:920px; margin:0 auto; padding:14px 28px 14px 64px;
+    display:flex; align-items:center; gap:10px; overflow-x:auto; scrollbar-width:none;
+  }
+  .navwrap::-webkit-scrollbar{ display:none; }
+  @media (max-width:640px){ .navwrap{ padding:12px 18px 12px 34px; } }
+  .nav-tag{ font-family:var(--mono); font-size:11px; letter-spacing:.06em; color:var(--ink-faint); white-space:nowrap; margin-right:6px; }
+  .nav-link{
+    font-family:var(--sans); font-weight:600; font-size:13px; color:var(--ink-soft);
+    text-decoration:none; padding:6px 12px; border-radius:20px; white-space:nowrap;
+    border:1px solid transparent; transition:all .15s ease;
+  }
+  .nav-link:hover{ background:var(--pen-blue-soft); color:var(--pen-blue); border-color:var(--pen-blue); }
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em; color:var(--pen-red);
+    text-transform:uppercase; font-weight:600; display:flex; align-items:center; gap:8px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:"§"; font-size:15px; }
+  h1.title{
+    font-family:var(--serif); font-weight:600; font-size:clamp(32px, 5.6vw, 50px);
+    line-height:1.1; margin:0 0 14px; color:var(--ink); letter-spacing:-0.01em;
+  }
+  .title em{ font-style:italic; color:var(--pen-blue); font-weight:500; }
+  .subtitle{ font-size:17px; color:var(--ink-soft); max-width:640px; margin:0 0 26px; }
+  .meta-row{
+    display:flex; gap:22px; flex-wrap:wrap; font-family:var(--mono); font-size:12px;
+    color:var(--ink-faint); border-top:1px dashed var(--paper-edge); padding-top:16px;
+  }
+  .meta-row b{ color:var(--ink-soft); }
+
+  .section{ margin-top:62px; }
+  .sec-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:22px; }
+  .sec-num{
+    font-family:var(--mono); font-size:13px; color:var(--pen-red); font-weight:600;
+    border:1px solid var(--pen-red); border-radius:50%; width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .sec-head h2{ font-family:var(--serif); font-size:clamp(22px,3.4vw,29px); font-weight:600; margin:0; color:var(--ink); }
+
+  .card{
+    background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    box-shadow:0 3px 0 var(--card-shadow); padding:26px 28px; margin-bottom:22px; position:relative;
+  }
+  .card h3{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 10px; color:var(--ink); }
+  .card p{ margin:0 0 12px; color:var(--ink); font-size:15.5px; }
+  .card p:last-child{ margin-bottom:0; }
+  .card ul{ margin:0 0 12px; padding-left:20px; }
+  .card li{ margin-bottom:7px; font-size:15.5px; }
+
+  .card-label{
+    position:absolute; top:-11px; left:24px; background:var(--marker-soft); color:#7A5A0A;
+    font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.04em;
+    padding:3px 10px; border-radius:20px; border:1px solid #E8CE86;
+  }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:700px){ .grid-2{ grid-template-columns:1fr; } }
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+  @media (max-width:760px){ .grid-4{ grid-template-columns:repeat(2,1fr); } }
+
+  .roadmap-list{ display:grid; gap:12px; margin-top:16px; }
+  .roadmap-item{ display:flex; gap:14px; align-items:flex-start; background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:13px 16px; }
+  .roadmap-item .rq-num{
+    font-family:var(--mono); font-weight:700; font-size:13px; color:#fff; background:var(--pen-blue);
+    width:24px; height:24px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  }
+  .roadmap-item p{ margin:0; font-size:14.5px; color:var(--ink-soft); }
+  .roadmap-item strong{ color:var(--ink); }
+
+  .analogy{
+    background:var(--pen-blue-soft); border-left:4px solid var(--pen-blue);
+    border-radius:0 var(--radius-sm) var(--radius-sm) 0; padding:18px 22px; margin:18px 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    color:var(--pen-blue); text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .analogy .tag::before{ content:"🍕"; font-size:13px; }
+  .analogy p{ margin:0; color:#1a3760; font-size:15px; }
+
+  .callout{ border-radius:var(--radius-sm); padding:18px 22px; margin:20px 0; border:1.5px dashed; }
+  .callout .tag{
+    font-family:var(--mono); font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; display:flex; align-items:center; gap:6px; margin-bottom:8px;
+  }
+  .callout p{ margin:0; font-size:15px; }
+  .callout.key{ background:var(--marker-soft); border-color:#D8B25C; }
+  .callout.key .tag{ color:#8A6510; } .callout.key .tag::before{ content:"★"; }
+  .callout.warn{ background:var(--pen-red-soft); border-color:var(--pen-red); }
+  .callout.warn .tag{ color:var(--pen-red); } .callout.warn .tag::before{ content:"⚠"; }
+  .callout.note{ background:var(--green-soft); border-color:#7A9B6E; }
+  .callout.note .tag{ color:var(--green); } .callout.note .tag::before{ content:"✎"; }
+
+  .formula{
+    display:inline-block; font-family:var(--mono); font-size:14.5px; background:#EEF2FA;
+    color:var(--pen-blue); border:1px solid #C9D8EF; padding:3px 10px; border-radius:5px; margin:2px 0;
+  }
+  .formula-block{
+    font-family:var(--mono); font-size:15px; background:#20242C; color:#DCE6F7;
+    border-radius:var(--radius-sm); padding:18px 22px; margin:16px 0; overflow-x:auto;
+    line-height:1.9; text-align:center;
+  }
+  .formula-block .hl{ color:#F2C868; }
+  .formula-block .hl2{ color:#7FD9B8; }
+  .formula-block small{ display:block; font-family:var(--sans); font-size:12px; color:#8FA0BE; margin-top:8px; }
+
+  .table-wrap{ overflow-x:auto; margin:18px 0; border-radius:var(--radius-sm); border:1px solid var(--paper-edge); }
+  table{ width:100%; border-collapse:collapse; min-width:480px; background:var(--card); }
+  th,td{ padding:11px 16px; text-align:left; font-size:14.5px; border-bottom:1px solid var(--paper-line); }
+  th{ font-family:var(--mono); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; background:#F1ECDD; color:var(--ink-soft); font-weight:600; }
+  tr:last-child td{ border-bottom:none; }
+  td.mono{ font-family:var(--mono); color:var(--pen-blue); }
+
+  .diagram{
+    background:#FCFAF3; border:1px solid var(--paper-edge); border-radius:var(--radius-md);
+    padding:28px 20px 22px; margin:20px 0;
+  }
+  .diagram-title{ text-align:center; font-family:var(--mono); font-size:11.5px; letter-spacing:.06em; color:var(--ink-faint); text-transform:uppercase; margin-bottom:18px; }
+  .diagram-caption{ text-align:center; font-size:13.5px; color:var(--ink-soft); max-width:520px; margin:14px auto 0; font-style:italic; }
+
+  /* ---- Two-step loop diagram ---- */
+  .loop-flow{ display:flex; align-items:center; justify-content:center; gap:0; flex-wrap:wrap; }
+  .loop-step{
+    background:#fff; border:1.5px solid var(--pen-blue); border-radius:12px; padding:16px 18px;
+    width:170px; text-align:center; position:relative; flex-shrink:0;
+  }
+  .loop-step.alt{ border-color:var(--pen-red); }
+  .loop-step .ls-icon{ font-size:22px; margin-bottom:6px; display:block; }
+  .loop-step h4{ font-family:var(--sans); font-weight:700; font-size:13.5px; margin:0 0 4px; }
+  .loop-step p{ font-size:12px; color:var(--ink-soft); margin:0; }
+  .loop-arrow{ font-family:var(--mono); color:var(--ink-faint); font-size:22px; padding:0 10px; flex-shrink:0; }
+  @media (max-width:640px){ .loop-arrow{ transform:rotate(90deg); } }
+  .loop-back{
+    width:100%; text-align:center; margin-top:18px; font-family:var(--mono); font-size:12.5px; color:var(--pen-red);
+  }
+  .loop-init{
+    font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); text-align:center; margin-bottom:14px;
+  }
+
+  /* ---- Voronoi grid diagram ---- */
+  .voronoi-wrap{ display:flex; justify-content:center; }
+  .voronoi-grid{ display:grid; gap:1px; background:var(--paper-edge); border:1px solid var(--paper-edge); border-radius:8px; overflow:hidden; }
+  .voronoi-grid .vcell{ width:14px; height:14px; position:relative; }
+  .voronoi-grid .vdot{
+    position:absolute; width:8px; height:8px; border-radius:50%; background:#fff;
+    top:50%; left:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 1.5px rgba(0,0,0,0.25);
+  }
+  .voronoi-grid .vcentroid{
+    position:absolute; width:16px; height:16px; border-radius:50%; background:#fff;
+    top:50%; left:50%; transform:translate(-50%,-50%); border:3px solid #222;
+    display:flex; align-items:center; justify-content:center; font-size:9px; z-index:2;
+  }
+  .voronoi-legend{ display:flex; gap:18px; justify-content:center; margin-top:16px; flex-wrap:wrap; }
+  .voronoi-legend span{ display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:12px; color:var(--ink-soft); }
+  .voronoi-legend .sw{ width:12px; height:12px; border-radius:50%; display:inline-block; }
+
+  /* ---- Convergence bar chart ---- */
+  .converge-chart{ display:flex; align-items:flex-end; gap:16px; height:150px; justify-content:center; padding:0 10px; }
+  .converge-bar{ width:36px; border-radius:5px 5px 0 0; background:var(--pen-blue); position:relative; display:flex; align-items:flex-start; justify-content:center; }
+  .converge-bar.done{ background:var(--green); }
+  .converge-bar .bar-label{ position:absolute; top:-22px; font-family:var(--mono); font-size:11px; color:var(--ink-soft); white-space:nowrap; }
+  .converge-xaxis{ display:flex; gap:16px; justify-content:center; margin-top:8px; padding:0 10px; }
+  .converge-xaxis span{ width:36px; text-align:center; font-family:var(--mono); font-size:10.5px; color:var(--ink-faint); }
+
+  /* ---- Init compare ---- */
+  .init-compare{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:640px){ .init-compare{ grid-template-columns:1fr; } }
+  .init-panel{ background:#fff; border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:16px; }
+  .init-panel .panel-title{ font-family:var(--mono); font-size:11px; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+  .init-scatter{ position:relative; width:100%; height:150px; background:#FCFAF3; border:1px dashed var(--paper-edge); border-radius:6px; }
+  .init-scatter .dot{ position:absolute; width:7px; height:7px; border-radius:50%; background:#B9C4D6; margin:-3.5px 0 0 -3.5px; }
+  .init-scatter .centroid{ position:absolute; width:15px; height:15px; border-radius:50%; border:3px solid; margin:-7.5px 0 0 -7.5px; background:#fff; }
+
+  /* ---- Elbow chart (SVG) ---- */
+  .elbow-wrap{ display:flex; justify-content:center; }
+
+  .code-wrap{ position:relative; margin:18px 0; }
+  .code-block{
+    font-family:var(--mono); font-size:13.5px; line-height:1.75; background:#20242C; color:#D9E1EE;
+    border-radius:var(--radius-sm); padding:18px 20px; overflow-x:auto;
+  }
+  .code-block .ln{ color:#5C6577; margin-right:14px; user-select:none; }
+  .code-block .cm{ color:#7FD9B8; font-style:italic; }
+  .code-block .hl{ color:#F2C868; }
+  .code-block .kw{ color:#7FA8D9; }
+  .annot-list{ margin:14px 0 0; padding-left:0; list-style:none; }
+  .annot-list li{ font-size:14px; color:var(--ink-soft); margin-bottom:8px; padding-left:22px; position:relative; }
+  .annot-list li::before{
+    content:attr(data-n); position:absolute; left:0; top:0; font-family:var(--mono); font-size:11px;
+    font-weight:700; color:#fff; background:var(--pen-blue); width:16px; height:16px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  .takeaway-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:640px){ .takeaway-grid{ grid-template-columns:1fr; } }
+  .takeaway{ background:var(--card); border:1px solid var(--paper-edge); border-radius:var(--radius-sm); padding:16px 18px; display:flex; gap:12px; align-items:flex-start; }
+  .takeaway .num{ font-family:var(--serif); font-weight:700; font-size:22px; color:var(--pen-blue); flex-shrink:0; line-height:1; }
+  .takeaway p{ margin:0; font-size:14.5px; color:var(--ink); }
+
+  .footer{
+    margin-top:70px; padding-top:22px; border-top:1px dashed var(--paper-edge);
+    font-family:var(--mono); font-size:12px; color:var(--ink-faint);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
+  }
+
+  ::selection{ background:var(--marker-soft); color:var(--ink); }
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navwrap">
+    <span class="nav-tag">JUMP TO</span>
+    <a class="nav-link" href="#s1">01 · Overview</a>
+    <a class="nav-link" href="#s2">02 · The Two-Step Loop</a>
+    <a class="nav-link" href="#s3">03 · Convergence</a>
+    <a class="nav-link" href="#s4">04 · Cluster Shape</a>
+    <a class="nav-link" href="#s5">05 · Initialization</a>
+    <a class="nav-link" href="#s6">06 · Choosing K</a>
+    <a class="nav-link" href="#s7">Takeaways</a>
+  </div>
+</nav>
+
+<div class="sheet">
+
+  <header class="hero">
+    <div class="eyebrow">Lecture 14 · Machine Learning</div>
+    <h1 class="title">K-means Clustering — <em>Lloyd's Algorithm</em></h1>
+    <p class="subtitle">
+      The exact "best possible" way to group data into K clusters is
+      computationally out of reach. Lloyd's algorithm is the fast, iterative
+      compromise almost everyone actually uses instead.
+    </p>
+    <div class="meta-row">
+      <span><b>Problem</b> · Partition n points into K clusters (NP-hard, exactly)</span>
+      <span><b>Solution</b> · Lloyd's algorithm — an iterative heuristic</span>
+      <span><b>Guarantee</b> · Converges, but not necessarily to the global optimum</span>
+    </div>
+  </header>
+
+  <!-- SECTION 1 -->
+  <section class="section" id="s1">
+    <div class="sec-head"><div class="sec-num">1</div><h2>Overview: A Heuristic for an Impossible Search</h2></div>
+    <div class="card">
+      <span class="card-label">THE SETUP</span>
+      <h3>K-means is NP-hard. Lloyd's algorithm is how we cope.</h3>
+      <p>
+        The <strong>K-means problem</strong> asks for the partition of
+        <span class="formula">n</span> data points into <span class="formula">K</span>
+        clusters that minimizes the total squared distance from each point to
+        its cluster's center. Checking every possible way to partition n
+        points into K groups is combinatorially explosive — the problem is
+        <strong>NP-hard</strong>, so no algorithm can guarantee the exact best
+        answer in reasonable time as data grows.
+      </p>
+      <p>
+        <strong>Lloyd's algorithm</strong> — what almost everyone means when
+        they say "K-means" — doesn't try to solve that problem exactly. It's
+        a fast, iterative heuristic that reliably lands on a good, if not
+        provably optimal, partition.
+      </p>
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          Imagine you're opening <span class="formula">K</span> pizza stores
+          in a city and want every customer's trip to their nearest store to
+          be as short as possible, on average. Checking every conceivable way
+          to divide the city among K stores would take longer than the
+          universe has existed. Lloyd's algorithm is what a sensible
+          operations team actually does instead: guess some starting
+          locations, then repeatedly adjust — and stop once nothing improves.
+          We'll follow this pizza chain through the rest of the lecture.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="card-label">ROADMAP</span>
+      <h3>Four questions every user of K-means has to answer</h3>
+      <div class="roadmap-list">
+        <div class="roadmap-item"><div class="rq-num">1</div><p><strong>Convergence</strong> — does the algorithm ever actually stop moving points between clusters?</p></div>
+        <div class="roadmap-item"><div class="rq-num">2</div><p><strong>Cluster nature</strong> — what shape of clusters does this procedure produce?</p></div>
+        <div class="roadmap-item"><div class="rq-num">3</div><p><strong>Initialization</strong> — since the starting guess matters enormously, how should we choose it?</p></div>
+        <div class="roadmap-item"><div class="rq-num">4</div><p><strong>Choosing K</strong> — with no labels to check against, how many clusters should we even ask for?</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 2 -->
+  <section class="section" id="s2">
+    <div class="sec-head"><div class="sec-num">2</div><h2>The Two-Step Loop</h2></div>
+    <div class="card">
+      <span class="card-label">MECHANICS</span>
+      <h3>Compute means, reassign points, repeat</h3>
+      <p>
+        After an initial (often random) assignment of every point to one of
+        <span class="formula">K</span> clusters, Lloyd's algorithm alternates
+        between two simple steps until nothing changes:
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">One full iteration of Lloyd's algorithm</div>
+        <div class="loop-init">Start: every point already has some cluster label z</div>
+        <div class="loop-flow">
+          <div class="loop-step">
+            <span class="ls-icon">📍</span>
+            <h4>Compute Means</h4>
+            <p>Set each centroid μ<sub>k</sub> to the average of the points currently in cluster k</p>
+          </div>
+          <div class="loop-arrow">→</div>
+          <div class="loop-step alt">
+            <span class="ls-icon">🔁</span>
+            <h4>Reassign Points</h4>
+            <p>Move each point to whichever centroid it's now closest to</p>
+          </div>
+        </div>
+        <div class="loop-back">↻ repeat both steps until no point's assignment changes</div>
+      </div>
+
+      <div class="formula-block">
+        μ<sub>k</sub> &nbsp;=&nbsp; <span class="hl">mean</span>{ x<sub>i</sub> : z<sub>i</sub> = k }
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; z<sub>i</sub> &nbsp;←&nbsp; <span class="hl2">argmin</span><sub>k</sub> ‖x<sub>i</sub> − μ<sub>k</sub>‖
+        <small>left: recompute each store's location · right: send each customer to their nearest store</small>
+      </div>
+
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          <strong>Compute Means</strong> is moving day: each store relocates
+          to sit at the geographic center of the customers it currently
+          serves. <strong>Reassign Points</strong> is the customers reacting:
+          anyone now closer to a different store switches allegiance. A store
+          that used to be closest but just moved away can lose customers; one
+          that moved closer can gain them. The cycle repeats until nobody
+          wants to switch anymore.
+        </p>
+      </div>
+
+      <div class="code-wrap">
+        <pre class="code-block"><span class="ln">1</span><span class="cm"># X: (n, d) data points   z: (n,) cluster labels, init randomly</span>
+<span class="ln">2</span>
+<span class="ln">3</span><span class="kw">while</span> <span class="kw">not</span> converged:
+<span class="ln">4</span>    <span class="cm"># --- Compute Means step ---</span>
+<span class="ln">5</span>    <span class="hl">centroids</span> = [X[z == k].mean(axis=<span class="hl">0</span>) <span class="kw">for</span> k <span class="kw">in</span> range(K)]
+<span class="ln">6</span>
+<span class="ln">7</span>    <span class="cm"># --- Reassign step ---</span>
+<span class="ln">8</span>    dists = cdist(X, centroids)              <span class="cm"># (n, K) distance table</span>
+<span class="ln">9</span>    <span class="hl">new_z</span> = dists.argmin(axis=<span class="hl">1</span>)          <span class="cm"># nearest centroid per point</span>
+<span class="ln">10</span>
+<span class="ln">11</span>    converged = <span class="kw">np.all</span>(new_z == z)
+<span class="ln">12</span>    z = new_z</pre>
+      </div>
+      <ul class="annot-list">
+        <li data-n="1">Each centroid is nothing but an average — line 5 is literally "Compute Means."</li>
+        <li data-n="2">Line 9 is "Reassign Points": every point independently picks its closest current centroid.</li>
+        <li data-n="3">Convergence is checked by comparing old and new labels directly — no distance threshold needed.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- SECTION 3 -->
+  <section class="section" id="s3">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Question 1 — Convergence</h2></div>
+    <div class="card">
+      <span class="card-label">DOES IT STOP?</span>
+      <h3>Yes — every point eventually settles</h3>
+      <p>
+        The algorithm has <strong>converged</strong> when a full reassignment
+        step changes nobody's label — equivalently, every point is already
+        strictly closer to its own cluster's mean than to any other. Lloyd's
+        algorithm is <strong>guaranteed to converge</strong>: each iteration
+        can only decrease (or leave unchanged) the total squared distance
+        from points to their centroids, and that quantity can't drop forever.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Customers switching stores, iteration by iteration</div>
+        <div class="converge-chart" id="convergeChart"></div>
+        <div class="converge-xaxis">
+          <span>iter 1</span><span>iter 2</span><span>iter 3</span><span>iter 4</span><span>iter 5</span><span>iter 6</span>
+        </div>
+        <p class="diagram-caption">
+          Fewer customers switch stores each round. Convergence is the round
+          where that bar finally hits zero — nobody has any reason left to
+          move.
+        </p>
+      </div>
+
+      <div class="callout key">
+        <div class="tag">Key insight</div>
+        <p>
+          Convergence is guaranteed, but the destination is not: Lloyd's
+          algorithm reliably comes to a stop, but because K-means itself is
+          NP-hard, that stopping point is only a <strong>local</strong>
+          optimum — not necessarily the single best partition that exists.
+        </p>
+      </div>
+
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          The chain stops relocating stores once every customer is already
+          buying from their closest option. That's a stable, "good enough"
+          arrangement — but it says nothing about whether some completely
+          different set of store locations, far from where this run started,
+          might have served the city even better.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4 -->
+  <section class="section" id="s4">
+    <div class="sec-head"><div class="sec-num">4</div><h2>Question 2 — What Shape Are the Clusters?</h2></div>
+    <div class="card">
+      <span class="card-label">CLUSTER GEOMETRY</span>
+      <h3>Straight-line boundaries, every time</h3>
+      <p>
+        Because every point simply joins whichever centroid is nearest, the
+        boundary between any two clusters is always exactly the straight line
+        of points equidistant from both centroids. Repeated across all K
+        centroids, this carves the whole space into a <strong>Voronoi
+        diagram</strong> — flat-sided, convex regions, regardless of how the
+        data itself is actually shaped.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Three stores' delivery territories</div>
+        <div class="voronoi-wrap"><div class="voronoi-grid" id="voronoiGrid"></div></div>
+        <div class="voronoi-legend">
+          <span><span class="sw" style="background:var(--c1)"></span>Store A territory</span>
+          <span><span class="sw" style="background:var(--c2)"></span>Store B territory</span>
+          <span><span class="sw" style="background:var(--c3)"></span>Store C territory</span>
+        </div>
+        <p class="diagram-caption">
+          Each dot is a customer, colored by whichever store (ringed marker)
+          is nearest. The boundaries between colors are perfectly straight —
+          that's not a simplification, it's mathematically guaranteed by
+          "nearest centroid wins."
+        </p>
+      </div>
+
+      <div class="callout note">
+        <div class="tag">Worth noting</div>
+        <p>
+          This is also K-means' key limitation: real clusters that are long,
+          curved, or nested inside one another can't be captured by
+          straight-sided territories, no matter how many iterations you run.
+          K-means assumes roughly round, similarly-sized blobs.
+        </p>
+      </div>
+
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          This is just a school-district map for pizza: each neighborhood is
+          assigned to whichever store is closest as the crow flies, so the
+          district lines are always straight — even if the "natural"
+          neighborhoods in the city are winding streets or an oddly shaped
+          river district that no straight line could ever fairly represent.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 5 -->
+  <section class="section" id="s5">
+    <div class="sec-head"><div class="sec-num">5</div><h2>Question 3 — Initialization</h2></div>
+    <div class="card">
+      <span class="card-label">WHERE YOU START MATTERS</span>
+      <h3>A bad first guess can get permanently stuck</h3>
+      <p>
+        Because Lloyd's algorithm only ever improves on its starting point,
+        a poor initial placement of centroids can converge to a distinctly
+        worse local optimum — sometimes with an entire natural cluster split
+        awkwardly between two centroids, or two real clusters merged under
+        one.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">Same data, two different starting guesses</div>
+        <div class="init-compare">
+          <div class="init-panel">
+            <div class="panel-title" style="color:var(--pen-red);">⚠ Bad initialization</div>
+            <div class="init-scatter" id="initBad"></div>
+            <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 0;">All three stores dropped into the same corner — one whole district is left unclaimed at the far end.</p>
+          </div>
+          <div class="init-panel">
+            <div class="panel-title" style="color:var(--green);">✓ Good initialization</div>
+            <div class="init-scatter" id="initGood"></div>
+            <p style="font-size:12px;color:var(--ink-soft);margin:10px 0 0;">Stores spread across the city from the start — each converges to its own natural district.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <div class="tag">Watch out</div>
+        <p>
+          Plain random initialization can easily place two or more centroids
+          close together by chance. In practice, most implementations use
+          <strong>K-means++</strong>: pick the first centroid randomly, then
+          pick each next one with probability proportional to its squared
+          distance from the centroids already chosen — spreading them out on
+          purpose. Running the whole algorithm several times from different
+          random starts and keeping the best result is a common
+          complementary safeguard.
+        </p>
+      </div>
+
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          Dropping all three new stores in the same downtown block means they
+          spend the whole simulation squabbling over the same few blocks
+          while the suburbs go completely unserved — no amount of later
+          shuffling fixes that. Spreading the initial guesses across the city
+          gives each store its own territory to grow into from day one.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 6 -->
+  <section class="section" id="s6">
+    <div class="sec-head"><div class="sec-num">6</div><h2>Question 4 — Choosing K</h2></div>
+    <div class="card">
+      <span class="card-label">HOW MANY CLUSTERS?</span>
+      <h3>Look for the point of diminishing returns</h3>
+      <p>
+        K-means is unsupervised — there's no ground truth to check the
+        cluster count against. A common approach is to run the algorithm for
+        several values of <span class="formula">K</span> and plot the total
+        within-cluster squared distance (often called <strong>inertia</strong>)
+        against <span class="formula">K</span>.
+      </p>
+
+      <div class="diagram">
+        <div class="diagram-title">The elbow method</div>
+        <div class="elbow-wrap">
+          <svg width="440" height="230" viewBox="0 0 440 230">
+            <line x1="50" y1="10" x2="50" y2="190" stroke="#D8CFB4" stroke-width="1.5"/>
+            <line x1="50" y1="190" x2="420" y2="190" stroke="#D8CFB4" stroke-width="1.5"/>
+            <text x="235" y="218" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#948C74">K (number of clusters)</text>
+            <text x="20" y="100" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#948C74" transform="rotate(-90 20 100)">inertia</text>
+
+            <polyline points="70,25 120,55 170,95 220,130 270,150 320,163 370,172 410,178"
+                      fill="none" stroke="#1F4E8C" stroke-width="2.5"/>
+            <g fill="#1F4E8C">
+              <circle cx="70" cy="25" r="4"/>
+              <circle cx="120" cy="55" r="4"/>
+              <circle cx="170" cy="95" r="4"/>
+              <circle cx="270" cy="150" r="4"/>
+              <circle cx="320" cy="163" r="4"/>
+              <circle cx="370" cy="172" r="4"/>
+              <circle cx="410" cy="178" r="4"/>
+            </g>
+            <circle cx="220" cy="130" r="7" fill="#fff" stroke="#A32B2B" stroke-width="3"/>
+            <line x1="220" y1="130" x2="220" y2="190" stroke="#A32B2B" stroke-width="1.5" stroke-dasharray="4 3"/>
+            <text x="220" y="205" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#A32B2B" font-weight="700">K = 4 (elbow)</text>
+
+            <text x="70" y="18" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">1</text>
+            <text x="120" y="48" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">2</text>
+            <text x="170" y="88" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">3</text>
+            <text x="320" y="156" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">5</text>
+            <text x="370" y="165" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">6</text>
+            <text x="410" y="171" text-anchor="middle" font-family="JetBrains Mono" font-size="10" fill="#5B5647">7</text>
+          </svg>
+        </div>
+        <p class="diagram-caption">
+          Inertia always falls as K grows — with enough stores, everyone lives
+          next door to one. The "elbow," where the curve stops dropping
+          sharply and starts to flatten, marks the point past which adding
+          another cluster buys little.
+        </p>
+      </div>
+
+      <div class="analogy">
+        <div class="tag">Running analogy: the pizza chain problem</div>
+        <p>
+          One store serving the whole city means long average trips for
+          everyone. Fifty stores make every trip trivially short — but at the
+          cost of a store on every block, which is absurd overkill. The elbow
+          is where opening one more store stops meaningfully shortening
+          anyone's commute — the sweet spot between "underserved" and
+          "wasteful."
+        </p>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Approach</th><th>Idea</th><th>Trade-off</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">Elbow method</td><td>Plot inertia vs. K, look for the bend</td><td>Simple, but the "bend" can be subjective on noisy curves</td></tr>
+            <tr><td class="mono">Silhouette score</td><td>Measure how well-separated clusters are</td><td>More principled, costs more to compute</td></tr>
+            <tr><td class="mono">Domain knowledge</td><td>Use prior knowledge of how many groups should exist</td><td>Fast and often right, but not always available</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TAKEAWAYS -->
+  <section class="section" id="s7">
+    <div class="sec-head"><div class="sec-num">✓</div><h2>Key Takeaways</h2></div>
+    <div class="takeaway-grid">
+      <div class="takeaway"><div class="num">1</div><p>The K-means problem is NP-hard; Lloyd's algorithm is the practical heuristic — alternating "compute means" and "reassign points" until nothing changes.</p></div>
+      <div class="takeaway"><div class="num">2</div><p>Convergence is guaranteed (total squared distance never increases), but the result is only a local optimum, not necessarily the global best.</p></div>
+      <div class="takeaway"><div class="num">3</div><p>Because points join their nearest centroid, clusters always come out as convex, straight-boundaried (Voronoi) regions — a real limitation for oddly-shaped data.</p></div>
+      <div class="takeaway"><div class="num">4</div><p>Initialization matters a lot (K-means++ helps); choosing K usually comes down to the elbow method, silhouette scores, or domain knowledge.</p></div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <span>Lecture 14 · K-means Clustering (Lloyd's Algorithm)</span>
+    <span>Machine Learning Series</span>
+  </div>
+
+</div>
+
+<script>
+  // Voronoi grid: color each cell by nearest of 3 centroids, scatter real "customer" dots
+  (function(){
+    var grid = document.getElementById('voronoiGrid');
+    var cols = 26, rows = 16, cell = 14;
+    grid.style.gridTemplateColumns = 'repeat('+cols+', '+cell+'px)';
+    grid.style.gridTemplateRows = 'repeat('+rows+', '+cell+'px)';
+
+    var centroids = [
+      {x: 6,  y: 4,  c: 'var(--c1)', label:'A'},
+      {x: 19, y: 5,  c: 'var(--c2)', label:'B'},
+      {x: 12, y: 12, c: 'var(--c3)', label:'C'}
+    ];
+
+    // fixed "customer" points so the picture is deterministic
+    var customers = [
+      [4,2],[7,3],[5,6],[2,5],[8,1],[3,7],[6,4],
+      [17,2],[21,4],[19,8],[23,3],[16,6],[22,7],[20,1],
+      [10,10],[13,14],[9,13],[14,11],[11,9],[15,13],[8,11]
+    ];
+
+    for(var r=0;r<rows;r++){
+      for(var c=0;c<cols;c++){
+        var best=0, bestD=1e9;
+        for(var i=0;i<centroids.length;i++){
+          var dx=c-centroids[i].x, dy=r-centroids[i].y;
+          var d=dx*dx+dy*dy;
+          if(d<bestD){bestD=d; best=i;}
+        }
+        var cell_ = document.createElement('div');
+        cell_.className='vcell';
+        var col = centroids[best].c.replace('var(','').replace(')','');
+        cell_.style.background = 'color-mix(in srgb, '+col+' 28%, white)';
+        grid.appendChild(cell_);
+      }
+    }
+    // overlay centroid markers
+    centroids.forEach(function(ct){
+      var marker = document.createElement('div');
+      marker.className='vcentroid';
+      marker.style.borderColor = ct.c.replace('var(','').replace(')','');
+      marker.style.left = (ct.x*cell + cell/2) + 'px';
+      marker.style.top = (ct.y*cell + cell/2) + 'px';
+      marker.style.position='absolute';
+      grid.style.position='relative';
+      grid.appendChild(marker);
+    });
+    customers.forEach(function(pt){
+      var dot = document.createElement('div');
+      dot.className='vdot';
+      dot.style.position='absolute';
+      dot.style.left=(pt[0]*cell+cell/2)+'px';
+      dot.style.top=(pt[1]*cell+cell/2)+'px';
+      // color by nearest centroid
+      var best=0, bestD=1e9;
+      for(var i=0;i<centroids.length;i++){
+        var dx=pt[0]-centroids[i].x, dy=pt[1]-centroids[i].y;
+        var d=dx*dx+dy*dy;
+        if(d<bestD){bestD=d; best=i;}
+      }
+      dot.style.background = centroids[best].c.replace('var(','').replace(')','');
+      grid.appendChild(dot);
+    });
+  })();
+
+  // Convergence bar chart: decreasing "# reassigned" per iteration
+  (function(){
+    var chart = document.getElementById('convergeChart');
+    var vals = [42, 19, 8, 3, 1, 0];
+    var maxV = 42;
+    vals.forEach(function(v, i){
+      var bar = document.createElement('div');
+      bar.className = 'converge-bar' + (v===0 ? ' done' : '');
+      var h = Math.max(6, (v/maxV)*120);
+      bar.style.height = h+'px';
+      var label = document.createElement('span');
+      label.className='bar-label';
+      label.textContent = v===0 ? 'converged ✓' : v;
+      bar.appendChild(label);
+      chart.appendChild(bar);
+    });
+  })();
+
+  // Init compare scatters: shared point cloud, different starting centroids
+  (function(){
+    var pts = [
+      [15,60],[25,40],[10,80],[30,55],[20,30],[35,70],[12,45],
+      [80,30],[95,50],[70,20],[88,60],[75,45],[92,25],
+      [50,110],[60,130],[45,120],[65,100],[55,140],[70,115]
+    ];
+    function renderScatter(id, centroids, colors){
+      var el = document.getElementById(id);
+      pts.forEach(function(p){
+        var d = document.createElement('div');
+        d.className='dot';
+        d.style.left = p[0]+'px'; d.style.top = p[1]+'px';
+        el.appendChild(d);
+      });
+      centroids.forEach(function(c, i){
+        var m = document.createElement('div');
+        m.className='centroid';
+        m.style.left = c[0]+'px'; m.style.top = c[1]+'px';
+        m.style.borderColor = colors[i];
+        el.appendChild(m);
+      });
+    }
+    renderScatter('initBad',  [[18,35],[24,42],[15,48]], ['#1F4E8C','#A32B2B','#4B7A4E']);
+    renderScatter('initGood', [[20,45],[85,35],[58,120]], ['#1F4E8C','#A32B2B','#4B7A4E']);
+  })();
+</script>
+
+</body>
+</html>

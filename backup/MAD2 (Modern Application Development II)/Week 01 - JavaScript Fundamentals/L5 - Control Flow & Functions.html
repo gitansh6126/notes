@@ -1,0 +1,363 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>L5 – Control Flow &amp; Functions — Study Notes</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+.emoji-h{
+  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
+}
+.emoji-h .e{font-size:20px;}
+.analogy-box{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
+.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
+.industry-box{
+  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
+.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
+.mistake-box{
+  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
+.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
+.tip-box{
+  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
+  border-radius:10px; padding:14px 16px; margin:12px 0;
+}
+.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
+.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
+@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
+.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
+.rev-item b{color:var(--green);}
+ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
+li{margin:4px 0; color:var(--text);}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+</style></head><body><div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Week 01 · Lecture 5</div>
+  <h1>Control Flow &amp; Functions</h1>
+  <p>Master how JavaScript <b>controls execution</b> through conditionals and loops, then dive deep into the most important concept: <b>functions</b> — declarations, expressions, arrows, parameters, callbacks, and scoping.</p>
+</div>
+
+<div class="section-tag"><span class="n">1</span>Conditional Statements</div>
+<div class="card">
+  <h2>Making Decisions in Code</h2>
+
+  <h3>if / else if / else</h3>
+  <pre><code><span class="kw">const</span> score = <span class="dv">85</span>;
+
+<span class="kw">if</span> (score >= <span class="dv">90</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"A"</span>);
+} <span class="kw">else if</span> (score >= <span class="dv">80</span>) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"B"</span>);
+} <span class="kw">else</span> {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"C or lower"</span>);
+}</code></pre>
+
+  <h3>Ternary Operator</h3>
+  <pre><code><span class="kw">const</span> age = <span class="dv">20</span>;
+<span class="kw">const</span> status = age >= <span class="dv">18</span> ? <span class="str">"Adult"</span> : <span class="str">"Minor"</span>;</code></pre>
+
+  <h3>switch Statement</h3>
+  <pre><code><span class="kw">const</span> day = <span class="str">"Monday"</span>;
+<span class="kw">switch</span> (day) {
+  <span class="kw">case</span> <span class="str">"Saturday"</span>:
+  <span class="kw">case</span> <span class="str">"Sunday"</span>:
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Weekend!"</span>);
+    <span class="kw">break</span>;
+  <span class="kw">default</span>:
+    <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">"Weekday"</span>);
+}</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Prefer <b>if/else</b> for ranges and complex conditions. Use <b>ternary</b> for simple binary choices. Use <b>switch</b> for many discrete values. Always include <code>break</code> to avoid fall-through.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">2</span>Loops</div>
+<div class="card">
+  <h2>Iteration in JavaScript</h2>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">for (classic)</div>
+      <div class="c-desc">Index-based. <code>for (let i = 0; i &lt; arr.length; i++)</code>. Most control, most verbose.</div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">for...of (ES6)</div>
+      <div class="c-desc">Value-based. <code>for (const val of arr)</code>. Clean, no index. Works on any iterable.</div>
+    </div>
+  </div>
+
+  <pre><code><span class="kw">const</span> fruits = [<span class="str">"apple"</span>, <span class="str">"banana"</span>, <span class="str">"cherry"</span>];
+
+<span class="cmt">// for loop</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="dv">0</span>; i &lt; fruits.<span class="prop">length</span>; i++) {
+  <span class="fn">console</span>.<span class="fn">log</span>(fruits[i]);
+}
+
+<span class="cmt">// for...of (recommended for arrays)</span>
+<span class="kw">for</span> (<span class="kw">const</span> fruit <span class="kw">of</span> fruits) {
+  <span class="fn">console</span>.<span class="fn">log</span>(fruit);
+}
+
+<span class="cmt">// for...in (for object keys, NOT arrays)</span>
+<span class="kw">const</span> user = { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">age</span>: <span class="dv">30</span> };
+<span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">in</span> user) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`<span class="prop">${</span>key<span class="prop">}</span>: <span class="prop">${</span>user[key]<span class="prop">}</span>`</span>);
+}
+
+<span class="cmt">// while / do-while</span>
+<span class="kw">let</span> count = <span class="dv">0</span>;
+<span class="kw">while</span> (count &lt; <span class="dv">3</span>) { <span class="fn">console</span>.<span class="fn">log</span>(count); count++; }
+
+<span class="kw">let</span> n = <span class="dv">0</span>;
+<span class="kw">do</span> { <span class="fn">console</span>.<span class="fn">log</span>(n); n++; } <span class="kw">while</span> (n &lt; <span class="dv">3</span>);</code></pre>
+
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><b>Using for...in for arrays.</b> <code>for...in</code> iterates over <i>keys</i> (property names), not values. For arrays, keys are "0", "1", "2" (strings!). It also iterates over inherited enumerable properties. Always use <code>for...of</code> or <code>.forEach()</code> for arrays.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span>Function Declarations vs Expressions</div>
+<div class="card">
+  <h2>Three Ways to Define a Function</h2>
+
+  <div class="comparison">
+    <div class="comp-card old">
+      <div class="c-title">Declaration</div>
+      <div class="c-desc">Hoisted (usable before definition). Named. <code>function add(a, b) { return a + b; }</code></div>
+    </div>
+    <div class="comp-card new">
+      <div class="c-title">Expression</div>
+      <div class="c-desc">NOT hoisted. Can be anonymous or named. <code>const add = function(a, b) { return a + b; };</code></div>
+    </div>
+  </div>
+  <div class="comparison">
+    <div class="comp-card new" style="grid-column:1/-1;">
+      <div class="c-title">Arrow Function (ES6)</div>
+      <div class="c-desc">NOT hoisted. Shorter syntax. Lexical <code>this</code> binding. <code>const add = (a, b) =&gt; a + b;</code> If single expression, implicit return.</div>
+    </div>
+  </div>
+
+  <pre><code><span class="cmt">// Declaration — hoisted</span>
+<span class="fn">sayHi</span>(<span class="str">"Alice"</span>);            <span class="cmt">// works! (hoisted)</span>
+<span class="kw">function</span> <span class="fn">sayHi</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hi, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+}
+
+<span class="cmt">// Expression — NOT hoisted</span>
+<span class="kw">const</span> greet = <span class="kw">function</span>(name) {
+  <span class="kw">return</span> <span class="str">`Hello, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+};
+
+<span class="cmt">// Arrow function</span>
+<span class="kw">const</span> square = x =&gt; x * x;
+<span class="kw">const</span> add = (a, b) =&gt; a + b;</code></pre>
+
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text">A function declaration is like a <b>recipe in a cookbook</b> — the entire book is pre-loaded before you start cooking. A function expression is like a <b>chef writing a recipe on the fly</b> — you cannot use it until written. An arrow function is like a <b>quick shorthand recipe card</b> — great for simple tasks but does not have its own context.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span>Parameters &amp; Arguments</div>
+<div class="card">
+  <h2>Parameters, Defaults, Rest</h2>
+
+  <h3>Default Parameters (ES6)</h3>
+  <pre><code><span class="kw">function</span> <span class="fn">greet</span>(name = <span class="str">"Guest"</span>, greeting = <span class="str">"Hello"</span>) {
+  <span class="kw">return</span> <span class="str">`<span class="prop">${</span>greeting<span class="prop">}</span>, <span class="prop">${</span>name<span class="prop">}</span>!`</span>;
+}
+<span class="fn">greet</span>();               <span class="cmt">// "Hello, Guest!"</span>
+<span class="fn">greet</span>(<span class="str">"Bob"</span>);          <span class="cmt">// "Hello, Bob!"</span></code></pre>
+
+  <h3>Rest Parameters (ES6)</h3>
+  <pre><code><span class="kw">function</span> <span class="fn">sum</span>(...numbers) {
+  <span class="kw">return</span> numbers.<span class="fn">reduce</span>((acc, n) =&gt; acc + n, <span class="dv">0</span>);
+}
+<span class="fn">sum</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>);         <span class="cmt">// 6</span>
+<span class="fn">sum</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>, <span class="dv">5</span>); <span class="cmt">// 15</span></code></pre>
+
+  <h3>Parameters vs Arguments</h3>
+  <ul>
+    <li><b>Parameters</b> — the variables listed in function definition (formal parameters)</li>
+    <li><b>Arguments</b> — the actual values passed when calling the function</li>
+  </ul>
+  <pre><code><span class="cmt">// params: a, b     arguments: 3, 7</span>
+<span class="kw">function</span> <span class="fn">multiply</span>(a, b) { <span class="kw">return</span> a * b; }
+<span class="fn">multiply</span>(<span class="dv">3</span>, <span class="dv">7</span>);  <span class="cmt">// 21</span></code></pre>
+</div>
+
+<div class="section-tag"><span class="n">5</span>IIFE &amp; Callbacks</div>
+<div class="card">
+  <h2>Immediately Invoked &amp; First-Class</h2>
+
+  <h3>IIFE — Immediately Invoked Function Expression</h3>
+  <pre><code><span class="cmt">// Classic IIFE (wrapped in parens, then invoked)</span>
+(<span class="kw">function</span>() {
+  <span class="kw">const</span> msg = <span class="str">"Runs immediately!"</span>;
+  <span class="fn">console</span>.<span class="fn">log</span>(msg);
+})();
+
+<span class="cmt">// Arrow IIFE</span>
+(<span class="kw">const</span> result = (<span class="kw">const</span> x = <span class="dv">5</span>; x * x) => x)();
+
+<span class="cmt">// Modern equivalent: block scope</span>
+{
+  <span class="kw">const</span> msg = <span class="str">"Block-scoped!"</span>;
+  <span class="fn">console</span>.<span class="fn">log</span>(msg);
+}</code></pre>
+
+  <h3>Callbacks (Functions as First-Class Citizens)</h3>
+  <pre><code><span class="cmt">// Passing a function as argument</span>
+<span class="kw">function</span> <span class="fn">processUser</span>(userId, callback) {
+  <span class="kw">const</span> user = { <span class="prop">id</span>: userId, <span class="prop">name</span>: <span class="str">"Alice"</span> };
+  <span class="fn">callback</span>(user);
+}
+
+<span class="fn">processUser</span>(<span class="dv">1</span>, <span class="kw">function</span>(user) {
+  <span class="fn">console</span>.<span class="fn">log</span>(<span class="str">`User: <span class="prop">${</span>user.<span class="prop">name</span><span class="prop">}</span>`</span>);
+});
+
+<span class="cmt">// With arrow function</span>
+<span class="fn">processUser</span>(<span class="dv">2</span>, user =&gt; <span class="fn">console</span>.<span class="fn">log</span>(user.<span class="prop">name</span>));</code></pre>
+
+  <div class="industry-box">
+    <div class="i-label">Industry Insight</div>
+    <div class="i-text">The callback pattern was <b>the first async pattern in JavaScript</b>. However, deeply nested callbacks ("callback hell") led to Promises (ES6) and async/await (ES2017). In 2024, callbacks are still widely used in event handlers (<code>.addEventListener</code>) and Node.js APIs (<code>fs.readFile</code>), but most modern async code uses <code>async/await</code>. Understanding callbacks is essential because Promises and async/await are built on top of them.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">6</span>Scoping</div>
+<div class="card">
+  <h2>Global, Function, Block Scope</h2>
+  <div class="def">Scope determines <b>where</b> variables are accessible. Functions create scope, and blocks (<code>{}</code>) create scope for <code>let</code>/<code>const</code>.</div>
+  <pre><code><span class="kw">const</span> globalVar = <span class="str">"global"</span>;
+
+<span class="kw">function</span> <span class="fn">outer</span>() {
+  <span class="kw">const</span> outerVar = <span class="str">"outer"</span>;
+
+  <span class="kw">function</span> <span class="fn">inner</span>() {
+    <span class="kw">const</span> innerVar = <span class="str">"inner"</span>;
+    <span class="fn">console</span>.<span class="fn">log</span>(globalVar);  <span class="cmt">// "global"</span>
+    <span class="fn">console</span>.<span class="fn">log</span>(outerVar);   <span class="cmt">// "outer"</span>
+  }
+
+  <span class="cmt">// console.log(innerVar); // ReferenceError!</span>
+}</code></pre>
+
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text">Keep functions small and focused. Avoid deeply nested scopes. Use <b>const</b> by default. Prefer <b>pure functions</b> (same input always produces same output, no side effects).</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span>Interview Q&amp;A</div>
+<div class="card">
+  <div class="qa-box">
+    <div class="q">Q: What is the difference between a function declaration and a function expression?</div>
+    <div class="a">A: A <b>function declaration</b> is hoisted — usable before its definition. A <b>function expression</b> is not hoisted — it behaves like a variable assignment. Declarations must have a name; expressions can be anonymous.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is an IIFE and why was it used?</div>
+    <div class="a">A: IIFE (Immediately Invoked Function Expression) runs as soon as it is defined. Before ES6 modules and <code>let</code>/<code>const</code> block scoping, IIFEs were the primary way to create private scopes and avoid polluting the global namespace.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: What is "callback hell" and how do you avoid it?</div>
+    <div class="a">A: Callback hell is deeply nested callbacks that become unreadable. Solutions: break into named functions, use Promises with <code>.then()</code> chains, or use <code>async/await</code> for sequential async operations.</div>
+  </div>
+  <div class="qa-box">
+    <div class="q">Q: How do arrow functions differ from regular functions?</div>
+    <div class="a">A: Arrow functions: (1) shorter syntax, (2) implicit return for single-expression bodies, (3) no <code>this</code> binding (lexical this from surrounding scope), (4) cannot be used as constructors, (5) no <code>arguments</code> object.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span>Quick Revision</div>
+<div class="card">
+  <div class="rev-grid">
+    <div class="rev-item"><b>if/else</b> ranges and complex conditions</div>
+    <div class="rev-item"><b>Ternary</b> <code>? :</code> inline binary choice</div>
+    <div class="rev-item"><b>switch</b> many discrete values</div>
+    <div class="rev-item"><b>for...of</b> iterate arrays (values)</div>
+    <div class="rev-item"><b>for...in</b> iterate object keys</div>
+    <div class="rev-item"><b>Declaration</b> hoisted, named</div>
+    <div class="rev-item"><b>Expression</b> not hoisted, variable</div>
+    <div class="rev-item"><b>Arrow</b> concise, lexical this</div>
+    <div class="rev-item"><b>Default params</b> <code>fn(a = 1)</code></div>
+    <div class="rev-item"><b>Rest params</b> <code>...args</code></div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · JavaScript — study card</div>
+</div></body></html>
