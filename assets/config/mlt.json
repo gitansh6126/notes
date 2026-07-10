@@ -117,8 +117,8 @@
           "week": "Week 01 - Intro Representation PCA",
           "order": 9,
           "slug": "part-2-eigenvalues",
-          "lastModified": "2026-07-04T05:03:28.628Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-10T03:27:42.492Z",
+          "readingTime": 54,
           "tags": [],
           "keywords": []
         },
@@ -270,8 +270,8 @@
           "week": "Week 03 - K-Means Clustering",
           "order": 2,
           "slug": "l14-lloyd-algorithm",
-          "lastModified": "2026-07-05T12:43:02.972Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-10T02:47:42.102Z",
+          "readingTime": 34,
           "tags": [],
           "keywords": []
         },
@@ -457,8 +457,8 @@
           "week": "Week 04 - Estimation GMM EM",
           "order": 7,
           "slug": "l25-parameter-estimation",
-          "lastModified": "2026-07-05T12:43:02.972Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-10T02:49:34.263Z",
+          "readingTime": 33,
           "tags": [],
           "keywords": []
         },
@@ -470,8 +470,8 @@
           "week": "Week 04 - Estimation GMM EM",
           "order": 8,
           "slug": "l26-em-algorithm",
-          "lastModified": "2026-07-02T05:58:24.308Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-10T02:51:58.893Z",
+          "readingTime": 31,
           "tags": [],
           "keywords": []
         },
