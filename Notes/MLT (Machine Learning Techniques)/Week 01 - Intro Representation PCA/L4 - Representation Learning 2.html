@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PCA &amp; Eigenvectors — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; background:var(--board); color:var(--chalk);
+  font-family:'Space Mono', monospace; position:relative; overflow-x:hidden;
+}
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 980px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:56px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-yellow); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.1rem, 5.2vw, 3.5rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:620px; margin: 0 auto; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.9rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:64px; }
+
+/* Thread ribbon connecting to previous lecture */
+.thread{
+  display:flex; align-items:center; gap:10px;
+  font-family:'Caveat', cursive; font-size: 1.15rem; color: var(--chalk-pink);
+  background: rgba(217,143,160,0.07); border: 1px dashed var(--chalk-pink);
+  border-radius: 6px; padding: 10px 16px; margin-bottom: 30px;
+}
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-pink); border:1px solid var(--chalk-pink); border-radius:10px; padding:3px 8px; }
+
+/* Thesis */
+.thesis{ background: var(--board-alt); border: 1px dashed var(--chalk-yellow); border-radius: 8px; padding: 32px; text-align:center; margin-bottom: 20px; }
+.thesis .big{ font-family:'Kalam', cursive; font-size: clamp(1.4rem, 3.6vw, 2.1rem); color: var(--chalk-yellow); margin: 0 0 10px; }
+.thesis p{ font-size: 13.5px; color: var(--chalk-dim); max-width: 660px; margin: 0 auto; line-height:1.6; }
+
+/* Cards */
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.25rem; color: var(--chalk); margin: 0 0 12px; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Diagram: shadow / ellipse illustration */
+.diagram-box{
+  background: var(--board-alt); border-radius: 8px; padding: 30px; text-align:center;
+}
+.diagram-box svg{ max-width: 100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.2rem; color: var(--chalk-blue); margin-top:12px; }
+
+/* Math strip */
+.mathbox{ background: var(--board-alt); border-radius: 6px; padding: 26px 28px; }
+.formula{ font-family:'Space Mono', monospace; font-size: 1.1rem; text-align:center; color: var(--chalk-yellow); padding: 10px 0; letter-spacing: 0.4px; }
+.mathbox .caption{ text-align:center; font-family:'Caveat', cursive; font-size: 1.15rem; color: var(--chalk-blue); margin: 4px 0 18px; }
+.mathbox hr{ border: none; border-top: 1px dotted var(--board-line); margin: 18px 0; }
+
+/* Takeaway */
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.6rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 04 · Companion Notes</div>
+    <h1>PCA &amp; Eigenvectors</h1>
+    <p class="subhead">— finding the one direction that keeps the most truth about your data —</p>
+  </header>
+
+  <section>
+    <div class="thread"><span class="tag">Continuing from L03</span> Same shadow-and-projection idea — now we ask: which angle for the "light" gives the least distorted shadow?</div>
+
+    <div class="thesis">
+      <p class="big">Real data never sits perfectly on a line.</p>
+      <p>So instead of assuming a perfect fit, we search for the line that loses the <em>least</em> information when every point is squashed onto it — minimizing reconstruction error.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Real Life</p>
+        <div class="row"><p>Photographing a handful of scattered marbles on a table. Shoot from directly above and they look like a tight, overlapping blob. Shoot from the angle where they're most spread out, and you can tell them apart.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Analogy</p>
+        <div class="row analogy"><p>The "best angle" photo is the one that keeps the most distinguishing information — exactly what PCA searches for when picking a line to project onto.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Why Minimizing Error = Maximizing Spread</h2><div class="rule"></div></div>
+    <p class="section-intro">These sound like opposite goals, but they're mathematically the same target.</p>
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+        <!-- scattered points forming an elongated cloud -->
+        <ellipse cx="320" cy="110" rx="230" ry="60" fill="none" stroke="#8fb8c9" stroke-width="1" stroke-dasharray="4 5" opacity="0.5" transform="rotate(-12 320 110)"/>
+        <line x1="95" y1="150" x2="545" y2="70" stroke="#e8c468" stroke-width="2"/>
+        <g fill="#f4f1e6">
+          <circle cx="140" cy="140" r="4"/>
+          <circle cx="190" cy="120" r="4"/>
+          <circle cx="230" cy="135" r="4"/>
+          <circle cx="270" cy="105" r="4"/>
+          <circle cx="310" cy="118" r="4"/>
+          <circle cx="350" cy="95" r="4"/>
+          <circle cx="390" cy="108" r="4"/>
+          <circle cx="430" cy="85" r="4"/>
+          <circle cx="470" cy="98" r="4"/>
+          <circle cx="500" cy="80" r="4"/>
+        </g>
+        <!-- dashed projection lines -->
+        <g stroke="#d98fa0" stroke-width="1" stroke-dasharray="2 3" opacity="0.7">
+          <line x1="140" y1="140" x2="150" y2="146"/>
+          <line x1="190" y1="120" x2="200" y2="132"/>
+          <line x1="270" y1="105" x2="278" y2="117"/>
+          <line x1="350" y1="95" x2="357" y2="103"/>
+          <line x1="430" y1="85" x2="437" y2="92"/>
+          <line x1="500" y1="80" x2="505" y2="84"/>
+        </g>
+        <text x="320" y="200" text-anchor="middle" fill="#c9d1c3" font-family="Space Mono, monospace" font-size="11">yellow line = direction of max spread (top eigenvector)</text>
+      </svg>
+      <p class="caption">The line that keeps points furthest apart from each other is, automatically, the line closest to every point.</p>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">Real Life</p>
+        <div class="row"><p>A tailor stretching a single elastic band across a rack of differently-sized shirts so it touches as many shirt shoulders as possible.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The band that reaches the widest spread of shoulders (max variance) is also, geometrically, the band sitting closest to all of them on average (min error) — same line, two ways of describing it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>The Covariance Matrix</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Covariance Matrix (C)</p>
+        <p class="def">Averages the outer products of every data point — a table of how features move together.</p>
+        <div class="row"><span class="label">Real Life</span><p>An ice cream shop's sales log showing that ice cream sales and sunscreen sales rise and fall together — while ice cream sales and umbrella sales move in opposite directions.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>C is that whole sales log condensed into one grid — every pair of "features" (ice cream, sunscreen, umbrellas) gets a number for how much they co-move.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Eigenvectors &amp; Eigenvalues</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Eigenvector (Direction)</p>
+        <p class="def">The direction along which the data spreads out the most.</p>
+        <div class="row"><span class="label">Real Life</span><p>Fitting the smallest oval around a cluster of stars in the night sky — the oval has one long axis and one short axis.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>That long axis is the top eigenvector — the "main direction" the star cluster stretches in, even though individual stars sit off to either side.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Eigenvalue (Amount)</p>
+        <p class="def">How much variance lies along that eigenvector's direction.</p>
+        <div class="row"><span class="label">Real Life</span><p>How long the oval's long axis actually is, compared to its short axis.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A long, thin oval (big eigenvalue) means the data has one dominant direction of spread worth keeping; a nearly circular oval (small eigenvalue) means there's no real "best angle" to project onto.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>The Formula, Plainly</h2><div class="rule"></div></div>
+    <div class="mathbox">
+      <div class="formula">maximize&nbsp; w&#7488; C w &nbsp;&nbsp;subject to&nbsp;&nbsp; ‖w‖&sup2; = 1</div>
+      <p class="caption">Find the unit direction w that makes the "spread formula" w&#7488;Cw as large as possible.</p>
+      <hr>
+      <div class="formula">C = (1/n) &sum; x&#7522; x&#7522;&#7488;</div>
+      <p class="caption">C is just the average of every point "multiplied by itself" — the co-movement table above, written in matrix form.</p>
+      <hr>
+      <div class="formula">best w = eigenvector of C with the largest eigenvalue</div>
+      <p class="caption">This optimization has a shortcut: no trial-and-error searching needed — the answer is exactly the top eigenvector of C.</p>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>PCA doesn't guess at the best line by trial and error — it reads it straight off the covariance matrix, as the eigenvector holding the most spread.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>

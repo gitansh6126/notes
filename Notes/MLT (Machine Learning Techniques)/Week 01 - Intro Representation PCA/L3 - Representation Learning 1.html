@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Representation Learning — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --shelf: #3b2a20;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  background:var(--board);
+  color:var(--chalk);
+  font-family:'Space Mono', monospace;
+  position:relative;
+  overflow-x:hidden;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px;
+  z-index:1;
+}
+
+.wrap{
+  max-width: 980px;
+  margin:0 auto;
+  padding: 56px 28px 100px;
+  position:relative;
+  z-index:2;
+}
+
+header{
+  text-align:center;
+  margin-bottom:56px;
+  padding-bottom:36px;
+  border-bottom: 2px dashed var(--board-line);
+}
+.eyebrow{
+  font-size:12px;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  color: var(--chalk-yellow);
+  margin-bottom:18px;
+}
+h1{
+  font-family:'Kalam', cursive;
+  font-weight:700;
+  font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+  margin:0 0 14px;
+  line-height:1.1;
+}
+.subhead{
+  font-family:'Caveat', cursive;
+  font-size: 1.5rem;
+  color: var(--chalk-blue);
+  max-width:600px;
+  margin: 0 auto;
+}
+
+.section-head{
+  display:flex;
+  align-items:baseline;
+  gap:16px;
+  margin-bottom: 10px;
+}
+.section-head h2{
+  font-family:'Kalam', cursive;
+  font-size: 1.9rem;
+  color: var(--chalk-yellow);
+  margin:0;
+  white-space:nowrap;
+}
+.section-head .rule{
+  flex:1;
+  height:1px;
+  background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px);
+}
+.section-intro{
+  font-family:'Caveat', cursive;
+  font-size:1.3rem;
+  color:var(--chalk-dim);
+  max-width:700px;
+  margin: 0 0 26px;
+}
+section{ margin-bottom:64px; }
+
+/* ---------- Core objective — big statement card ---------- */
+.thesis{
+  background: var(--board-alt);
+  border: 1px dashed var(--chalk-yellow);
+  border-radius: 8px;
+  padding: 32px;
+  text-align:center;
+  margin-bottom: 20px;
+}
+.thesis .big{
+  font-family:'Kalam', cursive;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  color: var(--chalk-yellow);
+  margin: 0 0 10px;
+}
+.thesis p{
+  font-size: 13.5px;
+  color: var(--chalk-dim);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height:1.6;
+}
+
+/* ---------- Cards ---------- */
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.card{
+  background: var(--board-alt);
+  border: 1px solid var(--board-line);
+  border-radius: 6px;
+  padding: 22px 22px 20px;
+  transition: transform .25s ease, border-color .25s ease;
+}
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{
+  font-family:'Kalam', cursive;
+  font-size: 1.3rem;
+  color: var(--chalk);
+  margin: 0 0 12px;
+}
+.row{ margin-bottom: 10px; }
+.row .label{
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--chalk-blue);
+  display:block;
+  margin-bottom: 4px;
+}
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{
+  fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round;
+  stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7;
+}
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* ---------- Reconstruction comparison ---------- */
+.compare{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width:640px){ .compare{ grid-template-columns:1fr; } }
+.compare .panel{
+  background: var(--board-alt);
+  border-radius: 6px;
+  padding: 22px;
+  border-top: 3px solid var(--accent);
+}
+.compare .panel.exact{ --accent: var(--chalk-blue); }
+.compare .panel.approx{ --accent: var(--chalk-pink); }
+.compare .panel h4{
+  font-family:'Kalam', cursive;
+  font-size: 1.2rem;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+.compare .panel p{
+  font-size: 12.5px;
+  color: var(--chalk-dim);
+  line-height: 1.6;
+  margin: 0 0 10px;
+}
+.compare .panel p strong{ color:var(--chalk); }
+
+/* ---------- Math strip ---------- */
+.mathbox{
+  background: var(--board-alt);
+  border-radius: 6px;
+  padding: 26px 28px;
+  margin-top: 4px;
+}
+.formula{
+  font-family:'Space Mono', monospace;
+  font-size: 1.15rem;
+  text-align:center;
+  color: var(--chalk-yellow);
+  padding: 14px 0;
+  letter-spacing: 0.5px;
+}
+.formula .frac{ display:inline-block; vertical-align:middle; text-align:center; margin:0 6px; }
+.formula .frac .num{ display:block; border-bottom: 1px solid var(--chalk-yellow); padding: 0 4px 3px; }
+.formula .frac .den{ display:block; padding: 3px 4px 0; }
+.mathbox .caption{
+  text-align:center;
+  font-family:'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--chalk-blue);
+  margin-top: 6px;
+}
+.mathbox hr{
+  border: none;
+  border-top: 1px dotted var(--board-line);
+  margin: 22px 0;
+}
+
+/* ---------- Takeaway ---------- */
+.takeaway{
+  border-top: 4px solid var(--shelf);
+  padding-top: 24px;
+  text-align:center;
+}
+.takeaway p{
+  font-family:'Caveat', cursive;
+  font-size: 1.6rem;
+  color: var(--chalk);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height:1.4;
+}
+
+footer{
+  text-align:center;
+  margin-top: 60px;
+  font-size:11px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color: var(--board-line);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Lecture 03 · Companion Notes</div>
+    <h1>Representation<br>Learning: Foundations</h1>
+    <p class="subhead">— why "understanding" a dataset really means finding the shortest way to describe it —</p>
+  </header>
+
+  <!-- Core Objective -->
+  <section>
+    <div class="thesis">
+      <p class="big">"Comprehension is Compression"</p>
+      <p>The goal of unsupervised learning is to take data points living in high-dimensional space and find a smaller, more efficient way to represent them — without losing what matters.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Real Life</p>
+        <div class="row"><p>A great book review that captures the entire plot, themes, and ending in three sentences.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Analogy</p>
+        <div class="row analogy"><p>If you truly <em>understand</em> something, you can summarize it. A student who can only repeat the textbook word-for-word hasn't compressed the idea — they haven't understood it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Data Representation Strategies -->
+  <section>
+    <div class="section-head">
+      <h2>Efficient Representation</h2>
+      <div class="rule"></div>
+    </div>
+    <p class="section-intro">If your data follows a pattern, you don't need to store every point in full detail — just the pattern, plus a small note per point.</p>
+    <div class="grid">
+      <div class="card">
+        <p class="term">One Representative + Coefficients</p>
+        <div class="row"><span class="label">Real Life</span><p>A tailor keeps one master pattern for a shirt, then stores just a single "scale factor" per customer (small, medium, large, or an exact size number).</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Instead of cutting a brand-new pattern for every customer, the tailor reuses one shape and just rescales it — exactly like storing one representative vector plus one coefficient per data point.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Linear Trend = Cheap Storage</p>
+        <div class="row"><span class="label">Real Life</span><p>A delivery company tracking trucks that all drive the same highway — it only needs to log each truck's distance along the road, not its full GPS coordinates.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The highway is the "representative line"; each truck's position is just one number (distance travelled) instead of two (latitude and longitude).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Exact vs Approximate -->
+  <section>
+    <div class="section-head">
+      <h2>Exact vs. Approximate Reconstruction</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="compare">
+      <div class="panel exact">
+        <h4>Exact Reconstruction</h4>
+        <p><strong>When:</strong> every data point lies perfectly on the line.</p>
+        <p><strong>Real life:</strong> a train that only ever moves along its fixed track — knowing its distance from the station tells you its exact position, no error at all.</p>
+      </div>
+      <div class="panel approx">
+        <h4>Approximate Reconstruction</h4>
+        <p><strong>When:</strong> points don't align — you either add more representatives (costlier) or accept some error.</p>
+        <p><strong>Real life:</strong> a car driving near, but not exactly on, a mapped road — GPS approximates your position by snapping you to the nearest point on the road.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Projection -->
+  <section>
+    <div class="section-head">
+      <h2>Projection: Finding the Best Proxy</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Projecting onto a Line</p>
+        <div class="row"><span class="label">Real Life</span><p>The shadow a tree casts on the ground at noon.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The shadow is a "compressed" 1D version of the full 3D tree — it loses some information (height detail), but keeps the most important part (position along the ground).</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Minimizing the Error</p>
+        <div class="row"><span class="label">Real Life</span><p>A carpenter fitting a shelf to a slightly uneven wall — sanding it down so the gap is as small as possible everywhere, not perfect in one spot and terrible elsewhere.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>This mirrors minimizing the squared length of the error vector — spreading the "misfit" out evenly rather than letting it spike anywhere.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Math Formulation -->
+  <section>
+    <div class="section-head">
+      <h2>The Formula, Plainly</h2>
+      <div class="rule"></div>
+    </div>
+    <div class="mathbox">
+      <div class="formula">
+        c* = <span class="frac"><span class="num">x&#7488; w</span><span class="den">‖w‖</span></span>
+      </div>
+      <p class="caption">The best coefficient c* is how far x "leans into" the direction of w, scaled by w's own length.</p>
+      <hr>
+      <div class="formula">
+        if ‖w‖ = 1&nbsp;&nbsp;→&nbsp;&nbsp; c* = x&#7488; w
+      </div>
+      <p class="caption">Give the representative w a "unit length," and the messy division disappears — c* is just the dot product of x and w.</p>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">Intuition</p>
+        <div class="row"><span class="label">Real Life</span><p>Measuring how much of your walk was "forward" using a compass — you don't need your full zig-zag path, just the component pointing in the forward direction.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The compass direction is w (unit length); how many steps you took "in that direction" is exactly c* — a dot product, nothing more exotic.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Takeaway -->
+  <section class="takeaway">
+    <p>Representation learning is the art of finding the shortest honest description of your data — and projection is how you measure how much gets kept when you shrink it.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>

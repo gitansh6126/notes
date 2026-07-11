@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Economics Week 1 Part 3 — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1020px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-pink); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2rem, 4.8vw, 3.2rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:660px; margin: 0 auto; }
+
+.thread{ display:flex; align-items:center; gap:10px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-pink); background: rgba(217,143,160,0.07); border: 1px dashed var(--chalk-pink); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; text-align:center; }
+.thread .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-pink); border:1px solid var(--chalk-pink); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.8rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.25rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:56px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.15rem; color: var(--chalk); margin: 0 0 8px; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+.tu-table{ width:100%; border-collapse:collapse; margin-top:16px; font-size:12.5px; }
+.tu-table th, .tu-table td{ border: 1px solid var(--board-line); padding: 8px 10px; text-align:center; color: var(--chalk-dim); }
+.tu-table th{ color: var(--chalk-yellow); font-family:'Kalam', cursive; font-weight:400; font-size:13px; }
+.tu-table td.zero{ color: var(--chalk-yellow); font-weight:bold; }
+.tu-table td.neg{ color: var(--chalk-pink); font-weight:bold; }
+
+.assum-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:16px; }
+.assum-card{ background: var(--board-alt); border-radius:6px; padding:16px 18px; border-top:3px solid var(--chalk-blue); }
+.assum-card .letter{ font-family:'Kalam', cursive; color: var(--chalk-yellow); font-size:1.3rem; margin-bottom:4px; }
+.assum-card h5{ font-family:'Kalam', cursive; margin:0 0 8px; font-size:1rem; color: var(--chalk); }
+.assum-card p{ font-size:11.5px; color: var(--chalk-dim); line-height:1.5; margin:0; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Economics · Week 1 · Part 3</div>
+    <h1>Utility &amp; Diminishing<br>Marginal Utility</h1>
+    <p class="subhead">— why the first bite is always the best one —</p>
+  </header>
+
+  <div class="thread"><span class="tag">Continuing from Part 2</span> Same desire-driven decisions as before — now we measure how much satisfaction each decision actually delivers.</div>
+
+  <!-- Utility -->
+  <section>
+    <div class="section-head"><h2>Utility: Satisfaction, Not Usefulness</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Utility Is Subjective</p>
+        <div class="row"><span class="label">Real Life</span><p>The exact same movie — one friend calls it the best film of the year, another falls asleep halfway through.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Same product (the jacket, the movie, the meal), completely different satisfaction — utility lives in the consumer, not the object itself.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marginality -->
+  <section>
+    <div class="section-head"><h2>Marginality: One Decision at a Time</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Step-by-Step Decisions</p>
+        <div class="row"><span class="label">Real Life</span><p>Filling up a car's gas tank a little at a time whenever you pass a station, rather than signing up for a lifetime supply of fuel in one go.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Each chocolate, each glass of water, each extra unit is its own separate decision — that one-at-a-time habit is what "marginal" thinking actually means.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marginal Utility -->
+  <section>
+    <div class="section-head"><h2>Marginal Utility</h2><div class="rule"></div></div>
+    <div class="diagram-box" style="margin-bottom:20px;">
+      <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Space Mono, monospace" font-size="10" fill="#c9d1c3">
+          <rect x="30" y="40" width="70" height="60" fill="#e8c468"/>
+          <rect x="120" y="55" width="70" height="45" fill="#e8c468" opacity="0.8"/>
+          <rect x="210" y="70" width="70" height="30" fill="#e8c468" opacity="0.6"/>
+          <rect x="300" y="85" width="70" height="15" fill="#e8c468" opacity="0.4"/>
+          <rect x="390" y="97" width="70" height="3" fill="#d98fa0" opacity="0.7"/>
+          <text x="65" y="115" text-anchor="middle" fill="#f4f1e6">0→20%</text>
+          <text x="155" y="115" text-anchor="middle" fill="#f4f1e6">20→40%</text>
+          <text x="245" y="115" text-anchor="middle" fill="#f4f1e6">40→60%</text>
+          <text x="335" y="115" text-anchor="middle" fill="#f4f1e6">60→80%</text>
+          <text x="425" y="115" text-anchor="middle" fill="#f4f1e6">80→100%</text>
+        </g>
+      </svg>
+      <p class="caption">Charging a near-dead phone: the jump from 0% to 20% feels like relief. The jump from 80% to 100% barely registers — same 20 percentage points, wildly different satisfaction.</p>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">MU = Extra Satisfaction, One More Unit</p>
+        <div class="row"><span class="label">Real Life</span><p>That relief jump from 0% to 20% battery is huge marginal utility; the jump from 80% to 100% is nearly unnoticed marginal utility.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Total charge (Total Utility) still goes up the whole time — but each additional percent (Marginal Utility) matters less and less.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Total vs Marginal -->
+  <section>
+    <div class="section-head"><h2>Total Utility vs. Marginal Utility</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Filling a Bathtub</p>
+        <div class="row"><span class="label">Real Life</span><p>Total Utility is the water level in the tub. Marginal Utility is how fast the tap is currently flowing — the level (TU) keeps rising even as the flow rate (MU) slows down.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>The tub stops filling — TU peaks — the exact moment the flow rate hits zero (MU = 0). Turn the tap the wrong way (negative MU), and the water level actually starts dropping.</p></div>
+      </div>
+    </div>
+    <table class="tu-table">
+      <tr><th>Ice Cream</th><th>Total Utility</th><th>Marginal Utility</th></tr>
+      <tr><td>1</td><td>100</td><td>100</td></tr>
+      <tr><td>2</td><td>180</td><td>80</td></tr>
+      <tr><td>3</td><td>240</td><td>60</td></tr>
+      <tr><td>4</td><td>270</td><td>30</td></tr>
+      <tr><td>5</td><td>270</td><td class="zero">0 ← TU peaks here</td></tr>
+      <tr><td>6</td><td>250</td><td class="neg">-20 ← TU falling</td></tr>
+    </table>
+  </section>
+
+  <!-- Negative Utility -->
+  <section>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Negative Utility</p>
+        <div class="row"><span class="label">Real Life</span><p>Rewatching the same episode of a show for the tenth time in a row — what used to be entertaining now just feels tedious.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>At that point, one more unit doesn't just add nothing — it actively makes you worse off, exactly like that 6th ice cream making you feel sick.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Assumptions -->
+  <section>
+    <div class="section-head"><h2>Assumptions of LDMU — <span class="code">ICRTTU</span></h2><div class="rule"></div></div>
+    <div class="assum-grid">
+      <div class="assum-card"><div class="letter">I</div><h5>Identical Goods</h5><p>A taste test comparing apple to apple — not apple to orange. Switching flavors partway breaks the pattern.</p></div>
+      <div class="assum-card"><div class="letter">C</div><h5>Continuous Consumption</h5><p>A marathon runner drinking water at every mile marker — not one sip today and another next month.</p></div>
+      <div class="assum-card"><div class="letter">R</div><h5>Rational Consumer</h5><p>A careful shopper doing the mental math — not an impulse buy driven purely by emotion.</p></div>
+      <div class="assum-card"><div class="letter">T</div><h5>Taste Constant</h5><p>Loving the same genre of music throughout the whole listening session — not flipping preferences halfway through.</p></div>
+      <div class="assum-card"><div class="letter">T</div><h5>Utility Measurable</h5><p>Assuming there's a working "happiness scale" in the background, even though satisfaction is really a feeling, not a number.</p></div>
+      <div class="assum-card"><div class="letter">U</div><h5>Uniform Unit Size</h5><p>Comparing one normal slice to the next normal slice — not one regular slice against one giant novelty slice.</p></div>
+    </div>
+  </section>
+
+  <!-- Business pricing -->
+  <section>
+    <div class="section-head"><h2>Business Pricing: Why Bulk Is Cheaper</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">The Warehouse Club Strategy</p>
+        <div class="row"><span class="label">Real Life</span><p>A wholesale club charging full price for your first bulk item, but discounting each additional one — the first roll of paper towels feels essential, the twelfth much less exciting.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Since your marginal utility for extra units keeps falling, the store has to lower the price to keep tempting you — exactly the backpack pricing pattern (₹300 → ₹550 → ₹750 total, cheaper per bag each time).</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Total satisfaction keeps climbing right up until the extra unit stops adding anything — and one bite past that point is where satisfaction quietly turns into regret.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>

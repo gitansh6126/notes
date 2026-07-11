@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Economics Week 1 — Chalkboard Notes</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Kalam:wght@400;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root{
+  --board: #1e2b22;
+  --board-alt: #26362b;
+  --board-line: rgba(244,241,230,0.14);
+  --chalk: #f4f1e6;
+  --chalk-dim: #c9d1c3;
+  --chalk-yellow: #e8c468;
+  --chalk-blue: #8fb8c9;
+  --chalk-pink: #d98fa0;
+  --chalk-green: #9fd0a7;
+  --shelf: #3b2a20;
+}
+*{box-sizing:border-box;}
+body{ margin:0; background:var(--board); color:var(--chalk); font-family:'Space Mono', monospace; position:relative; overflow-x:hidden; }
+body::before{
+  content:""; position:fixed; inset:0; pointer-events:none;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 70% 60%, rgba(244,241,230,0.04) 0, transparent 100%),
+    radial-gradient(1px 1px at 40% 80%, rgba(244,241,230,0.05) 0, transparent 100%),
+    radial-gradient(1px 1px at 90% 15%, rgba(244,241,230,0.04) 0, transparent 100%);
+  background-size: 300px 300px; z-index:1;
+}
+.wrap{ max-width: 1020px; margin:0 auto; padding: 56px 28px 100px; position:relative; z-index:2; }
+header{ text-align:center; margin-bottom:36px; padding-bottom:36px; border-bottom: 2px dashed var(--board-line); }
+.eyebrow{ font-size:12px; letter-spacing:4px; text-transform:uppercase; color: var(--chalk-yellow); margin-bottom:18px; }
+h1{ font-family:'Kalam', cursive; font-weight:700; font-size: clamp(2.2rem, 5.2vw, 3.6rem); margin:0 0 14px; line-height:1.1; }
+.subhead{ font-family:'Caveat', cursive; font-size: 1.5rem; color: var(--chalk-blue); max-width:640px; margin: 0 auto; }
+
+.unit-banner{ display:flex; align-items:center; gap:12px; justify-content:center; font-family:'Caveat', cursive; font-size: 1.25rem; color: var(--chalk-pink); background: rgba(217,143,160,0.08); border: 1px dashed var(--chalk-pink); border-radius: 6px; padding: 10px 18px; margin-bottom: 50px; text-align:center; }
+.unit-banner .tag{ font-family:'Space Mono', monospace; font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--chalk-pink); border:1px solid var(--chalk-pink); border-radius:10px; padding:3px 8px; }
+
+.section-head{ display:flex; align-items:baseline; gap:16px; margin-bottom: 10px; }
+.section-head h2{ font-family:'Kalam', cursive; font-size: 1.85rem; color: var(--chalk-yellow); margin:0; white-space:nowrap; }
+.section-head .rule{ flex:1; height:1px; background: repeating-linear-gradient(90deg, var(--board-line) 0 8px, transparent 8px 14px); }
+.section-intro{ font-family:'Caveat', cursive; font-size:1.3rem; color:var(--chalk-dim); max-width:720px; margin: 0 0 26px; }
+section{ margin-bottom:60px; }
+
+.code{ display:inline-block; font-family:'Space Mono', monospace; font-size: 12px; background: rgba(0,0,0,0.25); color: var(--chalk-green); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--board-line); }
+
+/* Core equation thesis */
+.thesis{ background: var(--board-alt); border: 1px dashed var(--chalk-yellow); border-radius: 8px; padding: 30px; text-align:center; }
+.thesis .eq{ font-family:'Kalam', cursive; font-size: clamp(1.3rem, 3.4vw, 1.9rem); color: var(--chalk-yellow); margin: 0 0 10px; }
+.thesis p{ font-size: 13px; color: var(--chalk-dim); max-width: 640px; margin: 8px auto 0; line-height:1.6; }
+
+/* Cards */
+.grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 20px; }
+.card{ background: var(--board-alt); border: 1px solid var(--board-line); border-radius: 6px; padding: 22px 22px 20px; transition: transform .25s ease, border-color .25s ease; }
+.card:hover{ transform: translateY(-3px); border-color: var(--chalk-yellow); }
+.card .term{ font-family:'Kalam', cursive; font-size: 1.2rem; color: var(--chalk); margin: 0 0 8px; display:flex; align-items:center; gap:8px; }
+.card .def{ font-size:12px; color:var(--chalk-dim); font-style:italic; margin:0 0 14px; line-height:1.5; }
+.row{ margin-bottom: 10px; }
+.row .label{ font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--chalk-blue); display:block; margin-bottom: 4px; }
+.row.analogy .label{ color: var(--chalk-pink); }
+.row p{ margin:0; font-size: 13px; line-height:1.55; color: var(--chalk-dim); }
+.card .link-line{ width: 100%; height: 12px; margin: 0 0 6px; }
+.card .link-line path{ fill:none; stroke: var(--chalk-yellow); stroke-width:1.4; stroke-linecap:round; stroke-dasharray: 200; stroke-dashoffset: 200; transition: stroke-dashoffset .6s ease; opacity:0.7; }
+.card:hover .link-line path{ stroke-dashoffset: 0; }
+
+/* Needs/wants/desires trio */
+.trio{ display:grid; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); gap: 18px; }
+.trio .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
+.trio .panel.need{ --accent: var(--chalk-blue); }
+.trio .panel.want{ --accent: var(--chalk-yellow); }
+.trio .panel.desire{ --accent: var(--chalk-pink); }
+.trio .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.15rem; margin:0 0 10px; }
+.trio .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
+.trio .panel .tag-line{ font-family:'Caveat', cursive; font-size:1.1rem; color: var(--accent); }
+
+/* Diagram box */
+.diagram-box{ background: var(--board-alt); border-radius: 8px; padding: 28px; text-align:center; }
+.diagram-box svg{ max-width:100%; height:auto; }
+.diagram-box .caption{ font-family:'Caveat', cursive; font-size:1.15rem; color: var(--chalk-blue); margin-top:12px; }
+
+/* Duo for economic vs free goods */
+.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+@media (max-width:640px){ .duo{ grid-template-columns: 1fr; } }
+.duo .panel{ background: var(--board-alt); border-radius: 6px; padding: 20px; border-top: 3px solid var(--accent); }
+.duo .panel.a{ --accent: var(--chalk-green); }
+.duo .panel.b{ --accent: var(--chalk-blue); }
+.duo .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.15rem; margin:0 0 10px; }
+.duo .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.55; margin: 0 0 8px; }
+
+.exam-trick{ background: rgba(232,196,104,0.08); border: 1px dashed var(--chalk-yellow); border-radius: 6px; padding: 14px 18px; margin-top: 18px; font-family:'Caveat', cursive; font-size: 1.2rem; color: var(--chalk-yellow); }
+
+/* LLCE grid */
+.llce-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:18px; }
+.llce-card{ background: var(--board-alt); border-radius:6px; padding:20px; text-align:center; }
+.llce-card .icon{ font-size:1.8rem; margin-bottom:10px; display:block; }
+.llce-card h4{ font-family:'Kalam', cursive; color: var(--chalk-yellow); margin:0 0 8px; font-size:1.1rem; }
+.llce-card p{ font-size:12px; color: var(--chalk-dim); line-height:1.5; margin:0 0 6px; }
+.llce-card p.a{ color: var(--chalk-pink); font-style:italic; }
+
+/* Micro vs Macro */
+.mm{ display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+@media (max-width:640px){ .mm{ grid-template-columns: 1fr; } }
+.mm .panel{ background: var(--board-alt); border-radius: 6px; padding: 22px; border-top: 3px solid var(--accent); }
+.mm .panel.micro{ --accent: var(--chalk-blue); }
+.mm .panel.macro{ --accent: var(--chalk-pink); }
+.mm .panel h4{ font-family:'Kalam', cursive; color: var(--accent); font-size:1.2rem; margin:0 0 10px; }
+.mm .panel p{ font-size:12.5px; color:var(--chalk-dim); line-height:1.6; margin:0 0 8px; }
+
+.takeaway{ border-top: 4px solid var(--shelf); padding-top: 24px; text-align:center; }
+.takeaway p{ font-family:'Caveat', cursive; font-size: 1.55rem; color: var(--chalk); max-width: 720px; margin: 0 auto; line-height:1.4; }
+
+footer{ text-align:center; margin-top: 60px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color: var(--board-line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">Economics · Week 1 · Companion Notes</div>
+    <h1>Scarcity, Choice &amp;<br>the Economic Problem</h1>
+    <p class="subhead">— why every economics question eventually comes back to "you can't have it all" —</p>
+  </header>
+
+  <div class="unit-banner"><span class="tag">New Subject</span> Switching from Web Development to Economics — same chalkboard, brand new course.</div>
+
+  <!-- Core equation -->
+  <section>
+    <div class="thesis">
+      <p class="eq">Unlimited Wants &gt; Limited Resources = Scarcity → Need for Choice → Economics</p>
+      <p>Every topic this term is really just this one sentence, examined from a different angle.</p>
+    </div>
+    <div class="grid" style="margin-top:20px;">
+      <div class="card">
+        <p class="term">Real Life</p>
+        <div class="row"><p>A buffet table with a mountain of food, but your plate is only so big — you physically cannot pile on everything you see.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Analogy</p>
+        <div class="row analogy"><p>Your plate's limited size is scarcity; deciding what goes on it is the "choice" half of the equation — that's economics in one bite.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Needs, Wants, Desires -->
+  <section>
+    <div class="section-head"><h2>Needs vs. Wants vs. Desires</h2><div class="rule"></div></div>
+    <p class="section-intro">Same idea, three levels of urgency and affordability.</p>
+    <div class="trio">
+      <div class="panel need">
+        <h4>Need</h4>
+        <p><strong>Real life:</strong> water and a headlamp on a camping trip — without them, the trip becomes dangerous.</p>
+        <p class="tag-line">Need = Live</p>
+      </div>
+      <div class="panel want">
+        <h4>Want</h4>
+        <p><strong>Real life:</strong> a more comfortable sleeping bag — nice to have, but the trip still works without it.</p>
+        <p class="tag-line">Want = Enjoy</p>
+      </div>
+      <div class="panel desire">
+        <h4>Desire</h4>
+        <p><strong>Real life:</strong> wanting the premium four-season tent — and already having the cash in your wallet to buy it right now.</p>
+        <p class="tag-line">Desire = Afford</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Infinite wants -->
+  <section>
+    <div class="section-head"><h2>Infinite (Insatiable) Wants</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Real Life</p>
+        <div class="row"><p>A video game's endless upgrade tree — the moment you finally afford the better sword, the game immediately shows you an even better one just out of reach.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Satisfying one want (books → laptop → bike → car → house) doesn't end the cycle — it just reveals the next tier.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Not the Same as Selfishness</p>
+        <div class="row"><p>A parent's "want" for their child's better education is still an infinite want — it's just aimed at someone else.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>"Insatiable" describes the never-ending pattern, not the target — wanting good things for others fits the same cycle.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Goods, services, resources -->
+  <section>
+    <div class="section-head"><h2>Goods, Services &amp; Resources</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Goods vs. Services</p>
+        <div class="row"><span class="label">Real Life</span><p>A loaf of bread on a shelf (good) vs. a barber cutting your hair (service) — one is a thing, the other is an action performed for you.</p></div>
+      </div>
+      <div class="card">
+        <p class="term">Resources &amp; Scarcity</p>
+        <div class="row"><span class="label">Real Life</span><p>A kitchen's pantry — flour, butter, and sugar all run out eventually, no matter how many cake orders keep coming in.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Land, oil, and minerals are the pantry ingredients of the whole economy — finite stock, unlimited orders.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Economic vs Free Goods -->
+  <section>
+    <div class="section-head"><h2>Economic Goods vs. Free Goods</h2><div class="rule"></div></div>
+    <div class="duo">
+      <div class="panel a">
+        <h4>Free Good</h4>
+        <p><strong>Real life:</strong> sunlight streaming through a window — nobody had to grow it, mine it, or ship it to you.</p>
+        <p>No scarcity, no cost to produce, available to everyone naturally.</p>
+      </div>
+      <div class="panel b">
+        <h4>Economic Good</h4>
+        <p><strong>Real life:</strong> the tomatoes grown in a greenhouse — land, water, labor, and glass panels all had to be paid for.</p>
+        <p>Scarce, requires resources, has a real cost even if the price tag says otherwise.</p>
+      </div>
+    </div>
+    <div class="exam-trick">Exam Trick: "Free" hospital treatment is still an Economic Good — the patient pays ₹0, but doctors, buildings, and medicine still consumed scarce resources. Free of cost ≠ Free good.</div>
+  </section>
+
+  <!-- Factors of production -->
+  <section>
+    <div class="section-head"><h2>Factors of Production (LLCE)</h2><div class="rule"></div></div>
+    <p class="section-intro">Every business, in the language of a bakery.</p>
+    <div class="llce-grid">
+      <div class="llce-card">
+        <span class="icon">🌍</span>
+        <h4>Land</h4>
+        <p>Natural resources from the earth.</p>
+        <p class="a">The kitchen space and raw flour/sugar sourced from nature.</p>
+      </div>
+      <div class="llce-card">
+        <span class="icon">🙌</span>
+        <h4>Labour</h4>
+        <p>Human effort in production.</p>
+        <p class="a">The baker's hands, actually kneading and shaping the dough.</p>
+      </div>
+      <div class="llce-card">
+        <span class="icon">🏭</span>
+        <h4>Capital</h4>
+        <p>Productive assets, not money.</p>
+        <p class="a">The oven and mixer — tools that help make more goods.</p>
+      </div>
+      <div class="llce-card">
+        <span class="icon">💡</span>
+        <h4>Enterprise</h4>
+        <p>The organizer who combines the other three.</p>
+        <p class="a">The person who decides to open the bakery and puts it all together.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Production -->
+  <section>
+    <div class="section-head"><h2>Production</h2><div class="rule"></div></div>
+    <div class="diagram-box">
+      <svg viewBox="0 0 640 100" xmlns="http://www.w3.org/2000/svg">
+        <g font-family="Kalam, cursive" font-size="14" fill="#f4f1e6">
+          <text x="60" y="55" text-anchor="middle">Wheat</text>
+          <path d="M100,50 L180,50" stroke="#8fb8c9" stroke-width="1.5" marker-end="url(#pr1)"/>
+          <text x="230" y="55" text-anchor="middle">Flour</text>
+          <path d="M270,50 L350,50" stroke="#e8c468" stroke-width="1.5" marker-end="url(#pr2)"/>
+          <text x="400" y="55" text-anchor="middle">Bread</text>
+          <path d="M440,50 L520,50" stroke="#d98fa0" stroke-width="1.5" marker-end="url(#pr3)"/>
+          <text x="580" y="55" text-anchor="middle">Consumer</text>
+        </g>
+        <defs>
+          <marker id="pr1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8fb8c9"/></marker>
+          <marker id="pr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#e8c468"/></marker>
+          <marker id="pr3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d98fa0"/></marker>
+        </defs>
+      </svg>
+      <p class="caption">Any step that moves something closer to satisfying a human want counts as production — not just factory assembly lines.</p>
+    </div>
+  </section>
+
+  <!-- Economic problem -->
+  <section>
+    <div class="section-head"><h2>The Economic Problem</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Constrained Choice</p>
+        <div class="row"><span class="label">Real Life</span><p>A household with one paycheck and a long wishlist — rent, groceries, a vacation, a new phone. The paycheck doesn't stretch to cover all of it this month.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>A government budget works the same way — ₹100 crore can't fully fund both education and roads, so it has to be split by priority.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Micro vs Macro -->
+  <section>
+    <div class="section-head"><h2>Microeconomics vs. Macroeconomics</h2><div class="rule"></div></div>
+    <div class="mm">
+      <div class="panel micro">
+        <h4>Microeconomics</h4>
+        <p>Studies individual units — one consumer, one business, one worker.</p>
+        <p><strong>Real life:</strong> looking through a magnifying glass at a single ant — how does it react to one obstacle on its own path?</p>
+      </div>
+      <div class="panel macro">
+        <h4>Macroeconomics</h4>
+        <p>Studies the whole economy — GDP, inflation, national employment.</p>
+        <p><strong>Real life:</strong> a satellite photo of the entire anthill — how does the whole colony's traffic pattern shift?</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Constrained optimization -->
+  <section>
+    <div class="section-head"><h2>Constrained Optimization</h2><div class="rule"></div></div>
+    <div class="grid">
+      <div class="card">
+        <p class="term">Making the Best of a Fixed Budget</p>
+        <div class="row"><span class="label">Real Life</span><p>Grocery shopping with exactly ₹1000 in your wallet — you can't buy everything on the shelf, so you fill the cart with the combination that makes you happiest at checkout.</p></div>
+        <svg class="link-line" viewBox="0 0 200 12"><path d="M5,6 Q100,-4 195,6"/></svg>
+        <div class="row analogy"><span class="label">Analogy</span><p>Every economic decision is that shopping cart — a fixed constraint, and a search for the combination that gets the most out of it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="takeaway">
+    <p>Every definition in this unit is one sentence in disguise: wants never stop, resources never stretch far enough, and economics is just the study of choosing well anyway.</p>
+  </section>
+
+  <footer>Hover any card to connect the dots</footer>
+
+</div>
+</body>
+</html>
