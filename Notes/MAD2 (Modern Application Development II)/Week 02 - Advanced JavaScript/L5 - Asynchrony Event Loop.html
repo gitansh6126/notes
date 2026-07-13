@@ -134,12 +134,69 @@ code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
 ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
 li{margin:4px 0; color:var(--text);}
 .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-</style></head><body><div class="wrap">
+</style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
 <div class="hero">
   <div class="eyebrow">Week 02 &middot; Lecture 05</div>
   <h1>Asynchrony &amp; the Event Loop</h1>
   <p>JavaScript is <b>single-threaded</b> but <b>non-blocking</b>. The event loop orchestrates deferred work — timers, network calls, and UI updates — without freezing the main thread.</p>
+</div>
+
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">JavaScript is <b>single-threaded</b> — it can only do one thing at a time. But modern apps need to fetch data, handle clicks, animate, and process responses <b>simultaneously</b>. The Event Loop is JavaScript's solution: it lets non-blocking async code run on a single thread by offloading operations and processing results via queues. Understanding this is <b>the single most important concept</b> for writing correct async JavaScript.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">Without async handling, a single slow API call would freeze the entire browser:
+    <br>1. <b>User clicks "Submit"</b> → browser sends HTTP request → waits 3 seconds → nothing else works during the wait.
+    <br>2. <b>Multiple API calls</b> → each blocks the next → total wait = sum of all waits (9 seconds for 3 calls).
+    <br>3. <b>UI freezes</b> → animations stutter, clicks are lost, users think the app crashed.
+  </div>
+  <div class="pr-question">How does a single-threaded language handle multiple concurrent operations without freezing?</div>
+</div>
+
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Restaurant Kitchen</div>
+  <div class="mm-title">Think of JavaScript as a restaurant with ONE chef (single thread):</div>
+  <div class="mm-text">
+    The chef (call stack) handles one order at a time. When an order needs the oven (async API call), the chef puts it in the oven (offloads to browser API) and moves to the next order. When the oven dings (callback/microtask), the chef checks the <b>priority tickets</b> (microtask queue) first, then the <b>regular tickets</b> (macrotask queue). The <b>Event Loop</b> is the sous-chef who keeps checking if the chef is free and hands off the next ticket.
+  </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">Call Stack →</span> The chef (one person, one task at a time)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Web APIs →</span> The oven (offloaded work, runs independently)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Microtask Queue →</span> Priority tickets (Promises) — checked FIRST</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Macrotask Queue →</span> Regular tickets (setTimeout) — checked after microtasks</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Event Loop →</span> Sous-chef who hands off tickets when chef is free</div>
+  </div>
+</div>
+
+<div class="concept-map">
+  <div class="cm-label">Concept Map — Event Loop Architecture</div>
+  <svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+    <rect x="250" y="10" width="200" height="36" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="33" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="700">JavaScript Runtime</text>
+    <line x1="280" y1="46" x2="100" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="350" y1="46" x2="350" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="420" y1="46" x2="600" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="30" y="80" width="140" height="32" rx="6" fill="#234436" stroke="#4ADE94"/>
+    <text x="100" y="101" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="600">Call Stack</text>
+    <rect x="280" y="80" width="140" height="32" rx="6" fill="#3E3320" stroke="#F0B450"/>
+    <text x="350" y="101" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="11" font-weight="600">Web APIs</text>
+    <rect x="530" y="80" width="140" height="32" rx="6" fill="#26264A" stroke="#8B93FF"/>
+    <text x="600" y="101" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="11" font-weight="600">Task Queues</text>
+    <text x="100" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Sync execution</text>
+    <text x="100" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">LIFO — one task at a time</text>
+    <text x="350" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">setTimeout, fetch, DOM</text>
+    <text x="350" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Runs off main thread</text>
+    <text x="600" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Micro: Promise.then</text>
+    <text x="600" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Macro: setTimeout, I/O</text>
+    <text x="350" y="200" text-anchor="middle" fill="#7DD3FC" font-family="Sora" font-size="11" font-weight="600">Event Loop: drains microtasks first, then macro</text>
+  </svg>
 </div>
 
 <div class="section-tag"><span class="n">1</span> Sync vs Async &amp; the Call Stack</div>
@@ -231,6 +288,41 @@ setInterval(<span class="fn">()</span> <span class="kw">=></span> console.log(<s
   </div>
 </div>
 
+<div class="section-tag"><span class="n">4</span> Execution Timeline — Classic Exam Trace</div>
+<div class="timeline">
+  <div class="tl-label">Trace: <code>console.log(1); setTimeout(() => console.log(2), 0); Promise.resolve().then(() => console.log(3)); console.log(4);</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">STEP 1 — Call Stack</div>
+      <div class="tl-content"><code>console.log(1)</code> → prints <b>1</b>. Stack empty.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">STEP 2 — setTimeout</div>
+      <div class="tl-content"><code>setTimeout(cb, 0)</code> → offloaded to Web API. API starts timer (0ms). Callback registered to <b>macrotask queue</b>.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 3 — Promise.then</div>
+      <div class="tl-content"><code>Promise.resolve().then(cb)</code> → callback registered to <b>microtask queue</b> (not executed yet).</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">STEP 4 — console.log(4)</div>
+      <div class="tl-content"><code>console.log(4)</code> → prints <b>4</b>. Call stack empty.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 5 — Microtask first!</div>
+      <div class="tl-content">Event loop checks microtask queue → finds Promise callback → prints <b>3</b>. Microtask queue empty.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 6 — Macrotask last</div>
+      <div class="tl-content">Event loop checks macrotask queue → finds setTimeout callback → prints <b>2</b>.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">FINAL OUTPUT</div>
+      <div class="tl-content"><b>1 → 4 → 3 → 2</b> (not 1, 2, 3, 4! Promises before setTimeout)</div>
+    </div>
+  </div>
+</div>
+
 <div class="section-tag"><span class="n">3</span> Callback Pattern &amp; Callback Hell</div>
 <div class="card">
   <h2>The Nested Callback Problem</h2>
@@ -287,6 +379,85 @@ requestAnimationFrame(animate);
   </div>
 </div>
 
+<div class="section-tag"><span class="n">5</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b>Single-threaded bottleneck:</b> CPU-intensive work (sorting 1M items, image processing) blocks the main thread. Use Web Workers for heavy computation.</li>
+    <li><b>Microtask starvation:</b> If microtasks keep adding more microtasks, macrotasks (including setTimeout, UI updates) never run. The browser may kill the tab.</li>
+    <li><b><code>setTimeout(fn, 0)</code> is not instant:</b> Minimum delay is ~4ms in browsers. It queues, not executes immediately.</li>
+    <li><b>Callback hell:</b> Deep nesting of callbacks makes code unreadable and error-prone. Fix with async/await.</li>
+    <li><b>No error propagation in microtasks:</b> Unhandled Promise rejections crash silently until they become unhandledrejection events.</li>
+    <li><b>requestAnimationFrame doesn't guarantee 60fps:</b> It depends on monitor refresh rate and system load.</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">6</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">When Async Code Behaves Unexpectedly</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>If output order is wrong, draw a timeline: Call Stack → Microtasks (Promises) → Macrotasks (setTimeout, I/O)</div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>If UI freezes, check for blocking operations on main thread — use <code>performance.now()</code> to measure</div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>If <code>setTimeout(cb, 0)</code> seems slow, remember: minimum ~4ms delay, and microtasks run first</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If Promise callback doesn't fire, check if you forgot <code>return</code> in a <code>.then()</code> chain</div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If event handler blocks, check if you're doing synchronous work (like <code>XMLHttpRequest</code> sync mode)</div></div>
+  <div class="dc-item"><div class="dc-check">6</div><div>Use browser DevTools → Performance tab → call stack flame chart to trace async execution</div></div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — Asynchrony & Event Loop</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Explain the Event Loop. What are microtasks and macrotasks?</div>
+    <div class="pyq-a"><b>A:</b> The Event Loop continuously checks: if call stack is empty, process ALL microtasks first (Promise callbacks, queueMicrotask), then ONE macrotask (setTimeout, setInterval, I/O). Microtasks have higher priority. This ensures Promises resolve before setTimeout callbacks, even with 0ms delay.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">5 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the output and why? <code>setTimeout(() => console.log("a"), 0); console.log("b");</code></div>
+    <div class="pyq-a"><b>A:</b> Output: <code>"b"</code> then <code>"a"</code>. <code>console.log("b")</code> is synchronous and runs immediately. <code>setTimeout</code> offloads the callback to the Web API, which queues it as a macrotask. It runs after the current synchronous code finishes.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is callback hell and how do you avoid it?</div>
+    <div class="pyq-a"><b>A:</b> Callback hell = deeply nested callbacks creating a pyramid shape, making code hard to read/debug. Avoid with: 1) Named functions, 2) Promises (.then chains), 3) async/await (cleanest). <code>async/await</code> makes async code look synchronous.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">"Micro before Macro"</div>
+    <div class="mt-text"><b>Micro</b>tasks (Promises) always run before <b>Macro</b>tasks (setTimeout). Think: <b>M</b>icro < b <b>M</b>acro — the smaller one goes first.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">"Single Thread = Single Chef"</div>
+    <div class="mt-text">One chef = one task at a time. The chef can hand off to the oven (Web API) but can't cook two dishes simultaneously. When the oven dings, the chef finishes the current task first.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">Output order: 1 → 4 → 3 → 2</div>
+    <div class="mt-text">Sync code (1, 4) runs immediately. Microtasks (3) run before macrotasks (2). Remember: <b>S</b>ync → <b>M</b>icro → <b>M</b>acro = S → M → M.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">setTimeout(0) ≠ instant</div>
+    <div class="mt-text">A 0ms timeout means "run as soon as possible <b>after</b> current code and microtasks." Minimum delay is ~4ms. It's never truly instant.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Promises (Chaining, Error Handling) <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Async/Await <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Fetch API <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Web Workers <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vue Lifecycle Hooks <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Celery Task Queues (Python equivalent) <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">requestAnimationFrame <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
 <div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> Explain the difference between macrotasks and microtasks with an example.</div>
@@ -317,6 +488,62 @@ requestAnimationFrame(animate);
   <div class="rev-item"><b>Callback hell</b> — nested pyramid of doom</div>
   <div class="rev-item"><b>Async/await</b> — modern solution</div>
   <div class="rev-item"><b>Stack overflow</b> — infinite recursion</div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">Event Loop Output Order <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given code mixing sync, setTimeout, Promise.then, and async/await — predict the exact console output order.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Microtask vs Macrotask <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Explain why Promise.resolve().then() runs before setTimeout(fn, 0). Draw the queue diagram.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Blocking vs Non-blocking <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Why does a long synchronous loop freeze the UI? How would you fix it using setTimeout chunking or Web Workers?</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">Asynchrony & Event Loop — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">Single Thread</div>
+      <div class="op-val">One call stack, one task at a time. Async via Web APIs + event loop. No true parallelism on main thread.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Call Stack</div>
+      <div class="op-val">LIFO. Tracks function execution. Empty = event loop checks queues.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Microtask Queue</div>
+      <div class="op-val">Promise callbacks, queueMicrotask. ALL drained before next macrotask. Higher priority.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Macrotask Queue</div>
+      <div class="op-val">setTimeout, setInterval, I/O, UI rendering. ONE per event loop iteration.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Execution Order</div>
+      <div class="op-val">Sync code → ALL microtasks → ONE macrotask → repeat. Promises before setTimeout.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Callback Hell</div>
+      <div class="op-val">Nested callbacks → unreadable. Fix with Promises or async/await.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">setTimeout(0)</div>
+      <div class="op-val">Not instant! Minimum ~4ms. Runs after current code + all microtasks.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Key Gotcha</div>
+      <div class="op-val"><code>setTimeout(cb, 0)</code> after <code>Promise.resolve().then(cb)</code> → Promise runs FIRST. Micro > Macro.</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-note">MAD2 · Advanced JavaScript — study card</div>

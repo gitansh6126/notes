@@ -334,8 +334,196 @@ watch: {
     </div>
   </div>
 
+  <!-- ====== CONCEPT MAP ====== -->
+  <div class="section-tag"><span class="n">4</span> CONCEPT MAP</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — Computed vs Watchers</div>
+    <div style="text-align:center; margin:12px 0;">
+      <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto;">
+        <!-- Reactive Data node -->
+        <rect x="20" y="65" width="140" height="50" rx="12" fill="#161B26" stroke="#7DD3FC" stroke-width="2"/>
+        <text x="90" y="96" text-anchor="middle" fill="#7DD3FC" font-family="Sora, sans-serif" font-size="14" font-weight="700">Reactive Data</text>
+
+        <!-- Arrow: Reactive Data → Computed -->
+        <line x1="160" y1="78" x2="230" y2="78" stroke="#4ADE94" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+        <!-- Computed node -->
+        <rect x="232" y="40" width="180" height="50" rx="12" fill="#161B26" stroke="#4ADE94" stroke-width="2"/>
+        <text x="322" y="62" text-anchor="middle" fill="#4ADE94" font-family="Sora, sans-serif" font-size="14" font-weight="700">Computed</text>
+        <text x="322" y="80" text-anchor="middle" fill="#8A93A8" font-family="Sora, sans-serif" font-size="11">(cached, sync)</text>
+
+        <!-- Arrow: Computed → Derived Value -->
+        <line x1="412" y1="65" x2="490" y2="65" stroke="#4ADE94" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+        <!-- Derived Value node -->
+        <rect x="492" y="40" width="150" height="50" rx="12" fill="#234436" stroke="#4ADE94" stroke-width="2"/>
+        <text x="567" y="71" text-anchor="middle" fill="#4ADE94" font-family="Sora, sans-serif" font-size="14" font-weight="600">Derived Value</text>
+
+        <!-- Arrow: Reactive Data → Watcher -->
+        <line x1="90" y1="115" x2="90" y2="138" stroke="#F0B450" stroke-width="2" marker-end="url(#arrowAmber)"/>
+        <path d="M 160 90 Q 200 150 232 145" fill="none" stroke="#F0B450" stroke-width="2" marker-end="url(#arrowAmber)"/>
+
+        <!-- Watcher node -->
+        <rect x="232" y="120" width="180" height="50" rx="12" fill="#161B26" stroke="#F0B450" stroke-width="2"/>
+        <text x="322" y="142" text-anchor="middle" fill="#F0B450" font-family="Sora, sans-serif" font-size="14" font-weight="700">Watcher</text>
+        <text x="322" y="160" text-anchor="middle" fill="#8A93A8" font-family="Sora, sans-serif" font-size="11">(async, side effects)</text>
+
+        <!-- Arrow: Watcher → Action -->
+        <line x1="412" y1="145" x2="490" y2="145" stroke="#F0B450" stroke-width="2" marker-end="url(#arrowAmber)"/>
+
+        <!-- Action node -->
+        <rect x="492" y="120" width="150" height="50" rx="12" fill="#3E3320" stroke="#F0B450" stroke-width="2"/>
+        <text x="567" y="151" text-anchor="middle" fill="#F0B450" font-family="Sora, sans-serif" font-size="14" font-weight="600">Action</text>
+
+        <!-- Label: top path -->
+        <text x="322" y="30" text-anchor="middle" fill="#4ADE94" font-family="Sora, sans-serif" font-size="10" font-weight="600">DERIVES VALUE (pure)</text>
+
+        <!-- Label: bottom path -->
+        <text x="322" y="180" text-anchor="middle" fill="#F0B450" font-family="Sora, sans-serif" font-size="10" font-weight="600">PERFORMS SIDE-EFFECT</text>
+
+        <!-- Marker definitions -->
+        <defs>
+          <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4ADE94"/>
+          </marker>
+          <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#F0B450"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== EXECUTION TIMELINE ====== -->
+  <div class="section-tag"><span class="n">5</span> EXECUTION TIMELINE</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — Computed Caching</div>
+    <p style="font-size:13.5px; color:var(--muted); margin:0 0 12px;">Step-by-step walkthrough of how Vue evaluates a computed property and when it decides to re-run vs. use the cache.</p>
+    <div class="decision-tree">
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">1</span>
+        <span class="dt-a">Template renders and accesses <code>{{ fullName }}</code> for the first time.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">2</span>
+        <span class="dt-a">Vue detects no cached value — executes the computed getter.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">3</span>
+        <span class="dt-a">Getter reads <code>this.firstName</code> and <code>this.lastName</code> — Vue records these as <b>dependencies</b>.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">4</span>
+        <span class="dt-a">Result is <b>cached</b>. Template receives the cached value.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">5</span>
+        <span class="dt-a">Later, <code>this.firstName</code> changes — Vue marks the computed as <b>dirty</b>.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">6</span>
+        <span class="dt-a">Next template access re-runs the getter, records new dependencies, caches new result.</span>
+      </div>
+      <div class="dt-step">
+        <span class="dt-q" style="min-width:32px; text-align:center;">7</span>
+        <span class="dt-a">If the template accesses the same computed <b>100 times</b> without a dependency change, it returns the cached value <b>all 100 times</b> — zero re-computation.</span>
+      </div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Key Insight</div>
+      <div class="t-text">Computed properties follow a <b>lazy evaluation</b> pattern — they only recalculate when a dependency actually changes. This is fundamentally different from methods, which re-execute on every render regardless of input changes.</div>
+    </div>
+  </div>
+
+  <!-- ====== DEBUGGING CHECKLIST ====== -->
+  <div class="section-tag"><span class="n">6</span> DEBUGGING CHECKLIST</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <p style="font-size:13.5px; color:var(--muted); margin:0 0 8px;">Use this checklist when computed properties or watchers aren't behaving as expected.</p>
+    <div class="mistake-box">
+      <div class="m-label">Check 1 — Value Not Updating</div>
+      <div class="m-text"><b>Computed value shows stale data?</b> Verify that you're reading the property in the template correctly (<code>{{ fullName }}</code>, not <code>{{ fullName() }}</code>). If using a method call, you've lost caching — switch to a computed property.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 2 — Infinite Loop</div>
+      <div class="m-text"><b>Computed getter causes infinite re-render?</b> You're likely mutating a dependency inside the getter. Remove any <code>this.someDep = ...</code> assignments from computed getters — they must be pure read-only functions.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 3 — Watcher Not Firing</div>
+      <div class="m-text"><b>Watcher callback never runs?</b> If watching an object, add <code>deep: true</code>. Also confirm the property name matches exactly — typos like <code>user</code> vs <code>userProfile</code> silently fail. Check that the property is reactive (declared in <code>data()</code>).</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 4 — Watcher Fires Too Often</div>
+      <div class="m-text"><b>Watcher runs on every render?</b> You may be watching a non-reactive value or the entire component instance. Narrow your watch target to a specific property, and avoid <code>deep: true</code> on large objects — it triggers on every nested change.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 5 — Memory Leak</div>
+      <div class="m-text"><b>Component destroyed but watcher side-effects continue?</b> If your watcher starts a timer, interval, or subscription, clean it up in <code>beforeUnmount</code> (Vue 3) or <code>beforeDestroy</code> (Vue 2). Use the watcher's <code>return</code> cleanup function or explicit hook calls.</div>
+    </div>
+  </div>
+
+  <!-- ====== EXAM PATTERNS ====== -->
+  <div class="section-tag"><span class="n">7</span> EXAM PATTERNS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <p style="font-size:13.5px; color:var(--muted); margin:0 0 8px;">Common exam-style questions and what examiners look for in answers.</p>
+    <div class="qa-box">
+      <div class="q">Pattern 1: "When would you use a watcher instead of a computed property?"</div>
+      <div class="a"><b>Expected answer:</b> When you need to perform <b>side-effects</b> — such as API calls, DOM manipulation, writing to localStorage, or triggering animations. Computed properties are for deriving values; watchers are for reacting to changes with imperative actions. Mention that watchers support <code>async</code> code (e.g., <code>fetch</code>) while computed getters cannot be async.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 2: "Trace the execution of this code — what happens when firstName changes?"</div>
+      <div class="a"><b>Expected answer:</b> Identify which computed properties depend on <code>firstName</code>. Explain that Vue marks those computeds as <b>dirty</b>. On next template access, the getter re-runs, new dependencies are recorded, and the cached result updates. Also check if any watcher monitors <code>firstName</code> — its callback fires immediately after the reactive update.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 3: "What is wrong with this code?" (given a watcher that computes a value)</div>
+      <div class="a"><b>Expected answer:</b> A watcher that sets a derived property (e.g., <code>watch: { first() { this.full = this.first + ' ' + this.last } }</code>) is an anti-pattern. The fix is to replace it with a <b>computed property</b> — it provides caching, automatic dependency tracking, and is declarative. The watcher version is imperative, doesn't cache, and duplicates what computed does natively.</div>
+    </div>
+  </div>
+
+  <!-- ====== MEMORY TRICKS ====== -->
+  <div class="section-tag"><span class="n">8</span> MEMORY TRICKS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Trick 1 — Computed = Calculator</div>
+      <div class="t-text"><b>Same inputs always give the same output.</b> Just like a calculator — press <code>2 + 2</code> and you always get <code>4</code>. A computed property takes reactive inputs and returns a consistent derived value. No side effects, no surprises.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 2 — Watcher = Observer</div>
+      <div class="t-text"><b>Watches for changes, then reacts.</b> Think of a security guard watching a door — nothing happens until someone walks through, then the guard takes action (sounds an alarm, logs the entry). A watcher sits quietly until its watched property changes, then it fires a callback to perform an action.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 3 — Computed is Lazy</div>
+      <div class="t-text"><b>Only recalculates when dependencies change.</b> Like a grocery list that only updates when you add or remove an item — it doesn't re-print itself every time you look at it. Computed properties are evaluated lazily and cached, so repeated accesses cost nothing until a dependency mutates.</div>
+    </div>
+  </div>
+
+  <!-- ====== RELATED TOPICS ====== -->
+  <div class="section-tag"><span class="n">9</span> RELATED TOPICS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <p style="font-size:13.5px; color:var(--muted); margin:0 0 12px;">Topics closely related to computed properties and watchers — review these to strengthen your understanding.</p>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <span style="background:var(--green-dim); border:1px solid rgba(74,222,148,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--green); font-weight:600;">Vue Reactivity System</span>
+      <span style="background:var(--violet-dim); border:1px solid rgba(139,147,255,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--violet); font-weight:600;">Methods vs Computed</span>
+      <span style="background:var(--amber-dim); border:1px solid rgba(240,180,80,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--amber); font-weight:600;">Watch Effect (Vue 3)</span>
+      <span style="background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--cyan); font-weight:600;">Component Lifecycle Hooks</span>
+      <span style="background:var(--red-dim); border:1px solid rgba(240,80,80,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--red); font-weight:600;">Props &amp; Event Emission</span>
+      <span style="background:var(--violet-dim); border:1px solid rgba(139,147,255,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--violet); font-weight:600;">Provide / Inject</span>
+      <span style="background:var(--green-dim); border:1px solid rgba(74,222,148,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--green); font-weight:600;">v-model &amp; Two-Way Binding</span>
+      <span style="background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.3); border-radius:20px; padding:6px 14px; font-size:12.5px; color:var(--cyan); font-weight:600;">Pinia / Vuex State Mgmt</span>
+    </div>
+  </div>
+
   <!-- ====== REVISION ====== -->
-  <div class="section-tag"><span class="n">4</span> REVISION CHEAT SHEET</div>
+  <div class="section-tag"><span class="n">10</span> REVISION CHEAT SHEET</div>
   <div class="card">
     <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
     <ul>

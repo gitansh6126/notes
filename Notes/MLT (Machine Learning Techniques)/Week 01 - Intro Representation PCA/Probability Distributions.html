@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Distributions &mdash; Premium Lecture Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  /* ===========================
+     HERO
+  =========================== */
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 72px 0 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #d9b872;
+    flex-shrink: 0;
+  }
+  .hero h1 {
+    font-weight: 700;
+    font-size: clamp(34px, 5.6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
+  .hero p {
+    font-size: 17px;
+    color: #b8bdd0;
+    max-width: 620px;
+    margin: 0 0 32px;
+    line-height: 1.5;
+  }
+  .hero .nav-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hero .nav-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 7px 14px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.14);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.04);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .hero .nav-pill:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+  }
+
+  /* ===========================
+     MAIN
+  =========================== */
+  main { padding: 56px 0 90px; }
+
+  .section { margin-bottom: 72px; }
+  .section:last-of-type { margin-bottom: 0; }
+
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .sec-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 7px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+  .sec-header h2 {
+    font-weight: 700;
+    font-size: 26px;
+    margin: 0;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .sec-intro {
+    color: var(--ink-soft);
+    font-size: 15.5px;
+    max-width: 72ch;
+    margin: 0 0 28px;
+    line-height: 1.7;
+  }
+
+  /* ===========================
+     RULE 1: EQUATION PANEL
+  =========================== */
+  .eq-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 5px solid var(--gold);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 36px 32px;
+    margin-bottom: 20px;
+    text-align: center;
+    overflow-x: auto;
+    position: relative;
+  }
+  .eq-panel .eq-num {
+    position: absolute;
+    top: 14px;
+    right: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #5f6785;
+    letter-spacing: 0.04em;
+  }
+  .eq-panel .eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #7d859c;
+    margin-bottom: 20px;
+  }
+  .eq-panel .katex-display {
+    margin: 0;
+  }
+  .eq-panel .katex-display > .katex {
+    font-size: 1.35em;
+  }
+  .eq-panel .katex .mathnormal { font-style: italic; }
+  .eq-panel .eq-caption {
+    font-size: 13.5px;
+    color: #7d859c;
+    margin-top: 18px;
+    font-style: italic;
+  }
+
+  /* ===========================
+     RULE 2: MULTI-LINE EQUATIONS
+  =========================== */
+  .eq-panel.multiline .katex-display > .katex {
+    font-size: 1.1em;
+  }
+
+  /* ===========================
+     RULE 3 & 8: DERIVATION TIMELINE
+  =========================== */
+  .derivation-timeline {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 28px 30px;
+    margin-bottom: 20px;
+  }
+  .derivation-timeline .dt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+  .dt-step {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 0;
+  }
+  .dt-step .dt-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: var(--ink);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .dt-step .dt-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .dt-step .dt-text strong { color: var(--ink); }
+  .dt-step .dt-formula {
+    flex-shrink: 0;
+  }
+  .dt-step .dt-formula .katex { font-size: 1em; }
+  .dt-arrow {
+    text-align: center;
+    color: var(--ink-faint);
+    font-size: 18px;
+    padding: 2px 0;
+    line-height: 1;
+  }
+
+  /* ===========================
+     RULE 5: SYMBOL LEGEND
+  =========================== */
+  .legend-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .legend-card .leg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 22px 0;
+  }
+  .legend-card table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .legend-card table th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 10px 22px;
+    border-bottom: 1px solid var(--line);
+  }
+  .legend-card table td {
+    padding: 11px 22px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .legend-card table tr:last-child td { border-bottom: none; }
+  .legend-card table td.leg-sym {
+    font-weight: 600;
+    white-space: nowrap;
+    width: 120px;
+  }
+  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
+  .legend-card table td.leg-meaning { color: var(--ink-soft); }
+  .legend-card table td.leg-example {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--blue);
+    width: 180px;
+  }
+
+  /* ===========================
+     RULE 9: BELOW-EQUATION COMPONENTS
+  =========================== */
+
+  /* English Explanation */
+  .explain-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .explain-card .ex-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--teal);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .explain-card .ex-text {
+    font-size: 16px;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+  .explain-card .ex-text .katex { font-size: 1.05em; }
+
+  /* Intuition */
+  .intuition-card {
+    background: linear-gradient(135deg, #fffdf8, #ffffff);
+    border: 1px solid #e3cf9b;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .intuition-card .in-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--gold-deep);
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .intuition-card .in-text {
+    font-size: 15px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .intuition-card .in-text strong { color: var(--ink); }
+  .intuition-card .in-text .highlight {
+    background: var(--gold-soft);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--gold-deep);
+  }
+
+  /* Numerical Example */
+  .num-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .num-card .num-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .num-card .num-setup {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 14px;
+  }
+  .num-card .num-setup strong { color: var(--ink); }
+  .num-card table.num-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+  .num-card table.num-tbl th {
+    text-align: left;
+    background: #f5f6fa;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .num-card table.num-tbl td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+  .num-card table.num-tbl td .katex { font-size: 0.95em; }
+  .num-card .num-result {
+    background: var(--teal-soft);
+    border: 1px solid #bcdcd3;
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--teal);
+    text-align: center;
+  }
+  .num-card .num-result .katex { font-size: 1.05em; }
+
+  /* Interpretation */
+  .interpret-card {
+    background: var(--blue-soft);
+    border: 1px solid #c9d4ea;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .interpret-card .int-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--blue);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .interpret-card .int-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--blue);
+    margin-bottom: 4px;
+  }
+  .interpret-card .int-body p {
+    margin: 0;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
+  .interpret-card .int-body p .katex { font-size: 1em; }
+
+  /* Common Mistakes */
+  .mistakes-card {
+    background: var(--rust-soft);
+    border: 1px solid #e6c3b3;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 14px;
+  }
+  .mistakes-card .mis-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--rust);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  .mistakes-card .mis-body strong {
+    display: block;
+    font-size: 13.5px;
+    color: var(--rust);
+    margin-bottom: 4px;
+  }
+  .mistakes-card .mis-body p {
+    margin: 0 0 6px;
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
+  .mistakes-card .mis-body p .katex { font-size: 1em; }
+
+  /* Applications */
+  .apps-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+    margin-bottom: 16px;
+  }
+  .apps-card .ap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .apps-card .ap-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .apps-card .ap-item {
+    background: #f5f6fa;
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .apps-card .ap-item strong {
+    display: block;
+    color: var(--ink);
+    margin-bottom: 3px;
+  }
+
+  /* ===========================
+     DISTRIBUTION TABLE
+  =========================== */
+  .dist-table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .dist-table-wrap .dtw-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    padding: 16px 24px 0;
+  }
+  .dist-table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+  }
+  .dist-table-wrap table th {
+    text-align: left;
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #b8bdd0;
+    padding: 12px 20px;
+    border-bottom: 2px solid #2d334b;
+  }
+  .dist-table-wrap table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+    line-height: 1.6;
+  }
+  .dist-table-wrap table tr:last-child td { border-bottom: none; }
+  .dist-table-wrap table tr:hover { background: #f8f9fc; }
+  .dist-table-wrap table td .katex { font-size: 0.92em; }
+  .dist-table-wrap table td.dist-name {
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .dist-table-wrap table td.dist-example {
+    color: var(--ink-soft);
+    font-size: 13.5px;
+  }
+
+  /* ===========================
+     RULE 12: SVG ILLUSTRATIONS
+  =========================== */
+  .svg-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 24px 24px 18px;
+    margin-bottom: 20px;
+  }
+  .svg-card .svg-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-faint);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .svg-card svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .svg-card .svg-caption {
+    font-size: 13px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* ===========================
+     CALLOUTS
+  =========================== */
+  .callout {
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 16px 0;
+    display: flex;
+    gap: 14px;
+    border: 1px solid transparent;
+  }
+  .callout .co-icon {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
+  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
+  .callout .co-body p .katex { font-size: 1em; }
+  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
+  .callout.info .co-icon { background: var(--blue); color: #fff; }
+  .callout.info .co-body strong { color: var(--blue); }
+  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
+  .callout.warn .co-icon { background: var(--rust); color: #fff; }
+  .callout.warn .co-body strong { color: var(--rust); }
+  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
+  .callout.good .co-icon { background: var(--teal); color: #fff; }
+  .callout.good .co-body strong { color: var(--teal); }
+
+  /* ===========================
+     PARAMETER CARDS
+  =========================== */
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .param-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px 22px;
+    text-align: center;
+  }
+  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
+  .param-card .p-sym .katex { font-size: 1.3em; }
+  .param-card h4 {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 6px;
+  }
+  .param-card p {
+    margin: 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .param-card.gold .p-sym .katex { color: var(--gold); }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 0 40px;
+    text-align: center;
+  }
+  footer p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin: 0;
+  }
+
+  .katex .mathnormal { font-style: italic; }
+  .katex .boldsymbol { font-weight: 700; }
+  .katex .mord.text { font-family: 'Inter', sans-serif; }
+
+  @media (max-width: 820px) {
+    .param-grid { grid-template-columns: 1fr; }
+    .apps-card .ap-grid { grid-template-columns: 1fr; }
+    .dist-table-wrap { overflow-x: auto; }
+  }
+  @media (max-width: 640px) {
+    .container { padding: 0 18px; }
+    main { padding: 40px 0 70px; }
+    .eq-panel { padding: 24px 18px; }
+    .eq-panel .katex-display > .katex { font-size: 1em; }
+    .hero { padding: 52px 0 44px; }
+    .sec-header h2 { font-size: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <div class="tag">IIT Madras &middot; MLT &middot; Week 1</div>
+    <h1>Probability <em>Distributions</em><br>&amp; their formulas</h1>
+    <p>A comprehensive reference of every probability distribution used in machine learning, statistics, and data science &mdash; with formulas, parameters, and real-world examples.</p>
+    <div class="nav-row">
+      <a href="#s1" class="nav-pill">&sect;1 Gaussian / Normal</a>
+      <a href="#s2" class="nav-pill">&sect;2 Discrete Distributions</a>
+      <a href="#s3" class="nav-pill">&sect;3 Continuous Distributions</a>
+      <a href="#s4" class="nav-pill">&sect;4 Sampling Distributions</a>
+      <a href="#s5" class="nav-pill">&sect;5 Master Reference Table</a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="container">
+
+    <!-- ================================================================
+         SECTION 1: GAUSSIAN / NORMAL DISTRIBUTION
+    ================================================================ -->
+    <section class="section" id="s1">
+      <div class="sec-header">
+        <span class="sec-num">01</span>
+        <h2>Gaussian (Normal) Distribution</h2>
+      </div>
+      <p class="sec-intro">
+        The <strong>Gaussian distribution</strong> &mdash; also called the <strong>Normal distribution</strong> &mdash; is the single most
+        important probability distribution in statistics, machine learning, and data science. Its bell-shaped curve appears
+        everywhere from human heights to neural network weights.
+      </p>
+
+      <div class="eq-panel" id="eq-gaussian">
+        <span class="eq-num">Equation (1)</span>
+        <div class="eq-label">Gaussian / Normal Distribution</div>
+        $$f(x) = \frac{1}{\sigma\sqrt{2\pi}} \, e^{-\frac{(x - \mu)^2}{2\sigma^2}}$$
+        <div class="eq-caption">The probability density function of the Gaussian distribution, parameterized by mean $\mu$ and standard deviation $\sigma$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The density at any point $x$ equals a <strong>normalizing constant</strong>
+          $\frac{1}{\sigma\sqrt{2\pi}}$ multiplied by an <strong>exponential decay</strong> term
+          $e^{-\frac{(x-\mu)^2}{2\sigma^2}}$. The further $x$ is from the mean $\mu$,
+          the smaller the density &mdash; creating the characteristic <strong>bell shape</strong>.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$x$</td>
+              <td class="leg-meaning">The variable (data point)</td>
+              <td class="leg-example">$x = 172\text{ cm}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mu$</td>
+              <td class="leg-meaning">Mean &mdash; center of the bell curve</td>
+              <td class="leg-example">$\mu = 170\text{ cm}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sigma$</td>
+              <td class="leg-meaning">Standard deviation &mdash; width of the bell</td>
+              <td class="leg-example">$\sigma = 10\text{ cm}$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\sigma^2$</td>
+              <td class="leg-meaning">Variance (square of std. deviation)</td>
+              <td class="leg-example">$\sigma^2 = 100$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\pi$</td>
+              <td class="leg-meaning">Mathematical constant $\approx 3.14159$</td>
+              <td class="leg-example">$\pi \approx 3.14159$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$e$</td>
+              <td class="leg-meaning">Euler's number $\approx 2.71828$</td>
+              <td class="leg-example">$e \approx 2.71828$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine throwing darts at a board. Most darts land near the <strong>bullseye</strong> (the mean $\mu$),
+          and fewer land far away. The <span class="highlight">standard deviation $\sigma$</span> controls how
+          tightly clustered the darts are: a small $\sigma$ means most darts are near the center, while a large $\sigma$
+          means they spread widely. The Gaussian curve is the mathematical description of this pattern &mdash;
+          it is nature's favorite shape because many small, independent effects add up to produce a bell curve
+          (the <strong>Central Limit Theorem</strong>).
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: Gaussian Bell Curve</div>
+        <svg viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+          <!-- Axes -->
+          <line x1="80" y1="230" x2="780" y2="230" stroke="#dde0e9" stroke-width="1.5"/>
+          <line x1="430" y1="240" x2="430" y2="30" stroke="#dde0e9" stroke-width="1.5"/>
+          <!-- Axis labels -->
+          <text x="800" y="235" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8b91a5">x</text>
+          <text x="435" y="25" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8b91a5">f(x)</text>
+          <!-- Bell curve -->
+          <path d="M 100,228 Q 200,226 280,218 Q 340,200 380,155 Q 410,100 430,58 Q 450,100 480,155 Q 520,200 580,218 Q 660,226 760,228"
+                fill="none" stroke="#b5872a" stroke-width="2.5"/>
+          <!-- Fill under curve -->
+          <path d="M 100,228 Q 200,226 280,218 Q 340,200 380,155 Q 410,100 430,58 Q 450,100 480,155 Q 520,200 580,218 Q 660,226 760,228 L 760,230 L 100,230 Z"
+                fill="#b5872a" opacity="0.08"/>
+          <!-- Mean line -->
+          <line x1="430" y1="55" x2="430" y2="230" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="5,3"/>
+          <text x="430" y="48" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#a8482a" font-weight="600">μ</text>
+          <!-- Sigma markers -->
+          <line x1="340" y1="230" x2="340" y2="222" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="340" y="248" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">μ − σ</text>
+          <line x1="520" y1="230" x2="520" y2="222" stroke="#2c6b5d" stroke-width="1.5"/>
+          <text x="520" y="248" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">μ + σ</text>
+          <!-- Inflection points -->
+          <circle cx="340" cy="218" r="3" fill="#2c6b5d"/>
+          <circle cx="520" cy="218" r="3" fill="#2c6b5d"/>
+          <!-- 68-95-99.7 annotations -->
+          <rect x="310" y="258" width="240" height="18" rx="4" fill="#f6ecd3" stroke="#e3cf9b" stroke-width="1"/>
+          <text x="430" y="271" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8f6a1c">68% within μ ± σ  |  95% within μ ± 2σ  |  99.7% within μ ± 3σ</text>
+        </svg>
+        <div class="svg-caption">The Gaussian bell curve: symmetric around $\mu$, with width controlled by $\sigma$. Approximately 68% of data falls within one standard deviation of the mean.</div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Human heights: $\mu = 170$ cm, $\sigma = 10$ cm. What is the density at $x = 170$, $x = 180$, and $x = 190$?</div>
+        <table class="num-tbl">
+          <thead>
+            <tr><th>$x$</th><th>$x - \mu$</th><th>$\frac{(x-\mu)^2}{2\sigma^2}$</th><th>$e^{-(\cdot)}$</th><th>$f(x)$</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>$170$</td><td>$0$</td><td>$0$</td><td>$1$</td><td>$\frac{1}{10\sqrt{2\pi}} \approx 0.0399$</td></tr>
+            <tr><td>$180$</td><td>$10$</td><td>$0.5$</td><td>$0.6065$</td><td>$0.0242$</td></tr>
+            <tr><td>$190$</td><td>$20$</td><td>$2.0$</td><td>$0.1353$</td><td>$0.0054$</td></tr>
+          </tbody>
+        </table>
+        <div class="num-result">Peak density at $\mu$: $\displaystyle f(170) = \frac{1}{10\sqrt{2\pi}} \approx \mathbf{0.0399}$</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this value means</strong>
+          <p>
+            A density of <strong>0.0399</strong> at the mean means that if we observe heights in a tiny interval
+            around 170 cm, the probability is approximately $0.0399 \times \Delta x$. At $x = 190$ (two standard deviations away),
+            the density drops to just <strong>0.0054</strong> &mdash; about 7 times smaller, reflecting how rare extreme values are.
+          </p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Confusing $\sigma$ and $\sigma^2$:</strong> The formula uses $\sigma$ (std. dev.) in the denominator but $\sigma^2$ (variance) in the exponent.
+          </p>
+          <p>
+            &#x2716; <strong>Forgetting the normalizing constant:</strong> Without $\frac{1}{\sigma\sqrt{2\pi}}$, the curve does not integrate to $1$.
+          </p>
+          <p>
+            &#x2716; <strong>Assuming the curve goes to zero:</strong> The Gaussian has <em>infinite support</em> &mdash; it never truly reaches zero, no matter how far from $\mu$.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 2: DISCRETE DISTRIBUTIONS
+    ================================================================ -->
+    <section class="section" id="s2">
+      <div class="sec-header">
+        <span class="sec-num">02</span>
+        <h2>Discrete Distributions</h2>
+      </div>
+      <p class="sec-intro">
+        Discrete distributions describe outcomes that take on <strong>countable values</strong> &mdash;
+        whole numbers, categories, or counts. They are the foundation of classification, hypothesis testing,
+        and modeling rare events.
+      </p>
+
+      <!-- Bernoulli -->
+      <div class="eq-panel" id="eq-bernoulli">
+        <span class="eq-num">Equation (2)</span>
+        <div class="eq-label">Bernoulli Distribution</div>
+        $$P(X = x) = p^x (1 - p)^{1-x}, \qquad x \in \{0, 1\}$$
+        <div class="eq-caption">A single trial with two outcomes: success ($x=1$) with probability $p$, or failure ($x=0$) with probability $1-p$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The probability of outcome $x$ equals $p$ raised to the power $x$, times $(1-p)$ raised to the power $(1-x)$.
+          When $x=1$, we get $p^1 \cdot (1-p)^0 = p$. When $x=0$, we get $p^0 \cdot (1-p)^1 = 1-p$.&rdquo;
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          A Bernoulli trial is the simplest possible experiment: a coin flip. <strong>Pass/fail, yes/no, 1/0.</strong>
+          The entire distribution is described by a single number $p$ &mdash; the probability of success.
+          Every binary random variable in machine learning (spam or not, cat or dog, positive or negative)
+          is modeled as a Bernoulli distribution.
+        </div>
+      </div>
+
+      <!-- Binomial -->
+      <div class="eq-panel" id="eq-binomial">
+        <span class="eq-num">Equation (3)</span>
+        <div class="eq-label">Binomial Distribution</div>
+        $$P(X = x) = \binom{n}{x} p^x (1-p)^{n-x}$$
+        <div class="eq-caption">The number of successes $x$ in $n$ independent Bernoulli trials, each with success probability $p$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The probability of exactly $x$ successes in $n$ trials equals the number of ways to choose
+          which $x$ trials are successes ($\binom{n}{x}$), multiplied by $p^x$ (the probability those $x$
+          trials succeed) and $(1-p)^{n-x}$ (the probability the remaining trials fail).&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\binom{n}{x}$</td>
+              <td class="leg-meaning">Binomial coefficient: &ldquo;$n$ choose $x$&rdquo;</td>
+              <td class="leg-example">$\binom{10}{3} = 120$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Number of independent trials</td>
+              <td class="leg-example">$n = 10$ coin tosses</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$x$</td>
+              <td class="leg-meaning">Number of successes</td>
+              <td class="leg-example">$x = 3$ heads</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$p$</td>
+              <td class="leg-meaning">Probability of success per trial</td>
+              <td class="leg-example">$p = 0.5$ (fair coin)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Toss a fair coin ($p = 0.5$) $n = 10$ times. What is $P(X = 3)$?</div>
+        <div class="num-result">$\displaystyle P(X = 3) = \binom{10}{3}(0.5)^3(0.5)^7 = 120 \times \frac{1}{1024} \approx \mathbf{0.1172}$</div>
+      </div>
+
+      <!-- Poisson -->
+      <div class="eq-panel" id="eq-poisson">
+        <span class="eq-num">Equation (4)</span>
+        <div class="eq-label">Poisson Distribution</div>
+        $$P(X = x) = \frac{e^{-\lambda}\lambda^x}{x!}, \qquad x = 0, 1, 2, \dots$$
+        <div class="eq-caption">Models the number of events occurring in a fixed interval of time or space, given a constant average rate $\lambda$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The probability of observing exactly $x$ events equals $e^{-\lambda}$ (the probability of zero events)
+          scaled by $\frac{\lambda^x}{x!}$. A higher rate $\lambda$ shifts the distribution to the right,
+          meaning more events are expected.&rdquo;
+        </div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          Imagine a call center that receives an average of $\lambda = 3$ calls per minute. The Poisson distribution
+          tells you the probability of receiving <span class="highlight">exactly 0, 1, 2, 3, 4, ...</span> calls
+          in any given minute. It is the distribution of <strong>rare, random events</strong> occurring at a steady average rate &mdash;
+          emails arriving, customers walking in, radioactive decays.
+        </div>
+      </div>
+
+      <!-- Geometric -->
+      <div class="eq-panel" id="eq-geometric">
+        <span class="eq-num">Equation (5)</span>
+        <div class="eq-label">Geometric Distribution</div>
+        $$P(X = x) = (1-p)^{x-1} p, \qquad x = 1, 2, 3, \dots$$
+        <div class="eq-caption">The number of trials until the first success, where each trial has success probability $p$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The first success occurs on trial $x$ if the first $x-1$ trials all fail (each with probability $1-p$)
+          and then trial $x$ succeeds (with probability $p$). The factor $(1-p)^{x-1}$ captures the string of failures.&rdquo;
+        </div>
+      </div>
+
+      <!-- Negative Binomial -->
+      <div class="eq-panel" id="eq-negbin">
+        <span class="eq-num">Equation (6)</span>
+        <div class="eq-label">Negative Binomial Distribution</div>
+        $$P(X = x) = \binom{x-1}{r-1} p^r (1-p)^{x-r}, \qquad x = r, r+1, r+2, \dots$$
+        <div class="eq-caption">The number of trials $x$ needed to achieve exactly $r$ successes, each with probability $p$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;To get the $r$-th success on trial $x$, the first $x-1$ trials must contain exactly $r-1$ successes
+          (arranged in $\binom{x-1}{r-1}$ ways), the $r$ successes each contribute $p$, and the $x-r$ failures each contribute $(1-p)$.&rdquo;
+        </div>
+      </div>
+
+      <!-- Hypergeometric -->
+      <div class="eq-panel" id="eq-hyper">
+        <span class="eq-num">Equation (7)</span>
+        <div class="eq-label">Hypergeometric Distribution</div>
+        $$P(X = x) = \frac{\binom{K}{x}\binom{N-K}{n-x}}{\binom{N}{n}}$$
+        <div class="eq-caption">Drawing $n$ items without replacement from a population of $N$, where $K$ are &ldquo;successes&rdquo; &mdash; the count of successes drawn is $x$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The numerator counts the ways to choose $x$ successes from $K$ available, and $n-x$ failures from the
+          remaining $N-K$. The denominator is the total ways to choose $n$ items from $N$. Unlike the binomial,
+          probabilities <strong>change after each draw</strong> because we sample without replacement.&rdquo;
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Binomial vs. Hypergeometric:</strong> Use Binomial when sampling <em>with</em> replacement (or from an infinite population). Use Hypergeometric when sampling <em>without</em> replacement from a finite population.
+          </p>
+          <p>
+            &#x2716; <strong>Geometric vs. Negative Binomial:</strong> Geometric counts trials to the <em>first</em> success ($r=1$). Negative Binomial counts trials to the $r$-th success.
+          </p>
+          <p>
+            &#x2716; <strong>Poisson rate vs. time:</strong> $\lambda$ is the average rate per interval. If the interval changes, $\lambda$ must be rescaled proportionally.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 3: CONTINUOUS DISTRIBUTIONS
+    ================================================================ -->
+    <section class="section" id="s3">
+      <div class="sec-header">
+        <span class="sec-num">03</span>
+        <h2>Continuous Distributions</h2>
+      </div>
+      <p class="sec-intro">
+        Continuous distributions describe variables that take on <strong>any real value</strong> within a range.
+        They are essential for modeling physical quantities, waiting times, and error distributions.
+      </p>
+
+      <!-- Uniform -->
+      <div class="eq-panel" id="eq-uniform">
+        <span class="eq-num">Equation (8)</span>
+        <div class="eq-label">Uniform Distribution</div>
+        $$f(x) = \frac{1}{b - a}, \qquad a \le x \le b$$
+        <div class="eq-caption">Every value in the interval $[a, b]$ is equally likely &mdash; the &ldquo;flat&rdquo; distribution</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The density is constant at $\frac{1}{b-a}$ for all $x$ between $a$ and $b$, and zero elsewhere.
+          The total area under the curve is $(b-a) \times \frac{1}{b-a} = 1$. This is the distribution of maximum
+          ignorance: if you know nothing about a value other than it lies in $[a,b]$, assign it a uniform distribution.&rdquo;
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> A fair die: each outcome $\{1, 2, 3, 4, 5, 6\}$ is equally likely.</div>
+        <div class="num-result">$\displaystyle f(x) = \frac{1}{6 - 1} = \frac{1}{6} \approx 0.1667 \quad \text{for } x \in \{1,2,3,4,5,6\}$</div>
+      </div>
+
+      <!-- Exponential -->
+      <div class="eq-panel" id="eq-exponential">
+        <span class="eq-num">Equation (9)</span>
+        <div class="eq-label">Exponential Distribution</div>
+        $$f(x) = \lambda e^{-\lambda x}, \qquad x \ge 0$$
+        <div class="eq-caption">The waiting time between events in a Poisson process with rate $\lambda$</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The density decays exponentially from $\lambda$ at $x=0$ toward zero. The parameter $\lambda$ controls
+          how fast it decays: a large $\lambda$ means events happen frequently and waits are short;
+          a small $\lambda$ means long waits. The mean waiting time is $\frac{1}{\lambda}$.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\lambda$</td>
+              <td class="leg-meaning">Rate parameter (events per unit time)</td>
+              <td class="leg-example">$\lambda = 2$ customers/min</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\frac{1}{\lambda}$</td>
+              <td class="leg-meaning">Mean waiting time</td>
+              <td class="leg-example">$\frac{1}{2} = 0.5$ min</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The exponential distribution is the continuous counterpart of the geometric distribution.
+          If customers arrive at a store at a rate of $\lambda = 3$ per hour, the time until the
+          <span class="highlight">next customer arrives</span> follows an exponential distribution with mean
+          $\frac{1}{3}$ hour = 20 minutes. It is <strong>memoryless</strong>: having waited 10 minutes already
+          does not change the probability distribution of the remaining wait.
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 4: SAMPLING DISTRIBUTIONS
+    ================================================================ -->
+    <section class="section" id="s4">
+      <div class="sec-header">
+        <span class="sec-num">04</span>
+        <h2>Sampling Distributions</h2>
+      </div>
+      <p class="sec-intro">
+        Sampling distributions describe the behavior of <strong>statistics computed from samples</strong>
+        &mdash; such as sample means and sample variances. They are the backbone of hypothesis testing,
+        confidence intervals, and ANOVA.
+      </p>
+
+      <!-- Chi-Square -->
+      <div class="eq-panel" id="eq-chisq">
+        <span class="eq-num">Equation (10)</span>
+        <div class="eq-label">Chi-Square Distribution</div>
+        $$X = \sum_{i=1}^{k} Z_i^2, \qquad Z_i \sim \N(0, 1)$$
+        <div class="eq-caption">The sum of $k$ squared standard normal variables follows a $\chi^2$ distribution with $k$ degrees of freedom</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;Take $k$ independent standard normal random variables $Z_1, Z_2, \dots, Z_k$ (each with mean $0$ and variance $1$).
+          Square each one and add them up. The result follows a Chi-Square distribution with $k$ degrees of freedom.
+          It is always <strong>non-negative</strong> and skewed to the right.&rdquo;
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> If $Z_1 = 1.2$ and $Z_2 = -0.8$ are two standard normal samples:</div>
+        <div class="num-result">$\displaystyle \chi^2 = Z_1^2 + Z_2^2 = (1.2)^2 + (-0.8)^2 = 1.44 + 0.64 = \mathbf{2.08}$</div>
+      </div>
+
+      <div class="intuition-card">
+        <div class="in-label">&#9654; Intuition</div>
+        <div class="in-text">
+          The Chi-Square distribution measures the <strong>total squared distance</strong> from the origin for a point
+          in $k$-dimensional space where each coordinate is standard normal. It is used extensively in
+          <span class="highlight">variance testing</span> &mdash; the test statistic for testing whether a population variance
+          equals a specific value is a chi-square statistic.
+        </div>
+      </div>
+
+      <!-- Student's t -->
+      <div class="eq-panel" id="eq-t">
+        <span class="eq-num">Equation (11)</span>
+        <div class="eq-label">Student's t-Distribution</div>
+        $$t = \frac{\bar{X} - \mu}{s / \sqrt{n}}$$
+        <div class="eq-caption">Used when testing hypotheses about a population mean with unknown variance, estimated from a small sample</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The $t$-statistic is the difference between the sample mean $\bar{X}$ and the population mean $\mu$,
+          divided by the <strong>standard error</strong> $\frac{s}{\sqrt{n}}$. Here $s$ is the sample standard deviation
+          and $n$ is the sample size. For large $n$, this approaches the standard normal distribution.&rdquo;
+        </div>
+      </div>
+
+      <div class="legend-card">
+        <div class="leg-label">&#9654; Symbol Legend</div>
+        <table>
+          <thead>
+            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="leg-sym">$\bar{X}$</td>
+              <td class="leg-meaning">Sample mean</td>
+              <td class="leg-example">$\bar{X} = 72.5$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$\mu$</td>
+              <td class="leg-meaning">Population mean (under $H_0$)</td>
+              <td class="leg-example">$\mu = 70$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$s$</td>
+              <td class="leg-meaning">Sample standard deviation</td>
+              <td class="leg-example">$s = 8.2$</td>
+            </tr>
+            <tr>
+              <td class="leg-sym">$n$</td>
+              <td class="leg-meaning">Sample size</td>
+              <td class="leg-example">$n = 25$</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- F Distribution -->
+      <div class="eq-panel" id="eq-f">
+        <span class="eq-num">Equation (12)</span>
+        <div class="eq-label">F Distribution</div>
+        $$F = \frac{\chi^2_1 / d_1}{\chi^2_2 / d_2}$$
+        <div class="eq-caption">The ratio of two chi-square variables, each divided by its degrees of freedom &mdash; used for comparing variances</div>
+      </div>
+
+      <div class="explain-card">
+        <div class="ex-label">&#9654; Read the Equation in English</div>
+        <div class="ex-text">
+          &ldquo;The $F$-statistic is the ratio of two chi-square random variables, each normalized by its degrees of freedom
+          ($d_1$ and $d_2$). If the two population variances are equal, $F \approx 1$. Large values of $F$ suggest
+          the numerator variance is significantly larger, which is the basis of <strong>ANOVA</strong> and
+          <strong>$F$-tests for comparing variances</strong>.&rdquo;
+        </div>
+      </div>
+
+      <div class="num-card">
+        <div class="num-label">&#9654; Numerical Example</div>
+        <div class="num-setup"><strong>Setup:</strong> Comparing variances of two groups: $s_1^2 = 25$ ($n_1 = 10$) and $s_2^2 = 15$ ($n_2 = 12$).</div>
+        <div class="num-result">$\displaystyle F = \frac{s_1^2}{s_2^2} = \frac{25}{15} \approx \mathbf{1.667}$ &nbsp; with $d_1 = 9$, $d_2 = 11$ degrees of freedom</div>
+      </div>
+
+      <div class="interpret-card">
+        <div class="int-icon">i</div>
+        <div class="int-body">
+          <strong>What this value means</strong>
+          <p>
+            An $F$-ratio of <strong>1.667</strong> means the first group's variance is about 1.67 times the second group's.
+            Whether this is &ldquo;significantly&rdquo; different depends on the critical value from the $F$-distribution
+            table at the chosen significance level (e.g., $\alpha = 0.05$).
+          </p>
+        </div>
+      </div>
+
+      <div class="mistakes-card">
+        <div class="mis-icon">!</div>
+        <div class="mis-body">
+          <strong>Common Mistakes</strong>
+          <p>
+            &#x2716; <strong>Using $t$ for large samples:</strong> The $t$-distribution converges to the standard normal as $n \to \infty$. For $n > 30$, the difference is negligible.
+          </p>
+          <p>
+            &#x2716; <strong>Confusing $\chi^2$ with $F$:</strong> Chi-Square tests a single variance; $F$-tests compare <em>two</em> variances (or use ANOVA to compare means).
+          </p>
+          <p>
+            &#x2716; <strong>One-tailed vs. two-tailed $F$-test:</strong> The $F$-distribution is always non-negative and right-skewed. Most $F$-tests are one-tailed by nature.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================
+         SECTION 5: MASTER REFERENCE TABLE
+    ================================================================ -->
+    <section class="section" id="s5">
+      <div class="sec-header">
+        <span class="sec-num">05</span>
+        <h2>Master Reference Table</h2>
+      </div>
+      <p class="sec-intro">
+        A single, comprehensive table of all probability distributions covered in this course &mdash;
+        with formulas, parameters, and real-world examples for quick reference.
+      </p>
+
+      <div class="dist-table-wrap">
+        <div class="dtw-label">&#9654; Complete Distribution Reference</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Distribution</th>
+              <th>Formula</th>
+              <th>Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="dist-name">Uniform</td>
+              <td>$\displaystyle f(x) = \frac{1}{b-a}, \quad a \le x \le b$</td>
+              <td class="dist-example">Rolling a fair die (each outcome equally likely)</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Gaussian (Normal)</td>
+              <td>$\displaystyle f(x) = \frac{1}{\sigma\sqrt{2\pi}} \, e^{-\frac{(x-\mu)^2}{2\sigma^2}}$</td>
+              <td class="dist-example">Human heights, IQ scores</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Binomial</td>
+              <td>$\displaystyle P(X=x) = \binom{n}{x} p^x (1-p)^{n-x}$</td>
+              <td class="dist-example">Number of heads in 10 coin tosses</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Bernoulli</td>
+              <td>$\displaystyle P(X=x) = p^x(1-p)^{1-x}, \quad x \in \{0,1\}$</td>
+              <td class="dist-example">Pass/fail, yes/no</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Poisson</td>
+              <td>$\displaystyle P(X=x) = \frac{e^{-\lambda}\lambda^x}{x!}$</td>
+              <td class="dist-example">Calls received per minute</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Exponential</td>
+              <td>$\displaystyle f(x) = \lambda e^{-\lambda x}, \quad x \ge 0$</td>
+              <td class="dist-example">Time until the next customer arrives</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Geometric</td>
+              <td>$\displaystyle P(X=x) = (1-p)^{x-1}p$</td>
+              <td class="dist-example">Tosses until first head</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Negative Binomial</td>
+              <td>$\displaystyle P(X=x) = \binom{x-1}{r-1}p^r(1-p)^{x-r}$</td>
+              <td class="dist-example">Trials needed to get 5 successes</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Hypergeometric</td>
+              <td>$\displaystyle P(X=x) = \frac{\binom{K}{x}\binom{N-K}{n-x}}{\binom{N}{n}}$</td>
+              <td class="dist-example">Drawing red balls from a bag without replacement</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Chi-Square</td>
+              <td>$\displaystyle X = \sum_{i=1}^{k} Z_i^2, \quad Z_i \sim \N(0,1)$</td>
+              <td class="dist-example">Variance testing</td>
+            </tr>
+            <tr>
+              <td class="dist-name">Student's $t$</td>
+              <td>$\displaystyle t = \frac{\bar{X} - \mu}{s/\sqrt{n}}$</td>
+              <td class="dist-example">Small-sample hypothesis testing</td>
+            </tr>
+            <tr>
+              <td class="dist-name">$F$ Distribution</td>
+              <td>$\displaystyle F = \frac{\chi^2_1/d_1}{\chi^2_2/d_2}$</td>
+              <td class="dist-example">Comparing variances, ANOVA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout info">
+        <div class="co-icon">i</div>
+        <div class="co-body">
+          <strong>Gaussian = Normal</strong>
+          <p>The <strong>Gaussian distribution</strong> is another name for the <strong>Normal distribution</strong>. It is one of the most important probability distributions in statistics, machine learning, and data science. The term &ldquo;Gaussian&rdquo; honors Carl Friedrich Gauss, while &ldquo;Normal&rdquo; reflects its widespread, &ldquo;natural&rdquo; occurrence.</p>
+        </div>
+      </div>
+
+      <div class="svg-card">
+        <div class="svg-label">&#9654; Visual: Distribution Family Tree</div>
+        <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowT" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
+            </marker>
+          </defs>
+          <!-- Root -->
+          <rect x="340" y="10" width="180" height="40" rx="8" fill="#1e4f8a" stroke="none"/>
+          <text x="430" y="36" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#fff" font-weight="600">Distributions</text>
+          <!-- Branches -->
+          <line x1="380" y1="50" x2="200" y2="95" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrowT)"/>
+          <line x1="480" y1="50" x2="660" y2="95" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrowT)"/>
+          <!-- Discrete -->
+          <rect x="110" y="95" width="180" height="36" rx="8" fill="#5a3e8a" stroke="none"/>
+          <text x="200" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#fff" font-weight="600">Discrete</text>
+          <!-- Continuous -->
+          <rect x="570" y="95" width="180" height="36" rx="8" fill="#2c6b5d" stroke="none"/>
+          <text x="660" y="118" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#fff" font-weight="600">Continuous</text>
+          <!-- Discrete children -->
+          <line x1="155" y1="131" x2="100" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="180" y1="131" x2="180" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="210" y1="131" x2="260" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="245" y1="131" x2="340" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <rect x="45" y="165" width="110" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="100" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Bernoulli</text>
+          <rect x="130" y="165" width="100" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="180" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Binomial</text>
+          <rect x="215" y="165" width="90" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="260" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Poisson</text>
+          <rect x="300" y="165" width="85" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="342" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Geometric</text>
+          <!-- More discrete -->
+          <line x1="180" y1="195" x2="140" y2="225" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="260" y1="195" x2="260" y2="225" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <rect x="60" y="225" width="160" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="140" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Neg. Binomial</text>
+          <rect x="185" y="225" width="150" height="30" rx="6" fill="#ede7f5" stroke="#c4b5e0" stroke-width="1"/>
+          <text x="260" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5a3e8a">Hypergeometric</text>
+          <!-- Continuous children -->
+          <line x1="615" y1="131" x2="560" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="660" y1="131" x2="660" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="705" y1="131" x2="760" y2="165" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <rect x="495" y="165" width="130" height="30" rx="6" fill="#e2efec" stroke="#a3cfc3" stroke-width="1"/>
+          <text x="560" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">Uniform</text>
+          <rect x="595" y="165" width="130" height="30" rx="6" fill="#e2efec" stroke="#a3cfc3" stroke-width="1"/>
+          <text x="660" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">Gaussian</text>
+          <rect x="700" y="165" width="130" height="30" rx="6" fill="#e2efec" stroke="#a3cfc3" stroke-width="1"/>
+          <text x="765" y="185" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#2c6b5d">Exponential</text>
+          <!-- Sampling distributions -->
+          <line x1="560" y1="195" x2="520" y2="225" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <line x1="660" y1="195" x2="660" y2="225" stroke="#8b91a5" stroke-width="1" marker-end="url(#arrowT)"/>
+          <rect x="450" y="225" width="140" height="30" rx="6" fill="#f6ecd3" stroke="#d4c48a" stroke-width="1"/>
+          <text x="520" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8f6a1c">Chi-Square</text>
+          <rect x="595" y="225" width="130" height="30" rx="6" fill="#f6ecd3" stroke="#d4c48a" stroke-width="1"/>
+          <text x="660" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8f6a1c">Student's t</text>
+          <rect x="730" y="225" width="100" height="30" rx="6" fill="#f6ecd3" stroke="#d4c48a" stroke-width="1"/>
+          <text x="780" y="245" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8f6a1c">F Dist.</text>
+          <!-- Labels -->
+          <text x="200" y="290" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#5a3e8a" font-weight="600">Countable outcomes</text>
+          <text x="660" y="290" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d" font-weight="600">Unlimited range</text>
+          <text x="600" y="320" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#8f6a1c" font-weight="600">Built from Gaussian</text>
+        </svg>
+        <div class="svg-caption">The family tree of probability distributions: discrete distributions model countable outcomes, continuous distributions model infinite ranges, and sampling distributions are built from the Gaussian.</div>
+      </div>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <p>MLT &middot; Week 1 &middot; Probability Distributions &middot; IIT Madras</p>
+</footer>
+
+</body>
+</html>

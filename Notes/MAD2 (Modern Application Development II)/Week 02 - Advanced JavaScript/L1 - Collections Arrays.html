@@ -134,7 +134,9 @@ code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
 ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
 li{margin:4px 0; color:var(--text);}
 .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-</style></head><body><div class="wrap">
+</style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
 <div class="hero">
   <div class="eyebrow">Week 02 &middot; Lecture 01</div>
@@ -142,7 +144,84 @@ li{margin:4px 0; color:var(--text);}
   <p>JavaScript provides three built-in collections — <b>Array</b>, <b>Map</b>, and <b>Set</b> — each designed for different data access patterns. Master when to use which.</p>
 </div>
 
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">Every real application needs to <b>store, query, transform, and deduplicate data</b>. Plain objects fall short: they coerce keys to strings, lack iteration order, and have no built-in dedup. Arrays, Maps, and Sets solve these gaps — they're the foundation of <b>React state management</b>, <b>Redux reducers</b>, <b>caching layers</b>, and <b>real-time data pipelines</b>. Without mastering collections, you can't write efficient JavaScript beyond toy examples.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">Imagine you're building a <b>real-time trading app</b> with 500K+ stock symbols. You need to:
+    <br>1. <b>Look up</b> a stock by its ticker symbol — but plain objects coerce keys to strings, risking collisions with prototype properties like <code>constructor</code> or <code>toString</code>.
+    <br>2. <b>Maintain insertion order</b> so the UI shows stocks in the order they were added — plain objects don't guarantee this.
+    <br>3. <b>Deduplicate</b> a stream of incoming trades — checking <code>arr.includes()</code> is O(n), making it too slow for high-frequency data.
+    <br>4. Use <b>DOM elements as keys</b> for click tracking — impossible with plain objects since they only accept strings.
+  </div>
+  <div class="pr-question">How do you store heterogeneous keys, guarantee order, and check membership in O(1)?</div>
+</div>
+
 <div class="section-tag"><span class="n">1</span> Arrays — The Workhorse Collection</div>
+
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Three Warehouses</div>
+  <div class="mm-title">Think of collections as three types of warehouses:</div>
+  <div class="mm-text">
+    <b>Array</b> = A numbered shelf row. Items sit at fixed positions (0, 1, 2…). You can add to the end (push), remove from the end (pop), or jump to any position by index. Fast for ordered access, slow for searching by value.
+  </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">Array →</span> Numbered shelves, fast index access, slow search</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Map →</span> Labeled filing cabinet, any label type, O(1) lookup</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Set →</span> VIP guest list, no duplicates, instant membership check</div>
+  </div>
+</div>
+
+<div class="concept-map">
+  <div class="cm-label">Concept Map — When to Use What</div>
+  <svg viewBox="0 0 700 280" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+        <polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/>
+      </marker>
+    </defs>
+    <!-- Central question -->
+    <rect x="250" y="10" width="200" height="40" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="35" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="13" font-weight="700">Need a collection?</text>
+    <!-- Arrows from center -->
+    <line x1="300" y1="50" x2="120" y2="90" stroke="#8A93A8" stroke-width="1" marker-end="url(#arrowhead)"/>
+    <line x1="350" y1="50" x2="350" y2="90" stroke="#8A93A8" stroke-width="1" marker-end="url(#arrowhead)"/>
+    <line x1="400" y1="50" x2="580" y2="90" stroke="#8A93A8" stroke-width="1" marker-end="url(#arrowhead)"/>
+    <!-- Array -->
+    <rect x="40" y="90" width="160" height="36" rx="6" fill="#234436" stroke="#4ADE94" stroke-width="1"/>
+    <text x="120" y="113" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="600">Array</text>
+    <text x="120" y="148" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="10">Ordered, indexed, fast push/pop</text>
+    <text x="120" y="165" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="10">Use: lists, stacks, queues</text>
+    <!-- Map -->
+    <rect x="270" y="90" width="160" height="36" rx="6" fill="#3E3320" stroke="#F0B450" stroke-width="1"/>
+    <text x="350" y="113" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="12" font-weight="600">Map</text>
+    <text x="350" y="148" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="10">Any-type keys, O(1) lookup</text>
+    <text x="350" y="165" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="10">Use: caches, registries, DOM refs</text>
+    <!-- Set -->
+    <rect x="500" y="90" width="160" height="36" rx="6" fill="#26264A" stroke="#8B93FF" stroke-width="1"/>
+    <text x="580" y="113" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="12" font-weight="600">Set</text>
+    <text x="580" y="148" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="10">Unique values, O(1) contains</text>
+    <text x="580" y="165" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="10">Use: dedup, membership, tags</text>
+    <!-- Bottom connections -->
+    <line x1="120" y1="175" x2="120" y2="200" stroke="#4ADE94" stroke-width="0.8" stroke-dasharray="4"/>
+    <line x1="350" y1="175" x2="350" y2="200" stroke="#F0B450" stroke-width="0.8" stroke-dasharray="4"/>
+    <line x1="580" y1="175" x2="580" y2="200" stroke="#8B93FF" stroke-width="0.8" stroke-dasharray="4"/>
+    <!-- Key insight boxes -->
+    <rect x="40" y="200" width="160" height="50" rx="6" fill="#161B26" stroke="#232A38"/>
+    <text x="120" y="220" text-anchor="middle" fill="#4ADE94" font-family="JetBrains Mono" font-size="9">arr[n] → O(1)</text>
+    <text x="120" y="236" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">arr.indexOf(x) → O(n)</text>
+    <rect x="270" y="200" width="160" height="50" rx="6" fill="#161B26" stroke="#232A38"/>
+    <text x="350" y="220" text-anchor="middle" fill="#F0B450" font-family="JetBrains Mono" font-size="9">map.get(k) → O(1)</text>
+    <text x="350" y="236" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Keys: any type</text>
+    <rect x="500" y="200" width="160" height="50" rx="6" fill="#161B26" stroke="#232A38"/>
+    <text x="580" y="220" text-anchor="middle" fill="#8B93FF" font-family="JetBrains Mono" font-size="9">set.has(x) → O(1)</text>
+    <text x="580" y="236" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Auto-deduplication</text>
+  </svg>
+</div>
+
 <div class="card">
   <h2>Array Literal &amp; Indexing</h2>
   <div class="def">Arrays are ordered, integer-indexed collections that can hold any type. Created with square brackets.</div>
@@ -378,7 +457,186 @@ tags.forEach(<span class="fn">v</span> <span class="kw">=></span> console.log(v)
   </div>
 </div>
 
-<div class="section-tag"><span class="n">7</span> Interview Q&amp;A</div>
+<div class="section-tag"><span class="n">7</span> Execution Timeline — How <code>reduce</code> Works Step-by-Step</div>
+<div class="timeline">
+  <div class="tl-label">Execution Trace: <code>[1,2,3,4].reduce((acc, n) => acc + n, 0)</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">STEP 0 — Initialize</div>
+      <div class="tl-content"><code>acc = 0</code> (initial value), array = <code>[1, 2, 3, 4]</code></div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 1 — Iteration 0</div>
+      <div class="tl-content"><code>acc = 0</code>, <code>n = 1</code> → returns <code>0 + 1 = 1</code>. New accumulator = <code>1</code></div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 2 — Iteration 1</div>
+      <div class="tl-content"><code>acc = 1</code>, <code>n = 2</code> → returns <code>1 + 2 = 3</code>. New accumulator = <code>3</code></div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 3 — Iteration 2</div>
+      <div class="tl-content"><code>acc = 3</code>, <code>n = 3</code> → returns <code>3 + 3 = 6</code>. New accumulator = <code>6</code></div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 4 — Iteration 3</div>
+      <div class="tl-content"><code>acc = 6</code>, <code>n = 4</code> → returns <code>6 + 4 = 10</code>. New accumulator = <code>10</code></div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RESULT</div>
+      <div class="tl-content">Final accumulator = <code>10</code> → returned by <code>reduce</code></div>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b>Array is not truly associative:</b> <code>reduce</code> depends on the order of elements — rearranging gives different results (unlike mathematical addition).</li>
+    <li><b>Map/Set are not JSON-serializable:</b> <code>JSON.stringify(new Map())</code> returns <code>"{}"</code>. You must convert to arrays first: <code>JSON.stringify([...myMap])</code>.</li>
+    <li><b>Map memory overhead:</b> For simple string-keyed data, a plain object is more memory-efficient. Map adds per-entry overhead for tracking insertion order.</li>
+    <li><b>Set uses SameValueZero comparison:</b> <code>NaN === NaN</code> is false, but <code>Set.has(NaN)</code> returns true. However, <code>+0</code> and <code>-0</code> are treated as equal.</li>
+    <li><b>No built-in sorting for Map/Set:</b> Maps maintain insertion order, not sorted order. For sorted access, convert to array and sort.</li>
+    <li><b>Spread creates shallow copies:</b> <code>[...nestedArr]</code> copies references, not deep values. Mutating a nested object affects both copies.</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">When Collections Behave Unexpectedly</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>Check if you're using <code>for...in</code> on a Map/Set — use <code>for...of</code> instead</div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>Verify <code>map.get(key)</code> returns <code>undefined</code> vs <code>null</code> — <code>get</code> returns <code>undefined</code> for missing keys</div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>Check if <code>Set.has()</code> is comparing by reference, not value — objects are compared by identity</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If <code>reduce</code> throws "cannot read property of undefined", verify you provided an <code>initialValue</code></div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If array mutations don't trigger React re-renders, check you're using <code>splice</code>/<code>push</code> (mutating) vs spread (immutable)</div></div>
+  <div class="dc-item"><div class="dc-check">6</div><div>If <code>JSON.stringify(map)</code> gives <code>{}</code>, convert to array first: <code>[...map]</code></div></div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> Code Patterns — Do This, Not That</div>
+<div class="code-patterns">
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag bad">Anti-pattern</span>
+      <span class="cp-title">Mutating array in a React component</span>
+    </div>
+    <pre><code><span class="cmt">// BAD — mutates state, won't trigger re-render</span>
+<span class="kw">const</span> addItem <span class="kw">=</span> () <span class="kw">=></span> {
+  items.push(newItem);   <span class="cmt">// mutates!</span>
+  setItems(items);       <span class="cmt">// same reference — no re-render</span>
+};</code></pre>
+  </div>
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag good">Correct</span>
+      <span class="cp-title">Immutable update with spread</span>
+    </div>
+    <pre><code><span class="cmt">// GOOD — new array reference triggers re-render</span>
+<span class="kw">const</span> addItem <span class="kw">=</span> () <span class="kw">=></span> {
+  setItems([...items, newItem]);  <span class="cmt">// new reference</span>
+};</code></pre>
+  </div>
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag bad">Anti-pattern</span>
+      <span class="cp-title">Using object for non-string keys</span>
+    </div>
+    <pre><code><span class="cmt">// BAD — keys coerced to strings, prototype pollution risk</span>
+<span class="kw">const</span> cache <span class="kw">=</span> {};
+cache[domElement] <span class="kw">=</span> <span class="str">"data"</span>;  <span class="cmt">// key becomes "[object HTMLDivElement]"</span></code></pre>
+  </div>
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag good">Correct</span>
+      <span class="cp-title">Using Map for object keys</span>
+    </div>
+    <pre><code><span class="cmt">// GOOD — preserves object identity as key</span>
+<span class="kw">const</span> cache <span class="kw">=</span> <span class="kw">new</span> Map();
+cache.set(domElement, <span class="str">"data"</span>);  <span class="cmt">// O(1), no coercion</span></code></pre>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">11</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">MAP — "MAny Properties"</div>
+    <div class="mt-text">M-A-P: <b>M</b>any key types, <b>A</b>nything goes, <b>P</b>reserves order. If you need non-string keys or guaranteed insertion order, use Map.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">SET — "Simply Eliminate Tweaks (duplicates)"</div>
+    <div class="mt-text">A Set is a <b>duplicate killer</b>. Feed it duplicates, it strips them out. Think of it as <code>filter</code> + <code>unique</code> in one operation.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">reduce = "Remember: Every Value Eventually Collapses"</div>
+    <div class="mt-text"><b>R</b>emember: <b>E</b>very <b>V</b>alue <b>E</b>ventually <b>C</b>ollapses → many items collapse into one. That's what reduce does.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">spread vs destructuring</div>
+    <div class="mt-text"><b>Spread</b> = <b>Pour OUT</b> (expand inline). <b>Destructuring</b> = <b>Pour INTO</b> variables (extract). Same <code>...</code> syntax, opposite directions.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">12</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — Collections &amp; Arrays</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Explain the difference between Array, Map, and Set. When would you use each?</div>
+    <div class="pyq-a"><b>A:</b> Array = ordered indexed collection for sequential data. Map = key-value pairs with any-type keys and O(1) lookup. Set = unique values with O(1) membership check. Use Array for ordered lists, Map for caches/registries, Set for deduplication.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">4 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Write a program to deduplicate an array using Set. What is the time complexity?</div>
+    <div class="pyq-a"><b>A:</b> <code>[...new Set(arr)]</code> — O(n) time because Set.add() is O(1) and spread is O(n). Alternative: <code>arr.filter((v, i) => arr.indexOf(v) === i)</code> which is O(n²).</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the output of <code>[1,2,3].map(parseInt)</code>? Explain why.</div>
+    <div class="pyq-a"><b>A:</b> <code>[1, NaN, NaN]</code>. <code>map</code> passes <code>(element, index)</code> to <code>parseInt</code>. So: <code>parseInt(1, 0)</code> → 1, <code>parseInt(2, 1)</code> → NaN (base 1 is invalid), <code>parseInt(3, 2)</code> → NaN (3 is not valid in base 2).</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: How does <code>reduce</code> work? Write a function to flatten a nested array using reduce.</div>
+    <div class="pyq-a"><b>A:</b> reduce iterates, passing accumulator + current element. Flatten: <code>arr.reduce((acc, val) => Array.isArray(val) ? acc.concat(flatten(val)) : acc.concat(val), [])</code>. This recursively flattens nested arrays into a single-level array.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">4 marks</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">13</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">Output Prediction <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given array method chains, predict the output. E.g., <code>[1,2,3,4].filter(x => x%2).map(x => x*10)</code> → <code>[10, 30]</code>. Practice tracing map/filter/reduce chains.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Coding: Implement Array Methods <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Implement your own <code>map</code>, <code>filter</code>, or <code>reduce</code> from scratch. Show understanding of callback signatures and return values.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Comparison Essay <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Compare Array vs Map vs Set — include key types, time complexity, use cases, and when to choose one over the other.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Tricky Output: <code>map(parseInt)</code> <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Classic trap: <code>[1,2,3].map(parseInt)</code> → <code>[1, NaN, NaN]</code>. Always appears in exams. Understand the two-argument callback of map.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">14</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Iterators & Generators <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Spread & Rest Syntax <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Array Prototypes <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">WeakMap & WeakSet <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Typed Arrays <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Immutable.js <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vuex State Arrays <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">14</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> When would you choose a Map over a plain object?</div>
   <div class="a"><strong>A:</strong> When you need keys that aren't strings (e.g., DOM elements as keys), when you need reliable iteration order, when you need <code>.size</code>, or when you want to avoid prototype pollution risks. Plain objects are fine for simple string-keyed dictionaries with static shape.</div>
@@ -392,22 +650,43 @@ tags.forEach(<span class="fn">v</span> <span class="kw">=></span> console.log(v)
   <div class="a"><strong>A:</strong> <code>reduce(fn, initialValue)</code> iterates through the array, passing an accumulated value and current element to the callback. It's appropriate whenever you need to derive a single value (sum, product, grouped object, flattened array) from a collection.</div>
 </div>
 
-<div class="section-tag"><span class="n">7</span> Quick Revision</div>
-<div class="rev-grid">
-  <div class="rev-item"><b>Array literal</b> — <code>[1, 2, 3]</code></div>
-  <div class="rev-item"><b>push/pop</b> — stack (LIFO) at end</div>
-  <div class="rev-item"><b>shift/unshift</b> — queue (FIFO) at front</div>
-  <div class="rev-item"><b>splice</b> — insert/remove/replace</div>
-  <div class="rev-item"><b>map</b> — transform every element</div>
-  <div class="rev-item"><b>filter</b> — keep matching elements</div>
-  <div class="rev-item"><b>reduce</b> — accumulate to single value</div>
-  <div class="rev-item"><b>find</b> — first matching element</div>
-  <div class="rev-item"><b>some/every</b> — boolean queries</div>
-  <div class="rev-item"><b>Spread (...)</b> — expand array inline</div>
-  <div class="rev-item"><b>Destructuring</b> — unpack into variables</div>
-  <div class="rev-item"><b>Map</b> — any-type keys, insertion order</div>
-  <div class="rev-item"><b>Set</b> — unique values, auto-dedup</div>
-  <div class="rev-item"><b>size</b> — Map/Set entry count</div>
+<div class="section-tag"><span class="n">15</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">Collections &amp; Arrays — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">Array</div>
+      <div class="op-val">Ordered, index-based. <code>[1,2,3]</code>. Fast index access O(1), slow search O(n). Mutable methods: push/pop/shift/unshift/splice.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Map</div>
+      <div class="op-val">Key-value pairs, any-type keys, O(1) get/set/has. <code>.size</code>, insertion order. Use for caches, DOM refs, registries.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Set</div>
+      <div class="op-val">Unique values only. O(1) has/add/delete. Dedup: <code>[...new Set(arr)]</code>. Uses SameValueZero (NaN === NaN is true).</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Iteration Methods</div>
+      <div class="op-val"><code>map</code>=transform, <code>filter</code>=keep, <code>reduce</code>=accumulate, <code>find</code>=first match, <code>some/every</code>=boolean query.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Spread (...)</div>
+      <div class="op-val">Expand array inline. <code>[...a, ...b]</code> for concat, <code>[item, ...arr]</code> for prepend. Shallow copy only.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Destructuring</div>
+      <div class="op-val">Unpack into variables: <code>const [a, b] = arr</code>. Skip: <code>[a, , c]</code>. Rest: <code>[head, ...tail]</code>. Default: <code>[a = 0]</code>.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Time Complexity</div>
+      <div class="op-val">Array index: O(1). Array search: O(n). Map get/has: O(1). Set has: O(1). Array.includes: O(n).</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Gotchas</div>
+      <div class="op-val"><code>map(parseInt)</code> → [1, NaN, NaN]. Map not JSON-safe. Spread is shallow. Set uses SameValueZero.</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-note">MAD2 · Advanced JavaScript — study card</div>

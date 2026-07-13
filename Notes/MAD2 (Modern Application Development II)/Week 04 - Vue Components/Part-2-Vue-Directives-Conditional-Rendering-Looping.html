@@ -425,6 +425,189 @@
     </div>
   </div>
 
+  <!-- ====== CONCEPT MAP ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — Vue Directives Flow</div>
+    <div style="text-align:center;padding:10px 0;">
+      <svg viewBox="0 0 700 180" width="100%" style="max-width:700px;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;display=swap');
+            .cm-text { font-family: 'Sora', sans-serif; font-weight: 600; }
+            .cm-small { font-family: 'Sora', sans-serif; font-size: 11px; }
+          </style>
+          <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/>
+          </marker>
+        </defs>
+
+        <!-- Box 1: Template Syntax -->
+        <rect x="20" y="50" width="170" height="80" rx="12" fill="none" stroke="#4ADE94" stroke-width="2"/>
+        <rect x="20" y="50" width="170" height="80" rx="12" fill="rgba(74,222,148,0.08)"/>
+        <text x="105" y="82" text-anchor="middle" fill="#4ADE94" class="cm-text" font-size="14">Template Syntax</text>
+        <text x="105" y="102" text-anchor="middle" fill="#8A93A8" class="cm-small">{{ mustache }} · :attr</text>
+
+        <!-- Arrow 1→2 -->
+        <line x1="190" y1="90" x2="230" y2="90" stroke="#8A93A8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Box 2: Directives -->
+        <rect x="230" y="30" width="220" height="120" rx="12" fill="none" stroke="#F0B450" stroke-width="2"/>
+        <rect x="230" y="30" width="220" height="120" rx="12" fill="rgba(240,180,80,0.08)"/>
+        <text x="340" y="58" text-anchor="middle" fill="#F0B450" class="cm-text" font-size="14">Directives (v-)</text>
+        <!-- Directive chips -->
+        <rect x="245" y="72" width="72" height="24" rx="6" fill="rgba(139,147,255,0.15)" stroke="#8B93FF" stroke-width="1"/>
+        <text x="281" y="88" text-anchor="middle" fill="#8B93FF" class="cm-text" font-size="10">v-if</text>
+
+        <rect x="326" y="72" width="72" height="24" rx="6" fill="rgba(74,222,148,0.15)" stroke="#4ADE94" stroke-width="1"/>
+        <text x="362" y="88" text-anchor="middle" fill="#4ADE94" class="cm-text" font-size="10">v-for</text>
+
+        <rect x="407" y="72" width="38" height="24" rx="6" fill="rgba(240,180,80,0.15)" stroke="#F0B450" stroke-width="1"/>
+        <text x="426" y="88" text-anchor="middle" fill="#F0B450" class="cm-text" font-size="10">v-on</text>
+
+        <rect x="245" y="104" width="98" height="24" rx="6" fill="rgba(125,211,252,0.15)" stroke="#7DD3FC" stroke-width="1"/>
+        <text x="294" y="120" text-anchor="middle" fill="#7DD3FC" class="cm-text" font-size="10">v-bind</text>
+
+        <rect x="351" y="104" width="94" height="24" rx="6" fill="rgba(240,180,80,0.15)" stroke="#F0B450" stroke-width="1"/>
+        <text x="398" y="120" text-anchor="middle" fill="#F0B450" class="cm-text" font-size="10">v-model</text>
+
+        <!-- Arrow 2→3 -->
+        <line x1="450" y1="90" x2="490" y2="90" stroke="#8A93A8" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+        <!-- Box 3: DOM Rendering -->
+        <rect x="490" y="50" width="190" height="80" rx="12" fill="none" stroke="#7DD3FC" stroke-width="2"/>
+        <rect x="490" y="50" width="190" height="80" rx="12" fill="rgba(125,211,252,0.08)"/>
+        <text x="585" y="82" text-anchor="middle" fill="#7DD3FC" class="cm-text" font-size="14">DOM Rendering</text>
+        <text x="585" y="102" text-anchor="middle" fill="#8A93A8" class="cm-small">Virtual DOM → Real DOM</text>
+
+        <!-- Flow labels -->
+        <text x="210" y="80" text-anchor="middle" fill="#8A93A8" class="cm-small" font-size="9">parse</text>
+        <text x="470" y="80" text-anchor="middle" fill="#8A93A8" class="cm-small" font-size="9">render</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== EXECUTION TIMELINE ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — v-if Rendering</div>
+    <div style="display:flex;flex-direction:column;gap:0;padding:10px 0;">
+      <!-- Step 1 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:36px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--green-dim);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--green);">1</div>
+          <div style="width:2px;height:28px;background:var(--line);"></div>
+        </div>
+        <div style="padding:6px 0 10px;">
+          <div style="font-weight:600;font-size:14px;color:var(--green);">Template Parsed</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">Vue reads the template and identifies all directives including <code>v-if</code> blocks.</div>
+        </div>
+      </div>
+      <!-- Step 2 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:36px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--amber-dim);border:2px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--amber);">2</div>
+          <div style="width:2px;height:28px;background:var(--line);"></div>
+        </div>
+        <div style="padding:6px 0 10px;">
+          <div style="font-weight:600;font-size:14px;color:var(--amber);">v-if Condition Evaluated</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">The bound expression is evaluated. Result must be a <b>truthy</b> or <b>falsy</b> value.</div>
+        </div>
+      </div>
+      <!-- Step 3 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:36px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--cyan-dim);border:2px solid var(--cyan);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--cyan);">3</div>
+          <div style="width:2px;height:28px;background:var(--line);"></div>
+        </div>
+        <div style="padding:6px 0 10px;">
+          <div style="font-weight:600;font-size:14px;color:var(--cyan);">Element Created or Removed</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;"><b>true:</b> element is created, mounted, and inserted into the DOM. <b>false:</b> element is removed entirely — not hidden, <em>destroyed</em>.</div>
+        </div>
+      </div>
+      <!-- Step 4 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:36px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--violet-dim);border:2px solid var(--violet);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--violet);">4</div>
+          <div style="width:2px;height:28px;background:var(--line);"></div>
+        </div>
+        <div style="padding:6px 0 10px;">
+          <div style="font-weight:600;font-size:14px;color:var(--violet);">DOM Patched</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">Vue's diffing algorithm determines the minimal set of real DOM operations needed and applies them.</div>
+        </div>
+      </div>
+      <!-- Step 5 -->
+      <div style="display:flex;align-items:flex-start;gap:14px;">
+        <div style="display:flex;flex-direction:column;align-items:center;min-width:36px;">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--green-dim);border:2px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--green);">5</div>
+        </div>
+        <div style="padding:6px 0 0;">
+          <div style="font-weight:600;font-size:14px;color:var(--green);">View Updated</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;">The browser re-renders the affected portion. The user sees the final, correct UI.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DEBUGGING CHECKLIST ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <div class="mistake-box">
+      <div class="m-label">Check These When Directives Break</div>
+      <ol style="margin:10px 0 4px 18px;font-size:13.5px;color:#F0B0B0;line-height:1.8;">
+        <li><b>v-for not rendering?</b> Check <code>:key</code> is set and array is reactive.</li>
+        <li><b>v-if not toggling?</b> Ensure condition is a boolean, not a string.</li>
+        <li><b>Events not firing?</b> Verify <code>@click</code> syntax and method exists.</li>
+        <li><b>Style not applying?</b> Check <code>v-bind:style</code> object syntax or <code>:class</code> binding.</li>
+        <li><b>List order wrong?</b> Vue reuses DOM nodes — <code>:key</code> prevents bugs.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ====== EXAM PATTERNS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <div class="qa-box">
+      <div class="q">HIGH FREQ: Given v-if / v-else / v-if code, predict which branch renders for various inputs</div>
+      <div class="a">Trace the condition top-down. Only the <b>first</b> matching branch renders. <code>v-else-if</code> is only checked if the preceding <code>v-if</code> was false.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">MEDIUM FREQ: Write v-for loop that renders a list with :key, including index</div>
+      <div class="a"><code>&lt;li v-for="(item, index) in items" :key="item.id"&gt;{{ index }}. {{ item.name }}&lt;/li&gt;</code> — index for display, <code>item.id</code> as the stable key.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">HIGH FREQ: Explain difference between v-if and v-show with performance implications</div>
+      <div class="a"><code>v-if</code> adds/removes from DOM (higher toggle cost, lower initial cost when false). <code>v-show</code> toggles <code>display:none</code> (lower toggle cost, higher initial cost). Use <code>v-if</code> for rare toggles, <code>v-show</code> for frequent toggles.</div>
+    </div>
+  </div>
+
+  <!-- ====== MEMORY TRICKS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Trick 1</div>
+      <div class="t-text"><b>"v-if = Vanish"</b> — v-if makes elements <b>vanish</b> from the DOM entirely. Gone, not hidden.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 2</div>
+      <div class="t-text"><b>"v-show = Show/Hide"</b> — v-show just toggles CSS <code>display</code>. The element is still there, just hidden behind the curtain.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 3</div>
+      <div class="t-text"><b>"v-for = For Each"</b> — like a <code>forEach</code> loop. Always needs <code>:key</code> just like each loop iteration needs a unique index.</div>
+    </div>
+  </div>
+
+  <!-- ====== RELATED TOPICS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+      <span style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:default;">Template Syntax →</span>
+      <span style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:default;">Event Handling →</span>
+      <span style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:default;">List Rendering →</span>
+      <span style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:default;">Conditional Groups →</span>
+      <span style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--line);background:var(--panel-2);color:var(--text);cursor:default;">Render Function →</span>
+    </div>
+  </div>
+
   <!-- ====== REVISION CHEAT SHEET ====== -->
   <div class="section-tag"><span class="n">9</span> REVISION CHEAT SHEET</div>
   <div class="card">

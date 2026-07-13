@@ -245,6 +245,134 @@
     </div>
   </div>
 
+  <!-- ====== CONCEPT MAP ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — MVVM Architecture</div>
+    <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Sora',sans-serif;">
+      <!-- User Interaction Box -->
+      <rect x="20" y="60" width="130" height="70" rx="10" fill="none" stroke="#4ADE94" stroke-width="2"/>
+      <text x="85" y="90" text-anchor="middle" fill="#4ADE94" font-size="12" font-weight="600">User</text>
+      <text x="85" y="108" text-anchor="middle" fill="#4ADE94" font-size="12" font-weight="600">Interaction</text>
+      <!-- Arrow 1 -->
+      <line x1="155" y1="95" x2="195" y2="95" stroke="#4ADE94" stroke-width="2" marker-end="url(#arrowG)"/>
+      <!-- View (Template) Box -->
+      <rect x="200" y="60" width="130" height="70" rx="10" fill="none" stroke="#F0B450" stroke-width="2"/>
+      <text x="265" y="90" text-anchor="middle" fill="#F0B450" font-size="12" font-weight="600">View</text>
+      <text x="265" y="108" text-anchor="middle" fill="#F0B450" font-size="12" font-weight="600">(Template)</text>
+      <!-- Arrow 2 -->
+      <line x1="335" y1="95" x2="375" y2="95" stroke="#F0B450" stroke-width="2" marker-end="url(#arrowA)"/>
+      <!-- ViewModel Box -->
+      <rect x="380" y="60" width="130" height="70" rx="10" fill="none" stroke="#7DD3FC" stroke-width="2"/>
+      <text x="445" y="90" text-anchor="middle" fill="#7DD3FC" font-size="12" font-weight="600">ViewModel</text>
+      <text x="445" y="108" text-anchor="middle" fill="#7DD3FC" font-size="12" font-weight="600">(Vue Instance)</text>
+      <!-- Arrow 3 -->
+      <line x1="515" y1="95" x2="555" y2="95" stroke="#7DD3FC" stroke-width="2" marker-end="url(#arrowC)"/>
+      <!-- Model Box -->
+      <rect x="560" y="60" width="120" height="70" rx="10" fill="none" stroke="#8B93FF" stroke-width="2"/>
+      <text x="620" y="90" text-anchor="middle" fill="#8B93FF" font-size="12" font-weight="600">Model</text>
+      <text x="620" y="108" text-anchor="middle" fill="#8B93FF" font-size="12" font-weight="600">(Data)</text>
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#4ADE94" stroke-width="1.5"/></marker>
+        <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#F0B450" stroke-width="1.5"/></marker>
+        <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="none" stroke="#7DD3FC" stroke-width="1.5"/></marker>
+      </defs>
+      <!-- Labels below -->
+      <text x="85" y="155" text-anchor="middle" fill="#6B7688" font-size="10">Click / Input</text>
+      <text x="265" y="155" text-anchor="middle" fill="#6B7688" font-size="10">Renders HTML</text>
+      <text x="445" y="155" text-anchor="middle" fill="#6B7688" font-size="10">Manages state</text>
+      <text x="620" y="155" text-anchor="middle" fill="#6B7688" font-size="10">Stores data</text>
+    </svg>
+  </div>
+
+  <!-- ====== EXECUTION TIMELINE ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — MVVM Data Flow</div>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-top:12px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#234436;color:#4ADE94;font-weight:700;font-size:13px;flex-shrink:0;">1</span>
+        <div><b style="color:#4ADE94;">User clicks button</b><br><span style="font-size:13.5px;color:var(--muted);">The user interacts with the rendered View — clicks, types, or triggers an event.</span></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#3E3320;color:#F0B450;font-weight:700;font-size:13px;flex-shrink:0;">2</span>
+        <div><b style="color:#F0B450;">View calls ViewModel method</b><br><span style="font-size:13.5px;color:var(--muted);">The template's <code>@click</code> handler invokes a method defined on the Vue instance (ViewModel).</span></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#1A3A4A;color:#7DD3FC;font-weight:700;font-size:13px;flex-shrink:0;">3</span>
+        <div><b style="color:#7DD3FC;">ViewModel updates Model data</b><br><span style="font-size:13.5px;color:var(--muted);">The method modifies reactive <code>data</code> properties — this is the new state.</span></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#26264A;color:#8B93FF;font-weight:700;font-size:13px;flex-shrink:0;">4</span>
+        <div><b style="color:#8B93FF;">Reactivity system detects change</b><br><span style="font-size:13.5px;color:var(--muted);">Vue's reactivity engine (Proxy/defineProperty) notices the data mutation and triggers a re-render.</span></div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:#234436;color:#4ADE94;font-weight:700;font-size:13px;flex-shrink:0;">5</span>
+        <div><b style="color:#4ADE94;">View re-renders with new data</b><br><span style="font-size:13.5px;color:var(--muted);">The DOM is patched automatically — the user sees the updated UI without a page reload.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DEBUGGING CHECKLIST ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <div class="mistake-box">
+      <div class="m-label">Common MVC/MVVM Issues</div>
+      <div class="m-text">
+        <b>1. Mutating props directly:</b> Child components must never modify props passed from the parent — this breaks the data flow direction and causes unpredictable rendering.<br><br>
+        <b>2. Confusing Controller with ViewModel:</b> In MVC the Controller is an external dispatcher; in MVVM the ViewModel lives inside the view layer. Mixing them leads to architecture drift.<br><br>
+        <b>3. Putting view-specific state in the Model:</b> Flags like <code>isDropdownOpen</code> or <code>searchQuery</code> belong in the ViewModel, not in the persisted data layer.<br><br>
+        <b>4. Forgetting Vue reactivity caveats:</b> Adding new properties to an object without <code>Vue.set()</code> (Vue 2) or using reactive refs (Vue 3) won't trigger view updates.<br><br>
+        <b>5. Overloading a single component:</b> When one Vue instance handles too many responsibilities, it becomes a "God ViewModel" — split into child components with clear props and events.
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== EXAM PATTERNS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <div class="qa-box">
+      <div class="q">Pattern 1: "Explain MVC and MVVM with diagrams"</div>
+      <div class="a">Draw the 3-box flow for each. For MVC: Model ⇄ Controller ⇄ View. For MVVM: Model ⇄ ViewModel ⇄ View. Highlight that MVC is server-side request-driven while MVVM is client-side data-binding-driven. Mention Vue acts as the ViewModel.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 2: "Why does Vue need a ViewModel instead of MVC?"</div>
+      <div class="a">Answer with the derived-data argument: UI-specific state (form fields, toggles, temporary sorts) does not belong in the database. The ViewModel holds this ephemeral state and auto-syncs it to the View via reactivity — eliminating manual DOM manipulation that MVC controllers would require.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 3: "Compare MVC and MVVM — write a short note"</div>
+      <div class="a">Use the comparison table structure: Primary Layer (server vs client), Data Binding (manual vs automatic), Update Mechanism (full reload/AJAX vs reactive), Best For (server-rendered vs SPAs). Give framework examples (Django/Rails vs Vue/Angular).</div>
+    </div>
+  </div>
+
+  <!-- ====== MEMORY TRICKS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Trick 1</div>
+      <div class="t-text"><b>MVVM = Model · Views · ViewModel</b> — The extra "V" is the ViewModel sitting between Model and View. Think of it as "Model-View-View-Model" where the two outer layers talk through the inner pair.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 2</div>
+      <div class="t-text"><b>MVC = Model · View · Controller</b> — The Controller is the "conductor" directing traffic between Model and View. It decides what to show and when — like a restaurant waiter taking your order to the kitchen.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 3</div>
+      <div class="t-text"><b>ViewModel = Middleman</b> — It stands in the middle, holding both real data (Model) and temporary UI state, and automatically keeps the View in sync. If the data changes, the View updates. If the View input changes, the data updates. No manual wiring needed.</div>
+    </div>
+  </div>
+
+  <!-- ====== RELATED TOPICS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:8px;">
+      <span style="display:inline-block;padding:8px 16px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;">Vuex/Pinia →</span>
+      <span style="display:inline-block;padding:8px 16px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;">React Component Model →</span>
+      <span style="display:inline-block;padding:8px 16px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;">Angular MVC →</span>
+      <span style="display:inline-block;padding:8px 16px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;">Flask MVC →</span>
+      <span style="display:inline-block;padding:8px 16px;border-radius:20px;background:var(--panel-2);border:1px solid var(--line);font-size:13px;color:var(--text);cursor:pointer;">State Management →</span>
+    </div>
+  </div>
+
   <div class="footer-note">AppDev2 · Vue.js Architecture (MVC / MVVM) — study card</div>
 </div>
 </body>

@@ -3,6 +3,76 @@
 const COURSE_STRUCTURES = {
   "bdm": [
     {
+      "weekName": "Week 01",
+      "lectures": [
+        {
+          "title": "Lecture1",
+          "file": "Lecture1.html",
+          "path": "Week 01/Lecture1.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 1,
+          "slug": "lecture1",
+          "lastModified": "2026-07-13T05:07:51.874Z",
+          "readingTime": 16,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture2",
+          "file": "Lecture2.html",
+          "path": "Week 01/Lecture2.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 2,
+          "slug": "lecture2",
+          "lastModified": "2026-07-13T05:07:51.877Z",
+          "readingTime": 13,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture3",
+          "file": "Lecture3.html",
+          "path": "Week 01/Lecture3.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 3,
+          "slug": "lecture3",
+          "lastModified": "2026-07-13T05:07:51.879Z",
+          "readingTime": 12,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture4",
+          "file": "Lecture4.html",
+          "path": "Week 01/Lecture4.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 4,
+          "slug": "lecture4",
+          "lastModified": "2026-07-13T05:07:51.880Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture5",
+          "file": "Lecture5.html",
+          "path": "Week 01/Lecture5.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 5,
+          "slug": "lecture5",
+          "lastModified": "2026-07-13T05:07:51.881Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
       "weekName": "Week 01 - Introduction to Data Management",
       "lectures": [
         {
@@ -327,8 +397,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 1,
           "slug": "l1-collections-arrays",
-          "lastModified": "2026-07-09T08:24:50.226Z",
-          "readingTime": 20,
+          "lastModified": "2026-07-13T04:07:22.447Z",
+          "readingTime": 36,
           "tags": [],
           "keywords": []
         },
@@ -340,8 +410,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 2,
           "slug": "l2-iteration-destructuring",
-          "lastModified": "2026-07-09T08:25:58.886Z",
-          "readingTime": 9,
+          "lastModified": "2026-07-13T04:57:37.427Z",
+          "readingTime": 25,
           "tags": [],
           "keywords": []
         },
@@ -353,8 +423,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 3,
           "slug": "l3-modules-npm-oop",
-          "lastModified": "2026-07-09T08:24:55.610Z",
-          "readingTime": 16,
+          "lastModified": "2026-07-13T04:11:51.279Z",
+          "readingTime": 28,
           "tags": [],
           "keywords": []
         },
@@ -366,8 +436,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 4,
           "slug": "l4-prototypes-classes",
-          "lastModified": "2026-07-09T08:25:01.428Z",
-          "readingTime": 17,
+          "lastModified": "2026-07-13T04:55:59.965Z",
+          "readingTime": 30,
           "tags": [],
           "keywords": []
         },
@@ -379,8 +449,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 5,
           "slug": "l5-asynchrony-event-loop",
-          "lastModified": "2026-07-09T08:25:06.807Z",
-          "readingTime": 16,
+          "lastModified": "2026-07-13T04:56:26.489Z",
+          "readingTime": 30,
           "tags": [],
           "keywords": []
         },
@@ -392,8 +462,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Advanced JavaScript",
           "order": 6,
           "slug": "l6-json-api",
-          "lastModified": "2026-07-09T08:25:13.022Z",
-          "readingTime": 16,
+          "lastModified": "2026-07-13T04:56:52.939Z",
+          "readingTime": 29,
           "tags": [],
           "keywords": []
         },
@@ -532,8 +602,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 2,
           "slug": "part-1-declarative-rendering-reactivity-basics",
-          "lastModified": "2026-07-09T08:24:55.737Z",
-          "readingTime": 19,
+          "lastModified": "2026-07-13T05:04:06.416Z",
+          "readingTime": 26,
           "tags": [],
           "keywords": []
         },
@@ -545,8 +615,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 3,
           "slug": "part-2-vue-directives-conditional-rendering-looping",
-          "lastModified": "2026-07-09T08:25:02.232Z",
-          "readingTime": 27,
+          "lastModified": "2026-07-13T05:05:24.184Z",
+          "readingTime": 38,
           "tags": [],
           "keywords": []
         },
@@ -558,8 +628,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 4,
           "slug": "part-3-viewmodel-architecture-mvc-mvvm",
-          "lastModified": "2026-07-05T13:35:57.851Z",
-          "readingTime": 15,
+          "lastModified": "2026-07-13T05:05:28.868Z",
+          "readingTime": 24,
           "tags": [],
           "keywords": []
         },
@@ -571,8 +641,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 5,
           "slug": "part-4-computed-properties-vs-watchers",
-          "lastModified": "2026-07-05T13:35:57.852Z",
-          "readingTime": 21,
+          "lastModified": "2026-07-13T05:05:51.072Z",
+          "readingTime": 33,
           "tags": [],
           "keywords": []
         },
@@ -584,8 +654,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 6,
           "slug": "part-5-components-in-vuejs",
-          "lastModified": "2026-07-05T13:35:57.854Z",
-          "readingTime": 19,
+          "lastModified": "2026-07-13T05:05:56.825Z",
+          "readingTime": 32,
           "tags": [],
           "keywords": []
         },
@@ -597,8 +667,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 04 - Vue Components",
           "order": 7,
           "slug": "part-6-deep-dive-how-reactivity-works-under-the-hood",
-          "lastModified": "2026-07-05T13:35:57.856Z",
-          "readingTime": 21,
+          "lastModified": "2026-07-13T05:05:52.183Z",
+          "readingTime": 32,
           "tags": [],
           "keywords": []
         },
@@ -1177,8 +1247,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 01 - Intro Representation PCA",
           "order": 1,
           "slug": "l1-introduction-to-ml",
-          "lastModified": "2026-07-02T05:58:24.267Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.884Z",
+          "readingTime": 15,
           "tags": [],
           "keywords": []
         },
@@ -1190,8 +1260,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 01 - Intro Representation PCA",
           "order": 2,
           "slug": "l2-ml-paradigms",
-          "lastModified": "2026-07-02T05:58:24.270Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.886Z",
+          "readingTime": 12,
           "tags": [],
           "keywords": []
         },
@@ -1203,8 +1273,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 01 - Intro Representation PCA",
           "order": 3,
           "slug": "l3-representation-learning-1",
-          "lastModified": "2026-07-02T05:58:24.271Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.888Z",
+          "readingTime": 11,
           "tags": [],
           "keywords": []
         },
@@ -1216,8 +1286,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 01 - Intro Representation PCA",
           "order": 4,
           "slug": "l4-representation-learning-2",
-          "lastModified": "2026-07-02T05:58:24.273Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.889Z",
+          "readingTime": 11,
           "tags": [],
           "keywords": []
         },
@@ -1309,6 +1379,19 @@ const COURSE_STRUCTURES = {
           "slug": "part-4-advanced-pca",
           "lastModified": "2026-07-04T05:03:28.739Z",
           "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Probability Distributions",
+          "file": "Probability Distributions.html",
+          "path": "Week 01 - Intro Representation PCA/Probability Distributions.html",
+          "course": "mlt",
+          "week": "Week 01 - Intro Representation PCA",
+          "order": 12,
+          "slug": "probability-distributions",
+          "lastModified": "2026-07-12T06:21:26.159Z",
+          "readingTime": 52,
           "tags": [],
           "keywords": []
         }

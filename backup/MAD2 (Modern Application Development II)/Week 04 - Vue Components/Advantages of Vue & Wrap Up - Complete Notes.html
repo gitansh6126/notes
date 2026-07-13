@@ -1,0 +1,1499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advantages of Vue &amp; Wrap Up | MAD2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f4f5f9; --surface: #ffffff; --ink: #1a1e2b; --ink-soft: #505770; --ink-faint: #8b91a5; --line: #dde0e9;
+    --blue: #1e4f8a; --blue-soft: #e9eef7; --gold: #b5872a; --gold-soft: #f6ecd3; --gold-deep: #8f6a1c;
+    --rust: #a8482a; --rust-soft: #f7e6df; --teal: #2c6b5d; --teal-soft: #e2efec; --purple: #5a3e8a; --purple-soft: #ede7f5;
+    --green: #3d7a4a; --green-soft: #e6f0e8; --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); font-family: 'Inter',-apple-system,BlinkMacSystemFont,sans-serif; color: var(--ink); line-height: 1.7; padding: 0; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  h1,h2,h3,h4,h5 { font-family: 'Inter',sans-serif; font-weight: 700; letter-spacing: -0.02em; }
+  code,pre,.mono { font-family: 'JetBrains Mono','Cascadia Code',monospace; }
+  pre { background: #1a1e2b; color: #e8eaef; padding: 1rem 1.25rem; border-radius: 8px; overflow-x: auto; line-height: 1.6; font-size: 0.85rem; }
+  code { background: var(--blue-soft); padding: 0.15em 0.45em; border-radius: 4px; font-weight: 500; font-size: 0.85em; }
+  pre code { background: none; padding: 0; border-radius: 0; font-weight: 400; }
+  .hljs-keyword { color: #c792ea; } .hljs-string { color: #c3e88d; } .hljs-number { color: #f78c6c; }
+  .hljs-comment { color: #546e7a; font-style: italic; } .hljs-function { color: #82aaff; } .hljs-title { color: #ffcb6b; }
+  .hljs-built_in { color: #89ddff; } .hljs-attr { color: #f07178; } .hljs-tag { color: #f07178; } .hljs-name { color: #f07178; }
+  .hljs-selector-tag { color: #c792ea; } .hljs-literal { color: #f78c6c; } .hljs-params { color: #eeffff; }
+  .hljs-variable { color: #eeffff; } .hljs-property { color: #c3e88d; }
+
+  .hero { background: linear-gradient(135deg,#1a1e2b 0%,#2c3e6b 50%,#1e4f8a 100%); color: #fff; padding: 3.5rem 0 3rem; margin-bottom: 2.5rem; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -60%; right: -20%; width: 500px; height: 500px; background: rgba(255,255,255,0.03); border-radius: 50%; pointer-events: none; }
+  .hero::after { content: ''; position: absolute; bottom: -40%; left: -10%; width: 350px; height: 350px; background: rgba(255,255,255,0.02); border-radius: 50%; pointer-events: none; }
+  .hero h1 { font-size: 2.6rem; font-weight: 900; position: relative; z-index: 1; line-height: 1.2; }
+  .hero h1 span { color: #e8c55a; }
+  .hero .subtitle { font-size: 1.15rem; opacity: 0.85; margin-top: 0.5rem; font-weight: 400; position: relative; z-index: 1; }
+  .hero .meta { display: flex; gap: 1.5rem; margin-top: 1rem; font-size: 0.85rem; opacity: 0.7; position: relative; z-index: 1; flex-wrap: wrap; }
+  .hero .meta span { display: flex; align-items: center; gap: 0.35rem; }
+  .hero-pills { display: flex; gap: 0.5rem; margin-top: 1.25rem; flex-wrap: wrap; position: relative; z-index: 1; }
+  .hero-pill { padding: 0.3rem 0.9rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.15); letter-spacing: 0.03em; text-transform: uppercase; }
+
+  .section { margin-bottom: 2.5rem; }
+  .sec-header { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 1.25rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--line); }
+  .sec-num { font-size: 0.75rem; font-weight: 800; color: var(--blue); background: var(--blue-soft); padding: 0.2em 0.7em; border-radius: 999px; letter-spacing: 0.04em; flex-shrink: 0; }
+  .sec-header h2 { font-size: 1.5rem; margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+  .sec-intro { font-size: 1rem; color: var(--ink-soft); margin-bottom: 1.25rem; line-height: 1.8; }
+
+  .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem 1.75rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); border-left: 4px solid var(--line); transition: box-shadow 0.2s; }
+  .card:hover { box-shadow: var(--shadow-lg); }
+  .card h3 { font-size: 1.05rem; margin-bottom: 0.6rem; color: var(--blue); display: flex; align-items: center; gap: 0.5rem; }
+  .card p { margin-bottom: 0.5rem; } .card p:last-child { margin-bottom: 0; }
+  .card ul, .card ol { padding-left: 1.25rem; margin-bottom: 0.5rem; }
+  .card li { margin-bottom: 0.25rem; }
+  .bdr-blue { border-left-color: var(--blue); } .bdr-gold { border-left-color: var(--gold); }
+  .bdr-teal { border-left-color: var(--teal); } .bdr-rust { border-left-color: var(--rust); }
+  .bdr-purple { border-left-color: var(--purple); } .bdr-green { border-left-color: var(--green); }
+
+  .concept-card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); border-top: 4px solid var(--gold); }
+  .concept-card h3 { color: var(--gold-deep); font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+
+  .callout { display: flex; gap: 1rem; padding: 1rem 1.25rem; border-radius: var(--radius); margin-bottom: 1.25rem; border-left: 4px solid; }
+  .callout-info { background: var(--blue-soft); border-color: var(--blue); }
+  .callout-warning { background: var(--rust-soft); border-color: var(--rust); }
+  .callout-tip { background: var(--green-soft); border-color: var(--green); }
+  .callout-icon { font-size: 1.3rem; flex-shrink: 0; line-height: 1.4; }
+  .callout-body { flex: 1; }
+  .callout-body strong { display: block; margin-bottom: 0.25rem; font-size: 0.9rem; }
+  .callout-body p { margin-bottom: 0.25rem; font-size: 0.9rem; } .callout-body p:last-child { margin-bottom: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); }
+  th { background: #f0f2f7; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: #555; }
+  tr:last-child td { border-bottom: none; }
+  .tbl-wrap { overflow-x: auto; margin-bottom: 1rem; } .tbl-wrap table { margin-bottom: 0; }
+
+  .code-block { background: #1a1e2b; border-radius: var(--radius); margin-bottom: 1.25rem; overflow: hidden; box-shadow: var(--shadow); }
+  .cb-label { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: #2a2e3b; color: #8b91a5; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .cb-label .cb-lang { color: var(--gold); }
+  .code-block pre { margin: 0; border-radius: 0; }
+
+  .diagram { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); overflow-x: auto; }
+  .diagram svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+  .diagram-caption { text-align: center; font-size: 0.8rem; color: var(--ink-faint); margin-top: 0.75rem; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  @media (max-width: 820px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  .qa-card { background: var(--surface); border-radius: var(--radius); margin-bottom: 1rem; box-shadow: var(--shadow); overflow: hidden; }
+  .qa-q { padding: 1rem 1.25rem; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; background: var(--blue-soft); color: var(--blue); font-size: 0.9rem; transition: 0.2s; user-select: none; }
+  .qa-q:hover { background: #dce4f5; }
+  .qa-q .qa-toggle { font-size: 1.2rem; transition: transform 0.3s; font-family: 'JetBrains Mono',monospace; }
+  .qa-q.open .qa-toggle { transform: rotate(45deg); }
+  .qa-a { padding: 1rem 1.25rem; border-top: 1px solid var(--line); font-size: 0.9rem; display: none; }
+  .qa-a.open { display: block; } .qa-a p { margin-bottom: 0.4rem; } .qa-a ul { padding-left: 1.25rem; margin-bottom: 0.4rem; } .qa-a code { font-size: 0.82em; }
+  .qa-a pre { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+
+  .cheat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+  .cheat-item { background: var(--surface); border-radius: 8px; padding: 1rem 1.25rem; box-shadow: var(--shadow); border-left: 3px solid var(--blue); }
+  .cheat-item h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--blue); margin-bottom: 0.4rem; }
+  .cheat-item code { display: block; margin-bottom: 0.2rem; font-size: 0.8rem; }
+  .cheat-item .cheat-desc { font-size: 0.78rem; color: var(--ink-soft); }
+
+  .summary-box { background: linear-gradient(135deg,var(--blue-soft),var(--teal-soft)); border-radius: var(--radius); padding: 1.5rem 2rem; margin-bottom: 1.5rem; border: 1px solid rgba(30,79,138,0.15); }
+  .summary-box h3 { color: var(--blue); margin-bottom: 0.75rem; font-size: 1.1rem; }
+  .summary-box ul { padding-left: 1.25rem; }
+  .summary-box li { margin-bottom: 0.3rem; font-size: 0.9rem; }
+
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 1.5rem; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-faint); }
+  .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+
+  .pill { display: inline-block; padding: 0.2em 0.7em; border-radius: 999px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .pill-blue { background: var(--blue-soft); color: var(--blue); } .pill-gold { background: var(--gold-soft); color: var(--gold-deep); }
+  .pill-teal { background: var(--teal-soft); color: var(--teal); } .pill-rust { background: var(--rust-soft); color: var(--rust); }
+  .pill-purple { background: var(--purple-soft); color: var(--purple); }
+
+  .takeaway-list { list-style: none; padding: 0; }
+  .takeaway-list li { padding: 0.5rem 0 0.5rem 1.5rem; position: relative; font-size: 0.9rem; border-bottom: 1px solid var(--line); }
+  .takeaway-list li:last-child { border-bottom: none; }
+  .takeaway-list li::before { content: '\25B8'; position: absolute; left: 0; color: var(--teal); font-weight: 700; }
+
+  .glossary-term { display: grid; grid-template-columns: 140px 1fr; gap: 0.5rem 1rem; padding: 0.5rem 0; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+  .glossary-term:last-child { border-bottom: none; }
+  .glossary-term .gt-word { font-weight: 700; color: var(--blue); font-family: 'JetBrains Mono',monospace; font-size: 0.85rem; }
+  .glossary-term .gt-def { color: var(--ink-soft); }
+
+  .miscon-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+  .miscon-item { background: var(--surface); border-radius: var(--radius); padding: 1.25rem; box-shadow: var(--shadow); border-left: 4px solid var(--rust); }
+  .miscon-item .miscon-myth { color: var(--rust); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+  .miscon-item .miscon-truth { color: var(--teal); font-weight: 500; font-size: 0.9rem; display: flex; align-items: flex-start; gap: 0.5rem; }
+
+  .revision-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+  .revision-item { background: var(--surface); border-radius: var(--radius); padding: 1.25rem 1.5rem; box-shadow: var(--shadow); border-top: 3px solid var(--purple); }
+  .revision-item h4 { color: var(--purple); font-size: 0.95rem; margin-bottom: 0.5rem; }
+  .revision-item p, .revision-item ul { font-size: 0.85rem; color: var(--ink-soft); padding-left: 1rem; }
+  .revision-item li { margin-bottom: 0.2rem; }
+
+  .footer { text-align: center; padding: 2.5rem 0; color: var(--ink-faint); font-size: 0.8rem; border-top: 1px solid var(--line); margin-top: 2.5rem; }
+
+  .pros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem; }
+  .pros-card { background: var(--surface); border-radius: var(--radius); padding: 1.25rem; text-align: center; box-shadow: var(--shadow); border-bottom: 4px solid var(--teal); }
+  .pros-card .pros-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+  .pros-card h4 { font-size: 0.9rem; color: var(--ink); margin-bottom: 0.3rem; }
+  .pros-card p { font-size: 0.78rem; color: var(--ink-soft); }
+
+  .flowchart-svg text { font-family: 'JetBrains Mono','Cascadia Code',monospace; }
+
+  @media print {
+    body { background: #fff; }
+    .hero { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 1.5rem 0; }
+    .card,.concept-card,.qa-card,.callout,.summary-box,.diagram,.code-block,.cheat-item,.miscon-item,.revision-item,.pros-card { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; }
+    .qa-a { display: block !important; } .qa-q .qa-toggle { display: none; }
+    pre { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .callout-info,.callout-warning,.callout-tip { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sec-header { border-bottom-color: #ccc; }
+  }
+  @media (max-width: 820px) {
+    .hero h1 { font-size: 1.6rem; } .hero { padding: 2rem 0 1.5rem; }
+    .container { padding: 0 16px; } .card { padding: 1rem 1.25rem; }
+    .glossary-term { grid-template-columns: 1fr; gap: 0.2rem; }
+  }
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 1.3rem; } .sec-header h2 { font-size: 1.2rem; } .card { padding: 0.85rem 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="container">
+    <h1>Advantages of Vue &amp; <span>Module Wrap Up</span></h1>
+    <div class="subtitle">Why Vue exists, what problems it solves, and a comprehensive review of the entire Vue.js module</div>
+    <div class="meta">
+      <span>MAD2: Modern Application Development II</span>
+      <span>Week 04 &middot; Vue Components</span>
+    </div>
+    <div class="hero-pills">
+      <span class="hero-pill">Virtual DOM</span>
+      <span class="hero-pill">Reactivity</span>
+      <span class="hero-pill">Components</span>
+      <span class="hero-pill">Performance</span>
+      <span class="hero-pill">State Mgmt</span>
+      <span class="hero-pill">Exam Prep</span>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ==================== 1. WHY VUE EXISTS ==================== -->
+<section class="section" id="why-vue">
+  <div class="sec-header"><span class="sec-num">01</span><h2>Why Vue Exists &amp; Problems Solved</h2></div>
+  <p class="sec-intro">
+    Vue.js was created by <strong>Evan You</strong> in 2014 to address the growing complexity of building
+    interactive web interfaces. It fills a specific niche: <strong>approachable enough for beginners</strong>,
+    yet <strong>powerful enough for large-scale applications</strong>. Understanding <em>why</em> Vue exists
+    is the foundation of appreciating every feature it offers.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F3F7; The Problem Landscape Before Vue</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Problem</th><th>Traditional Approach</th><th>Why It Was Painful</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>DOM manipulation</strong></td>
+            <td>jQuery / <code>document.querySelector</code></td>
+            <td>Every state change required manual DOM updates. One missed line = bugs.</td>
+          </tr>
+          <tr>
+            <td><strong>State &amp; UI sync</strong></td>
+            <td>Manual bookkeeping</td>
+            <td>If <code>user.name</code> changed, you had to update every place it appeared on screen.</td>
+          </tr>
+          <tr>
+            <td><strong>Code organisation</strong></td>
+            <td>Scripts scattered in HTML + JS files</td>
+            <td>No clear separation of concerns. Spaghetti code was the default.</td>
+          </tr>
+          <tr>
+            <td><strong>Reusability</strong></td>
+            <td>Copy-paste HTML blocks</td>
+            <td>No standard way to package UI widgets with their logic and styles.</td>
+          </tr>
+          <tr>
+            <td><strong>Large app performance</strong></td>
+            <td>Full page re-renders</td>
+            <td>Every interaction could trigger expensive reflows; no granular updates.</td>
+          </tr>
+          <tr>
+            <td><strong>Learning curve</strong></td>
+            <td>AngularJS / React (early)</td>
+            <td>Angular had a steep barrier; React introduced JSX and a new mental model.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card bdr-teal">
+      <h3>&#x2705; Vue's Solution</h3>
+      <ul>
+        <li><strong>Reactivity</strong> &mdash; State changes automatically propagate to the DOM.</li>
+        <li><strong>Declarative templates</strong> &mdash; You describe <em>what</em> the UI should look like, not <em>how</em> to update it.</li>
+        <li><strong>Component-based</strong> &mdash; Encapsulated, reusable building blocks.</li>
+        <li><strong>Virtual DOM</strong> &mdash; Batched, minimal DOM updates for performance.</li>
+        <li><strong>Progressive</strong> &mdash; Use as much or as little as you need; CDN to full SFC toolchain.</li>
+        <li><strong>Gentle learning curve</strong> &mdash; Standard HTML, CSS, JS patterns &mdash; no JSX required.</li>
+      </ul>
+    </div>
+    <div class="card bdr-gold">
+      <h3>&#x1F4A1; Vue's Design Philosophy</h3>
+      <ul>
+        <li><strong>Approachable</strong> &mdash; Anyone who knows HTML, CSS, JS can start building.</li>
+        <li><strong>Versatile</strong> &mdash; Works for simple widgets or full SPA/SSR applications.</li>
+        <li><strong>Performant</strong> &mdash; Optimised rendering with minimal overhead.</li>
+        <li><strong>Maintainable</strong> &mdash; Single-File Components keep related code together.</li>
+        <li><strong>Community-driven</strong> &mdash; MIT licensed, backed by a large ecosystem.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-info">
+    <div class="callout-icon">&#x2139;</div>
+    <div class="callout-body">
+      <strong>Key Insight</strong>
+      <p>Vue doesn't compete with jQuery &mdash; it solves a <em>different class</em> of problem. jQuery makes DOM manipulation easier; Vue makes <strong>state-driven UI</strong> possible. The two can even coexist.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 2. VIRTUAL DOM ==================== -->
+<section class="section" id="virtual-dom">
+  <div class="sec-header"><span class="sec-num">02</span><h2>Virtual DOM</h2></div>
+  <p class="sec-intro">
+    The <strong>Virtual DOM (VDOM)</strong> is a lightweight JavaScript representation of the real DOM.
+    It is the core mechanism that enables Vue to update the UI efficiently without touching the browser's
+    expensive DOM API on every change.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F9E9; How the Virtual DOM Works</h3>
+    <p>When state changes, Vue does <strong>not</strong> immediately manipulate the real DOM. Instead:</p>
+    <ol>
+      <li><strong>Render function</strong> produces a new VDOM tree based on the current state.</li>
+      <li><strong>Diff algorithm</strong> (patch algorithm) compares the new VDOM tree with the previous one.</li>
+      <li><strong>Patch</strong> &mdash; only the <em>differences</em> are applied to the real DOM in a single batch.</li>
+    </ol>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono','Cascadia Code',monospace;">
+      <defs>
+        <marker id="arrB" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/></marker>
+        <marker id="arrG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2c6b5d"/></marker>
+        <marker id="arrR" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a8482a"/></marker>
+      </defs>
+
+      <rect x="20" y="10" rx="8" width="200" height="50" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+      <text x="120" y="38" text-anchor="middle" font-size="12" fill="#1e4f8a" font-weight="600">State Change</text>
+      <text x="120" y="54" text-anchor="middle" font-size="9" fill="#1e4f8a">data, props, store updated</text>
+
+      <line x1="220" y1="35" x2="280" y2="35" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrB)"/>
+
+      <rect x="285" y="10" rx="8" width="220" height="50" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+      <text x="395" y="34" text-anchor="middle" font-size="12" fill="#b5872a" font-weight="600">New VDOM Tree</text>
+      <text x="395" y="50" text-anchor="middle" font-size="9" fill="#b5872a">render() produces JS objects</text>
+
+      <line x1="505" y1="35" x2="565" y2="35" stroke="#b5872a" stroke-width="2" marker-end="url(#arrG)"/>
+
+      <rect x="570" y="10" rx="8" width="260" height="50" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+      <text x="700" y="34" text-anchor="middle" font-size="12" fill="#2c6b5d" font-weight="600">Diff Comparison</text>
+      <text x="700" y="50" text-anchor="middle" font-size="9" fill="#2c6b5d">old VDOM &harr; new VDOM</text>
+
+      <rect x="20" y="90" rx="8" width="260" height="60" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+      <text x="150" y="114" text-anchor="middle" font-size="12" fill="#a8482a" font-weight="600">Patch Calculation</text>
+      <text x="150" y="130" text-anchor="middle" font-size="9" fill="#a8482a">Minimal set of DOM operations</text>
+      <text x="150" y="144" text-anchor="middle" font-size="9" fill="#a8482a">(create, update, delete, move)</text>
+
+      <line x1="280" y1="120" x2="345" y2="120" stroke="#a8482a" stroke-width="2" marker-end="url(#arrR)"/>
+
+      <rect x="350" y="90" rx="8" width="260" height="60" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+      <text x="480" y="114" text-anchor="middle" font-size="12" fill="#5a3e8a" font-weight="600">Batch DOM Update</text>
+      <text x="480" y="130" text-anchor="middle" font-size="9" fill="#5a3e8a">Single flush to real DOM</text>
+      <text x="480" y="144" text-anchor="middle" font-size="9" fill="#5a3e8a">No intermediate layout thrashing</text>
+
+      <line x1="610" y1="120" x2="660" y2="120" stroke="#5a3e8a" stroke-width="2" marker-end="url(#arrB)"/>
+
+      <rect x="665" y="90" rx="8" width="170" height="60" fill="#e6f0e8" stroke="#3d7a4a" stroke-width="1.5"/>
+      <text x="750" y="114" text-anchor="middle" font-size="12" fill="#3d7a4a" font-weight="600">Updated UI</text>
+      <text x="750" y="130" text-anchor="middle" font-size="9" fill="#3d7a4a">Browser repaints</text>
+      <text x="750" y="144" text-anchor="middle" font-size="9" fill="#3d7a4a">only changed nodes</text>
+
+      <text x="430" y="200" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Result: <tspan fill="#2c6b5d" font-weight="600">O(n)</tspan> complexity diff + <tspan fill="#2c6b5d" font-weight="600">batched</tspan> DOM writes = high performance</text>
+
+      <text x="430" y="228" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Without VDOM: each change directly = <tspan fill="#a8482a">layout thrashing, reflows, jank</tspan></text>
+
+      <text x="430" y="260" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Vue 3 uses an optimized <tspan font-weight="600">compiler-informed</tspan> VDOM with static hoisting</text>
+    </svg>
+    <div class="diagram-caption">Virtual DOM pipeline: state change &rarr; new VDOM tree &rarr; diff &rarr; patch &rarr; real DOM update</div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4CA; Real DOM vs Virtual DOM</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Aspect</th><th>Real DOM</th><th>Virtual DOM (Vue)</th></tr></thead>
+        <tbody>
+          <tr><td>Type</td><td>Browser's actual HTML node tree</td><td>Lightweight JS object tree</td></tr>
+          <tr><td>Manipulation cost</td><td>High &mdash; triggers layout, paint, compositing</td><td>Low &mdash; just creating plain objects</td></tr>
+          <tr><td>Update strategy</td><td>Each change applied immediately</td><td>Changes batched, diffed, applied as one patch</td></tr>
+          <tr><td>Read/Write cycle</td><td>Mixed &rarr; layout thrashing</td><td>Separated &rarr; no thrashing</td></tr>
+          <tr><td>API surface</td><td>Hundreds of properties/methods</td><td>Minimal JS object shape (tag, props, children)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F4A1;</div>
+    <div class="callout-body">
+      <strong>Did You Know?</strong>
+      <p>Vue 3's VDOM implementation is <strong>compiler-optimized</strong>. During compilation, Vue detects static content and <em>hoists</em> it outside the render function &mdash; it never needs to be re-created on every re-render. This gives Vue a significant performance advantage over libraries that do pure runtime VDOM.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 3. REACTIVITY ==================== -->
+<section class="section" id="reactivity">
+  <div class="sec-header"><span class="sec-num">03</span><h2>Reactivity System</h2></div>
+  <p class="sec-intro">
+    Vue's <strong>reactivity system</strong> is the engine that automatically tracks state dependencies and
+    re-renders only what changed. It is the <em>single biggest advantage</em> Vue offers over imperative DOM
+    manipulation.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono','Cascadia Code',monospace;">
+      <defs>
+        <marker id="arrR2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#a8482a"/></marker>
+        <marker id="arrB2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/></marker>
+        <marker id="arrG2" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#2c6b5d"/></marker>
+      </defs>
+
+      <rect x="30" y="10" rx="8" width="240" height="68" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+      <text x="150" y="34" text-anchor="middle" font-size="12" fill="#a8482a" font-weight="600">data() &rarr; reactive state</text>
+      <text x="150" y="50" text-anchor="middle" font-size="10" fill="#a8482a">Vue wraps each property</text>
+      <text x="150" y="66" text-anchor="middle" font-size="10" fill="#a8482a">with getter/setter (Proxy)</text>
+
+      <line x1="270" y1="44" x2="330" y2="44" stroke="#a8482a" stroke-width="2" marker-end="url(#arrR2)"/>
+
+      <rect x="335" y="10" rx="8" width="200" height="68" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+      <text x="435" y="34" text-anchor="middle" font-size="12" fill="#1e4f8a" font-weight="600">Getter accessed</text>
+      <text x="435" y="50" text-anchor="middle" font-size="10" fill="#1e4f8a">during render() / computed</text>
+      <text x="435" y="66" text-anchor="middle" font-size="10" fill="#1e4f8a">&rarr; dependency tracked</text>
+
+      <line x1="535" y1="44" x2="595" y2="44" stroke="#1e4f8a" stroke-width="2" marker-end="url(#arrB2)"/>
+
+      <rect x="600" y="10" rx="8" width="230" height="68" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+      <text x="715" y="34" text-anchor="middle" font-size="12" fill="#b5872a" font-weight="600">&quot;Subscriber&quot; registered</text>
+      <text x="715" y="50" text-anchor="middle" font-size="10" fill="#b5872a">Each reactive prop knows</text>
+      <text x="715" y="66" text-anchor="middle" font-size="10" fill="#b5872a">which effects depend on it</text>
+
+      <text x="430" y="108" text-anchor="middle" font-size="11" fill="#8b91a5">&#x250C;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500; When a setter is triggered &#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2500;&#x2510;</text>
+
+      <rect x="30" y="130" rx="8" width="240" height="55" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
+      <text x="150" y="152" text-anchor="middle" font-size="12" fill="#a8482a" font-weight="600">Property setter fires</text>
+      <text x="150" y="170" text-anchor="middle" font-size="10" fill="#a8482a">e.g. this.count = 5</text>
+
+      <line x1="270" y1="158" x2="330" y2="158" stroke="#a8482a" stroke-width="2" marker-end="url(#arrR2)"/>
+
+      <rect x="335" y="130" rx="8" width="200" height="55" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+      <text x="435" y="152" text-anchor="middle" font-size="12" fill="#5a3e8a" font-weight="600">Notify subscribers</text>
+      <text x="435" y="170" text-anchor="middle" font-size="10" fill="#5a3e8a">All dependent effects queued</text>
+
+      <line x1="535" y1="158" x2="595" y2="158" stroke="#5a3e8a" stroke-width="2" marker-end="url(#arrB2)"/>
+
+      <rect x="600" y="130" rx="8" width="230" height="55" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+      <text x="715" y="152" text-anchor="middle" font-size="12" fill="#2c6b5d" font-weight="600">Re-render (async)</text>
+      <text x="715" y="170" text-anchor="middle" font-size="10" fill="#2c6b5d">New VDOM &rarr; diff &rarr; DOM patch</text>
+
+      <text x="430" y="220" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Vue 2 used <tspan font-family="monospace" fill="#a8482a">Object.defineProperty</tspan> &mdash; could not detect new keys / array changes</text>
+      <text x="430" y="245" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Vue 3 uses <tspan font-family="monospace" fill="#2c6b5d" font-weight="600">ES6 Proxy</tspan> &mdash; full reactivity coverage, no caveats</text>
+      <text x="430" y="270" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; <tspan font-family="monospace" fill="#1e4f8a">ref()</tspan> for primitives, <tspan font-family="monospace" fill="#1e4f8a">reactive()</tspan> for objects, <tspan font-family="monospace" fill="#1e4f8a">computed()</tspan> for derived values</text>
+    </svg>
+    <div class="diagram-caption">Vue 3 Reactivity System: Proxy-based getter/setter tracking with automatic dependency management</div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x2699; Vanilla JS vs Vue Reactivity</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Scenario</th><th>Vanilla JS</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Update a counter</td>
+            <td><code>counter++</code> then <code>el.textContent = counter</code></td>
+            <td>Just <code>this.counter++</code> &mdash; Vue updates the DOM automatically</td>
+          </tr>
+          <tr>
+            <td>Toggle a class</td>
+            <td><code>el.classList.toggle('active')</code></td>
+            <td><code>:class="{ active: isActive }"</code> &mdash; reactive binding</td>
+          </tr>
+          <tr>
+            <td>Filter a list</td>
+            <td>Loop, create new elements, append, remove old ones</td>
+            <td><code>v-for</code> with <code>computed</code> filter &mdash; auto re-renders</td>
+          </tr>
+          <tr>
+            <td>Multi-field form</td>
+            <td>Add event listeners for each field, update model, sync display</td>
+            <td><code>v-model</code> &mdash; two-way binding, zero boilerplate</td>
+          </tr>
+          <tr>
+            <td>Derived value</td>
+            <td>Recompute on every input, manual caching if needed</td>
+            <td><code>computed</code> &mdash; cached until dependencies change</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 4. COMPONENTS ==================== -->
+<section class="section" id="components">
+  <div class="sec-header"><span class="sec-num">04</span><h2>Component Architecture</h2></div>
+  <p class="sec-intro">
+    Components are the fundamental building blocks of a Vue application. Each component encapsulates
+    its own template, logic, and styles into a self-contained unit. This architecture is what makes
+    Vue applications <strong>maintainable, testable, and scalable</strong>.
+  </p>
+
+  <div class="concept-card">
+    <h3>&#x1F9F0; Component Hierarchy &amp; Data Flow</h3>
+    <div class="diagram">
+      <svg viewBox="0 0 860 340" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono','Cascadia Code',monospace;">
+        <defs>
+          <marker id="arrDn" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/></marker>
+          <marker id="arrUp" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto"><polygon points="10 0, 0 3.5, 10 7" fill="#a8482a"/></marker>
+        </defs>
+
+        <rect x="330" y="10" rx="10" width="200" height="50" fill="#e9eef7" stroke="#1e4f8a" stroke-width="2"/>
+        <text x="430" y="30" text-anchor="middle" font-size="13" fill="#1e4f8a" font-weight="700">App (Root)</text>
+        <text x="430" y="46" text-anchor="middle" font-size="9" fill="#1e4f8a">State: user, theme, auth</text>
+
+        <line x1="400" y1="60" x2="250" y2="90" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrDn)"/>
+        <line x1="460" y1="60" x2="610" y2="90" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrDn)"/>
+
+        <rect x="150" y="95" rx="8" width="180" height="50" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+        <text x="240" y="115" text-anchor="middle" font-size="12" fill="#b5872a" font-weight="600">&lt;AppHeader /&gt;</text>
+        <text x="240" y="131" text-anchor="middle" font-size="9" fill="#b5872a">Props: title, user</text>
+
+        <rect x="530" y="95" rx="8" width="180" height="50" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+        <text x="620" y="115" text-anchor="middle" font-size="12" fill="#2c6b5d" font-weight="600">&lt;GameBoard /&gt;</text>
+        <text x="620" y="131" text-anchor="middle" font-size="9" fill="#2c6b5d">Props: board, gameOver</text>
+
+        <line x1="210" y1="145" x2="210" y2="165" stroke="#b5872a" stroke-width="1.5" marker-end="url(#arrDn)"/>
+        <line x1="240" y1="145" x2="310" y2="165" stroke="#b5872a" stroke-width="1.5" marker-end="url(#arrDn)"/>
+
+        <rect x="130" y="170" rx="6" width="140" height="40" fill="#f7e6df" stroke="#a8482a" stroke-width="1.2"/>
+        <text x="200" y="188" text-anchor="middle" font-size="11" fill="#a8482a">&lt;Avatar /&gt;</text>
+        <text x="200" y="200" text-anchor="middle" font-size="9" fill="#a8482a">Props: src, size</text>
+
+        <rect x="250" y="170" rx="6" width="120" height="40" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.2"/>
+        <text x="310" y="188" text-anchor="middle" font-size="11" fill="#5a3e8a">&lt;NavMenu /&gt;</text>
+        <text x="310" y="200" text-anchor="middle" font-size="9" fill="#5a3e8a">Props: items</text>
+
+        <line x1="590" y1="145" x2="530" y2="170" stroke="#2c6b5d" stroke-width="1.5" marker-end="url(#arrDn)"/>
+        <line x1="620" y1="145" x2="620" y2="170" stroke="#2c6b5d" stroke-width="1.5" marker-end="url(#arrDn)"/>
+        <line x1="650" y1="145" x2="710" y2="170" stroke="#2c6b5d" stroke-width="1.5" marker-end="url(#arrDn)"/>
+
+        <rect x="465" y="172" rx="6" width="120" height="36" fill="#e6f0e8" stroke="#3d7a4a" stroke-width="1.2"/>
+        <text x="525" y="188" text-anchor="middle" font-size="11" fill="#3d7a4a">&lt;Cell /&gt; x 9</text>
+        <text x="525" y="200" text-anchor="middle" font-size="9" fill="#3d7a4a">Props: value, index</text>
+
+        <rect x="640" y="172" rx="6" width="140" height="36" fill="#e6f0e8" stroke="#3d7a4a" stroke-width="1.2"/>
+        <text x="710" y="188" text-anchor="middle" font-size="11" fill="#3d7a4a">&lt;Scoreboard /&gt;</text>
+        <text x="710" y="200" text-anchor="middle" font-size="9" fill="#3d7a4a">Props: scores</text>
+
+        <line x1="500" y1="208" x2="430" y2="235" stroke="#a8482a" stroke-width="1.5" marker-end="url(#arrUp)"/>
+        <rect x="300" y="240" rx="8" width="260" height="40" fill="rgba(168,72,42,0.08)" stroke="#a8482a" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="430" y="258" text-anchor="middle" font-size="10" fill="#a8482a">$emit('cell-click', index) &rarr; parent handles logic</text>
+        <text x="430" y="272" text-anchor="middle" font-size="10" fill="#a8482a">$emit('select', item) &rarr; parent navigates</text>
+
+        <text x="430" y="310" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Data flows <tspan fill="#1e4f8a" font-weight="600">down</tspan> via props; events flow <tspan fill="#a8482a" font-weight="600">up</tspan> via $emit | <tspan fill="#2c6b5d">Unidirectional data flow</tspan></text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4E6; Single-File Component (SFC) Anatomy</h3>
+    <div class="code-block">
+      <div class="cb-label"><span>MyComponent.vue &mdash; the standard SFC format</span><span class="cb-lang">Vue SFC</span></div>
+      <pre><code><span class="hljs-tag">&lt;<span class="hljs-name">template</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">class</span>=<span class="hljs-string">"my-component"</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">h3</span>&gt;</span>{{ title }}<span class="hljs-tag">&lt;/<span class="hljs-name">h3</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">p</span> <span class="hljs-attr">v-if</span>=<span class="hljs-string">"description"</span>&gt;</span>{{ description }}<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span>
+    <span class="hljs-tag">&lt;<span class="hljs-name">button</span> @<span class="hljs-attr">click</span>=<span class="hljs-string">"handleClick"</span>&gt;</span>
+      Clicked {{ count }} times
+    <span class="hljs-tag">&lt;/<span class="hljs-name">button</span>&gt;</span>
+  <span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">template</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-keyword">export default</span> {
+  <span class="hljs-attr">name</span>: <span class="hljs-string">'MyComponent'</span>,
+  <span class="hljs-attr">props</span>: {
+    <span class="hljs-attr">title</span>: <span class="hljs-title">String</span>,
+    <span class="hljs-attr">description</span>: <span class="hljs-title">String</span>
+  },
+  <span class="hljs-function"><span class="hljs-title">data</span>(<span class="hljs-params"></span>)</span> {
+    <span class="hljs-keyword">return</span> { <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> }
+  },
+  <span class="hljs-attr">methods</span>: {
+    <span class="hljs-function"><span class="hljs-title">handleClick</span>(<span class="hljs-params"></span>)</span> {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">count</span>++
+      <span class="hljs-variable language_">this</span>.$emit(<span class="hljs-string">'count-changed'</span>, <span class="hljs-variable language_">this</span>.<span class="hljs-property">count</span>)
+    }
+  }
+}
+<span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">style</span> <span class="hljs-attr">scoped</span>&gt;</span>
+<span class="hljs-selector-tag">.my-component</span> { <span class="hljs-attr">border</span>: <span class="hljs-number">1px</span> solid <span class="hljs-number">#ddd</span>; <span class="hljs-attr">padding</span>: <span class="hljs-number">1rem</span>; }
+<span class="hljs-selector-tag">h3</span> { <span class="hljs-attr">color</span>: <span class="hljs-number">#1e4f8a</span>; }
+<span class="hljs-tag">&lt;/<span class="hljs-name">style</span>&gt;</span></code></pre>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card bdr-gold">
+      <h3>&#x2B06; Props (Parent &rarr; Child)</h3>
+      <ul>
+        <li><strong>Read-only</strong> &mdash; child must never mutate a prop directly.</li>
+        <li><strong>Typed</strong> &mdash; validate with <code>String</code>, <code>Number</code>, <code>Array</code>, custom validators.</li>
+        <li><strong>Required / default</strong> &mdash; mark props as required or provide defaults.</li>
+        <li><strong>Reactive</strong> &mdash; changes in parent propagate automatically.</li>
+      </ul>
+    </div>
+    <div class="card bdr-rust">
+      <h3>&#x2B07; Events (Child &rarr; Parent)</h3>
+      <ul>
+        <li><strong>$emit</strong> &mdash; child fires event with data payload.</li>
+        <li><strong>@event-name</strong> &mdash; parent listens with <code>v-on</code>.</li>
+        <li><strong>Custom events</strong> &mdash; well-defined API contract between components.</li>
+        <li><strong>emit("update:prop")</strong> &mdash; enables <code>v-model</code> on custom components.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 5. MAINTAINABILITY ==================== -->
+<section class="section" id="maintainability">
+  <div class="sec-header"><span class="sec-num">05</span><h2>Maintainability</h2></div>
+  <p class="sec-intro">
+    Vue's design choices directly contribute to <strong>long-term code maintainability</strong> &mdash;
+    arguably the most important quality metric for real-world applications that evolve over years.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4DD; How Vue Promotes Maintainability</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Principle</th><th>Vue Feature</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Separation of Concerns</strong></td>
+            <td>SFC: &lt;template&gt;, &lt;script&gt;, &lt;style&gt; per file</td>
+            <td>Each component is a self-contained unit. Find, fix, test in one place.</td>
+          </tr>
+          <tr>
+            <td><strong>Declarative over Imperative</strong></td>
+            <td>Templates, directives, data binding</td>
+            <td>Less code to write and read. Intent is clear.</td>
+          </tr>
+          <tr>
+            <td><strong>Component Isolation</strong></td>
+            <td>Props down, events up, scoped styles</td>
+            <td>Change one component without fear of breaking others.</td>
+          </tr>
+          <tr>
+            <td><strong>Convention over Configuration</strong></td>
+            <td>Standardised lifecycle hooks, consistent API</td>
+            <td>Every Vue project looks familiar. Low onboarding cost.</td>
+          </tr>
+          <tr>
+            <td><strong>Testability</strong></td>
+            <td>Components are pure functions of props + state</td>
+            <td>Unit test with Vue Test Utils / Vitest. No magic.</td>
+          </tr>
+          <tr>
+            <td><strong>Developer Tooling</strong></td>
+            <td>Vue DevTools, strict mode, detailed warnings</td>
+            <td>Catch bugs during development, not production.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout callout-warning">
+    <div class="callout-icon">&#x26A0;</div>
+    <div class="callout-body">
+      <strong>Common Maintainability Pitfall</strong>
+      <p>Putting too much logic in a single component. If a component has more than ~200 lines, consider splitting it. Use the <strong>&quot;one responsibility per component&quot;</strong> rule &mdash; if a component does two unrelated things, refactor.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 6. SCALABILITY ==================== -->
+<section class="section" id="scalability">
+  <div class="sec-header"><span class="sec-num">06</span><h2>Scalability</h2></div>
+  <p class="sec-intro">
+    Scalability in Vue means two things: <strong>codebase scalability</strong> (can the project grow to
+    100s of components?) and <strong>performance scalability</strong> (does it stay fast with 10,000+
+    reactive bindings?).
+  </p>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F308; Vue's Scalability Strategies</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Challenge</th><th>Vue Solution</th><th>Benefit</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Large component tree</td>
+            <td>Composable functions, mixins (Vue 2), Composition API (Vue 3)</td>
+            <td>Share logic across components without inheritance.</td>
+          </tr>
+          <tr>
+            <td>Global state</td>
+            <td>Pinia / Vuex &mdash; centralised store with devtools</td>
+            <td>Predictable state management across the entire app.</td>
+          </tr>
+          <tr>
+            <td>Code splitting</td>
+            <td>Dynamic imports, lazy-loaded components</td>
+            <td>Smaller initial bundle; load on demand.</td>
+          </tr>
+          <tr>
+            <td>Server-Side Rendering</td>
+            <td>Nuxt.js / Vue SSR</td>
+            <td>SEO, faster initial paint, works with minimal JS.</td>
+          </tr>
+          <tr>
+            <td>TypeScript support</td>
+            <td>First-class TS integration in Vue 3</td>
+            <td>Find errors at compile time; better refactoring.</td>
+          </tr>
+          <tr>
+            <td>Monorepo support</td>
+            <td>Composable with pnpm workspaces, Turborepo</td>
+            <td>Share components across projects easily.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card bdr-purple">
+    <h3>&#x1F500; Scalability: Vue vs Traditional Approach</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>Traditional (jQuery / Vanilla)</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr><td>10 components</td><td>Possible but messy</td><td>Clean, organised</td></tr>
+          <tr><td>100 components</td><td>Hard to manage naming, collisions</td><td>Scoped styles, clear props API</td></tr>
+          <tr><td>500+ components</td><td>Extremely fragile &mdash; changes cascade</td><td>Isolated; change one without fear</td></tr>
+          <tr><td>Team onboarding</td><td>No standard patterns</td><td>Consistent conventions, docs</td></tr>
+          <tr><td>State across 50 components</td><td>Global variables, events</td><td>Pinia store, devtools, time-travel</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 7. PERFORMANCE ==================== -->
+<section class="section" id="performance">
+  <div class="sec-header"><span class="sec-num">07</span><h2>Performance</h2></div>
+  <p class="sec-intro">
+    Vue is designed for performance out of the box. Its architecture makes deliberate trade-offs
+    to deliver <strong>fast initial render</strong>, <strong>efficient updates</strong>, and
+    <strong>small bundle size</strong>.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 860 260" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono','Cascadia Code',monospace;">
+      <defs>
+        <marker id="arrP" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/></marker>
+      </defs>
+
+      <rect x="30" y="10" rx="8" width="250" height="50" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+      <text x="155" y="34" text-anchor="middle" font-size="12" fill="#1e4f8a" font-weight="600">Compiler-Optimised VDOM</text>
+      <text x="155" y="50" text-anchor="middle" font-size="9" fill="#1e4f8a">Static hoisting, patch flags, tree-shaking</text>
+
+      <line x1="280" y1="35" x2="320" y2="35" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrP)"/>
+
+      <rect x="325" y="10" rx="8" width="230" height="50" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+      <text x="440" y="34" text-anchor="middle" font-size="12" fill="#2c6b5d" font-weight="600">Proxy-Based Reactivity</text>
+      <text x="440" y="50" text-anchor="middle" font-size="9" fill="#2c6b5d">No dependency tracking overhead at scale</text>
+
+      <line x1="555" y1="35" x2="595" y2="35" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrP)"/>
+
+      <rect x="600" y="10" rx="8" width="230" height="50" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+      <text x="715" y="34" text-anchor="middle" font-size="12" fill="#b5872a" font-weight="600">Async Flush Queue</text>
+      <text x="715" y="50" text-anchor="middle" font-size="9" fill="#b5872a">nextTick batching, microtask timing</text>
+
+      <text x="430" y="95" text-anchor="middle" font-size="12" fill="#1e4f8a" font-weight="600">Performance Comparison: Re-render 1,000 items on state change</text>
+
+      <rect x="40" y="110" rx="6" width="200" height="28" fill="#f7e6df" stroke="#a8482a" stroke-width="1.2"/>
+      <text x="140" y="129" text-anchor="middle" font-size="11" fill="#a8482a">Vanilla JS (innerHTML)</text>
+
+      <rect x="40" y="148" rx="6" width="200" height="28" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.2"/>
+      <text x="140" y="167" text-anchor="middle" font-size="11" fill="#5a3e8a">Vanilla JS (document.</text>
+      <text x="140" y="176" text-anchor="middle" font-size="11" fill="#5a3e8a">createElement loop)</text>
+
+      <rect x="40" y="186" rx="6" width="200" height="28" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
+      <text x="140" y="205" text-anchor="middle" font-size="11" fill="#2c6b5d">Vue 3 (string template)</text>
+
+      <rect x="290" y="110" rx="4" width="540" height="22" fill="#f0f2f7"/>
+      <rect x="290" y="110" rx="4" width="480" height="22" fill="#a8482a" opacity="0.7"/>
+      <text x="560" y="125" text-anchor="middle" font-size="9" fill="#fff">~12-15ms (full reflow, repaint)</text>
+
+      <rect x="290" y="148" rx="4" width="540" height="22" fill="#f0f2f7"/>
+      <rect x="290" y="148" rx="4" width="320" height="22" fill="#5a3e8a" opacity="0.7"/>
+      <text x="450" y="163" text-anchor="middle" font-size="9" fill="#fff">~8-10ms (no innerHTML parse)</text>
+
+      <rect x="290" y="186" rx="4" width="540" height="22" fill="#f0f2f7"/>
+      <rect x="290" y="186" rx="4" width="180" height="22" fill="#2c6b5d" opacity="0.8"/>
+      <text x="380" y="201" text-anchor="middle" font-size="9" fill="#fff">~2-4ms (VDOM + batched patch)</text>
+
+      <text x="560" y="248" text-anchor="middle" font-size="10" fill="#8b91a5">&#x25B8; Vue 3 tree-shaking: ~16 KB gzipped for basic app &mdash; smaller than React + ReactDOM (~42 KB)</text>
+    </svg>
+    <div class="diagram-caption">Relative rendering performance: Vue 3 VDOM with compiler optimisation dramatically reduces DOM update time</div>
+  </div>
+
+  <div class="card bdr-green">
+    <h3>&#x26A1; Key Performance Features</h3>
+    <div class="grid-2">
+      <div>
+        <ul>
+          <li><strong>Tree-shaking</strong> &mdash; unused features removed at build time.</li>
+          <li><strong>Static hoisting</strong> &mdash; static template parts rendered once.</li>
+          <li><strong>Patch flags</strong> &mdash; compiler marks dynamic nodes for fast diff.</li>
+          <li><strong>Cache handlers</strong> &mdash; inline event handlers cached.</li>
+        </ul>
+      </div>
+      <div>
+        <ul>
+          <li><strong>Props stability</strong> &mdash; stable props skip child re-render.</li>
+          <li><strong>v-once / v-memo</strong> &mdash; explicit caching directives.</li>
+          <li><strong>Async component</strong> &mdash; lazy load via <code>defineAsyncComponent</code>.</li>
+          <li><strong>Suspense</strong> &mdash; coordinate async dependencies.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 8. STATE MANAGEMENT ==================== -->
+<section class="section" id="state-mgmt">
+  <div class="sec-header"><span class="sec-num">08</span><h2>State Management Overview</h2></div>
+  <p class="sec-intro">
+    As applications grow, managing shared state across many components becomes challenging.
+    Vue provides a tiered approach: from simple component-local state to full centralised stores.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg" style="font-family:'JetBrains Mono','Cascadia Code',monospace;">
+      <defs>
+        <marker id="arrSM" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#1e4f8a"/></marker>
+      </defs>
+
+      <rect x="40" y="10" rx="8" width="240" height="70" fill="#e9eef7" stroke="#1e4f8a" stroke-width="1.5"/>
+      <text x="160" y="32" text-anchor="middle" font-size="13" fill="#1e4f8a" font-weight="700">Level 1: Local State</text>
+      <text x="160" y="50" text-anchor="middle" font-size="10" fill="#1e4f8a">data() / ref() / reactive()</text>
+      <text x="160" y="66" text-anchor="middle" font-size="9" fill="#1e4f8a">Scoped to a single component</text>
+
+      <line x1="280" y1="45" x2="320" y2="45" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrSM)"/>
+
+      <rect x="325" y="10" rx="8" width="240" height="70" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
+      <text x="445" y="32" text-anchor="middle" font-size="13" fill="#b5872a" font-weight="700">Level 2: Props + Events</text>
+      <text x="445" y="50" text-anchor="middle" font-size="10" fill="#b5872a">Parent &harr; Child communication</text>
+      <text x="445" y="66" text-anchor="middle" font-size="9" fill="#b5872a">Explicit, predictable, but verbose</text>
+
+      <line x1="565" y1="45" x2="605" y2="45" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrSM)"/>
+
+      <rect x="610" y="10" rx="8" width="210" height="70" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
+      <text x="715" y="32" text-anchor="middle" font-size="13" fill="#2c6b5d" font-weight="700">Level 3: Provide / Inject</text>
+      <text x="715" y="50" text-anchor="middle" font-size="10" fill="#2c6b5d">Deep tree sharing (no prop)</text>
+      <text x="715" y="66" text-anchor="middle" font-size="9" fill="#2c6b5d">Useful for themes, providers</text>
+
+      <rect x="160" y="110" rx="8" width="240" height="70" fill="#ede7f5" stroke="#5a3e8a" stroke-width="1.5"/>
+      <text x="280" y="132" text-anchor="middle" font-size="13" fill="#5a3e8a" font-weight="700">Level 4: Event Bus (legacy)</text>
+      <text x="280" y="150" text-anchor="middle" font-size="10" fill="#5a3e8a">mitt / tiny-emitter</text>
+      <text x="280" y="166" text-anchor="middle" font-size="9" fill="#5a3e8a">Simple but hard to debug at scale</text>
+
+      <line x1="400" y1="145" x2="440" y2="145" stroke="#1e4f8a" stroke-width="1.5" marker-end="url(#arrSM)"/>
+
+      <rect x="445" y="110" rx="8" width="250" height="70" fill="#e6f0e8" stroke="#3d7a4a" stroke-width="1.5"/>
+      <text x="570" y="132" text-anchor="middle" font-size="13" fill="#3d7a4a" font-weight="700">Level 5: Centralized Store</text>
+      <text x="570" y="150" text-anchor="middle" font-size="10" fill="#3d7a4a">Pinia (Vue 3) / Vuex (Vue 2)</text>
+      <text x="570" y="166" text-anchor="middle" font-size="9" fill="#3d7a4a">DevTools, time-travel, plugins</text>
+
+      <text x="430" y="220" text-anchor="middle" font-size="11" fill="#8b91a5">&#x25B8; Rule of thumb: start with local state, add Pinia <tspan fill="#a8482a" font-weight="600">only</tspan> when multiple unrelated components need the same data</text>
+
+      <rect x="200" y="245" rx="6" width="460" height="24" fill="rgba(168,72,42,0.08)" stroke="#a8482a" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="430" y="262" text-anchor="middle" font-size="10" fill="#a8482a">Avoid: putting everything in the store. Keep component-local state where it belongs.</text>
+    </svg>
+    <div class="diagram-caption">State management maturity model: from simple to enterprise-grade</div>
+  </div>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F4CA; State Management Comparison</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Approach</th><th>When to Use</th><th>Pros</th><th>Cons</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Local state</strong></td>
+            <td>Form input, toggle, counter</td>
+            <td>Simple, encapsulated</td>
+            <td>Can't share across siblings</td>
+          </tr>
+          <tr>
+            <td><strong>Props + $emit</strong></td>
+            <td>Parent-child communication</td>
+            <td>Explicit data flow</td>
+            <td>Prop drilling in deep trees</td>
+          </tr>
+          <tr>
+            <td><strong>Provide / Inject</strong></td>
+            <td>Themes, i18n, user context</td>
+            <td>No drilling, reactive</td>
+            <td>Source unclear, debugging harder</td>
+          </tr>
+          <tr>
+            <td><strong>Pinia Store</strong></td>
+            <td>Auth state, cart, global prefs</td>
+            <td>DevTools, plugins, modular</td>
+            <td>Boilerplate for small apps</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="cb-label"><span>Pinia Store Example</span><span class="cb-lang">JS</span></div>
+    <pre><code><span class="hljs-comment">// stores/counter.js</span>
+<span class="hljs-keyword">import</span> { defineStore } <span class="hljs-keyword">from</span> <span class="hljs-string">'pinia'</span>
+
+<span class="hljs-keyword">export const</span> useCounterStore = <span class="hljs-title">defineStore</span>(<span class="hljs-string">'counter'</span>, {
+  <span class="hljs-attr">state</span>: <span class="hljs-function">() =></span> ({ <span class="hljs-attr">count</span>: <span class="hljs-number">0</span> }),
+  <span class="hljs-attr">getters</span>: {
+    <span class="hljs-attr">double</span>: <span class="hljs-function">(<span class="hljs-params">state</span>) =></span> state.<span class="hljs-property">count</span> * <span class="hljs-number">2</span>
+  },
+  <span class="hljs-attr">actions</span>: {
+    <span class="hljs-title">increment</span>() {
+      <span class="hljs-variable language_">this</span>.<span class="hljs-property">count</span>++
+    }
+  }
+})
+
+<span class="hljs-comment">// In a component:</span>
+<span class="hljs-keyword">const</span> store = <span class="hljs-title">useCounterStore</span>()
+store.<span class="hljs-title">increment</span>()
+<span class="hljs-variable language_">console</span>.<span class="hljs-title">log</span>(store.<span class="hljs-property">count</span>)      <span class="hljs-comment">// 1</span>
+<span class="hljs-variable language_">console</span>.<span class="hljs-title">log</span>(store.<span class="hljs-property">double</span>)      <span class="hljs-comment">// 2</span></code></pre>
+  </div>
+</section>
+
+<!-- ==================== 9. COMPARISON TABLES ==================== -->
+<section class="section" id="comparisons">
+  <div class="sec-header"><span class="sec-num">09</span><h2>Vue vs Traditional Development</h2></div>
+  <p class="sec-intro">
+    These comparison tables summarise the <strong>fundamental shifts</strong> Vue introduces
+    compared to traditional imperative web development.
+  </p>
+
+  <div class="card bdr-blue">
+    <h3>&#x1F504; Paradigm Shift: Imperative &rarr; Declarative</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Dimension</th><th>Traditional (Imperative)</th><th>Vue (Declarative)</th></tr></thead>
+        <tbody>
+          <tr><td>Mindset</td><td>&quot;Do X, then Y, then Z&quot;</td><td>&quot;When state is A, UI looks like B&quot;</td></tr>
+          <tr><td>DOM updates</td><td>Manual: <code>el.innerHTML = ...</code></td><td>Automatic: <code>{{ value }}</code></td></tr>
+          <tr><td>Class management</td><td><code>el.classList.add/remove</code></td><td><code>:class="{ active: bool }"</code></td></tr>
+          <tr><td>Event handling</td><td><code>el.addEventListener</code></td><td><code>@click="handler"</code></td></tr>
+          <tr><td>List rendering</td><td>Manual loop + appendChild</td><td><code>v-for="item in items"</code></td></tr>
+          <tr><td>Conditional rendering</td><td><code>if (cond) { create() }</code></td><td><code>v-if="cond"</code></td></tr>
+          <tr><td>Form binding</td><td>Listen to events, read values</td><td><code>v-model="field"</code></td></tr>
+          <tr><td>State sharing</td><td>Global variables, custom events</td><td>Store (Pinia), provide/inject</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card bdr-teal">
+    <h3>&#x1F4CB; Development Metrics Comparison</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Metric</th><th>jQuery / Vanilla</th><th>Vue.js</th></tr></thead>
+        <tbody>
+          <tr><td>Lines of code (simple counter)</td><td>~15</td><td>~5</td></tr>
+          <tr><td>Lines of code (list with filter)</td><td>~40</td><td>~12</td></tr>
+          <tr><td>Time to add new feature</td><td>High (touch many places)</td><td>Low (add state + template)</td></tr>
+          <tr><td>Debugging difficulty</td><td>Medium (state hidden in DOM)</td><td>Low (state explicit, DevTools)</td></tr>
+          <tr><td>Refactoring confidence</td><td>Low (fragile selectors)</td><td>High (scoped components)</td></tr>
+          <tr><td>Reusable widget</td><td>Copy HTML + script</td><td>Export .vue file, import anywhere</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 10. COMMON MISCONCEPTIONS ==================== -->
+<section class="section" id="misconceptions">
+  <div class="sec-header"><span class="sec-num">10</span><h2>Common Misconceptions</h2></div>
+  <p class="sec-intro">
+    Misunderstandings about Vue are widespread. Here are the most common ones, corrected.
+  </p>
+
+  <div class="miscon-grid">
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;Vue is just a library, not a framework&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Vue is a <em>progressive framework</em>. It can be used as a library (CDN, single widget) or as a full framework (CLI, SFCs, router, store, SSR). It grows with your needs.</div>
+    </div>
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;Vue's reactivity is magic / unpredictable&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Vue's reactivity is entirely deterministic. Proxy traps track getter/setter access. You can predict exactly when updates occur. Vue 3's Proxy-based system has zero caveats.</div>
+    </div>
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;Vue is only for small projects&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Vue powers production applications at <strong>Alibaba, Xiaomi, GitLab, Nintendo</strong>, and thousands of enterprise systems. Nuxt + Pinia + TypeScript scale to 1000+ components.</div>
+    </div>
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;Virtual DOM means Vue never touches the real DOM&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Vue <em>does</em> touch the real DOM &mdash; but only to apply the minimal set of changes computed by the diff algorithm. The VDOM is an optimisation layer, not a replacement.</div>
+    </div>
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;Vue components are like Web Components&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Different standards. Vue SFCs are compiled components with scoped CSS via attribute selectors. Web Components use Shadow DOM. Vue <em>can</em> compile to Web Components.</div>
+    </div>
+    <div class="miscon-item">
+      <div class="miscon-myth">&#x2716; &quot;You must use the CLI/build tools to use Vue&quot;</div>
+      <div class="miscon-truth">&#x2714; <strong>Truth:</strong> Vue works from a single HTML file with a CDN script tag. The build toolchain is optional. Start with CDN, add build tools when your project grows.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 11. INTERVIEW QUESTIONS ==================== -->
+<section class="section" id="interview">
+  <div class="sec-header"><span class="sec-num">11</span><h2>Interview Questions</h2></div>
+  <p class="sec-intro">
+    Common Vue interview questions &mdash; click to reveal answers.
+  </p>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q1: Explain the Virtual DOM and how Vue uses it.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>The Virtual DOM is a lightweight JavaScript object tree that mirrors the real DOM structure. When state changes, Vue:</p>
+      <ol>
+        <li>Creates a new VDOM tree from the render function.</li>
+        <li>Diffs it against the previous tree using an optimized O(n) algorithm.</li>
+        <li>Computes the minimal set of DOM operations needed.</li>
+        <li>Applies them in a single batched update.</li>
+      </ol>
+      <p>This avoids expensive layout thrashing and makes updates predictable. Vue 3's compiler further optimises this by hoisting static content and using patch flags.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q2: How does Vue's reactivity differ from React's setState?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Vue reactivity:</strong> Proxies intercept get/set at the property level. When you set <code>this.count = 5</code>, Vue immediately knows which effects depend on <code>count</code> and queues them. No manual trigger needed.</p>
+      <p><strong>React setState:</strong> You call <code>setState({ count: 5 })</code> to tell React that something changed. React then re-renders the entire component tree (with virtual DOM diffing). React relies on explicit state update calls.</p>
+      <p>Key difference: Vue is <strong>push-based</strong> (reactivity pushes updates); React is <strong>pull-based</strong> (reconciliation pulls changes).</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q3: Explain the component lifecycle in Vue.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Vue components go through these lifecycle hooks (in order):</p>
+      <ol>
+        <li><strong>beforeCreate</strong> &mdash; component initialized, data not reactive yet</li>
+        <li><strong>created</strong> &mdash; data reactive, but DOM not mounted</li>
+        <li><strong>beforeMount</strong> &mdash; template compiled, about to mount</li>
+        <li><strong>mounted</strong> &mdash; component added to DOM &mdash; safe to access DOM</li>
+        <li><strong>beforeUpdate</strong> &mdash; state changed, DOM not yet patched</li>
+        <li><strong>updated</strong> &mdash; DOM patched and re-rendered</li>
+        <li><strong>beforeUnmount</strong> &mdash; about to destroy</li>
+        <li><strong>unmounted</strong> &mdash; component destroyed, cleanup done</li>
+      </ol>
+      <p>In Vue 3 Composition API, use <code>onMounted()</code>, <code>onUpdated()</code>, etc.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q4: What is the difference between v-if and v-show?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <table>
+        <thead><tr><th>v-if</th><th>v-show</th></tr></thead>
+        <tbody>
+          <tr><td>Conditionally creates/destroys the DOM element</td><td>Always renders, toggles <code>display: none</code></td></tr>
+          <tr><td>Lazy &mdash; does not render unless condition is true</td><td>Eager &mdash; always renders regardless of visibility</td></tr>
+          <tr><td>Higher toggle cost (create/destroy cycle)</td><td>Lower toggle cost (just CSS change)</td></tr>
+          <tr><td>Use for rare, conditional sections</td><td>Use for frequently toggled elements</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q5: How does the Composition API differ from the Options API?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Options API:</strong> Organises code by option type: <code>data()</code>, <code>methods</code>, <code>computed</code>, <code>watch</code>, lifecycle hooks. Best for small-to-medium components. Simple and familiar.</p>
+      <p><strong>Composition API:</strong> Organises code by feature using <code>setup()</code> or <code>&lt;script setup&gt;</code>. Groups related logic together. Better for complex components, custom composables, and TypeScript inference.</p>
+      <p>Both are fully supported in Vue 3. Use Options for simplicity, Composition for flexibility and reuse.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q6: Explain unidirectional data flow in Vue.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>Data flows <strong>down</strong> from parent to child via props. Child components never mutate props directly. Instead, they send events <strong>up</strong> via <code>$emit</code> for the parent to handle.</p>
+      <p>This creates a predictable cycle: parent owns state &rarr; passes it as props &rarr; child displays/interacts &rarr; child emits event &rarr; parent updates state &rarr; new props flow down.</p>
+      <p>Benefits: <strong>debugging clarity</strong> (you know where state changes originate), <strong>no unexpected mutations</strong>, <strong>easy testing</strong> (components are pure functions of props).</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Q7: What is Pinia and why was it preferred over Vuex?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>Pinia</strong> is the official state management library for Vue 3. It replaced Vuex because:</p>
+      <ul>
+        <li>Full TypeScript support without extra declarations.</li>
+        <li>No mutations &mdash; just state + actions (simpler mental model).</li>
+        <li>Multiple stores (no single root store limitation).</li>
+        <li>DevTools support, HMR, and plugin system.</li>
+        <li>Composition API native &mdash; works seamlessly with <code>&lt;script setup&gt;</code>.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 12. EXAM QUESTIONS ==================== -->
+<section class="section" id="exam-questions">
+  <div class="sec-header"><span class="sec-num">12</span><h2>Exam Questions</h2></div>
+  <p class="sec-intro">
+    Practice questions for the MAD2 exam. Try answering before revealing the solution.
+  </p>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q1: Describe the difference between <code>reactive()</code> and <code>ref()</code> in Vue 3.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>ref()</strong> wraps a value in a reactive object with a <code>.value</code> property. Works for primitives (strings, numbers, booleans) and objects. Template auto-unwraps (no <code>.value</code> needed in template).</p>
+      <p><strong>reactive()</strong> takes an object and returns a deep reactive proxy. No <code>.value</code> needed. Cannot hold primitives directly. Limited to objects, arrays, Maps, Sets.</p>
+      <p><strong>Rule of thumb:</strong> Use <code>ref()</code> for primitives and when you need reassignment; use <code>reactive()</code> for object collections. Many developers now use <code>ref()</code> exclusively for consistency.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q2: Explain what <code>v-model</code> does and how it works internally.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><code>v-model</code> is a directive for two-way data binding. It's syntactic sugar for:</p>
+      <pre><code><span class="hljs-comment">&lt;!-- This: --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">v-model</span>=<span class="hljs-string">"name"</span>&gt;</span>
+
+<span class="hljs-comment">&lt;!-- Is equivalent to: --&gt;</span>
+<span class="hljs-tag">&lt;<span class="hljs-name">input</span>
+  <span class="hljs-attr">:value</span>=<span class="hljs-string">"name"</span>
+  @<span class="hljs-attr">input</span>=<span class="hljs-string">"name = $event.target.value"</span>
+&gt;</span></code></pre>
+      <p>On custom components, <code>v-model</code> defaults to a <code>modelValue</code> prop and <code>update:modelValue</code> event.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q3: What is the purpose of the <code>:key</code> attribute in <code>v-for</code>?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>The <code>:key</code> attribute gives Vue a hint to identify which items have changed, been added, or removed during re-rendering. Without it, Vue uses an <em>in-place patch</em> strategy that can cause bugs with:</p>
+      <ul>
+        <li>Component state (wrong component instance reused)</li>
+        <li>List animations (items animate incorrectly)</li>
+        <li>Input values (input state preserved on wrong row)</li>
+      </ul>
+      <p>Always use a unique, stable identifier (like <code>:key="item.id"</code>), never the array index unless the list is static and never reordered.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q4: How would you share state between two sibling components?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p>There are three common approaches:</p>
+      <ol>
+        <li><strong>Lift state up</strong> &mdash; move the shared state to the nearest common ancestor, pass it down as props, and emit events up. Best for simple cases.</li>
+        <li><strong>Provide / Inject</strong> &mdash; the ancestor provides the state using <code>provide()</code>, descendants inject it with <code>inject()</code>. Useful for deep trees but less explicit.</li>
+        <li><strong>Pinia store</strong> &mdash; centralise the state in a store. Both components import the same store. Best for complex state shared across many components.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q5: What is the difference between <code>computed</code> and <code>watch</code>?</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><strong>computed:</strong> Derives a value from other reactive state. It <em>caches</em> the result and only recomputes when dependencies change. Used in templates as a value. Must return something.</p>
+      <p><strong>watch:</strong> Performs a <em>side effect</em> when a reactive value changes. Used for things like: logging, API calls, syncing with localStorage, triggering animations. Does not return a value.</p>
+      <p><strong>Rule:</strong> Can you derive it from existing state? Use <code>computed</code>. Do you need to react with a side effect? Use <code>watch</code>.</p>
+    </div>
+  </div>
+
+  <div class="qa-card">
+    <div class="qa-q" onclick="toggleQA(this)">
+      <span>Exam Q6: Explain <code>nextTick()</code> and when you would use it.</span>
+      <span class="qa-toggle">+</span>
+    </div>
+    <div class="qa-a">
+      <p><code>nextTick()</code> is a utility that waits for the next DOM update cycle to complete. Vue batches state changes asynchronously. If you change reactive state and immediately try to read the DOM, you'll get the old value.</p>
+      <pre><code><span class="hljs-keyword">await</span> <span class="hljs-title">nextTick</span>()
+<span class="hljs-comment">// DOM is now updated</span></code></pre>
+      <p>Use cases: reading DOM measurements after a change, integrating with non-Vue libraries that need the DOM, testing assertions after state updates.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 13. REVISION NOTES ==================== -->
+<section class="section" id="revision">
+  <div class="sec-header"><span class="sec-num">13</span><h2>Revision Notes</h2></div>
+  <p class="sec-intro">
+    Condensed key points for quick revision before the exam.
+  </p>
+
+  <div class="revision-grid">
+    <div class="revision-item">
+      <h4>&#x1F504; Reactivity</h4>
+      <ul>
+        <li>Vue 3 uses <strong>Proxy</strong> (not defineProperty)</li>
+        <li>Automatic dependency tracking</li>
+        <li><code>ref()</code> for primitives, <code>reactive()</code> for objects</li>
+        <li><code>computed()</code> caches; <code>watch()</code> side-effects</li>
+        <li>No manual <code>setState</code> needed</li>
+      </ul>
+    </div>
+    <div class="revision-item">
+      <h4>&#x1F9E9; Virtual DOM</h4>
+      <ul>
+        <li>JS object tree mirroring real DOM</li>
+        <li>Compiler hoists static content (Vue 3)</li>
+        <li>Patch flags mark dynamic nodes</li>
+        <li>Async batching via <code>nextTick</code></li>
+        <li>Minimal DOM writes &rarr; fast updates</li>
+      </ul>
+    </div>
+    <div class="revision-item">
+      <h4>&#x1F4E6; Components</h4>
+      <ul>
+        <li>SFC: template + script + style per file</li>
+        <li>Props: read-only, typed, validated</li>
+        <li>$emit: child &rarr; parent communication</li>
+        <li>Unidirectional data flow (no mutation)</li>
+        <li>Scoped styles via attribute selectors</li>
+      </ul>
+    </div>
+    <div class="revision-item">
+      <h4>&#x1F504; Lifecycle</h4>
+      <ul>
+        <li>created (data ready) &rarr; mounted (DOM ready)</li>
+        <li>beforeUpdate &rarr; updated (DOM patched)</li>
+        <li>beforeUnmount &rarr; unmounted (cleanup)</li>
+        <li>Composition API: <code>onMounted()</code>, etc.</li>
+      </ul>
+    </div>
+    <div class="revision-item">
+      <h4>&#x1F4A1; State Management</h4>
+      <ul>
+        <li>Local state &rarr; Props + events &rarr; Provide/Inject &rarr; Pinia</li>
+        <li>Pinia: state, getters, actions (no mutations)</li>
+        <li>Start simple, add store only when needed</li>
+        <li>DevTools for time-travel debugging</li>
+      </ul>
+    </div>
+    <div class="revision-item">
+      <h4>&#x2696; Performance</h4>
+      <ul>
+        <li>Tree-shaking &rarr; ~16 KB gzipped (Vue 3)</li>
+        <li>Async components with <code>defineAsyncComponent</code></li>
+        <li><code>v-once</code> for static content</li>
+        <li><code>v-memo</code> for conditional caching</li>
+        <li>Use <code>v-show</code> for frequent toggles</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 14. FINAL CHEAT SHEET ==================== -->
+<section class="section" id="cheatsheet">
+  <div class="sec-header"><span class="sec-num">14</span><h2>Final Cheat Sheet</h2></div>
+  <p class="sec-intro">
+    Quick-reference cards for the most important Vue patterns, directives, and APIs.
+  </p>
+
+  <div class="cheat-grid">
+    <div class="cheat-item">
+      <h4>&#x1F521; Template Interpolation</h4>
+      <code>{{ expression }}</code>
+      <div class="cheat-desc">Renders the value of any JS expression in the template.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F517; Attribute Binding</h4>
+      <code>:attr="value"</code>
+      <div class="cheat-desc">Shorthand for <code>v-bind:attr</code>. Dynamically binds an attribute.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4A1; Event Binding</h4>
+      <code>@event="handler"</code>
+      <div class="cheat-desc">Shorthand for <code>v-on:event</code>. Attaches event listeners.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F504; Two-Way Binding</h4>
+      <code>v-model="state"</code>
+      <div class="cheat-desc">Syntactic sugar for <code>:value + @input</code>. Works on inputs, selects, textareas, and custom components.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4C3; Conditional Rendering</h4>
+      <code>v-if="cond"</code> / <code>v-else-if</code> / <code>v-else</code><br>
+      <code>v-show="cond"</code>
+      <div class="cheat-desc"><code>v-if</code> creates/destroys; <code>v-show</code> toggles display.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4CB; List Rendering</h4>
+      <code>v-for="item in items" :key="item.id"</code>
+      <div class="cheat-desc">Renders a list. Always provide a unique <code>:key</code>.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F3A8; Dynamic Classes</h4>
+      <code>:class="{ active: isActive }"</code>
+      <div class="cheat-desc">Object syntax; keys are classes, values are booleans.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F3A8; Dynamic Styles</h4>
+      <code>:style="{ color: activeColor, fontSize: size + 'px' }"</code>
+      <div class="cheat-desc">CamelCase properties; object or array syntax.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4E6; Props Declaration</h4>
+      <code>props: { title: String, count: { type: Number, required: true } }</code>
+      <div class="cheat-desc">Typed, validated, with required/default support.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4E4; Custom Events</h4>
+      <code>this.$emit('event-name', payload)</code>
+      <div class="cheat-desc">Child fires; parent listens with <code>@event-name</code>.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4CA; Computed Property</h4>
+      <code>computed: { double() { return this.count * 2 } }</code>
+      <div class="cheat-desc">Cached derived value. Recomputes only when dependencies change.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F50D; Watcher</h4>
+      <code>watch: { count(newVal, oldVal) { ... } }</code>
+      <div class="cheat-desc">Reacts to state changes with side effects.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4CD; Template Refs</h4>
+      <code>&lt;div ref="myRef"&gt;</code>
+      <div class="cheat-desc">Access DOM element or child component instance via <code>this.$refs.myRef</code>.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F504; Lifecycle (Composition)</h4>
+      <code>onMounted(() => { ... })</code>
+      <div class="cheat-desc">Lifecycle hooks prefixed with <code>on</code> in Composition API.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F3AF; Vue 3 ref()</h4>
+      <code>const count = ref(0) &rarr; count.value</code>
+      <div class="cheat-desc">Reactive primitive wrapper. Auto-unwrapped in templates.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F3AF; Vue 3 reactive()</h4>
+      <code>const state = reactive({ count: 0 })</code>
+      <div class="cheat-desc">Deep reactive proxy for objects. No <code>.value</code> needed.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F4B3; Pinia Store</h4>
+      <code>defineStore('id', { state, getters, actions })</code>
+      <div class="cheat-desc">Official state management. Modular, Typed, DevTools-enabled.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F30A; Provide / Inject</h4>
+      <code>provide('key', value)</code> / <code>inject('key')</code>
+      <div class="cheat-desc">Share state across deep component trees without prop drilling.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x23F3; nextTick</h4>
+      <code>await nextTick()</code>
+      <div class="cheat-desc">Wait for DOM update after reactive change.</div>
+    </div>
+    <div class="cheat-item">
+      <h4>&#x1F680; Async Component</h4>
+      <code>defineAsyncComponent(() => import('./Comp.vue'))</code>
+      <div class="cheat-desc">Lazy-load components for code splitting.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== 15. GLOSSARY ==================== -->
+<section class="section" id="glossary">
+  <div class="sec-header"><span class="sec-num">15</span><h2>Glossary</h2></div>
+  <div class="card bdr-purple">
+    <div class="glossary-term"><span class="gt-word">Virtual DOM</span><span class="gt-def">A lightweight JavaScript object tree that mirrors the real DOM, used to compute minimal updates.</span></div>
+    <div class="glossary-term"><span class="gt-word">Reactivity</span><span class="gt-def">The ability of a framework to automatically track state dependencies and update the UI when state changes.</span></div>
+    <div class="glossary-term"><span class="gt-word">Component</span><span class="gt-def">A self-contained, reusable piece of UI with its own template, logic, and styles.</span></div>
+    <div class="glossary-term"><span class="gt-word">SFC (Single-File Component)</span><span class="gt-def">A <code>.vue</code> file that encapsulates template, script, and style in one file.</span></div>
+    <div class="glossary-term"><span class="gt-word">Props</span><span class="gt-def">Custom attributes passed from parent to child component. Read-only in the child.</span></div>
+    <div class="glossary-term"><span class="gt-word">$emit</span><span class="gt-def">A method that fires a custom event from child to parent, optionally with a payload.</span></div>
+    <div class="glossary-term"><span class="gt-word">Directive</span><span class="gt-def">Special HTML attributes prefixed with <code>v-</code> that apply reactive behaviour (e.g., <code>v-if</code>, <code>v-for</code>).</span></div>
+    <div class="glossary-term"><span class="gt-word">v-model</span><span class="gt-def">A directive for two-way data binding, shorthand for <code>:value</code> + <code>@input</code>.</span></div>
+    <div class="glossary-term"><span class="gt-word">Computed Property</span><span class="gt-def">A derived value that caches its result and only recomputes when dependencies change.</span></div>
+    <div class="glossary-term"><span class="gt-word">Watcher</span><span class="gt-def">A function that performs side effects when a reactive dependency changes.</span></div>
+    <div class="glossary-term"><span class="gt-word">Pinia</span><span class="gt-def">The official Vue 3 state management library with modular stores, TypeScript support, and DevTools.</span></div>
+    <div class="glossary-term"><span class="gt-word">Composition API</span><span class="gt-def">A set of functions (<code>ref</code>, <code>reactive</code>, <code>computed</code>, lifecycle hooks) for organising component logic by feature.</span></div>
+    <div class="glossary-term"><span class="gt-word">Options API</span><span class="gt-def">The traditional Vue API that organises component logic by option blocks: <code>data</code>, <code>methods</code>, <code>computed</code>, etc.</span></div>
+    <div class="glossary-term"><span class="gt-word">Provide / Inject</span><span class="gt-def">A mechanism for a parent component to provide data to all descendants regardless of depth.</span></div>
+    <div class="glossary-term"><span class="gt-word">Tree-shaking</span><span class="gt-def">A build-time optimisation that removes unused code from the final bundle.</span></div>
+    <div class="glossary-term"><span class="gt-word">Suspense</span><span class="gt-def">A built-in component that coordinates async dependencies and shows fallback content while loading.</span></div>
+  </div>
+</section>
+
+<!-- ==================== 16. SUMMARY ==================== -->
+<section class="section" id="summary">
+  <div class="sec-header"><span class="sec-num">16</span><h2>Module Summary &amp; Takeaways</h2></div>
+  <p class="sec-intro">
+    A concise wrap-up of everything covered in the Vue.js module (Weeks 03 &ndash; 04).
+  </p>
+
+  <div class="summary-box">
+    <h3>&#x1F4DA; What You Have Learned</h3>
+    <ul>
+      <li><strong>Why Vue exists:</strong> To solve the pain of manual DOM manipulation with a reactive, declarative, component-based architecture.</li>
+      <li><strong>Virtual DOM:</strong> An optimisation layer that diffs JS object trees and applies minimal, batched real-DOM updates.</li>
+      <li><strong>Reactivity:</strong> Vue 3's Proxy-based system automatically tracks dependencies and triggers updates &mdash; no manual state management needed.</li>
+      <li><strong>Components:</strong> Encapsulated SFCs with props (down) and events (up) create a predictable, maintainable architecture.</li>
+      <li><strong>State Management:</strong> From local <code>data()</code> to Pinia stores &mdash; choose the right tool for your scope.</li>
+      <li><strong>Performance:</strong> Compiler-optimised VDOM, tree-shaking, async components, and lazy loading keep apps fast.</li>
+      <li><strong>Scalability:</strong> Composition API, TypeScript, monorepo patterns, and SSR via Nuxt scale to enterprise applications.</li>
+      <li><strong>Maintainability:</strong> SFCs, scoped styles, unidirectional data flow, and DevTools make code easy to reason about and refactor.</li>
+    </ul>
+  </div>
+
+  <div class="grid-2">
+    <div class="card bdr-teal">
+      <h3>&#x2705; Do This</h3>
+      <ul>
+        <li>Use <code>v-for</code> with a unique <code>:key</code></li>
+        <li>Keep components small and focused</li>
+        <li>Use <code>computed</code> for derived values</li>
+        <li>Use <code>v-show</code> for frequent toggles</li>
+        <li>Validate props with types and defaults</li>
+        <li>Start with Options API, graduate to Composition</li>
+        <li>Use Pinia only for truly shared state</li>
+      </ul>
+    </div>
+    <div class="card bdr-rust">
+      <h3>&#x2716; Avoid This</h3>
+      <ul>
+        <li>Mutating props in child components</li>
+        <li>Putting all state in a store</li>
+        <li>Using <code>v-if</code> + <code>v-for</code> on same element</li>
+        <li>Overusing watchers when computed suffices</li>
+        <li>Ignoring <code>:key</code> in lists</li>
+        <li>Mixing Vue 2 and Vue 3 APIs</li>
+        <li>Writing business logic in templates</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <div class="callout-icon">&#x1F393;</div>
+    <div class="callout-body">
+      <strong>Next Steps After This Module</strong>
+      <p>Continue to <strong>Week 05 &mdash; Routing &amp; Navigation</strong> with Vue Router, or explore <strong>Nuxt.js</strong> for SSR/SSG. Practice by rebuilding a small app (todo, weather dashboard) using Vue 3 + Composition API + Pinia.</p>
+    </div>
+  </div>
+
+  <div class="summary-box" style="background: linear-gradient(135deg,var(--purple-soft),var(--blue-soft));">
+    <h3>&#x2B50; Key Takeaway</h3>
+    <p style="font-size: 1rem; line-height: 1.8;">
+      Vue succeeds because it <strong>respects web fundamentals</strong> (HTML, CSS, JS) while adding
+      <strong>just enough abstraction</strong> to make dynamic UIs practical. You don't need to learn
+      a new templating language, a new type system, or a new build paradigm &mdash; just Vue on top of
+      what you already know. That's the core advantage: <strong>low barrier to entry, high ceiling for complexity</strong>.
+    </p>
+  </div>
+</section>
+
+</div>
+
+<footer class="footer">
+  <p>MAD2 &mdash; Modern Application Development II &bull; Week 04 &mdash; Vue Components</p>
+  <p>Advantages of Vue &amp; Module Wrap Up &bull; Created for exam preparation &amp; revision</p>
+</footer>
+
+<script>
+function toggleQA(el) {
+  el.classList.toggle('open');
+  var answer = el.nextElementSibling;
+  answer.classList.toggle('open');
+}
+</script>
+
+</body>
+</html>

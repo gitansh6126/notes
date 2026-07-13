@@ -13,8 +13,8 @@
           "week": "Week 01 - Intro Representation PCA",
           "order": 1,
           "slug": "l1-introduction-to-ml",
-          "lastModified": "2026-07-02T05:58:24.267Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.884Z",
+          "readingTime": 15,
           "tags": [],
           "keywords": []
         },
@@ -26,8 +26,8 @@
           "week": "Week 01 - Intro Representation PCA",
           "order": 2,
           "slug": "l2-ml-paradigms",
-          "lastModified": "2026-07-02T05:58:24.270Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.886Z",
+          "readingTime": 12,
           "tags": [],
           "keywords": []
         },
@@ -39,8 +39,8 @@
           "week": "Week 01 - Intro Representation PCA",
           "order": 3,
           "slug": "l3-representation-learning-1",
-          "lastModified": "2026-07-02T05:58:24.271Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.888Z",
+          "readingTime": 11,
           "tags": [],
           "keywords": []
         },
@@ -52,8 +52,8 @@
           "week": "Week 01 - Intro Representation PCA",
           "order": 4,
           "slug": "l4-representation-learning-2",
-          "lastModified": "2026-07-02T05:58:24.273Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-13T05:07:51.889Z",
+          "readingTime": 11,
           "tags": [],
           "keywords": []
         },
@@ -145,6 +145,19 @@
           "slug": "part-4-advanced-pca",
           "lastModified": "2026-07-04T05:03:28.739Z",
           "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Probability Distributions",
+          "file": "Probability Distributions.html",
+          "path": "Week 01 - Intro Representation PCA/Probability Distributions.html",
+          "course": "mlt",
+          "week": "Week 01 - Intro Representation PCA",
+          "order": 12,
+          "slug": "probability-distributions",
+          "lastModified": "2026-07-12T06:21:26.159Z",
+          "readingTime": 52,
           "tags": [],
           "keywords": []
         }

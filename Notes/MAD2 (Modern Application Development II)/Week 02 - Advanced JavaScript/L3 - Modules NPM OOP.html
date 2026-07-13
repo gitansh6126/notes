@@ -134,12 +134,69 @@ code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
 ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
 li{margin:4px 0; color:var(--text);}
 .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-</style></head><body><div class="wrap">
+</style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
 <div class="hero">
   <div class="eyebrow">Week 02 &middot; Lecture 03</div>
   <h1>Modules, NPM &amp; Objects</h1>
   <p>How JavaScript code is packaged, shared, and organized — from <b>ES6 modules</b> and the <b>npm</b> ecosystem to <b>object</b> fundamentals and the <code>this</code> keyword.</p>
+</div>
+
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">Modern JavaScript applications are built from <b>hundreds of files</b>. Without modules, you'd have global namespace pollution and unmanageable dependency graphs. NPM connects your code to <b>2M+ packages</b>. Objects are the backbone of JS data modeling. And <code>this</code> is the #1 source of confusion and bugs. Master these four pillars to write production-grade JavaScript.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">You're building a 50-file web app. Without modules:
+    <br>1. <b>Global scope pollution:</b> Every script shares one global namespace — variable names collide silently.
+    <br>2. <b>No dependency management:</b> You manually include script tags in order — one reorder breaks everything.
+    <br>3. <b>No code reuse:</b> Copy-pasting utility functions across files creates maintenance nightmares.
+    <br>4. <b><code>this</code> confusion:</b> Arrow functions, class methods, callbacks — <code>this</code> changes meaning in each context, causing cryptic bugs.
+  </div>
+  <div class="pr-question">How do you isolate code, manage dependencies, and keep <code>this</code> predictable?</div>
+</div>
+
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Office Building</div>
+  <div class="mm-title">Think of a JavaScript project as an office building:</div>
+  <div class="mm-text">
+    <b>Modules</b> = Individual offices with doors. Each office has its own supplies (variables) that don't leak into the hallway (global scope). You open the door (export/import) to share specific documents. <b>NPM</b> = The building's supply chain — you order furniture (packages) instead of building it yourself. <b><code>this</code></b> = The person in the room — it always refers to whoever is currently executing the code, not where the code was written.
+  </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">Module →</span> Office with a door (encapsulation)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">export →</span> Putting documents on the shared printer</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">import →</span> Picking up documents from the shared printer</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">NPM →</span> Ordering pre-built furniture (don't reinvent the wheel)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">this →</span> "Who's in charge right now?" — depends on calling context</div>
+  </div>
+</div>
+
+<div class="concept-map">
+  <div class="cm-label">Concept Map — Modules, NPM & Objects</div>
+  <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+    <rect x="250" y="10" width="200" height="36" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="33" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="700">JavaScript Project</text>
+    <line x1="280" y1="46" x2="100" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="350" y1="46" x2="350" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="420" y1="46" x2="600" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="30" y="80" width="140" height="32" rx="6" fill="#234436" stroke="#4ADE94"/>
+    <text x="100" y="101" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="600">Modules (ES6)</text>
+    <rect x="280" y="80" width="140" height="32" rx="6" fill="#3E3320" stroke="#F0B450"/>
+    <text x="350" y="101" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="11" font-weight="600">NPM</text>
+    <rect x="530" y="80" width="140" height="32" rx="6" fill="#26264A" stroke="#8B93FF"/>
+    <text x="600" y="101" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="11" font-weight="600">Objects & this</text>
+    <text x="100" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">export / import</text>
+    <text x="100" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Named + Default</text>
+    <text x="350" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">package.json</text>
+    <text x="350" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Dependencies + Scripts</text>
+    <text x="600" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Literals, Computed Keys</text>
+    <text x="600" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">this = calling context</text>
+  </svg>
 </div>
 
 <div class="section-tag"><span class="n">1</span> ES6 Modules — Export &amp; Import</div>
@@ -267,6 +324,33 @@ greet();       <span class="cmt">// this → undefined (module scope = strict)</
   </div>
 </div>
 
+<div class="section-tag"><span class="n">5</span> Execution Timeline — <code>this</code> Binding</div>
+<div class="timeline">
+  <div class="tl-label">How JavaScript Determines <code>this</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">RULE 1 — Method call</div>
+      <div class="tl-content"><code>obj.method()</code> → <code>this = obj</code>. The object before the dot becomes <code>this</code>.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RULE 2 — Standalone function</div>
+      <div class="tl-content"><code>func()</code> → <code>this = window</code> (strict: <code>undefined</code>). No object = global context.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">RULE 3 — Arrow function</div>
+      <div class="tl-content"><code>() => {}</code> → <code>this = enclosing scope</code>. Arrow functions inherit <code>this</code> from where they were defined, not called.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RULE 4 — Constructor</div>
+      <div class="tl-content"><code>new Foo()</code> → <code>this = new object being created</code>. Constructor creates a fresh context.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RULE 5 — Explicit binding</div>
+      <div class="tl-content"><code>call/apply/bind</code> → <code>this</code> = whatever you pass as the first argument. Manual override.</div>
+    </div>
+  </div>
+</div>
+
 <div class="section-tag"><span class="n">4</span>Production Use Cases</div>
 <div class="impact-card">
   <div class="impact-label">Production Impact</div>
@@ -286,6 +370,101 @@ greet();       <span class="cmt">// this → undefined (module scope = strict)</
   </div>
 </div>
 
+<div class="section-tag"><span class="n">6</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b>ES Modules are browser-only (without bundler):</b> Node.js uses CommonJS (<code>require</code>). Browsers need <code>&lt;script type="module"&gt;</code> or a bundler like Webpack/Vite.</li>
+    <li><b>NPM has no built-in security audit:</b> Run <code>npm audit</code> manually. Supply chain attacks (like <code>event-stream</code>) are real.</li>
+    <li><b><code>node_modules</code> is massive:</b> A typical project has 1000+ packages. Never commit it to git — use <code>.gitignore</code>.</li>
+    <li><b><code>this</code> in callbacks loses context:</b> Classic function callbacks lose the outer <code>this</code>. Fix with arrow functions or <code>.bind(this)</code>.</li>
+    <li><b>Computed property names require brackets:</b> <code>{ [expr]: value }</code> — can't use dot notation to access them.</li>
+    <li><b>Object shorthand only works when key and variable name match:</b> <code>{ name, age }</code> is shorthand for <code>{ name: name, age: age }</code>.</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">Common Module / Object / this Issues</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>If <code>this</code> is <code>undefined</code> in a method, check if you're using an arrow function — arrows don't have their own <code>this</code></div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>If <code>import</code> fails, verify the file has <code>.js</code> extension in the path and <code>type="module"</code> on the script tag</div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>If <code>require is not defined</code>, you're in ESM context — use <code>import</code> instead</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If <code>npm install</code> breaks, delete <code>node_modules</code> and <code>package-lock.json</code>, then reinstall</div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If object destructuring gives <code>undefined</code>, verify the property name matches exactly (case-sensitive)</div></div>
+  <div class="dc-item"><div class="dc-check">6</div><div>If <code>console.log(this)</code> shows <code>window</code> inside a method, you lost context — use arrow function or <code>.bind()</code></div></div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — Modules, NPM & Objects</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the difference between named export and default export?</div>
+    <div class="pyq-a"><b>A:</b> Named exports: <code>export const foo = ...</code>, imported as <code>import { foo } from '...'</code>. Multiple allowed. Default exports: <code>export default foo</code>, imported as <code>import foo from '...'</code>. Only one per module. Named exports enforce exact name matching; default allows renaming on import.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the value of <code>this</code> in an arrow function inside a class method?</div>
+    <div class="pyq-a"><b>A:</b> <code>this</code> refers to the <b>enclosing lexical scope</b>, not the object that called the method. Arrow functions don't bind their own <code>this</code> — they inherit from the surrounding code (the class instance in this case).</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the difference between <code>dependencies</code> and <code>devDependencies</code> in package.json?</div>
+    <div class="pyq-a"><b>A:</b> <code>dependencies</code> = packages needed in production (e.g., <code>express</code>, <code>vue</code>). <code>devDependencies</code> = packages needed only during development (e.g., <code>webpack</code>, <code>eslint</code>, <code>jest</code>). Install dev deps with <code>npm install --save-dev</code>.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">2 marks</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">this Binding Output <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given code with method calls, arrow functions, and callbacks, predict what <code>this</code> refers to. Classic exam question.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Module Import/Export <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Write export statements and matching import statements. Distinguish named vs default imports.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">NPM Workflow <span class="ep-freq">LOW FREQ</span></div>
+    <div class="ep-desc">Explain <code>npm init</code>, <code>npm install</code>, <code>package.json</code> structure, and the difference between local and global installs.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">export = "EX-PORT" (Exit the building)</div>
+    <div class="mt-text"><b>Ex</b>port = <b>Ex</b>it. Data leaves the module. Import = data comes in. Think of a port: ships leave (export) and arrive (import).</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">Arrow functions = "ARROW points to definition"</div>
+    <div class="mt-text">An arrow points at a target. Arrow functions point at where they were <b>defined</b> (not called) for <code>this</code>. Regular functions point at where they were <b>called</b>.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">NPM = "Not my problem (I'll just install it)"</div>
+    <div class="mt-text">Before NPM, developers wrote everything from scratch. Now? "Not my problem" — someone already built it. <code>npm install</code> and move on.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">Computed keys = "C Bracket Expression"</div>
+    <div class="mt-text"><b>C</b>omputed keys use <b>[brackets]</b>. <b>S</b>tatic keys use <b>.dots</b>. <code>{ [expr]: val }</code> vs <code>obj.key</code>.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">11</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Promises & Async/Await <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">CommonJS vs ESM <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Webpack & Bundlers <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Class-based Inheritance <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vue.js Component Imports <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vuex Module System <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
 <div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> What's the difference between <code>import { x }</code> and <code>import * as x</code>?</div>
@@ -300,22 +479,43 @@ greet();       <span class="cmt">// this → undefined (module scope = strict)</
   <div class="a"><strong>A:</strong> Regular functions get their own <code>this</code> based on invocation context (method call, standalone, etc.). Arrow functions have no own <code>this</code> — they capture it lexically from the enclosing scope at definition time.</div>
 </div>
 
-<div class="section-tag"><span class="n">5</span> Quick Revision</div>
-<div class="rev-grid">
-  <div class="rev-item"><b>Named export</b> — <code>export const x</code></div>
-  <div class="rev-item"><b>Default export</b> — <code>export default x</code></div>
-  <div class="rev-item"><b>Namespace import</b> — <code>import * as ns</code></div>
-  <div class="rev-item"><b>Alias import</b> — <code>import { x as y }</code></div>
-  <div class="rev-item"><b>Modules are strict</b> — no <code>"use strict"</code> needed</div>
-  <div class="rev-item"><b>npm init</b> — creates package.json</div>
-  <div class="rev-item"><b>dependencies</b> — runtime (lodash, react)</div>
-  <div class="rev-item"><b>devDependencies</b> — dev tools (jest, eslint)</div>
-  <div class="rev-item"><b>lockfile</b> — exact version pinning</div>
-  <div class="rev-item"><b>Computed keys</b> — <code>{ [expr]: val }</code></div>
-  <div class="rev-item"><b>Shorthand</b> — <code>{ name, age }</code></div>
-  <div class="rev-item"><b>Method shorthand</b> — <code>{ foo() {} }</code></div>
-  <div class="rev-item"><b>this</b> — depends on call site</div>
-  <div class="rev-item"><b>Arrow this</b> — lexical, from enclosing scope</div>
+<div class="section-tag"><span class="n">12</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">Modules, NPM & Objects — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">Named Export</div>
+      <div class="op-val"><code>export const foo = ...</code>. Import: <code>import { foo } from '...'</code>. Multiple per module.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Default Export</div>
+      <div class="op-val"><code>export default foo</code>. Import: <code>import foo from '...'</code>. One per module, rename freely.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">NPM Scripts</div>
+      <div class="op-val"><code>npm run script-name</code>. Defined in <code>package.json</code> under <code>"scripts"</code>. <code>start</code> and <code>test</code> are special.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Computed Keys</div>
+      <div class="op-val"><code>{ [expr]: value }</code>. Dynamic property names. Regular: <code>{ key: value }</code>.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Object Shorthand</div>
+      <div class="op-val"><code>{ name, age }</code> = <code>{ name: name, age: age }</code>. When variable name = key name.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">this Rules</div>
+      <div class="op-val">Method → obj. Standalone → window. Arrow → enclosing scope. Constructor → new object. call/apply → manual.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">node_modules</div>
+      <div class="op-val">Never commit. Add to <code>.gitignore</code>. Delete + <code>npm install</code> to rebuild. Can be 500MB+.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Lock Files</div>
+      <div class="op-val"><code>package-lock.json</code> pins exact versions. Ensures consistent installs across environments.</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-note">MAD2 · Advanced JavaScript — study card</div>

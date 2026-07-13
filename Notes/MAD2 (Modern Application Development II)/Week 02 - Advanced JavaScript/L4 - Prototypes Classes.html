@@ -134,12 +134,69 @@ code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
 ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
 li{margin:4px 0; color:var(--text);}
 .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-</style></head><body><div class="wrap">
+</style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
 <div class="hero">
   <div class="eyebrow">Week 02 &middot; Lecture 04</div>
   <h1>Prototypes &amp; Classes</h1>
   <p>JavaScript's inheritance model is <b>prototype-based</b> — objects inherit from other objects. The <code>class</code> keyword provides familiar syntax over this same mechanism.</p>
+</div>
+
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">JavaScript doesn't have classes like Java or C++ — it has <b>prototypes</b>. Every object inherits from another object through the prototype chain. The <code>class</code> keyword (ES6) is syntactic sugar over this prototype system. Understanding both is essential because: <b>frameworks use classes extensively</b> (Express, Mongoose, Jest), <b>inheritance patterns</b> power component hierarchies, and <b>private fields</b> enable true encapsulation.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">You need to model a hierarchy: <b>Animal → Dog → GuideDog</b>. Each level adds behavior. Without prototypes:
+    <br>1. <b>Code duplication:</b> You'd copy the <code>breathe()</code> method into every subclass.
+    <br>2. <b>No dynamic inheritance:</b> You can't add a method to a "parent" and have it appear on all "children" automatically.
+    <br>3. <b>No encapsulation:</b> All properties are public — anyone can modify internal state.
+    <br>4. <b><code>new</code> keyword confusion:</b> What happens when you call <code>new Dog()</code>? The constructor chain is invisible.
+  </div>
+  <div class="pr-question">How does JavaScript share behavior between objects without classes?</div>
+</div>
+
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Family Recipe</div>
+  <div class="mm-title">Prototypes are like family recipes passed down through generations:</div>
+  <div class="mm-text">
+    Your grandmother has a secret sauce recipe (prototype). Your mother learned it and added her own twist (instance). You inherited both versions — you can use the original sauce, override it with mom's version, or add your own. The <b>class</b> keyword is like writing the recipe in a cookbook — it looks organized, but the underlying tradition (prototype chain) is what actually passes knowledge down.
+  </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">Prototype →</span> Family tradition (invisible chain of inherited behavior)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Class →</span> Cookbook recipe (visible, organized structure)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">extends →</span> Child inherits parent's recipe, can override dishes</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">constructor →</span> The first time you make the dish (initialization)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">#private →</span> Secret ingredient only the chef knows</div>
+  </div>
+</div>
+
+<div class="concept-map">
+  <div class="cm-label">Concept Map — Prototypes & Classes</div>
+  <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+    <rect x="250" y="10" width="200" height="36" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="33" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="700">Object Creation</text>
+    <line x1="280" y1="46" x2="100" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="350" y1="46" x2="350" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="420" y1="46" x2="600" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="30" y="80" width="140" height="32" rx="6" fill="#234436" stroke="#4ADE94"/>
+    <text x="100" y="101" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="600">Prototypal Inherit.</text>
+    <rect x="280" y="80" width="140" height="32" rx="6" fill="#3E3320" stroke="#F0B450"/>
+    <text x="350" y="101" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="11" font-weight="600">Class Syntax</text>
+    <rect x="530" y="80" width="140" height="32" rx="6" fill="#26264A" stroke="#8B93FF"/>
+    <text x="600" y="101" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="11" font-weight="600">Object.create()</text>
+    <text x="100" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">__proto__ chain</text>
+    <text x="100" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Lookup: own → parent → null</text>
+    <text x="350" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Syntactic sugar</text>
+    <text x="350" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">extends, constructor, #private</text>
+    <text x="600" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Manual prototype link</text>
+    <text x="600" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">No constructor needed</text>
+  </svg>
 </div>
 
 <div class="section-tag"><span class="n">1</span> The Prototype Chain</div>
@@ -202,6 +259,29 @@ console.log(dog <span class="kw">instanceof</span> Object); <span class="cmt">//
   <div class="mistake-box">
     <div class="m-label">Common Mistake</div>
     <div class="m-text">Defining methods inside the constructor body (<code>this.speak = function…</code>) instead of on <code>.prototype</code>. This creates a new function copy per instance, wasting memory. Shared methods always go on the prototype.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">4</span> Execution Timeline — What <code>new</code> Actually Does</div>
+<div class="timeline">
+  <div class="tl-label">Trace: <code>const dog = new Dog("Rex")</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">STEP 1 — Create empty object</div>
+      <div class="tl-content"><code>{}</code> — a blank object is created in memory</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 2 — Set prototype</div>
+      <div class="tl-content"><code>dog.__proto__ = Dog.prototype</code> — link the object to the class's prototype chain</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 3 — Execute constructor</div>
+      <div class="tl-content"><code>this</code> = the new object. <code>this.name = "Rex"</code> assigns the property. Constructor returns <code>this</code> implicitly.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RESULT</div>
+      <div class="tl-content"><code>dog</code> = the new object with <code>name: "Rex"</code> and access to all <code>Dog.prototype</code> methods</div>
+    </div>
   </div>
 </div>
 
@@ -323,6 +403,88 @@ console.log(rex <span class="kw">instanceof</span> Animal); <span class="cmt">//
   </div>
 </div>
 
+<div class="section-tag"><span class="n">5</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b>No multiple inheritance:</b> A class can only <code>extends</code> one parent. Use mixins for multiple behavior sources.</li>
+    <li><b><code>#private</code> fields need transpilation:</b> Older browsers don't support <code>#</code> syntax. Babel/Buble transpiles it.</li>
+    <li><b>Prototype chain is slow for deep hierarchies:</b> Each property lookup walks up the chain. Keep hierarchies shallow.</li>
+    <li><b><code>super()</code> must be called before accessing <code>this</code>:</b> Calling <code>this</code> before <code>super()</code> in a subclass constructor throws a ReferenceError.</li>
+    <li><b>Static methods aren't inherited by instances:</b> <code>Dog.bark()</code> works, but <code>dog.bark()</code> doesn't if <code>bark</code> is static.</li>
+    <li><b>Prototype pollution is a security risk:</b> Modifying <code>Object.prototype</code> affects ALL objects. Never do this in production.</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">6</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">Common Prototype/Class Issues</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>If <code>super()</code> is not called before <code>this</code>, you'll get "Must call super constructor" — always call <code>super()</code> first in subclass constructors</div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>If a method shows "is not a function", check if the method is on the prototype, not the instance</div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>If <code>instanceof</code> returns false, check the prototype chain — the object might be from a different version of the class</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If private field <code>#foo</code> throws "not defined", ensure the class that defines it is the same class accessing it — private fields don't cross class boundaries</div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If <code>this</code> is wrong inside a callback, use an arrow function to capture the enclosing <code>this</code></div></div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — Prototypes & Classes</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Explain the prototype chain in JavaScript. How does property lookup work?</div>
+    <div class="pyq-a"><b>A:</b> Every object has an internal <code>[[Prototype]]</code> link. When you access a property, JS checks the object first, then walks up the chain: <code>obj → obj.__proto__ → obj.__proto__.__proto__ → ... → null</code>. This is why inherited methods work — they're found higher in the chain.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">4 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the difference between <code>__proto__</code> and <code>prototype</code>?</div>
+    <div class="pyq-a"><b>A:</b> <code>__proto__</code> is the actual link from an instance to its parent's prototype. <code>prototype</code> is a property of constructor functions/classes that becomes the <code>__proto__</code> of instances created with <code>new</code>. <code>Object.getPrototypeOf(obj)</code> is the proper way to access the prototype.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What happens when you call <code>new</code>? List all steps.</div>
+    <div class="pyq-a"><b>A:</b> 1) Create empty object. 2) Set <code>__proto__</code> to constructor's <code>prototype</code>. 3) Execute constructor with <code>this</code> = new object. 4) Return the object (or custom return if constructor returns an object).</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What are private fields (#) and why use them?</div>
+    <div class="pyq-a"><b>A:</b> Private fields (<code>#field</code>) are only accessible within the class that defines them. They enforce encapsulation — external code can't read or modify them. Unlike <code>_convention</code> (which is just a naming convention), <code>#</code> is enforced by the runtime.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">2 marks</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">new = "NEw Object With Utilities"</div>
+    <div class="mt-text"><b>N</b>Ew <b>O</b>bject <b>W</b>ith <b>U</b>tilities. <code>new</code> creates a New object, links the prototype (Utilities), and runs the constructor.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">extends = "Extends the family tree"</div>
+    <div class="mt-text">Think of family trees. <code>extends</code> adds a branch — the child inherits everything from the parent, plus adds its own features.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">super = "SUPerior parent"</div>
+    <div class="mt-text"><code>super()</code> calls the <b>SUP</b>erior (parent) constructor. Always call the parent first before accessing <code>this</code> in a child.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">#private = "Hash = Hashtag = Hidden"</div>
+    <div class="mt-text">The <code>#</code> symbol (hashtag) means <b>hidden</b>. Properties starting with <code>#</code> can't be seen from outside the class. Like a secret hashtag only you know.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Object.create() <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Mixins & Composition <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vue Class Components <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">TypeScript Classes <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Design Patterns (Factory, Singleton) <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Proxy & Reflect APIs <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
 <div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> What's the difference between <code>__proto__</code> and <code>.prototype</code>?</div>
@@ -337,22 +499,60 @@ console.log(rex <span class="kw">instanceof</span> Animal); <span class="cmt">//
   <div class="a"><strong>A:</strong> Prefer composition ("has-a") over inheritance ("is-a") for code reuse — use mixins, factory functions, or dependency injection. Reserve <code>extends</code> for true taxonomic relationships (e.g., <code>Dog extends Animal</code>). Deep inheritance hierarchies are fragile.</div>
 </div>
 
-<div class="section-tag"><span class="n">5</span> Quick Revision</div>
-<div class="rev-grid">
-  <div class="rev-item"><b>Prototype chain</b> — property lookup walks up</div>
-  <div class="rev-item"><b>__proto__</b> — link to parent object</div>
-  <div class="rev-item"><b>.prototype</b> — on constructor fns only</div>
-  <div class="rev-item"><b>Object.create(p)</b> — set prototype explicitly</div>
-  <div class="rev-item"><b>new</b> — creates instance, sets prototype</div>
-  <div class="rev-item"><b>instanceof</b> — checks prototype chain</div>
-  <div class="rev-item"><b>class</b> — syntax sugar over prototypes</div>
-  <div class="rev-item"><b>constructor</b> — runs on <code>new</code></div>
-  <div class="rev-item"><b>static</b> — method on class itself</div>
-  <div class="rev-item"><b>#private</b> — truly private fields</div>
-  <div class="rev-item"><b>get/set</b> — computed property access</div>
-  <div class="rev-item"><b>extends</b> — create subclass</div>
-  <div class="rev-item"><b>super()</b> — call parent constructor</div>
-  <div class="rev-item"><b>Override</b> — redefine method in subclass</div>
+<div class="section-tag"><span class="n">9</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">Prototype Chain Lookup <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given an object chain, trace which method/property gets called and where it's found on the prototype chain.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Class vs Prototype <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Explain how class syntax is syntactic sugar over prototypal inheritance. Show the equivalent prototype-based code.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">extends & super Output <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Predict output when child class calls super() and overrides methods. Common trap: forgetting super() before using this.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">Prototypes & Classes — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">Prototype Chain</div>
+      <div class="op-val">obj → obj.__proto__ → ... → null. Property lookup walks up the chain. Found = used, not found = undefined.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">new keyword</div>
+      <div class="op-val">4 steps: create obj, set prototype, run constructor (this=new obj), return obj.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">class syntax</div>
+      <div class="op-val">Sugar over prototypes. <code>class Dog { constructor() {} bark() {} }</code>. Clean, readable, familiar to OOP devs.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">extends + super</div>
+      <div class="op-val"><code>class B extends A</code>. Call <code>super()</code> before <code>this</code> in constructor. <code>super.method()</code> calls parent's version.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">#private fields</div>
+      <div class="op-val"><code>#secret</code> — only accessible inside the class. True encapsulation, not just a naming convention.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">static methods</div>
+      <div class="op-val"><code>static create()</code> — called on the class, not instances. <code>Dog.create()</code> works, <code>dog.create()</code> doesn't.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">this in methods</div>
+      <div class="op-val">Method call → obj. Arrow → enclosing scope. Constructor → new object. Call/apply → manual.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Key gotcha</div>
+      <div class="op-val"><code>super()</code> must come before <code>this</code> in subclass constructors. Private fields don't cross class boundaries.</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-note">MAD2 · Advanced JavaScript — study card</div>

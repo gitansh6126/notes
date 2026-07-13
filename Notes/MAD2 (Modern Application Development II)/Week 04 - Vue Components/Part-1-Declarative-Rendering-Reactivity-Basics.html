@@ -369,6 +369,111 @@ btn.style.display = <span class="str">'none'</span>;
     </div>
   </div>
 
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — How It All Connects</div>
+    <svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:700px;margin:12px auto;display:block;">
+      <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+      <rect x="250" y="10" width="200" height="32" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+      <text x="350" y="31" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="700">Vue Reactivity System</text>
+      <line x1="200" y1="42" x2="100" y2="70" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="350" y1="42" x2="350" y2="70" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+      <line x1="500" y1="42" x2="600" y2="70" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+      <rect x="30" y="70" width="140" height="28" rx="6" fill="#234436" stroke="#4ADE94"/>
+      <text x="100" y="89" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="10" font-weight="600">Declarative Template</text>
+      <rect x="280" y="70" width="140" height="28" rx="6" fill="#3E3320" stroke="#F0B450"/>
+      <text x="350" y="89" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="10" font-weight="600">Virtual DOM</text>
+      <rect x="530" y="70" width="140" height="28" rx="6" fill="#26264A" stroke="#8B93FF"/>
+      <text x="600" y="89" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="10" font-weight="600">Reactive Data</text>
+      <text x="100" y="118" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">{{ }} syntax</text>
+      <text x="350" y="118" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Diff → Patch</text>
+      <text x="600" y="118" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">getter/setter or Proxy</text>
+      <text x="350" y="160" text-anchor="middle" fill="#7DD3FC" font-family="Sora" font-size="10">Data changes → View auto-updates</text>
+    </svg>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — Virtual DOM Diff</div>
+    <div style="padding:8px 0;">
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:10px 0;">
+        <div style="min-width:24px;height:24px;border-radius:6px;background:var(--green-dim);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--green);font-weight:700;">1</div>
+        <div><b style="color:var(--green);">Data changes</b> — <code>count++</code> triggers the setter</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:10px 0;">
+        <div style="min-width:24px;height:24px;border-radius:6px;background:var(--amber-dim);border:1px solid var(--amber);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--amber);font-weight:700;">2</div>
+        <div><b style="color:var(--amber);">Watcher notified</b> — Vue's dependency system triggers re-render</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:10px 0;">
+        <div style="min-width:24px;height:24px;border-radius:6px;background:var(--cyan-dim);border:1px solid var(--cyan);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--cyan);font-weight:700;">3</div>
+        <div><b style="color:var(--cyan);">New Virtual DOM</b> — Vue creates a fresh VDOM tree with new state</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:10px 0;">
+        <div style="min-width:24px;height:24px;border-radius:6px;background:var(--violet-dim);border:1px solid var(--violet);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--violet);font-weight:700;">4</div>
+        <div><b style="color:var(--violet);">Diff algorithm</b> — compares old vs new VDOM, finds only <code>&lt;p&gt;</code> changed</div>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:12px;margin:10px 0;">
+        <div style="min-width:24px;height:24px;border-radius:6px;background:var(--green-dim);border:1px solid var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--green);font-weight:700;">5</div>
+        <div><b style="color:var(--green);">Patch</b> — only <code>&lt;p&gt;</code> text node updated in real DOM (minimal mutation)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <div class="mistake-box">
+      <div class="m-label">Check These When Reactivity Breaks</div>
+      <div class="m-text">
+        <b>1.</b> Is the property initialized in <code>data()</code>? If not, Vue can't track it.<br>
+        <b>2.</b> Are you mutating an array by index in Vue 2? Use <code>Vue.set()</code> or <code>splice()</code>.<br>
+        <b>3.</b> Did you add a new property to an object after creation? Use <code>Vue.set()</code> (Vue 2).<br>
+        <b>4.</b> Is the template using the correct variable name? Typos silently fail.<br>
+        <b>5.</b> Are you using <code>v-if</code> on the same element as <code>v-for</code>? <code>v-for</code> has higher priority — use a wrapper.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <div class="qa-box">
+      <div class="q">HIGH FREQ: Predict the output of code with declarative bindings</div>
+      <div class="a">Given a Vue instance with <code>data: { x: 1 }</code> and a template with <code>{{ x }}</code> and <code>{{ x + 1 }}</code>, predict what renders. Then predict what happens after <code>this.x = 5</code>.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">MEDIUM FREQ: Explain why a property isn't reactive</div>
+      <div class="a">Given code that adds a property after creation (<code>obj.newKey = val</code>), explain why the view doesn't update. Show the fix using <code>Vue.set()</code>.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">HIGH FREQ: Virtual DOM diffing steps</div>
+      <div class="a">Draw or describe the 5-step process: data change → watcher → new VDOM → diff → patch. Label each step.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Mnemonic: DECLARATIVE = "Describe, Don't Do"</div>
+      <div class="t-text"><b>Declarative</b> = you <b>describe</b> the end state. <b>Imperative</b> = you <b>do</b> every step. Think: "I declare what I want" vs "I imperatively command each move."</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Mnemonic: VIRTUAL DOM = "V-Diff-Patch"</div>
+      <div class="t-text"><b>V</b>irtual DOM → <b>Diff</b> → <b>Patch</b>. Three steps, three words. V-Diff-Patch.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Mnemonic: REACTIVE = "React to Changes"</div>
+      <div class="t-text"><b>Re</b>active = <b>Re</b>act. Vue <b>reacts</b> to data changes automatically. You change data, Vue reacts.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+      <div style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel-2);color:var(--text);">Computed Properties →</div>
+      <div style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel-2);color:var(--text);">Watchers →</div>
+      <div style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel-2);color:var(--text);">Vue Lifecycle Hooks →</div>
+      <div style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel-2);color:var(--text);">v-bind & v-model →</div>
+      <div style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--panel-2);color:var(--text);">React State (comparison) →</div>
+    </div>
+  </div>
+
   <!-- ====== REVISION CHEAT SHEET ====== -->
   <div class="section-tag"><span class="n">3</span> REVISION CHEAT SHEET</div>
   <div class="card">

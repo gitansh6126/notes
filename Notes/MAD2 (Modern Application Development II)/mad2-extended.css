@@ -1,0 +1,310 @@
+/* ============================================================
+   MAD2 Extended Styles — Problem-First Note Enhancement
+   Add <link rel="stylesheet" href="mad2-extended.css"> after existing <style>
+   ============================================================ */
+
+/* ---- 1. PURPOSE BANNER ---- */
+.purpose-banner{
+  background:linear-gradient(135deg, rgba(74,222,148,0.08), rgba(125,211,252,0.06));
+  border:1px solid rgba(74,222,148,0.25); border-radius:var(--radius);
+  padding:18px 22px; margin:0 0 20px;
+}
+.purpose-banner .p-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:6px;
+}
+.purpose-banner .p-text{font-size:14px; color:var(--text); line-height:1.6;}
+.purpose-banner .p-text b{color:var(--green);}
+
+/* ---- 2. PROBLEM STATEMENT ---- */
+.problem-box{
+  background:linear-gradient(135deg, rgba(240,80,80,0.06), rgba(240,180,80,0.04));
+  border:1px solid rgba(240,80,80,0.3); border-left:4px solid var(--red);
+  border-radius:var(--radius); padding:20px 24px; margin:0 0 20px;
+}
+.problem-box .pr-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--red); font-weight:700; margin-bottom:8px;
+  display:flex; align-items:center; gap:8px;
+}
+.problem-box .pr-label::before{content:"!"; width:20px; height:20px; border-radius:50%;
+  background:rgba(240,80,80,0.2); display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:800;}
+.problem-box .pr-text{font-size:14.5px; color:var(--text); line-height:1.7;}
+.problem-box .pr-text b{color:var(--red);}
+.problem-box .pr-question{
+  margin-top:10px; padding:10px 14px; background:rgba(240,80,80,0.08);
+  border-radius:8px; font-size:13.5px; color:#F0B0B0; font-style:italic;
+}
+
+/* ---- 3. MENTAL MODEL / ANALOGY ---- */
+.mental-model{
+  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.3);
+  border-radius:var(--radius); padding:20px 24px; margin:16px 0;
+}
+.mental-model .mm-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:8px;
+  display:flex; align-items:center; gap:8px;
+}
+.mental-model .mm-label::before{content:"\1F9E0"; font-size:14px;}
+.mental-model .mm-title{font-size:15px; font-weight:700; color:var(--amber); margin-bottom:6px;}
+.mental-model .mm-text{font-size:13.5px; color:#E9D9B8; line-height:1.6;}
+.mental-model .mm-text b{color:var(--amber);}
+.mental-model .mm-mapping{
+  margin-top:12px; padding:10px 14px; background:rgba(240,180,80,0.08);
+  border-radius:8px;
+}
+.mental-model .mm-mapping-item{
+  display:flex; gap:8px; font-size:13px; margin:4px 0; color:#E9D9B8;
+}
+.mental-model .mm-mapping-item .mm-arrow{color:var(--amber); font-weight:700;}
+
+/* ---- 4. CONCEPT MAP ---- */
+.concept-map{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:20px 24px; margin:16px 0; text-align:center;
+}
+.concept-map .cm-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--violet); font-weight:700; margin-bottom:12px;
+}
+.concept-map svg{width:100%; max-width:700px; margin:0 auto;}
+
+/* ---- 5. CORE THEORY ---- */
+.core-theory{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:20px 24px; margin:16px 0;
+}
+.core-theory .ct-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--cyan); font-weight:700; margin-bottom:10px;
+  display:flex; align-items:center; gap:8px;
+}
+.core-theory .ct-label::before{content:""; width:4px; height:18px;
+  background:var(--cyan); border-radius:3px; flex-shrink:0;}
+.core-theory ol, .core-theory ul{margin:8px 0; padding-left:22px;}
+.core-theory li{margin:6px 0; font-size:14px; line-height:1.6;}
+.core-theory li b{color:var(--cyan);}
+
+/* ---- 6. CODE PATTERNS ---- */
+.code-patterns{margin:16px 0;}
+.code-pattern{
+  border:1px solid var(--line); border-radius:10px;
+  background:var(--panel-2); margin:10px 0; overflow:hidden;
+}
+.code-pattern .cp-header{
+  padding:10px 16px; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:8px;
+}
+.code-pattern .cp-tag{
+  font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 8px;
+  border-radius:4px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+}
+.code-pattern .cp-tag.good{background:rgba(74,222,148,0.15); color:var(--green);}
+.code-pattern .cp-tag.bad{background:rgba(240,80,80,0.15); color:var(--red);}
+.code-pattern .cp-tag.pattern{background:rgba(125,211,252,0.15); color:var(--cyan);}
+.code-pattern .cp-title{font-size:13px; font-weight:600; color:var(--text);}
+.code-pattern pre{margin:0; border:none; border-radius:0;}
+
+/* ---- 7. VISUAL FLOWCHART (SVG) ---- */
+.flowchart-section{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:20px 24px; margin:16px 0; text-align:center;
+}
+.flowchart-section .fc-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:12px;
+}
+.flowchart-section svg{width:100%; max-width:750px; margin:0 auto;}
+
+/* ---- 8. EXECUTION TIMELINE ---- */
+.timeline{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:20px 24px; margin:16px 0;
+}
+.timeline .tl-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--cyan); font-weight:700; margin-bottom:14px;
+}
+.tl-steps{position:relative; padding-left:30px;}
+.tl-steps::before{
+  content:""; position:absolute; left:9px; top:0; bottom:0;
+  width:2px; background:var(--line);
+}
+.tl-step{
+  position:relative; margin-bottom:14px; padding:10px 14px;
+  background:var(--panel-2); border:1px solid var(--line); border-radius:8px;
+}
+.tl-step::before{
+  content:""; position:absolute; left:-25px; top:14px;
+  width:10px; height:10px; border-radius:50%; border:2px solid var(--cyan);
+  background:var(--bg);
+}
+.tl-step.active::before{background:var(--cyan); box-shadow:0 0 8px rgba(125,211,252,0.4);}
+.tl-step .tl-num{
+  font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--cyan);
+  font-weight:700; margin-bottom:4px;
+}
+.tl-step .tl-content{font-size:13px; color:var(--text); line-height:1.5;}
+.tl-step .tl-content code{
+  background:var(--code-bg); padding:1px 5px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--green);
+}
+
+/* ---- 9. LIMITATIONS ---- */
+.limitations{
+  border:1px solid rgba(240,80,80,0.25); border-radius:var(--radius);
+  background:rgba(240,80,80,0.04); padding:20px 24px; margin:16px 0;
+}
+.limitations .lim-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--red); font-weight:700; margin-bottom:10px;
+}
+.limitations ul{margin:0; padding-left:20px;}
+.limitations li{margin:6px 0; font-size:13.5px; color:var(--text); line-height:1.5;}
+.limitations li b{color:var(--red);}
+
+/* ---- 10. DEBUGGING CHECKLIST ---- */
+.debug-checklist{
+  border:1px solid rgba(240,180,80,0.3); border-radius:var(--radius);
+  background:rgba(240,180,80,0.04); padding:20px 24px; margin:16px 0;
+}
+.debug-checklist .dc-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:10px;
+}
+.debug-checklist .dc-item{
+  display:flex; align-items:flex-start; gap:10px; padding:8px 0;
+  border-bottom:1px solid rgba(240,180,80,0.1); font-size:13.5px; color:var(--text);
+}
+.debug-checklist .dc-item:last-child{border-bottom:none;}
+.debug-checklist .dc-check{
+  width:18px; height:18px; border-radius:4px; border:1.5px solid rgba(240,180,80,0.4);
+  flex-shrink:0; margin-top:1px; display:flex; align-items:center; justify-content:center;
+  font-size:10px; color:var(--amber); cursor:pointer;
+}
+.debug-checklist .dc-item code{
+  background:var(--code-bg); padding:1px 5px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--amber);
+}
+
+/* ---- 11. PYQ (Previous Year Questions) ---- */
+.pyq-section{
+  border:1px solid rgba(139,147,255,0.3); border-radius:var(--radius);
+  background:rgba(139,147,255,0.04); padding:20px 24px; margin:16px 0;
+}
+.pyq-section .pyq-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--violet); font-weight:700; margin-bottom:12px;
+}
+.pyq-item{
+  margin:12px 0; padding:12px 16px; background:rgba(139,147,255,0.06);
+  border-radius:8px; border-left:3px solid var(--violet);
+}
+.pyq-item .pyq-q{font-size:14px; font-weight:600; color:var(--violet); margin-bottom:6px;}
+.pyq-item .pyq-a{font-size:13.5px; color:var(--text); line-height:1.6;}
+.pyq-item .pyq-a b{color:var(--violet);}
+.pyq-item .pyq-meta{
+  margin-top:6px; font-family:'JetBrains Mono',monospace; font-size:10px;
+  color:var(--muted); display:flex; gap:12px;
+}
+.pyq-item .pyq-meta .pyq-year{color:var(--violet);}
+.pyq-item .pyq-meta .pyq-marks{color:var(--amber);}
+
+/* ---- 12. EXPECTED EXAM PATTERNS ---- */
+.exam-patterns{
+  border:1px solid rgba(240,180,80,0.3); border-radius:var(--radius);
+  background:rgba(240,180,80,0.04); padding:20px 24px; margin:16px 0;
+}
+.exam-patterns .ep-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--amber); font-weight:700; margin-bottom:12px;
+}
+.ep-item{
+  margin:10px 0; padding:10px 14px; background:rgba(240,180,80,0.06);
+  border-radius:8px;
+}
+.ep-item .ep-type{
+  font-size:12px; font-weight:700; color:var(--amber); margin-bottom:4px;
+  display:flex; align-items:center; gap:6px;
+}
+.ep-item .ep-type .ep-freq{
+  font-family:'JetBrains Mono',monospace; font-size:10px; padding:2px 6px;
+  border-radius:3px; background:rgba(240,180,80,0.15); color:var(--amber);
+}
+.ep-item .ep-desc{font-size:13px; color:var(--text); line-height:1.5;}
+
+/* ---- 13. MEMORY TRICKS ---- */
+.memory-tricks{
+  border:1px solid rgba(74,222,148,0.3); border-radius:var(--radius);
+  background:rgba(74,222,148,0.04); padding:20px 24px; margin:16px 0;
+}
+.memory-tricks .mt-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--green); font-weight:700; margin-bottom:12px;
+}
+.mt-trick{
+  margin:10px 0; padding:12px 16px; background:rgba(74,222,148,0.06);
+  border-radius:8px;
+}
+.mt-trick .mt-name{
+  font-size:14px; font-weight:700; color:var(--green); margin-bottom:4px;
+}
+.mt-trick .mt-text{font-size:13.5px; color:var(--text); line-height:1.6;}
+.mt-trick .mt-text code{
+  background:var(--code-bg); padding:1px 5px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--green);
+}
+
+/* ---- 14. RELATED TOPICS ---- */
+.related-topics{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:18px 22px; margin:16px 0;
+}
+.related-topics .rt-label{
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:10px;
+}
+.rt-tags{display:flex; flex-wrap:wrap; gap:8px;}
+.rt-tag{
+  padding:6px 14px; border-radius:20px; font-size:12px; font-weight:600;
+  border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+  display:flex; align-items:center; gap:6px; transition:all .15s;
+}
+.rt-tag:hover{border-color:var(--green); color:var(--green);}
+.rt-tag .rt-arrow{font-size:10px; color:var(--muted);}
+
+/* ---- 15. ONE-PAGE REVISION (enhanced) ---- */
+.one-page{
+  border:2px solid rgba(74,222,148,0.3); border-radius:var(--radius);
+  background:linear-gradient(160deg, rgba(74,222,148,0.04), rgba(125,211,252,0.03));
+  padding:24px 28px; margin:24px 0;
+}
+.one-page .op-label{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--green); font-weight:800; margin-bottom:14px;
+  padding-bottom:8px; border-bottom:1px solid rgba(74,222,148,0.2);
+}
+.one-page .op-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  gap:12px;
+}
+.one-page .op-item{
+  background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:14px 16px;
+}
+.one-page .op-item .op-key{
+  font-size:12px; font-weight:700; color:var(--green); margin-bottom:4px;
+}
+.one-page .op-item .op-val{font-size:12.5px; color:var(--text); line-height:1.5;}
+.one-page .op-item .op-val code{
+  background:var(--code-bg); padding:1px 4px; border-radius:3px;
+  font-family:'JetBrains Mono',monospace; font-size:11px;
+}
+
+/* ---- UTILITY: Responsive ---- */
+@media (max-width:640px){
+  .one-page .op-grid{grid-template-columns:1fr;}
+  .tl-steps{padding-left:24px;}
+}

@@ -3,6 +3,76 @@
   "courseName": "BDM",
   "weeks": [
     {
+      "weekName": "Week 01",
+      "lectures": [
+        {
+          "title": "Lecture1",
+          "file": "Lecture1.html",
+          "path": "Week 01/Lecture1.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 1,
+          "slug": "lecture1",
+          "lastModified": "2026-07-13T05:07:51.874Z",
+          "readingTime": 16,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture2",
+          "file": "Lecture2.html",
+          "path": "Week 01/Lecture2.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 2,
+          "slug": "lecture2",
+          "lastModified": "2026-07-13T05:07:51.877Z",
+          "readingTime": 13,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture3",
+          "file": "Lecture3.html",
+          "path": "Week 01/Lecture3.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 3,
+          "slug": "lecture3",
+          "lastModified": "2026-07-13T05:07:51.879Z",
+          "readingTime": 12,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture4",
+          "file": "Lecture4.html",
+          "path": "Week 01/Lecture4.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 4,
+          "slug": "lecture4",
+          "lastModified": "2026-07-13T05:07:51.880Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Lecture5",
+          "file": "Lecture5.html",
+          "path": "Week 01/Lecture5.html",
+          "course": "bdm",
+          "week": "Week 01",
+          "order": 5,
+          "slug": "lecture5",
+          "lastModified": "2026-07-13T05:07:51.881Z",
+          "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        }
+      ]
+    },
+    {
       "weekName": "Week 01 - Introduction to Data Management",
       "lectures": [
         {

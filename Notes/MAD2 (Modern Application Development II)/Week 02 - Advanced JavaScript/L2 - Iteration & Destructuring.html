@@ -1,176 +1,483 @@
-
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Iteration & Destructuring — Study Notes</title>
 <style>
-  .notes-root { font-family: var(--font-sans); max-width: 680px; padding: 1.5rem 0; }
-  .lecture-header { margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 0.5px solid var(--border-strong); }
-  .lecture-eyebrow { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-accent); margin: 0 0 6px; }
-  .lecture-title { font-size: 22px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
-  .lecture-subtitle { font-size: 14px; color: var(--text-muted); margin: 0; }
-  .section { margin-bottom: 2rem; }
-  .section-label { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; }
-  .section-num { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-  .section-title { font-size: 16px; font-weight: 500; color: var(--text-primary); margin: 0; }
-  .concept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
-  .concept-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; }
-  .concept-name { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
-  .concept-name i { font-size: 15px; color: var(--text-accent); }
-  .concept-desc { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
-  code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-0); color: var(--text-accent); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; }
-  .tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: var(--radius); background: var(--bg-warning); color: var(--text-warning); margin-top: 6px; }
-  .tag.green { background: var(--bg-success); color: var(--text-success); }
-  .divider { border: none; border-top: 0.5px solid var(--border); margin: 1.5rem 0; }
-  .full-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
-  .full-card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
-  .full-card-body { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
-  .impact-card{
-    border:0.5px solid var(--border); border-radius:var(--radius);
-    background:var(--surface-1); padding:20px; margin-bottom:14px;
-  }
-  .impact-label{
-    font-size:11px; text-transform:uppercase; letter-spacing:.06em;
-    color:#4ADE94; font-weight:600; margin-bottom:14px;
-    display:flex; align-items:center; gap:10px;
-  }
-  .impact-label::before{
-    content:""; width:4px; height:16px;
-    background:#4ADE94; border-radius:2px; flex-shrink:0;
-  }
-  .impact-grid{
-    display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
-    gap:10px;
-  }
-  .impact-item{
-    background:var(--surface-0); border:0.5px solid var(--border);
-    border-radius:10px; padding:14px;
-  }
-  .impact-item .company{
-    font-size:12px; font-weight:600; color:#4ADE94;
-    margin-bottom:4px; display:flex; align-items:center; gap:6px;
-  }
-  .impact-item .company::before{
-    content:">"; font-family:var(--font-mono);
-    color:#4ADE94; font-size:11px; opacity:0.5;
-  }
-  .impact-item .impact-text{
-    font-size:12px; color:var(--text-secondary); line-height:1.5; margin:0;
-  }
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+:root{
+  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
+  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
+  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
+  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
+  --code-bg:#0D1118; --radius:14px;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
+  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
+}
+.wrap{max-width:900px;margin:0 auto;}
+.hero{
+  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
+  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
+}
+.hero::after{
+  content:""; position:absolute; top:-40%; right:-10%;
+  width:280px;height:280px;border-radius:50%;
+  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{content:"\25CF"; font-size:10px;}
+h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
+.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
+.hero p b{color:var(--green);}
+.section-tag{
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
+  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
+}
+.section-tag .n{
+  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
+  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
+  color:var(--green); font-weight:700; font-size:11px;
+}
+.card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px 26px; margin-bottom:18px;
+}
+.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
+.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
+.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
+pre{
+  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
+  padding:16px 18px; overflow-x:auto; margin:12px 0;
+  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
+}
+code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
+.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
+.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
+@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
+.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
+.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
+.comp-card .c-desc{font-size:12px; color:var(--muted);}
+.comp-card.old .c-title{color:var(--red);}
+.comp-card.new .c-title{color:var(--green);}
+.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
+.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
+.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
+.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
 </style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
-<div class="notes-root">
-  <h2 class="sr-only">Lecture notes for W2_L2: JavaScript Collections — Iterations and Destructuring</h2>
+<div class="hero">
+  <div class="eyebrow">Week 02 &middot; Lecture 02</div>
+  <h1>Iteration &amp; Destructuring</h1>
+  <p>Master the four iteration patterns in JavaScript and the destructuring syntax that makes working with arrays and objects clean and concise.</p>
+</div>
 
-  <div class="lecture-header">
-    <p class="lecture-eyebrow">IIT Madras · AppDev2 · W2_L2</p>
-    <h1 class="lecture-title">JavaScript Collections</h1>
-    <p class="lecture-subtitle">Iterations and Destructuring</p>
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">Every application loops over data — <b>rendering lists, processing API responses, transforming state</b>. Choosing the wrong iteration method leads to bugs, poor performance, and unreadable code. Destructuring eliminates repetitive <code>obj.property</code> chains. Together, they're the difference between <b>spaghetti code</b> and <b>declarative data pipelines</b>.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">You receive a JSON API response with 10,000 user objects. You need to:
+    <br>1. <b>Extract</b> just the names — but <code>for</code> loops require 5+ lines of boilerplate.
+    <br>2. <b>Filter</b> active users — but <code>for...in</code> skips array holes and iterates prototype properties.
+    <br>3. <b>Unpack</b> nested response objects — but accessing <code>response.data.user.name</code> everywhere is verbose.
+    <br>4. <b>Sort</b> users by score — but <code>sort()</code> mutates the original array, breaking React state.
   </div>
+  <div class="pr-question">How do you iterate safely, unpack cleanly, and transform immutably?</div>
+</div>
 
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">1</div>
-      <h2 class="section-title">Iteration techniques</h2>
-    </div>
-    <div class="concept-grid">
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-repeat" aria-hidden="true"></i>For loop</p>
-        <p class="concept-desc">Classic C-style. Explicit index control via <code>let i</code>. Full control over increment and range.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-key" aria-hidden="true"></i>For...in</p>
-        <p class="concept-desc">Iterates over <strong style="font-weight:500">keys</strong> (indices for arrays, property names for objects). Skips empty/undefined slots.</p>
-        <span class="tag">Caution: skips holes</span>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-list" aria-hidden="true"></i>For...of</p>
-        <p class="concept-desc">Iterates over <strong style="font-weight:500">values</strong> of any iterable. Does not skip <code>undefined</code> entries.</p>
-        <span class="tag green">Preferred for arrays</span>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-braces" aria-hidden="true"></i>Object iteration</p>
-        <p class="concept-desc">Objects are not iterable directly. Use <code>Object.entries(obj)</code> to get <code>[key, value]</code> pairs, then destructure.</p>
-      </div>
-    </div>
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Assembly Line</div>
+  <div class="mm-title">Think of iteration as a factory assembly line:</div>
+  <div class="mm-text">
+    Items enter the conveyor belt one by one. <b>map</b> repaints each item. <b>filter</b> removes defective ones. <b>reduce</b> melts them into a single ingot. <b>sort</b> rearranges the line. You chain these stations together — raw data goes in, finished product comes out.
   </div>
-
-  <hr class="divider">
-
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">2</div>
-      <h2 class="section-title">Array methods for data processing</h2>
-    </div>
-    <div class="concept-grid">
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-search" aria-hidden="true"></i>find</p>
-        <p class="concept-desc">Returns the <strong style="font-weight:500">first element</strong> that satisfies the test function. Returns <code>undefined</code> if none match.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-filter" aria-hidden="true"></i>filter</p>
-        <p class="concept-desc">Returns a <strong style="font-weight:500">new array</strong> of all elements passing the test. Non-destructive.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-transform" aria-hidden="true"></i>map</p>
-        <p class="concept-desc">Creates a <strong style="font-weight:500">new array</strong> by transforming every element. 1-to-1 mapping.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-stack" aria-hidden="true"></i>reduce</p>
-        <p class="concept-desc">Collapses array into a <strong style="font-weight:500">single value</strong>. Takes a callback and an initial accumulator.</p>
-      </div>
-      <div class="concept-card">
-        <p class="concept-name"><i class="ti ti-arrows-sort" aria-hidden="true"></i>sort</p>
-        <p class="concept-desc">Sorts <strong style="font-weight:500">in place</strong>. Default is lexical (string). For numbers use <code>(a, b) =&gt; a - b</code>.</p>
-        <span class="tag">Mutates original</span>
-      </div>
-    </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">for →</span> Manual worker — controls every step, but slow and error-prone</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">for...of →</span> Automated conveyor — processes values in order, clean</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">for...in →</span> Label reader — reads names (keys), not the items themselves</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Destructuring →</span> Unboxing station — extracts contents into labeled bins</div>
   </div>
+</div>
 
-  <hr class="divider">
+<div class="concept-map">
+  <div class="cm-label">Concept Map — Iteration & Destructuring</div>
+  <svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+    <rect x="250" y="10" width="200" height="36" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="33" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="700">Data Processing</text>
+    <line x1="280" y1="46" x2="100" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="350" y1="46" x2="350" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="420" y1="46" x2="600" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="30" y="80" width="140" height="32" rx="6" fill="#234436" stroke="#4ADE94"/>
+    <text x="100" y="101" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="600">Iteration</text>
+    <rect x="280" y="80" width="140" height="32" rx="6" fill="#3E3320" stroke="#F0B450"/>
+    <text x="350" y="101" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="11" font-weight="600">Destructuring</text>
+    <rect x="530" y="80" width="140" height="32" rx="6" fill="#26264A" stroke="#8B93FF"/>
+    <text x="600" y="101" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="11" font-weight="600">Method Chaining</text>
+    <text x="100" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">for, for...of, forEach</text>
+    <text x="100" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">filter, map, reduce</text>
+    <text x="350" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">Array / Object / Nested</text>
+    <text x="350" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Defaults, rest, rename</text>
+    <text x="600" y="135" text-anchor="middle" fill="#8A93A8" font-family="Sora" font-size="9">.filter().map().reduce()</text>
+    <text x="600" y="150" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Lazy evaluation pipeline</text>
+  </svg>
+</div>
 
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">3</div>
-      <h2 class="section-title">Advanced syntax and destructuring</h2>
-    </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-brackets" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array construction</p>
-      <p class="full-card-body"><code>new Array(n)</code> creates an array of size <em>n</em> with empty slots (holes), not <code>undefined</code>. Fill individually or use <code>.fill()</code>.</p>
-    </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-dots" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Spread operator <code>...</code></p>
-      <p class="full-card-body">Expands an iterable inline — useful for merging arrays, copying data, or passing elements as arguments. E.g. <code>[...a, ...b]</code> merges two arrays.</p>
-    </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-box-multiple" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Array destructuring</p>
-      <p class="full-card-body">Unpack array values into variables by position: <code>const [a, b] = x</code>. Clean, concise alternative to index access.</p>
-    </div>
-    <div class="full-card">
-      <p class="full-card-title"><i class="ti ti-braces" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Object destructuring</p>
-      <p class="full-card-body">Extract properties into variables. <strong style="font-weight:500">Rename:</strong> <code>const { first_name: fn } = person</code> &nbsp;·&nbsp; <strong style="font-weight:500">Rest:</strong> <code>const { first_name, ...rem } = person</code> captures all remaining properties.</p>
-    </div>
+<!-- ====== SECTION 1: ITERATION TECHNIQUES ====== -->
+<div class="section-tag"><span class="n">1</span> Four Ways to Iterate</div>
+<div class="card">
+  <h2>for, for...in, for...of, and forEach</h2>
+  <div class="def">Each iteration method has different behavior with arrays, objects, and iterables. Choosing the right one prevents subtle bugs.</div>
+<pre><code><span class="cmt">// 1. Classic for loop — full control</span>
+<span class="kw">for</span> (<span class="kw">let</span> i = <span class="num">0</span>; i < arr.length; i++) {
+  console.log(arr[i]);
+}
+
+<span class="cmt">// 2. for...in — iterates KEYS (indices for arrays)</span>
+<span class="kw">for</span> (<span class="kw">const</span> key <span class="kw">in</span> arr) {
+  console.log(key, arr[key]); <span class="cmt">// key is "0", "1", "2" (strings!)</span>
+}
+
+<span class="cmt">// 3. for...of — iterates VALUES (preferred for arrays)</span>
+<span class="kw">for</span> (<span class="kw">const</span> val <span class="kw">of</span> arr) {
+  console.log(val);  <span class="cmt">// val is the actual element</span>
+}
+
+<span class="cmt">// 4. forEach — functional, no return value</span>
+arr.forEach(<span class="fn">(val, idx)</span> <span class="kw">=></span> {
+  console.log(idx, val);
+});</code></pre>
+</div>
+
+<div class="comparison">
+  <div class="comp-card old">
+    <div class="c-title">for...in (Avoid for Arrays)</div>
+    <div class="c-desc">Iterates string keys, skips holes, includes prototype properties. Use only for plain objects.</div>
   </div>
+  <div class="comp-card new">
+    <div class="c-title">for...of (Use for Arrays)</div>
+    <div class="c-desc">Iterates actual values, works with any iterable (Array, Map, Set, String). Clean and predictable.</div>
+  </div>
+</div>
 
-  <hr class="divider">
+<div class="card">
+  <h2>Object Iteration — Not a Built-in Iterable</h2>
+  <div class="def">Plain objects are <b>not iterable</b> with <code>for...of</code>. You must convert them first.</div>
+<pre><code><span class="kw">const</span> user = { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">age</span>: <span class="num">30</span>, <span class="prop">role</span>: <span class="str">"admin"</span> };
 
-  <div class="section">
-    <div class="section-label">
-      <div class="section-num">4</div>
-      <h2 class="section-title">Production use cases</h2>
+<span class="cmt">// Object.entries — [key, value] pairs</span>
+<span class="kw">for</span> (<span class="kw">const</span> [k, v] <span class="kw">of</span> Object.<span class="fn">entries</span>(user)) {
+  console.log(<span class="str">`${k}: ${v}`</span>);
+}
+
+<span class="cmt">// Object.keys — array of keys</span>
+Object.<span class="fn">keys</span>(user);   <span class="cmt">// ["name", "age", "role"]</span>
+
+<span class="cmt">// Object.values — array of values</span>
+Object.<span class="fn">values</span>(user); <span class="cmt">// ["Alice", 30, "admin"]</span></code></pre>
+  <div class="mistake-box">
+    <div class="m-label">Common Mistake</div>
+    <div class="m-text"><code>for...in</code> on an array iterates <b>string indices</b>, not values. <code>"0" + "1" = "01"</code> instead of <code>0 + 1 = 1</code>. Always use <code>for...of</code> or <code>forEach</code> for arrays.</div>
+  </div>
+</div>
+
+<!-- ====== SECTION 2: ARRAY METHODS ====== -->
+<div class="section-tag"><span class="n">2</span> Array Methods for Data Processing</div>
+<div class="card">
+  <h2>The Big Five: find, filter, map, reduce, sort</h2>
+<pre><code><span class="kw">const</span> users = [
+  { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">age</span>: <span class="num">28</span>, <span class="prop">active</span>: <span class="kw">true</span> },
+  { <span class="prop">name</span>: <span class="str">"Bob"</span>,   <span class="prop">age</span>: <span class="num">35</span>, <span class="prop">active</span>: <span class="kw">false</span> },
+  { <span class="prop">name</span>: <span class="str">"Carol"</span>, <span class="prop">age</span>: <span class="num">22</span>, <span class="prop">active</span>: <span class="kw">true</span> },
+];
+
+<span class="cmt">// find — first match</span>
+users.find(<span class="fn">u</span> <span class="kw">=></span> u.age <span class="kw">></span> <span class="num">30</span>);     <span class="cmt">// { name: "Bob", ... }</span>
+
+<span class="cmt">// filter — all matches</span>
+users.filter(<span class="fn">u</span> <span class="kw">=></span> u.active);     <span class="cmt">// [Alice, Carol]</span>
+
+<span class="cmt">// map — transform each</span>
+users.map(<span class="fn">u</span> <span class="kw">=></span> u.name);          <span class="cmt">// ["Alice", "Bob", "Carol"]</span>
+
+<span class="cmt">// reduce — accumulate</span>
+users.reduce(<span class="fn">(sum, u)</span> <span class="kw">=></span> sum + u.age, <span class="num">0</span>); <span class="cmt">// 85</span>
+
+<span class="cmt">// sort — mutates! Use copy first</span>
+[...users].sort(<span class="fn">(a, b)</span> <span class="kw">=></span> a.age - b.age); <span class="cmt">// sorted copy</span></code></pre>
+  <div class="tip-box">
+    <div class="t-label">Best Practice</div>
+    <div class="t-text"><b>Chain methods for readability:</b> <code>users.filter(u => u.active).map(u => u.name)</code> is clearer than nested callbacks. Keep each method to one responsibility.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">3</span> Execution Timeline — Method Chaining</div>
+<div class="timeline">
+  <div class="tl-label">Trace: <code>users.filter(u => u.active).map(u => u.name)</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">INPUT</div>
+      <div class="tl-content"><code>[{Alice,active:true}, {Bob,active:false}, {Carol,active:true}]</code></div>
     </div>
-    <div class="impact-card">
-      <div class="impact-label">Production Impact</div>
-      <div class="impact-grid">
-        <div class="impact-item">
-          <div class="company">React + Destructuring</div>
-          <p class="impact-text">Every React component uses array destructuring from <code>useState</code>. Powers state management at <strong>Netflix, Airbnb, and Discord</strong> with clean positional unpacking.</p>
-        </div>
-        <div class="impact-item">
-          <div class="company">Node.js Callbacks</div>
-          <p class="impact-text">Error-first callback convention with destructuring used in millions of production deployments at <strong>PayPal, Uber, and Walmart</strong>. Express.js route handlers destructure <code>req</code>/<code>res</code> objects.</p>
-        </div>
-        <div class="impact-item">
-          <div class="company">Instagram API</div>
-          <p class="impact-text">Nested destructuring replaces <b>5+ lines</b> of manual property access per response. Processes <strong>100M+ API responses daily</strong> at Meta.</p>
-        </div>
-      </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 1 — filter(active === true)</div>
+      <div class="tl-content">Alice: <b>true</b> → keep. Bob: <b>false</b> → skip. Carol: <b>true</b> → keep. Output: <code>[Alice, Carol]</code></div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 2 — map(u => u.name)</div>
+      <div class="tl-content">Alice → <code>"Alice"</code>. Carol → <code>"Carol"</code>. Output: <code>["Alice", "Carol"]</code></div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">RESULT</div>
+      <div class="tl-content"><code>["Alice", "Carol"]</code> — original array unchanged</div>
     </div>
   </div>
 </div>
+
+<!-- ====== SECTION 3: DESTRUCTURING ====== -->
+<div class="section-tag"><span class="n">4</span> Destructuring — Unpacking Syntax</div>
+<div class="card">
+  <h2>Array Destructuring</h2>
+  <div class="def">Extract values from arrays into variables by <b>position</b>.</div>
+<pre><code><span class="kw">const</span> rgb = [<span class="num">255</span>, <span class="num">128</span>, <span class="num">64</span>];
+
+<span class="cmt">// Basic</span>
+<span class="kw">const</span> [red, green, blue] = rgb;
+console.log(red); <span class="cmt">// 255</span>
+
+<span class="cmt">// Skip elements</span>
+<span class="kw">const</span> [first, , third] = rgb;
+console.log(third); <span class="cmt">// 64</span>
+
+<span class="cmt">// Rest pattern</span>
+<span class="kw">const</span> [head, ...tail] = rgb;
+<span class="cmt">// head = 255, tail = [128, 64]</span>
+
+<span class="cmt">// Default values</span>
+<span class="kw">const</span> [a = <span class="num">0</span>, b = <span class="num">0</span>] = [];
+<span class="cmt">// a = 0, b = 0</span>
+
+<span class="cmt">// Swap variables (no temp needed!)</span>
+<span class="kw">let</span> x = <span class="num">1</span>, y = <span class="num">2</span>;
+[x, y] = [y, x]; <span class="cmt">// x = 2, y = 1</span></code></pre>
+</div>
+
+<div class="card">
+  <h2>Object Destructuring</h2>
+  <div class="def">Extract properties by <b>name</b>, not position. Supports renaming and rest.</div>
+<pre><code><span class="kw">const</span> user = { <span class="prop">name</span>: <span class="str">"Alice"</span>, <span class="prop">age</span>: <span class="num">30</span>, <span class="prop">role</span>: <span class="str">"admin"</span> };
+
+<span class="cmt">// Basic</span>
+<span class="kw">const</span> { name, age } = user;
+
+<span class="cmt">// Rename</span>
+<span class="kw">const</span> { name: userName, role: userRole } = user;
+
+<span class="cmt">// Default values</span>
+<span class="kw">const</span> { name, score = <span class="num">0</span> } = user;
+<span class="cmt">// score = 0 (not in object)</span>
+
+<span class="cmt">// Rest — everything else</span>
+<span class="kw">const</span> { name, ...rest } = user;
+<span class="cmt">// rest = { age: 30, role: "admin" }</span>
+
+<span class="cmt">// Nested destructuring</span>
+<span class="kw">const</span> { address: { city } } = user;
+<span class="cmt">// city = user.address.city</span></code></pre>
+  <div class="analogy-box">
+    <div class="a-label">Real-World Analogy</div>
+    <div class="a-text"><b>Array destructuring</b> is like unpacking a suitcase by order — first item is the shirt, second is the pants. <b>Object destructuring</b> is like opening labeled drawers — you grab the "name" drawer regardless of where it sits.</div>
+  </div>
+</div>
+
+<!-- ====== SECTION 4: LIMITATIONS ====== -->
+<div class="section-tag"><span class="n">5</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b><code>sort()</code> mutates in place:</b> Always spread first: <code>[...arr].sort()</code>. This is the #1 source of bugs in React/Vue.</li>
+    <li><b><code>for...in</code> iterates prototypes:</b> Use <code>hasOwnProperty()</code> check or prefer <code>Object.keys()</code>/<code>Object.entries()</code>.</li>
+    <li><b><code>for...of</code> doesn't work on plain objects:</b> Objects aren't iterable. Use <code>Object.entries()</code> first.</li>
+    <li><b>Deep destructuring fails on undefined:</b> <code>const { a: { b } } = {}</code> throws. Use defaults or optional chaining.</li>
+    <li><b><code>new Array(n)</code> creates holes:</b> <code>[...new Array(3)]</code> gives <code>[undefined, undefined, undefined]</code>, not filled values.</li>
+    <li><b><code>forEach</code> can't break:</b> No <code>return</code>, <code>break</code>, or <code>continue</code>. Use <code>for...of</code> or <code>.find()</code> instead.</li>
+  </ul>
+</div>
+
+<!-- ====== SECTION 5: DEBUGGING CHECKLIST ====== -->
+<div class="section-tag"><span class="n">6</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">When Iteration/Destructuring Goes Wrong</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>Check if <code>sort()</code> mutated your original array — verify with console before/after</div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>If <code>for...in</code> gives unexpected keys, check if prototype properties are leaking — use <code>Object.hasOwn(obj, key)</code></div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>If destructuring gives <code>undefined</code>, verify the source object has that key — log the object first</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If <code>map</code> returns unexpected results, check if you're chaining on a non-array (e.g., <code> NodeList</code> from <code>querySelectorAll</code>)</div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If <code>reduce</code> throws "cannot read property of undefined", verify you provided an <code>initialValue</code></div></div>
+  <div class="dc-item"><div class="dc-check">6</div><div>If <code>for...of</code> throws "is not iterable", check if the variable is actually an array — wrap with <code>Array.from()</code> if needed</div></div>
+</div>
+
+<!-- ====== SECTION 6: CODE PATTERNS ====== -->
+<div class="section-tag"><span class="n">7</span> Code Patterns — Do This, Not That</div>
+<div class="code-patterns">
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag bad">Anti-pattern</span>
+      <span class="cp-title">Mutating sort in React</span>
+    </div>
+    <pre><code><span class="cmt">// BAD — mutates state, won't trigger re-render</span>
+<span class="kw">const</span> sorted = items.sort(<span class="fn">(a, b)</span> <span class="kw">=></span> a.name.localeCompare(b.name));
+setItems(sorted); <span class="cmt">// same reference!</span></code></pre>
+  </div>
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag good">Correct</span>
+      <span class="cp-title">Immutable sort with spread</span>
+    </div>
+    <pre><code><span class="cmt">// GOOD — new array reference triggers re-render</span>
+<span class="kw">const</span> sorted = [...items].sort(<span class="fn">(a, b)</span> <span class="kw">=></span> a.name.localeCompare(b.name));
+setItems(sorted);</code></pre>
+  </div>
+  <div class="code-pattern">
+    <div class="cp-header">
+      <span class="cp-tag pattern">Pattern</span>
+      <span class="cp-title">Clean API response processing</span>
+    </div>
+    <pre><code><span class="cmt">// Chain: filter → map → sort</span>
+<span class="kw">const</span> activeNames = users
+  .filter(<span class="fn">u</span> <span class="kw">=></span> u.active)
+  .map(<span class="fn">u</span> <span class="kw">=></span> u.name)
+  .sort();</code></pre>
+  </div>
+</div>
+
+<!-- ====== SECTION 7: PYQs ====== -->
+<div class="section-tag"><span class="n">8</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — Iteration &amp; Destructuring</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the difference between <code>for...in</code> and <code>for...of</code>?</div>
+    <div class="pyq-a"><b>A:</b> <code>for...in</code> iterates over <b>keys</b> (property names / indices as strings). <code>for...of</code> iterates over <b>values</b> of any iterable. <code>for...in</code> includes prototype properties; <code>for...of</code> does not.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Write a program to extract names of active users using array methods.</div>
+    <div class="pyq-a"><b>A:</b> <code>users.filter(u => u.active).map(u => u.name)</code>. Filter keeps active users, map extracts names. Both are non-mutating and chainable.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the output of: <code>const [a, , b] = [1, 2, 3]; console.log(a + b);</code></div>
+    <div class="pyq-a"><b>A:</b> <code>4</code>. The comma skip ignores index 1, so <code>a = 1</code>, <code>b = 3</code>. <code>1 + 3 = 4</code>.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">2 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: How do you iterate over an object's properties?</div>
+    <div class="pyq-a"><b>A:</b> Use <code>Object.entries(obj)</code> to get <code>[key, value]</code> pairs, then iterate with <code>for...of</code>. Alternatively, use <code>Object.keys(obj)</code> or <code>Object.values(obj)</code> for just keys or values.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+</div>
+
+<!-- ====== SECTION 8: EXAM PATTERNS ====== -->
+<div class="section-tag"><span class="n">9</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">Output Prediction <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given destructuring + method chains, predict output. E.g., <code>const { a, ...rest } = { a: 1, b: 2, c: 3 }; console.log(rest)</code> → <code>{ b: 2, c: 3 }</code>.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Compare Iteration Methods <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Explain differences between <code>for</code>, <code>for...in</code>, <code>for...of</code>, <code>forEach</code>. When to use each, what they return, and what they iterate over.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">Coding: Process Data <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given an array of objects, filter + map + sort to produce a result. Show understanding of chaining and immutability.</div>
+  </div>
+</div>
+
+<!-- ====== SECTION 9: MEMORY TRICKS ====== -->
+<div class="section-tag"><span class="n">10</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">for...in = "Key In"</div>
+    <div class="mt-text"><b>Key In</b> — <b>K</b>ey <b>I</b>n. <code>for (key in obj)</code>. Keys go IN your variable. Think "I have the key to the door."</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">for...of = "Value Of"</div>
+    <div class="mt-text"><b>Value Of</b> — you get the <b>value OF</b> each item. <code>for (val of arr)</code>. Think "the value OF this thing."</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">sort mutates = "SOrt Mutates"</div>
+    <div class="mt-text"><b>S-O-M</b> = <b>S</b>ort <b>O</b>nly <b>M</b>utates. <code>sort()</code> is the ONLY common array method that mutates in place. All others (map, filter, find) return new arrays.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">Destructuring direction</div>
+    <div class="mt-text"><b>Into</b> variables = <b>D</b>estructure. <b>Out of</b> a container = <b>S</b>pread. Same <code>...</code> syntax, opposite directions. <b>D</b> = <b>D</b>istribute into parts. <b>S</b> = <b>S</b>catter outward.</div>
+  </div>
+</div>
+
+<!-- ====== SECTION 10: RELATED TOPICS ====== -->
+<div class="section-tag"><span class="n">11</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Iterators & Generators <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Spread & Rest Syntax <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Array.map() in React <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Object.entries / Object.keys <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Promise.all + Destructuring <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vuex State Iteration <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
+<!-- ====== SECTION 11: PYQs + EXAM ====== -->
+
+<!-- ====== SECTION 12: ONE-PAGE REVISION ====== -->
+<div class="section-tag"><span class="n">12</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">Iteration &amp; Destructuring — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">for loop</div>
+      <div class="op-val">C-style, full control. <code>for (let i=0; i<arr.length; i++)</code>. Use when you need index or break/continue.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">for...in</div>
+      <div class="op-val">Iterates <b>keys</b>. Use for objects only. For arrays, it gives string indices — avoid.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">for...of</div>
+      <div class="op-val">Iterates <b>values</b>. Use for arrays, Maps, Sets, Strings. Supports break/continue.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">forEach</div>
+      <div class="op-val">Functional style. No return value, no break. Use for side effects only.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Array Destructuring</div>
+      <div class="op-val"><code>const [a, b] = arr</code>. Skip: <code>[a, , c]</code>. Rest: <code>[h, ...t]</code>. Swap: <code>[x,y] = [y,x]</code>.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Object Destructuring</div>
+      <div class="op-val"><code>const { name, age } = obj</code>. Rename: <code>{ name: n }</code>. Rest: <code>{ name, ...r }</code>.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">sort() mutates!</div>
+      <div class="op-val">Always use <code>[...arr].sort()</code> for immutable sorting. Default sort is lexical (string-based).</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Object iteration</div>
+      <div class="op-val"><code>Object.entries(obj)</code> → pairs. <code>Object.keys(obj)</code> → keys. <code>Object.values(obj)</code> → values.</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
+</div></body></html>

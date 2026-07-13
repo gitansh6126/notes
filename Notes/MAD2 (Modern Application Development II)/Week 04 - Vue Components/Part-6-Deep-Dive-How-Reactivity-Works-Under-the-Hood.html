@@ -300,6 +300,159 @@ reactiveObj.arr[<span class="str">0</span>] = <span class="str">'new'</span>;   
     </div>
   </div>
 
+  <!-- ====== CONCEPT MAP ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — Vue Reactivity Internals</div>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 200" style="width:100%;max-width:760px;margin:16px auto;display:block;font-family:'Sora',sans-serif;">
+      <defs>
+        <marker id="arrowG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#4ADE94"/></marker>
+        <marker id="arrowA" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#F0B450"/></marker>
+        <marker id="arrowC" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#7DD3FC"/></marker>
+        <marker id="arrowV" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8B93FF"/></marker>
+      </defs>
+      <!-- Box 1: data{} -->
+      <rect x="10" y="60" width="130" height="80" rx="12" fill="#234436" stroke="#4ADE94" stroke-width="1.5"/>
+      <text x="75" y="95" text-anchor="middle" fill="#4ADE94" font-size="15" font-weight="700">data{}</text>
+      <text x="75" y="115" text-anchor="middle" fill="#8A93A8" font-size="10">Raw state</text>
+      <!-- Arrow 1 -->
+      <line x1="140" y1="100" x2="178" y2="100" stroke="#4ADE94" stroke-width="1.5" marker-end="url(#arrowG)"/>
+      <!-- Box 2: Observer -->
+      <rect x="180" y="60" width="140" height="80" rx="12" fill="#3E3320" stroke="#F0B450" stroke-width="1.5"/>
+      <text x="250" y="88" text-anchor="middle" fill="#F0B450" font-size="15" font-weight="700">Observer</text>
+      <text x="250" y="108" text-anchor="middle" fill="#8A93A8" font-size="10">getter / setter</text>
+      <text x="250" y="123" text-anchor="middle" fill="#8A93A8" font-size="10">Object.defineProperty</text>
+      <!-- Arrow 2 -->
+      <line x1="320" y1="100" x2="358" y2="100" stroke="#F0B450" stroke-width="1.5" marker-end="url(#arrowA)"/>
+      <!-- Box 3: Dep -->
+      <rect x="360" y="60" width="120" height="80" rx="12" fill="#1A3A4A" stroke="#7DD3FC" stroke-width="1.5"/>
+      <text x="420" y="95" text-anchor="middle" fill="#7DD3FC" font-size="15" font-weight="700">Dep</text>
+      <text x="420" y="115" text-anchor="middle" fill="#8A93A8" font-size="10">dependency list</text>
+      <!-- Arrow 3 -->
+      <line x1="480" y1="100" x2="518" y2="100" stroke="#7DD3FC" stroke-width="1.5" marker-end="url(#arrowC)"/>
+      <!-- Box 4: Watcher -->
+      <rect x="520" y="60" width="110" height="80" rx="12" fill="#26264A" stroke="#8B93FF" stroke-width="1.5"/>
+      <text x="575" y="95" text-anchor="middle" fill="#8B93FF" font-size="15" font-weight="700">Watcher</text>
+      <text x="575" y="115" text-anchor="middle" fill="#8A93A8" font-size="10">subscriber</text>
+      <!-- Arrow 4 -->
+      <line x1="630" y1="100" x2="658" y2="100" stroke="#8B93FF" stroke-width="1.5" marker-end="url(#arrowV)"/>
+      <!-- Box 5: Re-render -->
+      <rect x="660" y="60" width="90" height="80" rx="12" fill="#234436" stroke="#4ADE94" stroke-width="1.5"/>
+      <text x="705" y="95" text-anchor="middle" fill="#4ADE94" font-size="15" font-weight="700">Re-render</text>
+      <text x="705" y="115" text-anchor="middle" fill="#8A93A8" font-size="10">patch DOM</text>
+      <!-- Subtitle -->
+      <text x="380" y="175" text-anchor="middle" fill="#8A93A8" font-size="11" font-style="italic">Reactive Setter Fires → Dep notifies → Watcher schedules → Component re-renders</text>
+    </svg>
+  </div>
+
+  <!-- ====== EXECUTION TIMELINE ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — Reactive Setter Fires</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:12px;">When you write <code>this.count++</code> inside a Vue component, the following chain executes in milliseconds:</p>
+    <div class="track-vis">
+      <div class="track-step track">
+        <div class="ts-icon">1️⃣</div>
+        <div class="ts-label">Setter fires</div>
+        <div class="ts-desc">Proxy/defineProperty intercepts the write</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step trigger">
+        <div class="ts-icon">2️⃣</div>
+        <div class="ts-label">trigger() called</div>
+        <div class="ts-desc">Looks up all Watchers in the Dep list</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step update">
+        <div class="ts-icon">3️⃣</div>
+        <div class="ts-label">Watcher queued</div>
+        <div class="ts-desc">Added to nextTick microtask queue</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step track">
+        <div class="ts-icon">4️⃣</div>
+        <div class="ts-label">Re-render</div>
+        <div class="ts-desc">Render fn executes → new VDOM tree</div>
+      </div>
+      <div class="track-arrow">→</div>
+      <div class="track-step trigger">
+        <div class="ts-icon">5️⃣</div>
+        <div class="ts-label">Patch</div>
+        <div class="ts-desc">Diff old vs new → minimal DOM ops</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== DEBUGGING CHECKLIST ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <div class="mistake-box">
+      <div class="m-label">Check #1 — Is the property reactive?</div>
+      <div class="m-text"><b>In Vue 2, ensure every property is declared in <code>data()</code> at initialization.</b> Properties added later via <code>this.obj.newKey = val</code> are not reactive. Use <code>Vue.set()</code> or re-initialize the object. In Vue 3 with Proxy, new properties are automatically reactive.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check #2 — Are you mutating an array by index?</div>
+      <div class="m-text"><b>In Vue 2, <code>arr[index] = value</code> does NOT trigger reactivity.</b> Use <code>splice(index, 1, value)</code> or <code>Vue.set(arr, index, value)</code>. Vue 3 Proxy handles this natively — direct index assignment works.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check #3 — Is the Dep target correctly set?</div>
+      <div class="m-text"><b>Vue's <code>track()</code> only records dependencies when a component is actively rendering or a watcher is evaluating.</b> If you access a reactive property inside a <code>setTimeout</code>, <code>addEventListener</code>, or an async callback outside a watcher, no dependency is tracked — changes won't cause re-renders.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check #4 — Are computed properties side-effect free?</div>
+      <div class="m-text"><b>Computed properties must be pure functions.</b> If a computed property mutates other reactive state (e.g., <code>this.otherVal = ...</code> inside a computed), it causes an infinite reactivity loop. Move side effects to <code>watch</code> or methods instead.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check #5 — Are you destructuring reactive state?</div>
+      <div class="m-text"><b>Destructuring breaks reactivity because it unwraps the value.</b> <code>const { count } = this</code> copies the primitive value — subsequent <code>this.count++</code> changes won't be reflected in <code>count</code>. Use <code>toRefs()</code> in Vue 3 Composition API or access via <code>this.count</code> directly.</div>
+    </div>
+  </div>
+
+  <!-- ====== EXAM PATTERNS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <div class="qa-box">
+      <div class="q">Q: Explain how Vue 2's Object.defineProperty differs from Vue 3's Proxy for reactivity.</div>
+      <div class="a"><b>A:</b> <b>Object.defineProperty (Vue 2)</b> works property-by-property — Vue must iterate all keys in <code>data</code> at initialization, creating getter/setter pairs for each. This means: (1) new properties added later are NOT reactive without <code>Vue.set()</code>, (2) array index assignment isn't intercepted, (3) property deletion is invisible. <b>Proxy (Vue 3)</b> wraps the entire object in a single intercepting layer — it dynamically catches get, set, delete, and has operations without pre-scanning keys, fixing all three limitations above.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: What happens internally when you modify a reactive property?</div>
+      <div class="a"><b>A:</b> (1) The reactive setter fires (Proxy <code>set</code> trap or defineProperty <code>set</code>). (2) <code>trigger()</code> looks up the property's <code>Dep</code> instance and iterates its subscriber list. (3) Each subscriber is a <code>Watcher</code> tied to a component's render function. (4) Watchers are scheduled as microtasks (batched — same-tick changes cause one re-render). (5) The render function re-executes, producing a new Virtual DOM tree. (6) Vue diffs old vs new VDOM and patches only the changed real DOM nodes.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Q: Why can't a <code>setTimeout</code> callback access reactive updates automatically?</div>
+      <div class="a"><b>A:</b> Reactive dependency tracking only works during synchronous execution of a render function, computed property, or watcher. <code>setTimeout</code> callbacks execute outside this "active effect" context, so <code>track()</code> is never called — the system doesn't know that the callback depends on the property. To watch changes from async code, explicitly use <code>watch()</code> or <code>watchEffect()</code> which set up a proper dependency-tracking scope.</div>
+    </div>
+  </div>
+
+  <!-- ====== MEMORY TRICKS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Trick #1</div>
+      <div class="t-text"><b>Vue 2 = defineProperty</b> — think "door-by-door." Like installing a motion sensor on every individual door in a building. You must know every door in advance, and if a new door is added later, it has no sensor until you install one manually with <code>Vue.set()</code>.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick #2</div>
+      <div class="t-text"><b>Vue 3 = Proxy</b> — think "building-wide security net." Instead of sensors on individual doors, you wrap the entire building in a monitoring network. Every entry and exit is automatically intercepted — no need to pre-enumerate doors, and new doors are covered instantly.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick #3</div>
+      <div class="t-text"><b>Dep = Dependency</b> — think "mailing list." Each reactive property maintains a mailing list of Watchers. When the property changes, it sends a notification letter to everyone on the list. Watchers are subscribers; Dep is the list manager.</div>
+    </div>
+  </div>
+
+  <!-- ====== RELATED TOPICS ====== -->
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <p style="font-size:13.5px;color:var(--muted);margin-bottom:12px;">Explore these adjacent concepts to deepen your understanding of reactivity patterns:</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;">
+      <span style="background:var(--cyan-dim);border:1px solid rgba(125,211,252,0.25);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--cyan);cursor:default;">Proxy API →</span>
+      <span style="background:var(--amber-dim);border:1px solid rgba(240,180,80,0.25);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--amber);cursor:default;">Object.defineProperty →</span>
+      <span style="background:var(--red-dim);border:1px solid rgba(240,80,80,0.25);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--red);cursor:default;">React Hooks →</span>
+      <span style="background:var(--violet-dim);border:1px solid rgba(139,147,255,0.25);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--violet);cursor:default;">Svelte Reactivity →</span>
+      <span style="background:var(--green-dim);border:1px solid rgba(74,222,148,0.25);border-radius:20px;padding:6px 16px;font-size:13px;color:var(--green);cursor:default;">Signals →</span>
+    </div>
+  </div>
+
   <!-- ====== SECTION 7: REVISION ====== -->
   <div class="section-tag"><span class="n">7</span> REVISION CHEAT SHEET</div>
 

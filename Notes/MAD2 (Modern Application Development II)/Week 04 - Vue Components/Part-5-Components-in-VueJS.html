@@ -329,8 +329,183 @@ methods: {
     </div>
   </div>
 
+  <!-- ====== CONCEPT MAP ====== -->
+  <div class="section-tag"><span class="n">6</span> CONCEPT MAP</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🗺️</span> Concept Map — Component Architecture</div>
+    <div style="display:flex;justify-content:center;margin:20px 0;">
+      <svg viewBox="0 0 720 200" width="100%" height="200" xmlns="http://www.w3.org/2000/svg" style="max-width:720px;font-family:'Sora',sans-serif;">
+        <!-- Parent Component Box -->
+        <rect x="20" y="50" width="180" height="100" rx="14" fill="#161B26" stroke="#F0B450" stroke-width="2"/>
+        <text x="110" y="85" text-anchor="middle" fill="#F0B450" font-size="14" font-weight="700">Parent Component</text>
+        <text x="110" y="108" text-anchor="middle" fill="#8A93A8" font-size="11">Owns the data</text>
+        <text x="110" y="128" text-anchor="middle" fill="#8A93A8" font-size="11">Handles events</text>
+
+        <!-- Props Arrow (downward) -->
+        <line x1="200" y1="80" x2="310" y2="80" stroke="#4ADE94" stroke-width="2" marker-end="url(#arrowGreen)"/>
+        <rect x="220" y="62" width="72" height="20" rx="6" fill="#234436" stroke="rgba(74,222,148,0.3)" stroke-width="1"/>
+        <text x="256" y="76" text-anchor="middle" fill="#4ADE94" font-size="11" font-weight="600">props ⬇</text>
+
+        <!-- Child Component Box -->
+        <rect x="310" y="50" width="180" height="100" rx="14" fill="#161B26" stroke="#8B93FF" stroke-width="2"/>
+        <text x="400" y="85" text-anchor="middle" fill="#8B93FF" font-size="14" font-weight="700">Child Component</text>
+        <text x="400" y="108" text-anchor="middle" fill="#8A93A8" font-size="11">Receives props</text>
+        <text x="400" y="128" text-anchor="middle" fill="#8A93A8" font-size="11">Emits events</text>
+
+        <!-- Events Arrow (upward / back) -->
+        <line x1="400" y1="150" x2="400" y2="185" stroke="#7DD3FC" stroke-width="2"/>
+        <line x1="400" y1="185" x2="110" y2="185" stroke="#7DD3FC" stroke-width="2"/>
+        <line x1="110" y1="185" x2="110" y2="152" stroke="#7DD3FC" stroke-width="2" marker-end="url(#arrowCyan)"/>
+        <rect x="195" y="172" width="98" height="20" rx="6" fill="#1A3A4A" stroke="rgba(125,211,252,0.3)" stroke-width="1"/>
+        <text x="244" y="186" text-anchor="middle" fill="#7DD3FC" font-size="11" font-weight="600">$emit ⬆</text>
+
+        <!-- Data Flow Label -->
+        <rect x="560" y="30" width="140" height="140" rx="12" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="4,4"/>
+        <text x="630" y="58" text-anchor="middle" fill="#E7EAF2" font-size="12" font-weight="700">Data Flow</text>
+        <circle cx="585" cy="82" r="5" fill="#4ADE94"/>
+        <text x="600" y="86" fill="#4ADE94" font-size="11">Props (down)</text>
+        <circle cx="585" cy="108" r="5" fill="#7DD3FC"/>
+        <text x="600" y="112" fill="#7DD3FC" font-size="11">Events (up)</text>
+        <circle cx="585" cy="134" r="5" fill="#8B93FF"/>
+        <text x="600" y="138" fill="#8B93FF" font-size="11">Slots (content)</text>
+
+        <!-- Arrow Markers -->
+        <defs>
+          <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#4ADE94"/>
+          </marker>
+          <marker id="arrowCyan" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="#7DD3FC"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== EXECUTION TIMELINE ====== -->
+  <div class="section-tag"><span class="n">7</span> EXECUTION TIMELINE</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔄</span> Execution Timeline — Component Lifecycle</div>
+    <p class="def">A Vue component progresses through a defined sequence of stages. Understanding this timeline helps you hook into the right moment for initialization, DOM access, and cleanup.</p>
+    <div style="display:flex;flex-direction:column;align-items:center;margin:20px 0;gap:0;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:var(--green-dim);border:1px solid rgba(74,222,148,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--green);">beforeCreate</div>
+        <span style="color:var(--muted);font-size:18px;">→</span>
+        <div style="background:var(--green-dim);border:1px solid rgba(74,222,148,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--green);">created</div>
+        <span style="color:var(--muted);font-size:18px;">→</span>
+        <div style="background:var(--cyan-dim);border:1px solid rgba(125,211,252,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--cyan);">beforeMount</div>
+        <span style="color:var(--muted);font-size:18px;">→</span>
+        <div style="background:var(--cyan-dim);border:1px solid rgba(125,211,252,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--cyan);">mounted</div>
+      </div>
+      <div style="width:2px;height:18px;background:var(--line);"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:var(--amber-dim);border:1px solid rgba(240,180,80,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--amber);">beforeUpdate</div>
+        <span style="color:var(--muted);font-size:18px;">→</span>
+        <div style="background:var(--amber-dim);border:1px solid rgba(240,180,80,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--amber);">updated</div>
+      </div>
+      <div style="width:2px;height:18px;background:var(--line);"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="background:var(--red-dim);border:1px solid rgba(240,80,80,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--red);">beforeDestroy</div>
+        <span style="color:var(--muted);font-size:18px;">→</span>
+        <div style="background:var(--red-dim);border:1px solid rgba(240,80,80,0.3);border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;color:var(--red);">destroyed</div>
+      </div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Quick Reference</div>
+      <div class="t-text"><b>Green</b> = creation phase, <b>Cyan</b> = DOM insertion, <b>Amber</b> = reactive update, <b>Red</b> = teardown. Most exam questions focus on <b>created</b>, <b>mounted</b>, and <b>destroyed</b>.</div>
+    </div>
+  </div>
+
+  <!-- ====== DEBUGGING CHECKLIST ====== -->
+  <div class="section-tag"><span class="n">8</span> DEBUGGING CHECKLIST</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔍</span> Debugging Checklist</div>
+    <p class="def">When your Vue component isn't working as expected, walk through these five checkpoints before diving into complex debugging tools.</p>
+    <div class="mistake-box">
+      <div class="m-label">Check 1 — Props Not Updating?</div>
+      <div class="m-text"><b>Verify the parent is passing the prop correctly.</b> Check for missing <code>:</code> (colon) prefix — <code>product</code> passes a literal string, <code>:product</code> passes a JS expression. Also confirm the prop name matches the child's <code>props</code> declaration exactly (case-sensitive).</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 2 — Event Not Firing?</div>
+      <div class="m-text"><b>Confirm <code>$emit</code> name matches the parent's <code>@</code> listener.</b> A mismatch like <code>@addtocart</code> vs <code>$emit('add-to-cart')</code> silently fails. Use Vue Devtools to inspect emitted events in real time.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 3 — Template Renders Blank?</div>
+      <div class="m-text"><b>Inspect the browser console for Vue warnings.</b> A common cause is a typo in a data property or prop name. Vue logs <code>"Property or method 'x' is not defined"</code> when a template references something missing.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 4 — Data Not Reactive?</div>
+      <div class="m-text"><b>New properties added after creation are NOT reactive in Vue 2.</b> If you add <code>this.obj.newKey = 'value'</code>, the template won't update. Use <code>Vue.set(this.obj, 'newKey', value)</code> or <code>this.$set(...)</code> instead.</div>
+    </div>
+    <div class="mistake-box">
+      <div class="m-label">Check 5 — Component Not Registering?</div>
+      <div class="m-text"><b>Global vs local registration matters.</b> <code>Vue.component()</code> registers globally (available everywhere). Local registration via <code>components: { }</code> only works within the parent that declared it. Ensure you chose the right scope.</div>
+    </div>
+  </div>
+
+  <!-- ====== EXAM PATTERNS ====== -->
+  <div class="section-tag"><span class="n">9</span> EXAM PATTERNS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">📝</span> Exam Patterns</div>
+    <div class="qa-box">
+      <div class="q">Pattern 1: "What will this code output?" — Trace the data flow</div>
+      <div class="a"><b>Strategy:</b> Start at the parent. Identify what data is bound to each prop. Follow the prop into the child. Check if the child mutates it (Vue warns) or uses it in the template. Then check if the child emits an event back and what the parent handler does. Exams love hiding a missing <code>:</code> prefix to test whether you spot the literal vs expression difference.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 2: "Why is component data shared between instances?"</div>
+      <div class="a"><b>Answer framework:</b> State that <code>data</code> must be a function. Explain that a plain object is shared by reference across all instances of the same component. The function returns a <b>new</b> object per instance, ensuring isolation. This is the most frequently tested component concept.</div>
+    </div>
+    <div class="qa-box">
+      <div class="q">Pattern 3: "Draw the parent-child communication diagram"</div>
+      <div class="a"><b>Answer framework:</b> Draw two boxes (Parent, Child). Arrow down labeled <b>"props"</b> (parent → child). Arrow up labeled <b>"$emit / events"</b> (child → parent). Add a note: "Props are one-way downward. Events are the only way for children to communicate upward." If asked about siblings, explain they communicate via a shared parent or a Vuex store.</div>
+    </div>
+  </div>
+
+  <!-- ====== MEMORY TRICKS ====== -->
+  <div class="section-tag"><span class="n">10</span> MEMORY TRICKS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🧠</span> Memory Tricks</div>
+    <div class="tip-box">
+      <div class="t-label">Trick 1 — "Props Down, Events Up"</div>
+      <div class="t-text"><b>Remember the direction of data flow.</b> Think of it like a building: props come <b>down</b> from upper floors (parent) to lower floors (child). Events go <b>up</b> from the ground floor (child) to report back upstairs (parent). If you ever get confused, just say: <b>"PDE" — Props Down, Events.</b></div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 2 — "data() is a Factory"</div>
+      <div class="t-text"><b>Think of <code>data()</code> as a factory machine.</b> Every time a new component instance is created, the factory runs and produces a <b>fresh, separate</b> copy of the data object. If data were just a plain object, it would be like sharing one copy between all instances — one person's changes would affect everyone. The factory ensures each instance gets its own product.</div>
+    </div>
+    <div class="tip-box">
+      <div class="t-label">Trick 3 — Lifecycle Mnemonic: "C-M-U-D"</div>
+      <div class="t-text"><b>C</b>reated → <b>M</b>ounted → <b>U</b>pdated → <b>D</b>estroyed. Say it like a word: <b>"C-M-U-D"</b> (pronounced "see-mood"). Each letter represents the main phase: data ready, DOM ready, DOM re-rendered, component removed. The <code>before</code> variants just fire right before each of these.</div>
+    </div>
+  </div>
+
+  <!-- ====== RELATED TOPICS ====== -->
+  <div class="section-tag"><span class="n">11</span> RELATED TOPICS</div>
+
+  <div class="card">
+    <div class="emoji-h"><span class="e">🔗</span> Related Topics</div>
+    <p class="def">Explore these interconnected concepts to deepen your understanding of Vue.js component architecture.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;">
+      <span style="background:var(--green-dim);border:1px solid rgba(74,222,148,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--green);">Vue Router</span>
+      <span style="background:var(--amber-dim);border:1px solid rgba(240,180,80,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--amber);">Vuex State Management</span>
+      <span style="background:var(--cyan-dim);border:1px solid rgba(125,211,252,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--cyan);">Computed Properties</span>
+      <span style="background:var(--violet-dim);border:1px solid rgba(139,147,255,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--violet);">Watchers</span>
+      <span style="background:var(--red-dim);border:1px solid rgba(240,80,80,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--red);">Custom Events</span>
+      <span style="background:var(--green-dim);border:1px solid rgba(74,222,148,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--green);">Mixins</span>
+      <span style="background:var(--amber-dim);border:1px solid rgba(240,180,80,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--amber);">Single-File Components (.vue)</span>
+      <span style="background:var(--cyan-dim);border:1px solid rgba(125,211,252,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--cyan);">Provide / Inject</span>
+      <span style="background:var(--violet-dim);border:1px solid rgba(139,147,255,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--violet);">Render Functions</span>
+      <span style="background:var(--red-dim);border:1px solid rgba(240,80,80,0.3);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--red);">Vue Devtools</span>
+    </div>
+  </div>
+
   <!-- ====== REVISION ====== -->
-  <div class="section-tag"><span class="n">6</span> REVISION CHEAT SHEET</div>
+  <div class="section-tag"><span class="n">12</span> REVISION CHEAT SHEET</div>
   <div class="card">
     <div class="emoji-h"><span class="e">📋</span> Key Takeaways</div>
     <ul>

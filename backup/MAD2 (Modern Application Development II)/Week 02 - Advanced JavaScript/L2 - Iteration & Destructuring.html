@@ -21,6 +21,38 @@
   .full-card { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; }
   .full-card-title { font-size: 13px; font-weight: 500; color: var(--text-primary); margin: 0 0 4px; }
   .full-card-body { font-size: 13px; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+  .impact-card{
+    border:0.5px solid var(--border); border-radius:var(--radius);
+    background:var(--surface-1); padding:20px; margin-bottom:14px;
+  }
+  .impact-label{
+    font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:#4ADE94; font-weight:600; margin-bottom:14px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .impact-label::before{
+    content:""; width:4px; height:16px;
+    background:#4ADE94; border-radius:2px; flex-shrink:0;
+  }
+  .impact-grid{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:10px;
+  }
+  .impact-item{
+    background:var(--surface-0); border:0.5px solid var(--border);
+    border-radius:10px; padding:14px;
+  }
+  .impact-item .company{
+    font-size:12px; font-weight:600; color:#4ADE94;
+    margin-bottom:4px; display:flex; align-items:center; gap:6px;
+  }
+  .impact-item .company::before{
+    content:">"; font-family:var(--font-mono);
+    color:#4ADE94; font-size:11px; opacity:0.5;
+  }
+  .impact-item .impact-text{
+    font-size:12px; color:var(--text-secondary); line-height:1.5; margin:0;
+  }
 </style>
 
 <div class="notes-root">
@@ -113,6 +145,32 @@
     <div class="full-card">
       <p class="full-card-title"><i class="ti ti-braces" aria-hidden="true" style="font-size:14px; margin-right:6px; color:var(--text-accent)"></i>Object destructuring</p>
       <p class="full-card-body">Extract properties into variables. <strong style="font-weight:500">Rename:</strong> <code>const { first_name: fn } = person</code> &nbsp;·&nbsp; <strong style="font-weight:500">Rest:</strong> <code>const { first_name, ...rem } = person</code> captures all remaining properties.</p>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">
+      <div class="section-num">4</div>
+      <h2 class="section-title">Production use cases</h2>
+    </div>
+    <div class="impact-card">
+      <div class="impact-label">Production Impact</div>
+      <div class="impact-grid">
+        <div class="impact-item">
+          <div class="company">React + Destructuring</div>
+          <p class="impact-text">Every React component uses array destructuring from <code>useState</code>. Powers state management at <strong>Netflix, Airbnb, and Discord</strong> with clean positional unpacking.</p>
+        </div>
+        <div class="impact-item">
+          <div class="company">Node.js Callbacks</div>
+          <p class="impact-text">Error-first callback convention with destructuring used in millions of production deployments at <strong>PayPal, Uber, and Walmart</strong>. Express.js route handlers destructure <code>req</code>/<code>res</code> objects.</p>
+        </div>
+        <div class="impact-item">
+          <div class="company">Instagram API</div>
+          <p class="impact-text">Nested destructuring replaces <b>5+ lines</b> of manual property access per response. Processes <strong>100M+ API responses daily</strong> at Meta.</p>
+        </div>
+      </div>
     </div>
   </div>
 </div>

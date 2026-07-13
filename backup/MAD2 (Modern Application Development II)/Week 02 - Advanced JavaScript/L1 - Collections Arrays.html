@@ -76,6 +76,40 @@ h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
 }
 .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
 .tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+.impact-card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px; margin:20px 0;
+}
+.impact-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:#4ADE94; font-weight:700; margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.impact-label::before{
+  content:""; width:4px; height:18px;
+  background:#4ADE94; border-radius:3px; flex-shrink:0;
+}
+.impact-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:14px;
+}
+.impact-item{
+  background:#161B26; border:1px solid #232A38;
+  border-radius:10px; padding:16px;
+}
+.impact-item .company{
+  font-size:13px; font-weight:700; color:#4ADE94;
+  margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.impact-item .company::before{
+  content:">"; font-family:'JetBrains Mono',monospace;
+  color:#4ADE94; font-size:11px; opacity:0.5;
+}
+.impact-item .impact-text{
+  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
+}
+.impact-item .impact-text strong{color:#F0B450;}
+.impact-item .impact-text b{color:#E7EAF2;}
 pre{
   background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
   padding:16px 18px; overflow-x:auto; margin:12px 0;
@@ -325,7 +359,26 @@ tags.forEach(<span class="fn">v</span> <span class="kw">=></span> console.log(v)
   </div>
 </div>
 
-<div class="section-tag"><span class="n">6</span> Interview Q&amp;A</div>
+<div class="section-tag"><span class="n">6</span>Production Use Cases</div>
+<div class="impact-card">
+  <div class="impact-label">Production Impact</div>
+  <div class="impact-grid">
+    <div class="impact-item">
+      <div class="company">Redux</div>
+      <p class="impact-text">Used by <b>55%</b> of React apps — relies on <code>map</code>, <code>filter</code>, <code>reduce</code>, and spread for immutable state. Powers predictable state management at <strong>Twitter, Discord, and Uber Eats</strong>.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Coinbase</div>
+      <p class="impact-text">Processes real-time price feeds using <code>Map</code> for <b>500K+</b> trading pairs. Eliminated prototype-pollution vulnerabilities that previously affected their API.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Spotify</div>
+      <p class="impact-text">Uses <code>Set</code> + spread for playlist deduplication across <b>500M+</b> users. Reduced a complex O(n²) algorithm to <strong>O(n)</strong>, eliminating lag on large playlists.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> When would you choose a Map over a plain object?</div>
   <div class="a"><strong>A:</strong> When you need keys that aren't strings (e.g., DOM elements as keys), when you need reliable iteration order, when you need <code>.size</code>, or when you want to avoid prototype pollution risks. Plain objects are fine for simple string-keyed dictionaries with static shape.</div>

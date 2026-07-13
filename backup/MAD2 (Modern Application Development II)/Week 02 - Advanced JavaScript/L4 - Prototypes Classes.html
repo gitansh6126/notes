@@ -76,6 +76,40 @@ h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
 }
 .tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
 .tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
+.impact-card{
+  border:1px solid var(--line); border-radius:var(--radius);
+  background:var(--panel); padding:24px; margin:20px 0;
+}
+.impact-label{
+  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+  color:#4ADE94; font-weight:700; margin-bottom:16px;
+  display:flex; align-items:center; gap:10px;
+}
+.impact-label::before{
+  content:""; width:4px; height:18px;
+  background:#4ADE94; border-radius:3px; flex-shrink:0;
+}
+.impact-grid{
+  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+  gap:14px;
+}
+.impact-item{
+  background:#161B26; border:1px solid #232A38;
+  border-radius:10px; padding:16px;
+}
+.impact-item .company{
+  font-size:13px; font-weight:700; color:#4ADE94;
+  margin-bottom:6px; display:flex; align-items:center; gap:6px;
+}
+.impact-item .company::before{
+  content:">"; font-family:'JetBrains Mono',monospace;
+  color:#4ADE94; font-size:11px; opacity:0.5;
+}
+.impact-item .impact-text{
+  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
+}
+.impact-item .impact-text strong{color:#F0B450;}
+.impact-item .impact-text b{color:#E7EAF2;}
 pre{
   background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
   padding:16px 18px; overflow-x:auto; margin:12px 0;
@@ -270,7 +304,26 @@ console.log(rex <span class="kw">instanceof</span> Animal); <span class="cmt">//
   </div>
 </div>
 
-<div class="section-tag"><span class="n">4</span> Interview Q&amp;A</div>
+<div class="section-tag"><span class="n">4</span>Production Use Cases</div>
+<div class="impact-card">
+  <div class="impact-label">Production Impact</div>
+  <div class="impact-grid">
+    <div class="impact-item">
+      <div class="company">Express.js</div>
+      <p class="impact-text">Methods like <code>app.get()</code> live on <code>Application.prototype</code> — <b>not on instances</b>. Saves memory across <strong>thousands of concurrent requests</strong> in the most popular Node.js web framework.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Mongoose</div>
+      <p class="impact-text"><b>2M+ weekly npm downloads</b> — uses <code>class extends mongoose.Model</code> with getters that auto-hash passwords. Powers <strong>NodeBB and Ghost</strong> in production.</p>
+    </div>
+    <div class="impact-item">
+      <div class="company">Jest</div>
+      <p class="impact-text">Uses <code>Object.create(null)</code> for its mock registry to avoid prototype collisions. Used by <b>78%</b> of JS projects — prevents subtle hash-map bugs at scale.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> What's the difference between <code>__proto__</code> and <code>.prototype</code>?</div>
   <div class="a"><strong>A:</strong> <code>__proto__</code> is the actual prototype link on every object (what JS follows during property lookup). <code>.prototype</code> is a property that exists only on constructor functions — it's the object that will become the <code>__proto__</code> of instances created with <code>new</code>.</div>

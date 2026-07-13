@@ -134,12 +134,71 @@ code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
 ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
 li{margin:4px 0; color:var(--text);}
 .footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
-</style></head><body><div class="wrap">
+</style>
+<link rel="stylesheet" href="../../mad2-extended.css">
+</head><body><div class="wrap">
 
 <div class="hero">
   <div class="eyebrow">Week 02 &middot; Lecture 06</div>
   <h1>JSON &amp; the Fetch API</h1>
   <p>Two pillars of modern web communication: <b>JSON</b> — the universal data interchange format — and the <b>Fetch API</b> — the native browser tool for HTTP requests.</p>
+</div>
+
+<div class="purpose-banner">
+  <div class="p-label">Why This Topic Exists</div>
+  <div class="p-text">Every modern app talks to a server. <b>JSON</b> is the universal data format for APIs — it's how frontend and backend communicate. The <b>Fetch API</b> is how JavaScript makes HTTP requests. Without understanding these, you can't build login systems, load data, submit forms, or integrate with any third-party service. This is the <b>bridge between frontend and backend</b>.</div>
+</div>
+
+<div class="problem-box">
+  <div class="pr-label">The Problem This Solves</div>
+  <div class="pr-text">Your Vue frontend needs user data from a Flask backend. Without JSON and Fetch:
+    <br>1. <b>Language mismatch:</b> JavaScript objects can't be sent over HTTP directly — they need serialization.
+    <br>2. <b>No standard format:</b> Without JSON, each API would use its own format (XML, YAML, custom), making integration chaotic.
+    <br>3. <b>Blocking requests:</b> Old <code>XMLHttpRequest</code> was callback-based, verbose, and blocked the UI during requests.
+    <br>4. <b>No streaming:</b> Basic XHR loaded entire responses into memory, crashing on large datasets.
+  </div>
+  <div class="pr-question">How do you serialize data, send HTTP requests, and handle responses without blocking the UI?</div>
+</div>
+
+<div class="mental-model">
+  <div class="mm-label">Mental Model — The Courier Service</div>
+  <div class="mm-title">Think of JSON + Fetch as a courier service:</div>
+  <div class="mm-text">
+    You have a gift (JavaScript object). You can't hand it to someone across the world directly. So you <b>pack it in a box</b> (JSON.stringify), the courier <b>ships it</b> (Fetch request), the recipient <b>unpacks it</b> (JSON.parse), and now they have the same gift (object). The box (JSON) is universal — anyone in the world can open it. The courier (Fetch) handles delivery asynchronously — you don't stand at the door waiting.
+  </div>
+  <div class="mm-mapping">
+    <div class="mm-mapping-item"><span class="mm-arrow">JS Object →</span> The gift (data you want to send)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">JSON.stringify →</span> Packing into a box (serialization)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Fetch →</span> The courier (HTTP request, async)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">Response →</span> The delivered box (raw text/binary)</div>
+    <div class="mm-mapping-item"><span class="mm-arrow">JSON.parse →</span> Unpacking (deserialization)</div>
+  </div>
+</div>
+
+<div class="concept-map">
+  <div class="cm-label">Concept Map — JSON & Fetch Data Flow</div>
+  <svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+    <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#8A93A8"/></marker></defs>
+    <rect x="250" y="10" width="200" height="36" rx="8" fill="#161B26" stroke="#4ADE94" stroke-width="1.5"/>
+    <text x="350" y="33" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="12" font-weight="700">Client-Server Round Trip</text>
+    <line x1="100" y1="46" x2="100" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="250" y1="46" x2="250" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="400" y1="46" x2="400" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <line x1="550" y1="46" x2="550" y2="80" stroke="#8A93A8" stroke-width="1" marker-end="url(#ah)"/>
+    <rect x="30" y="80" width="140" height="32" rx="6" fill="#234436" stroke="#4ADE94"/>
+    <text x="100" y="101" text-anchor="middle" fill="#4ADE94" font-family="Sora" font-size="11" font-weight="600">JS Object</text>
+    <rect x="180" y="80" width="140" height="32" rx="6" fill="#3E3320" stroke="#F0B450"/>
+    <text x="250" y="101" text-anchor="middle" fill="#F0B450" font-family="Sora" font-size="11" font-weight="600">JSON.stringify()</text>
+    <rect x="330" y="80" width="140" height="32" rx="6" fill="#26264A" stroke="#8B93FF"/>
+    <text x="400" y="101" text-anchor="middle" fill="#8B93FF" font-family="Sora" font-size="11" font-weight="600">Fetch POST</text>
+    <rect x="480" y="80" width="140" height="32" rx="6" fill="#1A3A4A" stroke="#7DD3FC"/>
+    <text x="550" y="101" text-anchor="middle" fill="#7DD3FC" font-family="Sora" font-size="11" font-weight="600">JSON.parse()</text>
+    <text x="100" y="135" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Structured data</text>
+    <text x="250" y="135" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Serialized string</text>
+    <text x="400" y="135" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">HTTP request + await</text>
+    <text x="550" y="135" text-anchor="middle" fill="#E7EAF2" font-family="Sora" font-size="9">Deserialized object</text>
+    <text x="350" y="185" text-anchor="middle" fill="#7DD3FC" font-family="Sora" font-size="10">Server returns JSON → response.json() → JS object</text>
+  </svg>
 </div>
 
 <div class="section-tag"><span class="n">1</span> JSON Syntax Rules</div>
@@ -237,7 +296,30 @@ fetch(<span class="str">'https://api.example.com/users'</span>)
   </div>
 </div>
 
-<div class="section-tag"><span class="n">4</span> POST with JSON Body</div>
+<div class="section-tag"><span class="n">4</span> Execution Timeline — Fetch Request Lifecycle</div>
+<div class="timeline">
+  <div class="tl-label">Trace: <code>fetch('/api/users').then(r => r.json()).then(data => console.log(data))</code></div>
+  <div class="tl-steps">
+    <div class="tl-step">
+      <div class="tl-num">STEP 1 — Request initiated</div>
+      <div class="tl-content"><code>fetch()</code> creates a Request, sends it via HTTP. Returns a <b>Promise</b> that resolves to a <code>Response</code> object. <b>No data yet</b> — only headers received.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 2 — Response headers arrive</div>
+      <div class="tl-content"><code>.then(r => r.json())</code> — the <code>Response</code> object is available. <code>r.json()</code> reads the body stream and parses JSON. Returns <b>another Promise</b>.</div>
+    </div>
+    <div class="tl-step active">
+      <div class="tl-num">STEP 3 — Body parsed</div>
+      <div class="tl-content"><code>.then(data => console.log(data))</code> — the parsed JavaScript object is now available. Use it in your app.</div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-num">STEP 4 — Error handling</div>
+      <div class="tl-content"><code>.catch(err => ...)</code> handles network errors, DNS failures, or JSON parse errors. Always add this.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">5</span> POST with JSON Body</div>
 <div class="card">
   <h2>Sending Data to a Server</h2>
   <div class="def">POST requests send JSON in the request body. Set the <code>Content-Type</code> header so the server knows how to parse it.</div>
@@ -277,7 +359,7 @@ fetch(<span class="str">'https://api.example.com/users'</span>)
   </div>
 </div>
 
-<div class="section-tag"><span class="n">5</span>Production Use Cases</div>
+<div class="section-tag"><span class="n">6</span>Production Use Cases</div>
 <div class="impact-card">
   <div class="impact-label">Production Impact</div>
   <div class="impact-grid">
@@ -296,7 +378,20 @@ fetch(<span class="str">'https://api.example.com/users'</span>)
   </div>
 </div>
 
-<div class="section-tag"><span class="n">6</span> Interview Q&amp;A</div>
+<div class="section-tag"><span class="n">7</span> Limitations &amp; Gotchas</div>
+<div class="limitations">
+  <div class="lim-label">Limitations</div>
+  <ul>
+    <li><b>No request timeout built-in:</b> <code>fetch()</code> has no timeout option. Use <code>AbortController</code> or <code>Promise.race()</code> with a timer.</li>
+    <li><b>No automatic retry:</b> If a request fails, you must implement retry logic yourself (exponential backoff).</li>
+    <li><b><code>response.ok</code> is NOT auto-checked:</b> <code>fetch()</code> doesn't reject on 404/500 — it only rejects on network errors. Always check <code>response.ok</code>.</li>
+    <li><b>No progress tracking:</b> Unlike XHR, basic <code>fetch()</code> doesn't support upload/download progress. Use XHR or ReadableStream for large files.</li>
+    <li><b>CORS restrictions:</b> Cross-origin requests are blocked by browsers unless the server sends <code>Access-Control-Allow-Origin</code> headers.</li>
+    <li><b>JSON.parse is synchronous:</b> Parsing a 10MB JSON response blocks the main thread. Consider streaming for large payloads.</li>
+  </ul>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Interview Q&amp;A</div>
 <div class="qa-box">
   <div class="q"><strong>Q:</strong> Why does <code>JSON.stringify</code> drop functions and <code>undefined</code> values?</div>
   <div class="a"><strong>A:</strong> JSON is a data-interchange format, not a serialization format for executable code. Functions have no equivalent in other languages, and <code>undefined</code> is not a valid JSON value. This ensures the output can be parsed by any language, not just JavaScript.</div>
@@ -310,22 +405,130 @@ fetch(<span class="str">'https://api.example.com/users'</span>)
   <div class="a"><strong>A:</strong> <code>PUT</code> replaces the entire resource with the provided representation (idempotent). <code>PATCH</code> applies a partial update — it only changes the fields you send. <code>PUT</code> requires the full resource; <code>PATCH</code> can send just the diff.</div>
 </div>
 
-<div class="section-tag"><span class="n">6</span> Quick Revision</div>
-<div class="rev-grid">
-  <div class="rev-item"><b>JSON keys</b> — must be double-quoted</div>
-  <div class="rev-item"><b>No trailing commas</b> — invalid in JSON</div>
-  <div class="rev-item"><b>No comments</b> — not allowed in JSON</div>
-  <div class="rev-item"><b>Valid types</b> — string, number, bool, null, object, array</div>
-  <div class="rev-item"><b>stringify</b> — JS → JSON string</div>
-  <div class="rev-item"><b>parse</b> — JSON string → JS value</div>
-  <div class="rev-item"><b>Replacer</b> — filter/transform during stringify</div>
-  <div class="rev-item"><b>Reviver</b> — transform during parse</div>
-  <div class="rev-item"><b>fetch(url)</b> — GET request</div>
-  <div class="rev-item"><b>response.ok</b> — check HTTP success</div>
-  <div class="rev-item"><b>.json()</b> — parse response as JSON</div>
-  <div class="rev-item"><b>.text()</b> — parse as plain text</div>
-  <div class="rev-item"><b>POST body</b> — JSON.stringify + Content-Type</div>
-  <div class="rev-item"><b>HTTP methods</b> — GET, POST, PUT, PATCH, DELETE</div>
+<div class="section-tag"><span class="n">9</span> Debugging Checklist</div>
+<div class="debug-checklist">
+  <div class="dc-label">Common Fetch/JSON Issues</div>
+  <div class="dc-item"><div class="dc-check">1</div><div>If <code>fetch</code> rejects with "Failed to fetch", check: CORS headers, network URL, server running, HTTPS mixed content</div></div>
+  <div class="dc-item"><div class="dc-check">2</div><div>If <code>response.json()</code> throws, the server returned invalid JSON — check Content-Type header and server logs</div></div>
+  <div class="dc-item"><div class="dc-check">3</div><div>If response seems empty, check if you forgot to <code>await</code> the <code>r.json()</code> call — it returns a Promise, not data</div></div>
+  <div class="dc-item"><div class="dc-check">4</div><div>If POST fails, verify Content-Type header is <code>application/json</code> and body is <code>JSON.stringify(data)</code></div></div>
+  <div class="dc-item"><div class="dc-check">5</div><div>If <code>response.ok</code> is false but no error thrown, remember: fetch only rejects on network errors, not HTTP errors</div></div>
+  <div class="dc-item"><div class="dc-check">6</div><div>If data arrives but is empty array, check server-side query — the API works but returned no matching records</div></div>
+</div>
+
+<div class="section-tag"><span class="n">7</span> Previous Year Questions (PYQs)</div>
+<div class="pyq-section">
+  <div class="pyq-label">PYQs — JSON & Fetch API</div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is JSON? What are its rules?</div>
+    <div class="pyq-a"><b>A:</b> JSON (JavaScript Object Notation) is a lightweight data interchange format. Rules: 1) Keys must be in double quotes. 2) No trailing commas. 3) No comments. 4) Values: string (double-quoted), number, boolean, null, array, object. 5) Strings use <code>\"</code> for escaping.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: What is the difference between <code>JSON.stringify</code> and <code>JSON.parse</code>?</div>
+    <div class="pyq-a"><b>A:</b> <code>JSON.stringify(obj)</code> converts a JavaScript object to a JSON <b>string</b> (serialization). <code>JSON.parse(str)</code> converts a JSON string back to a JavaScript object (deserialization). Round-trip: <code>JSON.parse(JSON.stringify(obj))</code> creates a deep copy.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">2 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Does <code>fetch()</code> reject on HTTP 404 or 500?</div>
+    <div class="pyq-a"><b>A:</b> <b>No.</b> <code>fetch()</code> only rejects on network failures (DNS error, no internet). It resolves with <code>response.ok = false</code> for 4xx/5xx. Always check <code>if (!response.ok) throw ...</code> manually.</div>
+    <div class="pyq-meta"><span class="pyq-year">2024</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+  <div class="pyq-item">
+    <div class="pyq-q">Q: Compare XHR and Fetch API.</div>
+    <div class="pyq-a"><b>A:</b> XHR: callback-based, verbose, supports progress events, older browsers. Fetch: Promise-based, cleaner syntax, no progress events, modern browsers. Fetch is preferred for new code. Both handle the same HTTP operations.</div>
+    <div class="pyq-meta"><span class="pyq-year">2023</span><span class="pyq-marks">3 marks</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Memory Tricks</div>
+<div class="memory-tricks">
+  <div class="mt-label">Mnemonics to Remember</div>
+  <div class="mt-trick">
+    <div class="mt-name">stringify = "String-ify" (to string)</div>
+    <div class="mt-text"><b>String</b>-ify = make it a <b>string</b>. <code>JSON.stringify()</code> turns objects into strings. <code>JSON.parse()</code> turns strings back into objects. <b>String = send</b>, <b>Parse = receive</b>.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">fetch() resolves, doesn't reject on 404</div>
+    <div class="mt-text"><b>fetch</b> = <b>F</b>etches whatever the server sends, even errors. You must check <code>response.ok</code> yourself. It's like a courier who delivers broken packages too.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">JSON rules = "No trailing commas, double quotes only"</div>
+    <div class="mt-text">JSON is strict: <b>double quotes</b> for keys/strings (no single quotes), <b>no trailing commas</b>, <b>no comments</b>, <b>no undefined</b>. Think: JSON is the <b>minimal, strict subset</b> of JS object notation.</div>
+  </div>
+  <div class="mt-trick">
+    <div class="mt-name">Response must be consumed once</div>
+    <div class="mt-text">Like opening a letter — you can only read the body <b>once</b>. Call <code>.json()</code>, <code>.text()</code>, or <code>.blob()</code> once. Cache the result if needed.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">9</span> Related Topics</div>
+<div class="related-topics">
+  <div class="rt-label">Topics That Build on This</div>
+  <div class="rt-tags">
+    <div class="rt-tag">Axios (HTTP Client) <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">REST API Design <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">CORS (Cross-Origin) <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">GraphQL <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Vue API Integration <span class="rt-arrow">→</span></div>
+    <div class="rt-tag">Flask Backend API <span class="rt-arrow">→</span></div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">8</span> Expected Exam Patterns</div>
+<div class="exam-patterns">
+  <div class="ep-label">High-Yield Exam Types</div>
+  <div class="ep-item">
+    <div class="ep-type">Fetch Output Prediction <span class="ep-freq">HIGH FREQ</span></div>
+    <div class="ep-desc">Given fetch().then().then() chains with async/await, predict when data arrives and what gets logged.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">JSON.stringify Edge Cases <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">What happens when you stringify functions, undefined, Date objects, or circular references? Show the output.</div>
+  </div>
+  <div class="ep-item">
+    <div class="ep-type">POST with JSON Body <span class="ep-freq">MEDIUM FREQ</span></div>
+    <div class="ep-desc">Write a complete fetch() call that sends JSON data via POST, including correct headers and body serialization.</div>
+  </div>
+</div>
+
+<div class="section-tag"><span class="n">10</span> One-Page Revision Summary</div>
+<div class="one-page">
+  <div class="op-label">JSON & Fetch API — Complete Cheat Sheet</div>
+  <div class="op-grid">
+    <div class="op-item">
+      <div class="op-key">JSON Rules</div>
+      <div class="op-val">Double quotes for keys/strings. No trailing commas. No comments. No undefined. Values: string, number, bool, null, array, object.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">JSON.stringify(obj)</div>
+      <div class="op-val">Object → JSON string (serialization). Use for sending data to servers. Handles: strings, numbers, bools, arrays, objects. Drops: functions, undefined, Symbols.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">JSON.parse(str)</div>
+      <div class="op-val">JSON string → Object (deserialization). Use for receiving data from servers. Throws on invalid JSON.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">fetch(url)</div>
+      <div class="op-val">Returns Promise&lt;Response&gt;. Check <code>response.ok</code>. Call <code>.json()</code> for JSON data. Always add <code>.catch()</code>.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">GET request</div>
+      <div class="op-val"><code>fetch(url).then(r => r.json())</code>. No body needed. Default method.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">POST request</div>
+      <div class="op-val"><code>fetch(url, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) })</code></div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">fetch() doesn't reject on 404</div>
+      <div class="op-val">Only rejects on network errors. Always check <code>if (!response.ok)</code> manually for 4xx/5xx.</div>
+    </div>
+    <div class="op-item">
+      <div class="op-key">Deep copy trick</div>
+      <div class="op-val"><code>JSON.parse(JSON.stringify(obj))</code> — creates a deep copy. Limitation: loses functions, undefined, Date objects become strings.</div>
+    </div>
+  </div>
 </div>
 
 <div class="footer-note">MAD2 · Advanced JavaScript — study card</div>
