@@ -629,7 +629,7 @@ function closeSearch() {
   if (input) input.blur();
 }
 
-function performSearch(query) {
+async function performSearch(query) {
   const results = document.getElementById('searchResults');
   if (!results) return;
 
@@ -645,6 +645,7 @@ function performSearch(query) {
 
   const matches = [];
 
+  // First pass: match against metadata (title, slug, week)
   structure.forEach(week => {
     week.lectures.forEach(lecture => {
       const searchText = `${lecture.title} ${lecture.slug} ${week.weekName}`.toLowerCase();
@@ -653,6 +654,51 @@ function performSearch(query) {
       }
     });
   });
+
+  // If we don't have enough matches, try scanning lecture contents.
+  // Limit the number of content fetches to avoid overloading the browser/server.
+  const MAX_CONTENT_FETCH = 30;
+  const desiredMinMatches = 12;
+
+  if (matches.length < desiredMinMatches) {
+    const remaining = [];
+    structure.forEach(week => {
+      week.lectures.forEach(lecture => {
+        // Skip already-matched lectures
+        if (!matches.find(m => m.lecture.file === lecture.file && m.week === week.weekName)) {
+          remaining.push({ lecture, week: week.weekName });
+        }
+      });
+    });
+
+    // Limit how many files we attempt to fetch
+    const toFetch = remaining.slice(0, MAX_CONTENT_FETCH);
+
+    const folderPrefix = window.COURSE_FOLDER ? `${window.COURSE_FOLDER}/` : '';
+
+    // Fetch in parallel with Promise.allSettled to be resilient to errors
+    const fetchPromises = toFetch.map(item => {
+      const fetchPath = encodeURI(folderPrefix + item.lecture.path);
+      return fetch(fetchPath)
+        .then(res => res.ok ? res.text() : '')
+        .then(text => ({ item, text }))
+        .catch(() => ({ item, text: '' }));
+    });
+
+    try {
+      const resultsArr = await Promise.allSettled(fetchPromises);
+      resultsArr.forEach(r => {
+        if (r.status === 'fulfilled' && r.value && r.value.text) {
+          const html = r.value.text.toLowerCase();
+          if (html.includes(trimmed)) {
+            matches.push({ lecture: r.value.item.lecture, week: r.value.item.week });
+          }
+        }
+      });
+    } catch (e) {
+      // ignore fetch errors — best-effort content scanning
+    }
+  }
 
   if (matches.length === 0) {
     results.innerHTML = '<div class="search-empty">No lectures found matching your search.</div>';
