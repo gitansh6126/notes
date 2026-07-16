@@ -528,6 +528,46 @@ body.spa-body {
   color: var(--text-muted);
 }
 
+.search-clear-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px 4px;
+  flex-shrink: 0;
+  transition: color 0.2s ease;
+  line-height: 1;
+}
+
+.search-clear-btn:hover {
+  color: var(--text-primary);
+}
+
+.search-nav-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 4px 6px;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  border-radius: 3px;
+}
+
+.search-nav-btn:hover {
+  background: var(--surface-1);
+  color: var(--text-accent);
+  border-color: var(--text-accent);
+}
+
+.search-nav-btn:active {
+  transform: scale(0.95);
+}
+
 #searchResults {
   display: none;
   position: fixed;

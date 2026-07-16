@@ -404,6 +404,50 @@ td code { font-size: 0.8em; }
       </div>
     </div>
 
+    <div class="card card-border-purple">
+      <div class="card-title">Visual Flow — How <code>var</code>, <code>let</code>, and <code>const</code> work <span class="badge badge-purple">Memory Map</span></div>
+      <div class="flow" style="gap:0.5rem;">
+        <div class="flow-row">
+          <div class="flow-box">1. Code is read</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">2. Declaration is registered</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">3. Value is assigned when execution reaches the line</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box" style="border-color:#1e4f8a;background:#e8f0fe;">var</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Moves to top of the function</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Starts as <code>undefined</code></div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box" style="border-color:#2c6b5d;background:#e6f4ea;">let</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Hoisted, but stays in TDZ</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Becomes usable at its declaration line</div>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box" style="border-color:#a8482a;background:#fef2ea;">const</div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Same TDZ rule as <code>let</code></div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-box">Must be initialized immediately and cannot be reassigned</div>
+        </div>
+      </div>
+      <div class="callout callout-tip" style="margin-top:1rem;">
+        <div class="emoji">🧠</div>
+        <div>
+          <strong>Memory trick:</strong> <code>var</code> gets a placeholder early, while <code>let</code> and <code>const</code> are reserved but not ready until the execution reaches their line.
+        </div>
+      </div>
+      <pre><span class="cmt">// Visual memory model</span>
+<span class="kw">var</span> x = <span class="num">5</span>;    <span class="cmt">// declaration moves up, value appears later</span>
+<span class="kw">let</span> y = <span class="num">6</span>;    <span class="cmt">// stays in TDZ until this line</span>
+<span class="kw">const</span> z = <span class="num">7</span>;  <span class="cmt">// same TDZ, but cannot be reassigned</span></pre>
+    </div>
+
     <div class="card-grid">
       <div class="card card-border-gold">
         <div class="card-title">Code Examples <span class="badge badge-gold">var</span></div>
