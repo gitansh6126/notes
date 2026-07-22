@@ -561,8 +561,8 @@
           "week": "Week 04 - Estimation GMM EM",
           "order": 14,
           "slug": "recap-weeks-1-to-4",
-          "lastModified": "2026-07-17T15:14:27.489Z",
-          "readingTime": 20,
+          "lastModified": "2026-07-17T15:17:38.151Z",
+          "readingTime": 31,
           "tags": [],
           "keywords": []
         }
@@ -579,8 +579,8 @@
           "week": "Week 05 - Linear Regression",
           "order": 1,
           "slug": "l27-supervised-learning",
-          "lastModified": "2026-07-05T12:43:02.973Z",
-          "readingTime": 1,
+          "lastModified": "2026-07-22T09:12:30.142Z",
+          "readingTime": 32,
           "tags": [],
           "keywords": []
         },
@@ -698,6 +698,19 @@
           "slug": "l36-bayesian-linear-regression",
           "lastModified": "2026-07-02T05:58:24.325Z",
           "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "mycampus1",
+          "file": "mycampus1.html",
+          "path": "Week 05 - Linear Regression/mycampus1.html",
+          "course": "mlt",
+          "week": "Week 05 - Linear Regression",
+          "order": 11,
+          "slug": "mycampus1",
+          "lastModified": "2026-07-22T06:37:39.940Z",
+          "readingTime": 39,
           "tags": [],
           "keywords": []
         }

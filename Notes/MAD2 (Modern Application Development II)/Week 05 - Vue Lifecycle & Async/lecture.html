@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Using APIs — MAD2 Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14;
+    --bg-2:#0f1420;
+    --panel:#141a26;
+    --panel-2:#171f30;
+    --border:rgba(255,255,255,0.08);
+    --text:#e7e9ee;
+    --muted:#8b95a7;
+    --gold:#e8bf5a;
+    --teal:#37c9b8;
+    --purple:#a888f2;
+    --red:#ef7b6b;
+    --blue:#6fa8f0;
+    --serif:"Fraunces", "STIX Two Math", serif;
+    --sans:"Inter", -apple-system, sans-serif;
+    --mono:"JetBrains Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(232,191,90,0.06), transparent 60%),
+      radial-gradient(1000px 500px at 90% 0%, rgba(55,201,184,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding:0 1.5rem 6rem;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:4.5rem 0 3rem;
+    border-bottom:1px solid var(--border);
+    margin-bottom:3rem;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--teal);
+    display:flex;
+    align-items:center;
+    gap:0.6rem;
+    margin-bottom:1.1rem;
+  }
+  .eyebrow::before{content:"";width:1.4rem;height:1px;background:var(--teal);display:inline-block;}
+  h1.title{
+    font-family:var(--serif);
+    font-weight:600;
+    font-size:clamp(2.3rem, 6vw, 3.6rem);
+    margin:0 0 0.6rem;
+    letter-spacing:-0.01em;
+    background:linear-gradient(180deg, #fff, #c9cedb 140%);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .subtitle{color:var(--muted); font-size:1.05rem; max-width:34rem;}
+  .hero-diagram{
+    margin-top:2.2rem;
+    display:flex;
+    gap:0.9rem;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .flow-pill{
+    font-family:var(--mono);
+    font-size:0.82rem;
+    padding:0.5rem 0.9rem;
+    border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--panel);
+    white-space:nowrap;
+  }
+  .flow-pill.backend{color:var(--purple); border-color:rgba(168,136,242,0.35);}
+  .flow-pill.frontend{color:var(--blue); border-color:rgba(111,168,240,0.35);}
+  .flow-arrow{color:var(--muted); font-family:var(--mono);}
+
+  /* ---------- SECTION LABELS ---------- */
+  .section{margin:3.4rem 0;}
+  .sec-label{
+    font-family:var(--mono);
+    font-size:0.75rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:0.6rem;
+    display:flex; align-items:center; gap:0.5rem;
+  }
+  .sec-num{
+    width:1.6rem;height:1.6rem;border-radius:6px;
+    background:rgba(232,191,90,0.12);
+    border:1px solid rgba(232,191,90,0.3);
+    display:flex;align-items:center;justify-content:center;
+    font-size:0.72rem;color:var(--gold);
+  }
+  h2.sec-title{
+    font-family:var(--serif);
+    font-size:clamp(1.5rem, 3.2vw, 1.95rem);
+    font-weight:600;
+    margin:0 0 1.1rem;
+  }
+  p{color:#c7cbd6;}
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:1.6rem 1.7rem;
+    margin:1.2rem 0;
+    box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .card-title{
+    font-weight:600;
+    font-size:0.95rem;
+    color:var(--text);
+    margin:0 0 0.6rem;
+    display:flex; align-items:center; gap:0.5rem;
+  }
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1.1rem;}
+  @media (max-width:680px){.grid-2{grid-template-columns:1fr;}}
+
+  /* ---------- ANALOGY BOX ---------- */
+  .analogy{
+    border-left:3px solid var(--teal);
+    background:linear-gradient(90deg, rgba(55,201,184,0.08), transparent 60%);
+    border-radius:0 12px 12px 0;
+    padding:1.1rem 1.3rem;
+    margin:1.2rem 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--teal); margin-bottom:0.4rem; display:block;
+  }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius:12px;
+    padding:1.1rem 1.3rem;
+    margin:1.2rem 0;
+    border:1px solid;
+    display:flex; gap:0.8rem;
+  }
+  .callout .icon{font-size:1.1rem; line-height:1.4;}
+  .callout.required{border-color:rgba(232,191,90,0.35); background:rgba(232,191,90,0.06);}
+  .callout.warn{border-color:rgba(239,123,107,0.35); background:rgba(239,123,107,0.07);}
+  .callout.tip{border-color:rgba(111,168,240,0.35); background:rgba(111,168,240,0.06);}
+  .callout .body b{color:var(--text);}
+  .callout .body{color:#c7cbd6; font-size:0.95rem;}
+
+  /* ---------- CODE ---------- */
+  .code-panel{
+    background:#0a0d14;
+    border:1px solid var(--border);
+    border-radius:12px;
+    overflow:hidden;
+    margin:1.1rem 0;
+  }
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0.55rem 1rem;
+    background:var(--panel-2);
+    border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:0.72rem; color:var(--muted);
+  }
+  .code-dots{display:flex; gap:0.35rem;}
+  .code-dots span{width:9px;height:9px;border-radius:50%;background:#333;}
+  pre{margin:0; padding:1.1rem 1.2rem; overflow-x:auto;}
+  code{font-family:var(--mono); font-size:0.86rem; line-height:1.7;}
+  .c-kw{color:var(--purple);}
+  .c-fn{color:var(--blue);}
+  .c-str{color:var(--teal);}
+  .c-com{color:var(--muted); font-style:italic;}
+  .c-var{color:#f0f3f8;}
+  .c-num{color:var(--gold);}
+  .annot{
+    font-family:var(--sans); font-size:0.82rem; color:var(--muted);
+    padding:0 1.2rem 1rem; border-top:1px dashed var(--border); margin-top:0.2rem; padding-top:0.8rem;
+  }
+  .annot b{color:var(--teal); font-weight:600;}
+
+  /* ---------- TABLE ---------- */
+  table{width:100%; border-collapse:collapse; margin:1.2rem 0; font-size:0.92rem;}
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:0.72rem;
+    text-transform:uppercase; letter-spacing:0.06em; color:var(--gold);
+    padding:0.7rem 0.9rem; border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:0.75rem 0.9rem; border-bottom:1px solid var(--border); color:#c7cbd6; vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+
+  /* ---------- DIAGRAM: flow boxes ---------- */
+  .flowline{
+    display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;
+    padding:1.3rem 0.4rem; justify-content:center;
+  }
+  .fbox{
+    font-family:var(--mono); font-size:0.82rem; text-align:center;
+    padding:0.7rem 1rem; border-radius:10px; border:1px solid var(--border);
+    background:var(--panel-2); min-width:5.2rem;
+  }
+  .fbox.a{color:var(--blue); border-color:rgba(111,168,240,0.35);}
+  .fbox.b{color:var(--purple); border-color:rgba(168,136,242,0.35);}
+  .fbox.c{color:var(--teal); border-color:rgba(55,201,184,0.35);}
+  .fbox.d{color:var(--gold); border-color:rgba(232,191,90,0.35);}
+  .fbox.r{color:var(--red); border-color:rgba(239,123,107,0.35);}
+  .farrow{color:var(--muted); font-size:1.1rem;}
+
+  /* ---------- EVENT LOOP DIAGRAM ---------- */
+  .loop-diagram{
+    display:grid; grid-template-columns:1fr 1fr; gap:1rem;
+    margin:1.3rem 0;
+  }
+  @media (max-width:680px){.loop-diagram{grid-template-columns:1fr;}}
+  .loop-box{
+    border:1px solid var(--border); border-radius:12px; padding:1rem;
+    background:var(--panel-2); position:relative;
+  }
+  .loop-box h4{
+    margin:0 0 0.6rem; font-family:var(--mono); font-size:0.76rem;
+    text-transform:uppercase; letter-spacing:0.06em;
+  }
+  .loop-box.stack h4{color:var(--blue);}
+  .loop-box.queue h4{color:var(--purple);}
+  .stack-item, .queue-item{
+    font-family:var(--mono); font-size:0.8rem;
+    background:rgba(255,255,255,0.03); border:1px solid var(--border);
+    border-radius:6px; padding:0.4rem 0.6rem; margin-bottom:0.4rem;
+  }
+  .loop-cycle{
+    text-align:center; margin-top:0.6rem; font-family:var(--mono);
+    font-size:0.75rem; color:var(--muted);
+  }
+
+  /* ---------- API CARDS GRID ---------- */
+  .api-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin:1.2rem 0;}
+  @media (max-width:680px){.api-grid{grid-template-columns:1fr;}}
+  .api-card{
+    border:1px solid var(--border); border-radius:12px; padding:1.1rem;
+    background:var(--panel-2);
+  }
+  .api-card .name{font-weight:600; font-size:0.98rem; margin-bottom:0.3rem; color:var(--text);}
+  .api-card .desc{font-size:0.86rem; color:var(--muted);}
+  .api-card .dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-right:0.5rem;}
+
+  /* ---------- KEY TAKEAWAY / TRIGGER WORDS ---------- */
+  .trigger-words{display:flex; flex-wrap:wrap; gap:0.5rem; margin:1rem 0;}
+  .trigger-words span{
+    font-family:var(--mono); font-size:0.78rem;
+    background:rgba(232,191,90,0.1); color:var(--gold);
+    border:1px solid rgba(232,191,90,0.3);
+    padding:0.32rem 0.7rem; border-radius:999px;
+  }
+
+  /* ---------- PRACTICE / SOLVE QUESTIONS ---------- */
+  .qcard{
+    border:1px solid var(--border); border-radius:12px;
+    padding:1rem 1.2rem; margin:0.9rem 0; background:var(--panel);
+  }
+  .qcard .qhead{
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin-bottom:0.5rem;
+  }
+  .qcard .qtext{color:var(--text); font-size:0.95rem; margin-bottom:0.5rem;}
+  details.ans{margin-top:0.4rem;}
+  details.ans summary{
+    cursor:pointer; font-family:var(--mono); font-size:0.78rem;
+    color:var(--teal); list-style:none;
+  }
+  details.ans summary::-webkit-details-marker{display:none;}
+  details.ans summary::before{content:"▸ "; }
+  details.ans[open] summary::before{content:"▾ "; }
+  details.ans .a-body{
+    margin-top:0.6rem; font-size:0.9rem; color:#c7cbd6;
+    padding:0.7rem 0.9rem; background:rgba(55,201,184,0.06);
+    border-left:2px solid var(--teal); border-radius:0 8px 8px 0;
+  }
+
+  /* ---------- ONE PAGE BRAIN ---------- */
+  .brain{
+    background:linear-gradient(160deg, rgba(168,136,242,0.08), rgba(55,201,184,0.05));
+    border:1px solid rgba(168,136,242,0.25);
+    border-radius:18px; padding:1.8rem;
+    margin:2rem 0;
+  }
+  .brain h3{
+    font-family:var(--serif); margin:0 0 1rem; font-size:1.25rem;
+    color:var(--text);
+  }
+  .brain-grid{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+  @media (max-width:680px){.brain-grid{grid-template-columns:1fr;}}
+  .brain-col h5{
+    font-family:var(--mono); font-size:0.72rem; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--purple); margin:0 0 0.5rem;
+  }
+  .brain-col ul{margin:0; padding-left:1.1rem; font-size:0.88rem; color:#c7cbd6;}
+  .brain-col li{margin-bottom:0.35rem;}
+
+  footer{
+    margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--border);
+    font-family:var(--mono); font-size:0.75rem; color:var(--muted); text-align:center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 5</div>
+    <h1 class="title">Using APIs</h1>
+    <p class="subtitle">How a frontend and backend agree to talk to each other — and why that conversation has to be asynchronous.</p>
+    <div class="hero-diagram">
+      <span class="flow-pill backend">Backend (data)</span>
+      <span class="flow-arrow">⇄ JSON over URL ⇄</span>
+      <span class="flow-pill frontend">Frontend (UI)</span>
+    </div>
+  </div>
+
+  <!-- ============ 1. SEPARATION OF CONCERNS ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">1</span>Foundation</div>
+    <h2 class="sec-title">Separation of Concerns</h2>
+    <p>Two jobs, deliberately kept apart:</p>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--purple)">⚙️ Backend</div>
+        <p style="margin:0; font-size:0.92rem;">Manages <b style="color:var(--text)">data models</b> — storage, business logic, validation. Has no idea what any screen looks like.</p>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--blue)">🖥️ Frontend</div>
+        <p style="margin:0; font-size:0.92rem;">Manages the <b style="color:var(--text)">UI</b> — layout, interaction, presentation. Has no idea how data is stored.</p>
+      </div>
+    </div>
+
+    <div class="analogy">
+      <span class="tag">Analogy</span>
+      A restaurant kitchen (backend) never plates food based on which table's decor it's going to — it just sends out <i>a dish</i>. The waiter (frontend) decides how to present it: which tray, which table, which order to serve. If the kitchen started deciding table layouts, the whole restaurant breaks the moment you redecorate.
+    </div>
+
+    <div class="callout required">
+      <div class="icon">📌</div>
+      <div class="body">
+        <b>Required, by design:</b><br>
+        • Backend must <b>never</b> know what the UI looks like<br>
+        • No direct calls to HTML template rendering from backend logic<br>
+        • Data output in a <b>neutral format</b> — JSON is the modern default, but not the only option<br>
+        • Data input via form data or URLs
+      </div>
+    </div>
+
+    <p style="font-size:0.92rem; color:var(--muted); margin-top:1rem;">This split needs two mechanisms to actually work:</p>
+    <div class="flowline">
+      <span class="fbox a">Fetch mechanism</span>
+      <span class="farrow">+</span>
+      <span class="fbox c">Rendering mechanism</span>
+    </div>
+    <p style="font-size:0.88rem; color:var(--muted); text-align:center; margin-top:-0.5rem;">
+      (retrieve data from backend) &nbsp;&nbsp;+&nbsp;&nbsp; (server-rendered &amp; pushed, <i>or</i> browser pulls &amp; renders)
+    </p>
+  </div>
+
+  <!-- ============ 2. WHY ASYNC ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">2</span>Core Problem</div>
+    <h2 class="sec-title">Fetch Has to Be Asynchronous</h2>
+    <p>Fetching data depends on things the server (and browser) don't control:</p>
+    <div class="grid-2">
+      <div class="card"><div class="card-title">📡 Network latency</div><p style="margin:0;font-size:0.9rem;">Distance, congestion, routing — all unpredictable.</p></div>
+      <div class="card"><div class="card-title">⚠️ Load &amp; disruptions</div><p style="margin:0;font-size:0.9rem;">The server might be slow, or the connection might drop entirely.</p></div>
+    </div>
+
+    <div class="callout warn">
+      <div class="icon">🚫</div>
+      <div class="body"><b>What must never happen:</b> the browser hangs waiting for data that isn't there yet. JavaScript is <b>single-threaded</b> — one blocking call freezes the whole page.</div>
+    </div>
+
+    <div class="analogy">
+      <span class="tag">Analogy</span>
+      Ordering coffee: you don't stand frozen at the counter, unable to blink, until your name is called. You order, step aside, and do other things (check your phone, chat) — then react when your name is called. That "step aside and react later" pattern <i>is</i> asynchronous programming.
+    </div>
+
+    <p style="font-size:0.92rem;"><b style="color:var(--text)">Asynchronous operation</b>, concretely: start the fetch in the background → keep the page responsive → wait for the result → update the UI when it arrives.</p>
+
+    <div class="trigger-words">
+      <span>callback</span><span>event loop</span><span>promise</span><span>fetch API</span><span>axios</span><span>non-blocking</span>
+    </div>
+  </div>
+
+  <!-- ============ 3. CALLBACKS ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">3</span>Mechanism</div>
+    <h2 class="sec-title">Events &amp; Callbacks</h2>
+    <p>The most primitive async tool: hand a function to something slow, and say <i>"call me back when you're done."</i></p>
+
+    <div class="callout warn">
+      <div class="icon">🐢</div>
+      <div class="body"><code style="background:none;">let result = doSomething()</code> — blocks the <b>entire</b> JS interpreter until <code>result</code> exists. Nothing else on the page can run. This is the failure mode callbacks solve.</div>
+    </div>
+
+    <div class="code-panel">
+      <div class="code-head"><span>callback-pattern.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="c-fn">doSomething</span>(successCB, failureCB) {
+  <span class="c-kw">let</span> result = <span class="c-fn">doLongComputation</span>();
+  <span class="c-kw">if</span> (result) <span class="c-fn">successCB</span>();   <span class="c-com">// called as a function, later</span>
+  <span class="c-kw">else</span> <span class="c-fn">failureCB</span>();
+}</code></pre>
+      <div class="annot"><b>Higher-order function:</b> <code>doSomething</code> takes other functions as arguments and decides <i>when</i> to call them, based on a runtime condition — not called imperatively in sequence.</div>
+    </div>
+
+    <div class="analogy">
+      <span class="tag">Analogy</span>
+      A DOM <code>onclick</code> handler is a callback you never call yourself. You just tell the browser: <i>"when this click event happens, run this function."</i> It's declarative, not imperative — you describe the trigger, not the execution order.
+    </div>
+  </div>
+
+  <!-- ============ 4. EVENT LOOP ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">4</span>Mechanism</div>
+    <h2 class="sec-title">The Event Loop &amp; Call Stack</h2>
+    <p>How JavaScript actually schedules all these callbacks with only one thread:</p>
+
+    <div class="loop-diagram">
+      <div class="loop-box stack">
+        <h4>① Call Stack</h4>
+        <div class="stack-item">main()</div>
+        <div class="stack-item">fetchData()</div>
+        <div class="stack-item">renderUI()</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin:0.4rem 0 0;">Executes everything in the current scope, in sequence.</p>
+      </div>
+      <div class="loop-box queue">
+        <h4>② Callback Queue</h4>
+        <div class="queue-item">onSuccess()</div>
+        <div class="queue-item">onTimeout()</div>
+        <p style="font-size:0.8rem; color:var(--muted); margin:0.4rem 0 0;">Callbacks wait here until the stack is empty.</p>
+      </div>
+    </div>
+    <div class="loop-cycle">stack empties → loop checks queue → pushes next callback onto stack → repeat, forever</div>
+
+    <div class="callout tip">
+      <div class="icon">📖</div>
+      <div class="body">Deeper reading: <a href="https://html.spec.whatwg.org/multipage/webappapis.html#event-loops" style="color:var(--blue)">WHATWG spec</a> · <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/EventLoopCallbacks" style="color:var(--blue)">MDN Event Loop</a></div>
+    </div>
+  </div>
+
+  <!-- ============ 5. PROMISES ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">5</span>Mechanism</div>
+    <h2 class="sec-title">Promises</h2>
+    <p>Same idea as callbacks, cleaner syntax — and stronger guarantees.</p>
+
+    <div class="grid-2">
+      <div class="code-panel">
+        <div class="code-head"><span>callback style</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+        <pre><code><span class="c-fn">doSomething</span>(successCB, failureCB) {
+  ...
+}</code></pre>
+      </div>
+      <div class="code-panel">
+        <div class="code-head"><span>promise style</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+        <pre><code><span class="c-fn">doSomething</span>()
+  .<span class="c-fn">then</span>(successCB, failureCB);</code></pre>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">✅</div>
+      <div class="body">Promises are <b>more than syntax sugar</b> — they add real guarantees: a promise settles exactly once (success or failure, never both, never zero), and <code>.then()</code> calls chain cleanly instead of nesting ("callback hell").
+      See: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises" style="color:var(--blue)">MDN — Using Promises</a></div>
+    </div>
+  </div>
+
+  <!-- ============ 6. CONCURRENCY VS PARALLELISM ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">6</span>Concept</div>
+    <h2 class="sec-title">Concurrency vs. Parallelism</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title" style="color:var(--teal)">🔀 Concurrent</div>
+        <p style="margin:0;font-size:0.9rem;">Multiple operations are <i>in process</i> at once — but maybe only time-multiplexed, not literally simultaneous.</p>
+      </div>
+      <div class="card">
+        <div class="card-title" style="color:var(--gold)">⚡ Parallel</div>
+        <p style="margin:0;font-size:0.9rem;">Multiple operations are <i>physically</i> executing at the same instant, on separate cores/threads.</p>
+      </div>
+    </div>
+
+    <div class="callout required">
+      <div class="icon">🔑</div>
+      <div class="body"><b>Parallel requires concurrent — not vice versa.</b> Async operations bring <i>concurrency</i>; whether the runtime happens to implement that as parallel or time-multiplexed is up to the environment (e.g. web workers and timers can run in parallel).</div>
+    </div>
+
+    <div class="analogy">
+      <span class="tag">Analogy</span>
+      One chef switching rapidly between four pans is <b>concurrent</b> (all four dishes are "in progress"). Four chefs, each at their own stove, is <b>parallel</b>. From the diner's seat both can look similar — but only one actually uses more hands.
+    </div>
+  </div>
+
+  <!-- ============ 7. FETCH API ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">7</span>Tool</div>
+    <h2 class="sec-title">The <code style="font-family:var(--mono); background:none;">fetch()</code> API</h2>
+    <p>The built-in, promise-based way to make a URL request async, since ES6.</p>
+
+    <div class="code-panel">
+      <div class="code-head"><span>fetch-example.js</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="c-fn">fetch</span>(<span class="c-str">"/api/students"</span>)
+  .<span class="c-fn">then</span>(response <span class="c-kw">=></span> response.<span class="c-fn">json</span>())
+  .<span class="c-fn">then</span>(data <span class="c-kw">=></span> {
+    <span class="c-com">// data is now a real JS object — safe to render</span>
+    <span class="c-fn">renderUI</span>(data);
+  })
+  .<span class="c-fn">catch</span>(err <span class="c-kw">=></span> <span class="c-fn">console.error</span>(err));</code></pre>
+      <div class="annot">Implemented internally using <b>Promise</b>. Built into most modern browsers; <b>polyfills</b> exist for older ones.</div>
+    </div>
+  </div>
+
+  <!-- ============ 8. AXIOS ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">8</span>Tool</div>
+    <h2 class="sec-title">Axios</h2>
+    <p>A custom API library that mirrors <code style="background:none; font-family:var(--mono);">fetch</code>'s job, with broader compatibility.</p>
+
+    <table>
+      <thead><tr><th>Aspect</th><th>fetch()</th><th>axios</th></tr></thead>
+      <tbody>
+        <tr><td>Origin</td><td>Native browser API (ES6+)</td><td>External library</td></tr>
+        <tr><td>Browser support</td><td>Modern browsers; needs polyfills for old ones</td><td>Good backward compatibility out of the box</td></tr>
+        <tr><td>Node.js</td><td>Not native (historically)</td><td>Works on Node.js too</td></tr>
+        <tr><td>JSON handling</td><td>Manual <code style="background:none;">.json()</code> step</td><td>Automatic JSON parsing</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <div class="icon">📖</div>
+      <div class="body">Further reading: <a href="https://blog.logrocket.com/axios-or-fetch-api/" style="color:var(--blue)">Axios vs Fetch API — LogRocket</a></div>
+    </div>
+  </div>
+
+  <!-- ============ 9. EXISTING APIs ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">9</span>Practice</div>
+    <h2 class="sec-title">Building a Frontend on Existing APIs</h2>
+    <p>A huge amount of real development is just consuming public APIs well — no backend of your own required.</p>
+
+    <div class="api-grid">
+      <div class="api-card"><div class="name"><span class="dot" style="background:var(--blue)"></span>OpenWeatherMap</div><div class="desc">Weather data by city/coordinates — great for practicing query params.</div></div>
+      <div class="api-card"><div class="name"><span class="dot" style="background:var(--purple)"></span>HackerNews API</div><div class="desc">Live stories &amp; comments — good for pagination and nested fetches.</div></div>
+      <div class="api-card"><div class="name"><span class="dot" style="background:var(--teal)"></span>Wikipedia API</div><div class="desc">Search &amp; article summaries — text-heavy JSON responses.</div></div>
+      <div class="api-card"><div class="name"><span class="dot" style="background:var(--gold)"></span>GitHub API</div><div class="desc">Repos, issues, users — a realistic REST surface with auth options.</div></div>
+    </div>
+  </div>
+
+  <!-- ============ SOLVE QUESTIONS ============ -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">10</span>Solve Questions</div>
+    <h2 class="sec-title">Quick Self-Check</h2>
+
+    <div class="qcard">
+      <div class="qhead"><span>Q1 · Concept check</span><span>separation of concerns</span></div>
+      <div class="qtext">Why should backend code never call HTML template rendering directly?</div>
+      <details class="ans"><summary>Reveal answer</summary>
+        <div class="a-body">Because it couples the data layer to one specific presentation — the moment the UI changes (new frontend, mobile app, different framework) the backend would need to change too. Neutral data output (e.g. JSON) keeps them independent.</div>
+      </details>
+    </div>
+
+    <div class="qcard">
+      <div class="qhead"><span>Q2 · Trap</span><span>concurrency vs parallelism</span></div>
+      <div class="qtext">True or false: "This code is async, so it must be running in parallel."</div>
+      <details class="ans"><summary>Reveal answer</summary>
+        <div class="a-body"><b>False.</b> Async guarantees concurrency (multiple things "in flight"), not parallelism (multiple things executing at the same physical instant). A single-threaded event loop can be concurrent without ever being parallel.</div>
+      </details>
+    </div>
+
+    <div class="qcard">
+      <div class="qhead"><span>Q3 · Code reading</span><span>promises</span></div>
+      <div class="qtext"><code style="background:none; font-family:var(--mono);">doSomething().then(successCB, failureCB)</code> — what guarantee does this have that a plain callback pair doesn't?</div>
+      <details class="ans"><summary>Reveal answer</summary>
+        <div class="a-body">The promise is guaranteed to settle exactly once — either <code style="background:none;">successCB</code> or <code style="background:none;">failureCB</code> fires, never both, never neither — and multiple <code style="background:none;">.then()</code> calls can be chained predictably.</div>
+      </details>
+    </div>
+  </div>
+
+  <!-- ============ ONE-PAGE BRAIN ============ -->
+  <div class="brain">
+    <h3>🧠 One-Page Brain — Using APIs</h3>
+    <div class="brain-grid">
+      <div class="brain-col">
+        <h5>Core Intuition</h5>
+        <ul>
+          <li>Backend owns data, frontend owns UI — connected only by a neutral data contract (usually JSON).</li>
+          <li>Fetching is unreliable in timing, so it must never block the single JS thread.</li>
+        </ul>
+        <h5 style="margin-top:1rem;">Trigger Words</h5>
+        <ul>
+          <li>"async" → callbacks / promises / fetch</li>
+          <li>"single-threaded" → event loop, blocking</li>
+          <li>"backward compatible" → axios over raw fetch</li>
+        </ul>
+      </div>
+      <div class="brain-col">
+        <h5>Common Traps</h5>
+        <ul>
+          <li>Assuming async = parallel (it only guarantees concurrency)</li>
+          <li>Backend rendering HTML directly — breaks separation of concerns</li>
+          <li>Forgetting <code style="background:none;">fetch()</code> needs an explicit <code style="background:none;">.json()</code> step; axios does it for you</li>
+        </ul>
+        <h5 style="margin-top:1rem;">Dependencies</h5>
+        <ul>
+          <li>Promises underpin <code style="background:none;">fetch()</code></li>
+          <li>Event loop underpins all of JS's async model</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Source: IIT Madras BSc Degree — MAD2, Week 5 · Notes generated for study purposes
+  </footer>
+
+</div>
+</body>
+</html>

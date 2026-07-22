@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 27 — Introduction to Supervised Learning</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0e17;
+    --bg-alt: #10141f;
+    --panel-bg: #12141c;
+    --panel-border: rgba(255,255,255,0.08);
+    --card-bg: #141826;
+    --card-border: rgba(255,255,255,0.07);
+    --text: #e7e9f0;
+    --text-dim: #9aa1b5;
+    --text-dimmer: #6b7288;
+
+    --gold: #e8b84b;
+    --teal: #3fd6c4;
+    --purple: #b892f0;
+    --blue: #5fa8f5;
+    --green: #6fd08a;
+    --red: #f0708a;
+
+    --serif-math-font: "Fraunces", "STIX Two Math", serif;
+    --body-font: "Inter", sans-serif;
+    --mono-font: "JetBrains Mono", monospace;
+
+    --radius: 16px;
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,146,240,0.07), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(63,214,196,0.06), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    line-height: 1.65;
+    padding: 0 0 4rem 0;
+  }
+
+  .wrap{ max-width: 980px; margin: 0 auto; padding: 0 1.25rem; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding: 3.5rem 1.25rem 2.5rem;
+    text-align:center;
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 2.5rem;
+    background: linear-gradient(180deg, rgba(184,146,240,0.05), transparent 70%);
+  }
+  .hero .eyebrow{
+    font-family: var(--mono-font);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+  .hero h1{
+    font-family: var(--serif-math-font);
+    font-weight: 600;
+    font-size: clamp(1.8rem, 5vw, 2.8rem);
+    margin: 0.6rem 0 0.8rem;
+    background: linear-gradient(90deg, var(--gold), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p.sub{ color: var(--text-dim); max-width: 620px; margin: 0 auto; font-size: 1.02rem; }
+
+  .badge-row{ display:flex; gap: 0.6rem; justify-content:center; flex-wrap:wrap; margin-top: 1.4rem; }
+  .badge{
+    font-family: var(--mono-font);
+    font-size: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid var(--panel-border);
+    color: var(--text-dim);
+    background: rgba(255,255,255,0.02);
+  }
+  .badge.geo{ color: var(--blue); border-color: rgba(95,168,245,0.3); }
+  .badge.pat{ color: var(--purple); border-color: rgba(184,146,240,0.3); }
+  .badge.dec{ color: var(--gold); border-color: rgba(232,184,75,0.3); }
+
+  /* ---------- SECTION HEADERS ---------- */
+  .stage-tag{
+    font-family: var(--mono-font);
+    font-size: 0.72rem;
+    color: var(--text-dimmer);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.35rem;
+  }
+  h2.section-title{
+    font-family: var(--serif-math-font);
+    font-size: clamp(1.3rem, 3.2vw, 1.7rem);
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+    color: var(--text);
+    display:flex; align-items:center; gap:0.6rem;
+  }
+  h2.section-title .num{
+    font-family: var(--mono-font);
+    font-size: 0.9rem;
+    color: var(--bg);
+    background: var(--teal);
+    border-radius: 8px;
+    width: 2rem; height:2rem;
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  section.block{ margin-bottom: 3rem; }
+
+  /* ---------- BOX CARDS ---------- */
+  .card{
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: var(--radius);
+    padding: 1.6rem 1.7rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .card h3{ margin-top:0; font-family: var(--serif-math-font); font-weight:600; font-size: 1.15rem; }
+
+  .card-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  @media (max-width: 800px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .type-card{
+    border-radius: var(--radius);
+    padding: 1.5rem 1.4rem;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    position: relative;
+    overflow:hidden;
+  }
+  .type-card::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:4px;
+  }
+  .type-card.binary::before{ background: var(--blue); }
+  .type-card.multi::before{ background: var(--purple); }
+  .type-card.regression::before{ background: var(--green); }
+
+  .type-card .tag{
+    font-family: var(--mono-font); font-size: 0.7rem;
+    display:inline-block; padding: 0.2rem 0.55rem; border-radius: 999px;
+    margin-bottom: 0.7rem;
+  }
+  .type-card.binary .tag{ color: var(--blue); background: rgba(95,168,245,0.12); }
+  .type-card.multi .tag{ color: var(--purple); background: rgba(184,146,240,0.12); }
+  .type-card.regression .tag{ color: var(--green); background: rgba(111,208,138,0.12); }
+
+  .type-card h3{ font-size: 1.05rem; margin-bottom: 0.4rem; }
+  .type-card p{ font-size: 0.92rem; color: var(--text-dim); margin: 0.4rem 0; }
+  .type-card .label-set{ font-family: var(--mono-font); font-size: 0.85rem; color: var(--gold); margin: 0.5rem 0; }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius: 12px;
+    padding: 1.1rem 1.3rem;
+    margin: 1.3rem 0;
+    border-left: 4px solid var(--teal);
+    background: rgba(63,214,196,0.06);
+    font-size: 0.95rem;
+  }
+  .callout.warn{ border-left-color: var(--red); background: rgba(240,112,138,0.07); }
+  .callout.tip{ border-left-color: var(--gold); background: rgba(232,184,75,0.07); }
+  .callout.biz{ border-left-color: var(--purple); background: rgba(184,146,240,0.07); }
+  .callout .co-label{
+    font-family: var(--mono-font); font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.08em; display:block; margin-bottom: 0.4rem; opacity: 0.85;
+  }
+
+  /* ---------- EQUATION PANEL ---------- */
+  .eq-panel{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 2.2rem 1.6rem 1.8rem;
+    margin: 1.6rem 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    text-align: center;
+    position: relative;
+  }
+  .eq-panel .eq-number{
+    position: absolute; bottom: 0.7rem; right: 1.15rem;
+    font-size: 0.75rem; opacity: 0.45; font-family: var(--mono-font);
+  }
+  .eq-panel .eq-label{
+    font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;
+  }
+  .eq-main{
+    font-family: var(--serif-math-font);
+    font-size: clamp(1.1rem, 3vw, 1.65rem);
+    line-height: 2.1;
+  }
+  .sym-var{ color: var(--blue); font-style: italic; }
+  .sym-param{ color: var(--gold); font-style: italic; }
+  .sym-const{ color: var(--green); }
+  .sym-fn{ color: var(--purple); }
+  .sym-op{ color: var(--red); font-size: 1.15em; }
+
+  .legend{
+    display:flex; flex-wrap:wrap; gap: 0.8rem 1.6rem;
+    justify-content:center; margin-top: 1.2rem; font-size: 0.85rem;
+    padding: 0.9rem 0; border-top: 1px dashed var(--panel-border);
+  }
+  .legend span.sym{ font-family: var(--serif-math-font); font-weight:600; margin-right:0.3rem; }
+  .legend div{ color: var(--text-dim); }
+
+  /* ---------- TABLES ---------- */
+  table.data-table{
+    width:100%; border-collapse: collapse; font-size: 0.92rem;
+    background: var(--card-bg); border-radius: 12px; overflow:hidden;
+  }
+  table.data-table th{
+    background: rgba(255,255,255,0.04); color: var(--teal);
+    text-align:left; padding: 0.7rem 0.9rem; font-family: var(--mono-font);
+    font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  table.data-table td{ padding: 0.7rem 0.9rem; border-top: 1px solid var(--card-border); color: var(--text-dim); }
+  table.data-table tr:hover td{ background: rgba(255,255,255,0.02); }
+  .scroll-x{ overflow-x:auto; border-radius:12px; }
+
+  /* ---------- CODE ---------- */
+  pre{
+    background: #0a0c13; border:1px solid var(--card-border); border-radius: 12px;
+    padding: 1.1rem 1.2rem; overflow-x:auto; font-family: var(--mono-font); font-size: 0.83rem;
+    line-height: 1.6;
+  }
+  code{ font-family: var(--mono-font); }
+  .cm{ color: var(--text-dimmer); font-style: italic;} /* comment */
+  .kw{ color: var(--purple); } /* keyword */
+  .st{ color: var(--green); } /* string */
+  .fn{ color: var(--teal); } /* function name */
+  .nb{ color: var(--gold); } /* number */
+
+  /* ---------- DIAGRAM / FLOW ---------- */
+  .flow{
+    display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;
+    justify-content:center; margin: 1.5rem 0;
+  }
+  .flow .step{
+    background: var(--card-bg); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem;
+    text-align:center; min-width: 100px;
+  }
+  .flow .arrow{ color: var(--teal); font-size: 1.3rem; }
+  @media (max-width: 700px){
+    .flow{ flex-direction: column; }
+    .flow .arrow{ transform: rotate(90deg); }
+  }
+
+  /* ---------- TRIGGER PILLS ---------- */
+  .pill-row{ display:flex; flex-wrap:wrap; gap: 0.55rem; margin-top: 0.8rem; }
+  .pill{
+    font-family: var(--mono-font); font-size: 0.8rem;
+    padding: 0.35rem 0.7rem; border-radius: 8px;
+    background: rgba(232,184,75,0.1); color: var(--gold);
+    border: 1px solid rgba(232,184,75,0.25);
+  }
+
+  /* ---------- ACCORDION-ish TRAP CARDS ---------- */
+  .trap{
+    border: 1px solid rgba(240,112,138,0.25);
+    background: rgba(240,112,138,0.05);
+    border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.9rem;
+  }
+  .trap .t-head{ display:flex; gap:0.6rem; align-items:center; font-weight:600; color: var(--red); margin-bottom:0.3rem; }
+
+  /* ---------- SVG DIAGRAM WRAP ---------- */
+  .svg-wrap{ display:flex; justify-content:center; margin: 1.4rem 0; }
+  .svg-wrap svg{ max-width: 100%; height:auto; }
+
+  /* ---------- ONE PAGE BRAIN ---------- */
+  .brain{
+    background: linear-gradient(160deg, rgba(184,146,240,0.08), rgba(63,214,196,0.05));
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 1.8rem;
+  }
+  .brain-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px){ .brain-grid{ grid-template-columns: 1fr; } }
+  .brain h4{
+    font-family: var(--mono-font); font-size: 0.78rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--teal); margin: 0 0 0.5rem;
+  }
+  .brain ul{ margin: 0; padding-left: 1.1rem; font-size: 0.9rem; color: var(--text-dim); }
+  .brain li{ margin-bottom: 0.3rem; }
+
+  footer.foot{ text-align:center; color: var(--text-dimmer); font-size: 0.82rem; margin-top: 3rem; }
+
+  .toc{
+    display:flex; flex-wrap:wrap; gap: 0.5rem; justify-content:center; margin: 1.6rem 0 0;
+  }
+  .toc a{
+    font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dim);
+    text-decoration:none; border: 1px solid var(--panel-border); border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+  }
+  .toc a:hover{ color: var(--teal); border-color: var(--teal); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">IIT Madras · Machine Learning Techniques</div>
+  <h1>Lecture 27 — Introduction to Supervised Learning</h1>
+  <p class="sub">Where the course turns a corner: from finding structure in unlabeled data to predicting labels you're explicitly told during training.</p>
+  <div class="badge-row">
+    <span class="badge geo">Cognitive Pattern: Pattern Recognition</span>
+    <span class="badge pat">Cognitive Pattern: Decision Making</span>
+    <span class="badge dec">Cognitive Pattern: Generalization</span>
+  </div>
+  <div class="toc">
+    <a href="#problem">0 · Problem</a>
+    <a href="#translation">3 · Math Setup</a>
+    <a href="#types">Three Problem Types</a>
+    <a href="#flow">14 · Computational Flow</a>
+    <a href="#triggers">10 · Triggers</a>
+    <a href="#invariants">16 · Invariants</a>
+    <a href="#traps">18 · Exam Traps</a>
+    <a href="#industry">20 · sklearn</a>
+    <a href="#brain">22 · One-Page Brain</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1 + 0 + 1 + 2: WHY THIS TOPIC, WHY NOW -->
+<section class="block" id="problem">
+  <div class="stage-tag">Stage -1 → 2 · Cognitive Pattern, Problem, History, Engineering Thinking</div>
+  <h2 class="section-title"><span class="num">0</span>Why This Topic Exists</h2>
+
+  <div class="card">
+    <h3>The problem unsupervised learning can't solve</h3>
+    <p>Everything before this lecture — K-means, GMM, EM — worked on data with <strong>no answer key</strong>. You handed the algorithm points and asked it to find its own structure: clusters, densities, latent groupings. That's powerful, but it can't answer a very ordinary business question: <em>"is this specific thing X actually a Y?"</em></p>
+    <p>Supervised learning exists because most real decisions need a <strong>known correct answer to learn from</strong>. You don't want a model to invent its own idea of what "spam" means — you want it to learn <em>your</em> definition of spam from thousands of emails you've already labeled.</p>
+  </div>
+
+  <div class="callout biz">
+    <span class="co-label">RMS / Cubedekho lens</span>
+    If you were running lead-scoring for RMS, unsupervised clustering might discover "there seem to be 3 kinds of visitors." That's interesting but not actionable. Supervised learning answers the question you actually care about: <strong>"will this specific lead convert, yes or no?"</strong> — because you can label your past leads with what actually happened.
+  </div>
+
+  <div class="card">
+    <h3>Engineering requirements before any math</h3>
+    <p>Before writing a single formula, any supervised system has to satisfy three practical constraints:</p>
+    <table class="data-table">
+      <tr><th>Requirement</th><th>Why it matters</th></tr>
+      <tr><td>Must generalize to <strong>unseen</strong> inputs</td><td>Memorizing the training emails is useless — new spam arrives every day</td></tr>
+      <tr><td>Must handle the <strong>right kind of output</strong></td><td>A yes/no answer needs different machinery than a rainfall amount in mm</td></tr>
+      <tr><td>Must be learnable from a <strong>finite labeled sample</strong></td><td>You'll never have every possible email or every possible rainfall scenario</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 3, 4, 5: MATH SETUP -->
+<section class="block" id="translation">
+  <div class="stage-tag">Stage 3 → 5 · Mathematical Translation, Formula Construction, Anatomy</div>
+  <h2 class="section-title"><span class="num">3</span>Setting Up the Formal Problem</h2>
+
+  <p>Turn the engineering requirements above into notation, one piece at a time.</p>
+
+  <p><strong>Step 1</strong> — every input is a point living in a <span class="sym-var">d</span>-dimensional space (its features):</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Feature space</div>
+    <div class="eq-main">
+      <span class="sym-var">X</span><sub>1</sub>, <span class="sym-var">X</span><sub>2</sub>, …, <span class="sym-var">X</span><sub>n</sub> &nbsp;<span class="sym-op">∈</span>&nbsp; <span class="sym-fn">ℝ</span><sup class="sym-const">d</sup>
+    </div>
+    <div class="eq-number">Eq. 27.1</div>
+  </div>
+
+  <p><strong>Step 2</strong> — every input is paired with a label, the "correct answer" a teacher supplies:</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Labeled dataset</div>
+    <div class="eq-main">
+      <span class="sym-fn">D</span> &nbsp;<span class="sym-op">=</span>&nbsp; { (<span class="sym-var">X</span><sub>1</sub>, <span class="sym-var">Y</span><sub>1</sub>), (<span class="sym-var">X</span><sub>2</sub>, <span class="sym-var">Y</span><sub>2</sub>), …, (<span class="sym-var">X</span><sub>n</sub>, <span class="sym-var">Y</span><sub>n</sub>) }
+    </div>
+    <div class="eq-number">Eq. 27.2</div>
+  </div>
+
+  <div class="legend">
+    <div><span class="sym sym-var">X</span> — feature vector (also called an <em>attribute</em> or <em>predictor</em>)</div>
+    <div><span class="sym sym-var">Y</span> — label (also called <em>supervision</em>)</div>
+    <div><span class="sym sym-const">d</span> — number of features describing one input</div>
+    <div><span class="sym sym-const">n</span> — number of labeled examples available</div>
+  </div>
+
+  <p><strong>Step 3</strong> — the goal is a function that maps any feature vector to a predicted label, including ones it has never seen:</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Learning objective</div>
+    <div class="eq-main">
+      <span class="sym-fn">f</span> : <span class="sym-fn">ℝ</span><sup class="sym-const">d</sup> <span class="sym-op">→</span> <span class="sym-param">𝒴</span> &nbsp;&nbsp; such that &nbsp;&nbsp; <span class="sym-fn">f</span>(<span class="sym-var">X</span><sub>new</sub>) <span class="sym-op">≈</span> <span class="sym-var">Y</span><sub>new</sub>
+    </div>
+    <div class="eq-number">Eq. 27.3</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-fn">f</span> — the model / hypothesis we are trying to learn</div>
+    <div><span class="sym sym-param">𝒴</span> — the label space; <strong>what 𝒴 looks like is what defines the whole problem type</strong> below</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="co-label">The one idea that matters most</span>
+    Everything in this lecture reduces to a single design choice: <strong>what does 𝒴 look like?</strong> Two values, several values, or the entire real number line — and each answer spins up an entirely different branch of machine learning.
+  </div>
+</section>
+
+<!-- THREE TYPES -->
+<section class="block" id="types">
+  <div class="stage-tag">Stage 7, 11, 12 · Algorithm shape, Pattern Recognition, Formula-Shape Recognition</div>
+  <h2 class="section-title"><span class="num">7</span>The Three Shapes of 𝒴</h2>
+  <p>Three problem families fall out of the single question above — nothing more exotic than "how many values can the label take, and are they ordered?"</p>
+
+  <div class="card-grid">
+    <div class="type-card binary">
+      <span class="tag">𝒴 has 2 values</span>
+      <h3>Binary Classification</h3>
+      <div class="label-set">𝒴 = { +1, −1 } or { 0, 1 }</div>
+      <p>One of exactly two buckets. No in-between.</p>
+      <p><strong>Example:</strong> Spam Detection — an email's features go in, "spam" / "non-spam" comes out.</p>
+    </div>
+    <div class="type-card multi">
+      <span class="tag">𝒴 has K+1 values</span>
+      <h3>Multi-class Classification</h3>
+      <div class="label-set">𝒴 = { 0, 1, …, K }</div>
+      <p>A finite set of unordered categories, more than two.</p>
+      <p><strong>Example:</strong> Digit Recognition — an image goes in, one digit 0–9 comes out.</p>
+    </div>
+    <div class="type-card regression">
+      <span class="tag">𝒴 is continuous</span>
+      <h3>Regression</h3>
+      <div class="label-set">𝒴 = ℝ = (−∞, +∞)</div>
+      <p>Any real number — infinitely many possible answers, with deep statistical roots.</p>
+      <p><strong>Example:</strong> Rainfall Prediction — temperature, humidity, pressure go in, exact mm of rainfall comes out.</p>
+    </div>
+  </div>
+
+  <div class="callout biz">
+    <span class="co-label">Mapped onto your businesses</span>
+    <strong>Binary</strong> → "will this Cubedekho cart abandon or convert?" &nbsp;·&nbsp; <strong>Multi-class</strong> → "which cube category is this product photo — 3×3, pyramid, or megaminx?" &nbsp;·&nbsp; <strong>Regression</strong> → "how much revenue will this RMS batch generate?" Same three shapes, three completely different businesses.
+  </div>
+
+  <h3 style="font-family: var(--serif-math-font); margin-top:2rem;">Side-by-side comparison</h3>
+  <div class="scroll-x">
+    <table class="data-table">
+      <tr><th>Property</th><th>Binary Classification</th><th>Multi-class Classification</th><th>Regression</th></tr>
+      <tr><td>Label space 𝒴</td><td>{+1, −1}</td><td>{0, 1, …, K}</td><td>ℝ</td></tr>
+      <tr><td>Ordering of labels</td><td>N/A (only 2)</td><td>Unordered categories</td><td>Fully ordered, continuous</td></tr>
+      <tr><td>Answer count</td><td>2</td><td>K+1 (finite)</td><td>Infinite</td></tr>
+      <tr><td>Roots</td><td>Decision theory</td><td>Decision theory</td><td>Classical statistics</td></tr>
+      <tr><td>Business example</td><td>Spam / not spam</td><td>Digit 0–9</td><td>Rainfall in mm</td></tr>
+      <tr><td>Typical error metric</td><td>Accuracy / precision</td><td>Accuracy per class</td><td>Squared error</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- SVG PROCESS DIAGRAM -->
+<section class="block">
+  <h2 class="section-title"><span class="num">🖼</span>Visual Intuition: Same Pipeline, Different Output Shape</h2>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <path d="M0,0 L6,3 L0,6 Z" fill="#3fd6c4"/>
+        </marker>
+      </defs>
+      <!-- input -->
+      <rect x="10" y="80" width="120" height="60" rx="12" fill="#141826" stroke="#5fa8f5" stroke-width="1.5"/>
+      <text x="70" y="105" fill="#5fa8f5" font-size="13" font-family="Inter" text-anchor="middle">Input X</text>
+      <text x="70" y="122" fill="#9aa1b5" font-size="10" font-family="Inter" text-anchor="middle">email / image / weather</text>
+
+      <line x1="130" y1="110" x2="185" y2="110" stroke="#3fd6c4" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- model -->
+      <rect x="190" y="70" width="140" height="80" rx="12" fill="#12141c" stroke="#b892f0" stroke-width="1.5"/>
+      <text x="260" y="105" fill="#b892f0" font-size="14" font-family="Fraunces" text-anchor="middle">f(X)</text>
+      <text x="260" y="124" fill="#9aa1b5" font-size="10" font-family="Inter" text-anchor="middle">learned model</text>
+
+      <line x1="330" y1="110" x2="385" y2="110" stroke="#3fd6c4" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- three outputs -->
+      <rect x="390" y="10" width="150" height="50" rx="10" fill="#141826" stroke="#5fa8f5" stroke-width="1.5"/>
+      <text x="465" y="30" fill="#5fa8f5" font-size="11" font-family="Inter" text-anchor="middle">Binary</text>
+      <text x="465" y="46" fill="#9aa1b5" font-size="10" font-family="JetBrains Mono" text-anchor="middle">{ +1, −1 }</text>
+
+      <rect x="390" y="85" width="150" height="50" rx="10" fill="#141826" stroke="#b892f0" stroke-width="1.5"/>
+      <text x="465" y="105" fill="#b892f0" font-size="11" font-family="Inter" text-anchor="middle">Multi-class</text>
+      <text x="465" y="121" fill="#9aa1b5" font-size="10" font-family="JetBrains Mono" text-anchor="middle">{ 0, 1, …, K }</text>
+
+      <rect x="390" y="160" width="150" height="50" rx="10" fill="#141826" stroke="#6fd08a" stroke-width="1.5"/>
+      <text x="465" y="180" fill="#6fd08a" font-size="11" font-family="Inter" text-anchor="middle">Regression</text>
+      <text x="465" y="196" fill="#9aa1b5" font-size="10" font-family="JetBrains Mono" text-anchor="middle">ℝ (any real number)</text>
+
+      <line x1="330" y1="105" x2="385" y2="35" stroke="#5fa8f5" stroke-width="1.3" stroke-dasharray="3,3"/>
+      <line x1="330" y1="110" x2="385" y2="110" stroke="#b892f0" stroke-width="1.3" stroke-dasharray="3,3"/>
+      <line x1="330" y1="115" x2="385" y2="185" stroke="#6fd08a" stroke-width="1.3" stroke-dasharray="3,3"/>
+
+      <rect x="560" y="10" width="150" height="200" rx="10" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+      <text x="635" y="35" fill="#e8b84b" font-size="11" font-family="Inter" text-anchor="middle">Same f(X)</text>
+      <text x="635" y="55" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">shape.</text>
+      <text x="635" y="70" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">Only 𝒴</text>
+      <text x="635" y="85" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">changes.</text>
+      <text x="635" y="105" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">Everything</text>
+      <text x="635" y="120" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">downstream</text>
+      <text x="635" y="135" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">— algorithm,</text>
+      <text x="635" y="150" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">loss, metric —</text>
+      <text x="635" y="165" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">follows from</text>
+      <text x="635" y="180" fill="#6b7288" font-size="9" font-family="Inter" text-anchor="middle">that one choice.</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ANNOTATED CODE PER TYPE -->
+<section class="block">
+  <h2 class="section-title"><span class="num">💻</span>The Same Idea, in Code</h2>
+  <p>None of these problems needs a specific algorithm yet — this course hasn't built one. But the shape of the output already tells you what a scikit-learn call for each would look like:</p>
+
+  <h3 style="font-family: var(--serif-math-font);">Binary — spam detection</h3>
+  <pre><code><span class="cm"># X_email = feature vector built from an email (word counts, sender, links...)</span>
+<span class="cm"># Y ∈ {spam, non-spam}  → exactly 2 possible outputs</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> <span class="fn">LogisticRegression</span>
+
+model = <span class="fn">LogisticRegression</span>()
+model.fit(X_train, y_train)          <span class="cm"># y_train is a 0/1 array</span>
+prediction = model.predict(X_new)    <span class="cm"># returns 0 (not spam) or 1 (spam)</span></code></pre>
+
+  <h3 style="font-family: var(--serif-math-font);">Multi-class — digit recognition</h3>
+  <pre><code><span class="cm"># X_image = pixel values of a handwritten digit image</span>
+<span class="cm"># Y ∈ {0, 1, 2, ..., 9}  → 10 possible outputs</span>
+<span class="kw">from</span> sklearn.svm <span class="kw">import</span> <span class="fn">SVC</span>
+
+model = <span class="fn">SVC</span>(decision_function_shape=<span class="st">'ovr'</span>)  <span class="cm"># one-vs-rest under the hood</span>
+model.fit(X_train, y_train)                 <span class="cm"># y_train has values 0–9</span>
+prediction = model.predict(X_new)           <span class="cm"># returns a single digit</span></code></pre>
+
+  <h3 style="font-family: var(--serif-math-font);">Regression — rainfall prediction</h3>
+  <pre><code><span class="cm"># X_weather = [temperature, humidity, pressure]</span>
+<span class="cm"># Y ∈ ℝ  → any real number, e.g. 14.7 (mm)</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> <span class="fn">LinearRegression</span>
+
+model = <span class="fn">LinearRegression</span>()
+model.fit(X_train, y_train)          <span class="cm"># y_train is continuous, e.g. [0.0, 14.7, 32.1, ...]</span>
+prediction = model.predict(X_new)    <span class="cm"># returns a real number, not a category</span></code></pre>
+
+  <div class="callout warn">
+    <span class="co-label">Notice</span>
+    The <code>import</code> line changes with the shape of 𝒴 — <code>LogisticRegression</code>/<code>SVC</code> for discrete outputs, <code>LinearRegression</code> for continuous ones. Using a classifier's <code>.predict()</code> on a regression target (or vice-versa) is a category error, not just a suboptimal choice.
+  </div>
+</section>
+
+<!-- STAGE 14: COMPUTATIONAL FLOW -->
+<section class="block" id="flow">
+  <div class="stage-tag">Stage 14 · Computational Flow</div>
+  <h2 class="section-title"><span class="num">14</span>The Full Pipeline</h2>
+  <div class="flow">
+    <div class="step">Raw Data<br><small style="color:var(--text-dimmer)">emails / images / sensors</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Feature Extraction<br><small style="color:var(--text-dimmer)">build X ∈ ℝᵈ</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Labeling<br><small style="color:var(--text-dimmer)">attach Y (human or logged)</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Learn f(X)<br><small style="color:var(--text-dimmer)">the model</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Predict Y_new<br><small style="color:var(--text-dimmer)">on unseen X</small></div>
+  </div>
+  <p style="text-align:center; color:var(--text-dim); font-size:0.9rem;">Every supervised system — binary, multi-class, or regression — walks this exact same five-stage pipeline. The only thing that changes downstream is what "Predict Y_new" is allowed to output.</p>
+</section>
+
+<!-- STAGE 10 + 11: TRIGGERS -->
+<section class="block" id="triggers">
+  <div class="stage-tag">Stage 10 → 11 · Hidden Trigger Recognition, Pattern Recognition</div>
+  <h2 class="section-title"><span class="num">10</span>Words That Should Instantly Trigger This Topic</h2>
+  <div class="pill-row">
+    <span class="pill">"labeled data"</span>
+    <span class="pill">"predict the correct output"</span>
+    <span class="pill">"spam / not spam"</span>
+    <span class="pill">"which digit / which class"</span>
+    <span class="pill">"exact amount / continuous value"</span>
+    <span class="pill">"training pairs (X, Y)"</span>
+    <span class="pill">"real-valued target"</span>
+  </div>
+  <div class="card" style="margin-top:1.2rem;">
+    <h3>How to instantly classify a new problem</h3>
+    <table class="data-table">
+      <tr><th>You see this in the question</th><th>It's this problem type</th></tr>
+      <tr><td>"yes/no", "either/or", two outcomes</td><td>Binary Classification</td></tr>
+      <tr><td>"which category out of several", named classes</td><td>Multi-class Classification</td></tr>
+      <tr><td>"how much", "predict the value", units like mm/₹/kg</td><td>Regression</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 16: INVARIANTS -->
+<section class="block" id="invariants">
+  <div class="stage-tag">Stage 16 · Invariant Library</div>
+  <h2 class="section-title"><span class="num">16</span>Always / Sometimes / Never True</h2>
+  <div class="card-grid">
+    <div class="card" style="border-top:3px solid var(--green);">
+      <h3 style="color:var(--green);">Always True</h3>
+      <p>Every supervised problem has a feature space ℝᵈ and a label space 𝒴 defined before training starts.</p>
+      <p>The label space 𝒴 alone determines whether the problem is classification or regression.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--gold);">
+      <h3 style="color:var(--gold);">Sometimes True</h3>
+      <p>Binary labels are sometimes encoded {0,1} and sometimes {+1,−1} — the encoding is a convention chosen per algorithm, not a rule of the problem itself.</p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--red);">
+      <h3 style="color:var(--red);">Never True</h3>
+      <p>Regression labels are never a finite fixed set — the moment 𝒴 is finite and discrete, it is classification, not regression, no matter how many values K has.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 18: EXAMINER TRAPS -->
+<section class="block" id="traps">
+  <div class="stage-tag">Stage 18 · Examiner Trap Library</div>
+  <h2 class="section-title"><span class="num">18</span>Common Exam Traps</h2>
+
+  <div class="trap">
+    <div class="t-head">⚠ Trap 1 — "Rating 1 to 5" looks continuous but isn't automatically regression</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">A 1–5 star rating has a finite, discrete set of values. Whether it's treated as multi-class classification or as regression is a <em>modeling choice</em>, not something the label space forces on you — questions love testing whether you notice this ambiguity.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 2 — confusing "two classes" with "binary" when order matters</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">Binary classification assumes no meaningful order between the two labels. If the two outcomes have an implicit order (e.g., "pass/fail" as a proxy for a score), that ordering information is thrown away by treating it as plain binary classification.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 3 — mixing up d and n</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;"><span class="sym-const" style="font-family:var(--serif-math-font);">d</span> is the number of features per example (dimensionality), <span class="sym-const" style="font-family:var(--serif-math-font);">n</span> is the number of examples in the dataset. Swapping them in a formula is one of the most common silent errors in this course.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="block" id="industry">
+  <div class="stage-tag">Stage 20 · Industry Implementation</div>
+  <h2 class="section-title"><span class="num">20</span>Where This Shows Up in Real Libraries</h2>
+  <div class="scroll-x">
+    <table class="data-table">
+      <tr><th>Problem type</th><th>sklearn</th><th>Typical loss</th></tr>
+      <tr><td>Binary classification</td><td><code>LogisticRegression</code>, <code>SVC</code></td><td>Log-loss / hinge loss</td></tr>
+      <tr><td>Multi-class classification</td><td><code>SVC(decision_function_shape='ovr')</code>, <code>SGDClassifier</code></td><td>Cross-entropy (softmax)</td></tr>
+      <tr><td>Regression</td><td><code>LinearRegression</code>, <code>Ridge</code></td><td>Squared error (MSE)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 21: CONNECTIONS -->
+<section class="block">
+  <div class="stage-tag">Stage 21 · Connections</div>
+  <h2 class="section-title"><span class="num">21</span>Where This Sits in the Course</h2>
+  <div class="flow">
+    <div class="step" style="opacity:0.6;">Unsupervised<br><small style="color:var(--text-dimmer)">K-means, GMM, EM</small></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:var(--teal); box-shadow:0 0 0 1px var(--teal);">You Are Here<br><small style="color:var(--text-dimmer)">Lecture 27</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Regression<br><small style="color:var(--text-dimmer)">next few weeks</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Binary Classification<br><small style="color:var(--text-dimmer)">in-depth</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Multi-class<br><small style="color:var(--text-dimmer)">built from binary</small></div>
+  </div>
+  <div class="callout">
+    <span class="co-label">Course roadmap, stated explicitly in this lecture</span>
+    The course will first spend several weeks on <strong>regression</strong>, then go deep on <strong>binary classification</strong>, and finally show how binary-classification machinery is extended to handle <strong>multi-class</strong> problems. Nothing here is arbitrary ordering — regression's statistical roots make it the natural next stop after unsupervised methods.
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="block" id="brain">
+  <div class="stage-tag">Stage 22 · One-Page Brain</div>
+  <h2 class="section-title"><span class="num">22</span>Everything on One Page</h2>
+  <div class="brain">
+    <div class="brain-grid">
+      <div>
+        <h4>Core Intuition</h4>
+        <ul>
+          <li>Supervised = learn from (input, correct-answer) pairs</li>
+          <li>Goal: predict correctly on <em>unseen</em> inputs</li>
+          <li>Problem type = shape of the label space 𝒴</li>
+        </ul>
+        <h4 style="margin-top:1rem;">Key Formulas</h4>
+        <ul>
+          <li>Xᵢ ∈ ℝᵈ — feature vectors</li>
+          <li>D = {(Xᵢ, Yᵢ)} — labeled dataset</li>
+          <li>f : ℝᵈ → 𝒴 — the model</li>
+          <li>Binary: 𝒴 = {+1, −1}</li>
+          <li>Multi-class: 𝒴 = {0, …, K}</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5 Triggers</h4>
+        <ul>
+          <li>"labeled data" / "training pairs"</li>
+          <li>"spam or not" → binary</li>
+          <li>"which digit / category" → multi-class</li>
+          <li>"predict the amount" → regression</li>
+          <li>units attached to the answer (mm, ₹, kg) → regression</li>
+        </ul>
+        <h4 style="margin-top:1rem;">5 Traps</h4>
+        <ul>
+          <li>Discrete-looking ratings ≠ automatic regression</li>
+          <li>Two classes with hidden order ≠ plain binary</li>
+          <li>d (features) vs n (examples) mix-up</li>
+          <li>{0,1} vs {+1,−1} is convention, not a rule</li>
+          <li>Finite label set is <em>always</em> classification, never regression</li>
+        </ul>
+      </div>
+    </div>
+    <h4 style="margin-top:1.4rem;">Dependencies</h4>
+    <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">Builds on: nothing algorithmic yet — this is the conceptual on-ramp. Feeds into: Regression (next), Binary Classification (deep dive), Multi-class Classification (extension of binary).</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="foot">Lecture 27 · Introduction to Supervised Learning — study notes</footer>
+
+</body>
+</html>

@@ -106,10 +106,10 @@
 - Analogies &amp; real-life examples
 - Annotated code &amp; visual hierarchy
 - Tables &amp; callout boxes
-- Diagrams using pure HTML/CSS
+- Diagrams and visuals using pure HTML/CSS
 - Mobile responsive design
 - the best for learning this topic possible
-- Use the /discovery-lecture-framework and /premium-math-typesetting skills to structure the pedagogy and typeset formulas.</code></pre></div>
+- Use the  skills.</code></pre></div>
               <div class="screenshot">Screenshot: assets/img/ &mdash; Claude Prompt</div>
               <p>Claude will generate an Artifact. Copy the HTML or download it.(some time it give option to copy as img , in that case download the file then you will get .html file)</p>
               <img src="assets/img/artifact output.png" alt="Claude Artifact" class="screenshot-img">
@@ -119,85 +119,322 @@
           <div class="timeline-item" id="claude-skills">
             <div class="timeline-title">Claude Project Skills (Custom Instructions)</div>
             <div class="timeline-content">
-              <p>To get the best results, create a <strong>Claude Project</strong> for your contributions and add the following two custom skills. You can copy the code blocks below and paste them into your project's custom instructions or create them as files in your Claude project knowledge:</p>
+              <p>To get the best results, create a <strong>Claude Project</strong> for your contributions and add the appropriate custom skills below. We have separate frameworks for Machine Learning (ML) and Modern Application Development 2 (MAD2):</p>
               
-              <h3>1. Discovery-Based Lecture Framework</h3>
-              <p>Add this skill as a custom instruction or file named <code>discovery-lecture-framework</code>:</p>
+              <h2>Machine Learning (ML) Skills</h2>
+              <h3>1. ML Learning Framework</h3>
+              <p>Add this skill as a custom instruction or file named <code>ml-learning-framework</code>:</p>
               <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
-name: discovery-lecture-framework
+name: ml-learning-framework
 description: >
-  Use this skill whenever converting lecture notes, textbook material, or a topic into study notes, an HTML artifact, or an explanation — especially for math-heavy or ML/statistics/engineering topics. Trigger any time the user shares raw lecture content and asks for it to be turned into notes, or asks to "explain X properly", "teach me X", or build a "complete"/"deep" understanding of a formula or algorithm, even without naming the framework explicitly. This defines the 17-stage content structure (Problem → History → Engineering → ... → Connections) that every topic should be walked through so nothing is memorized and everything is derived. Pairs with the premium-math-typesetting skill for visual presentation once the content is structured this way.
+  Use this skill whenever converting lecture notes, textbook material, or a topic into study notes, an HTML artifact, or an explanation — especially for math-heavy or ML/statistics/engineering topics. Trigger any time the user shares raw lecture content and asks for it to be turned into notes, or asks to "explain X properly", "teach me X", or build a "complete"/"deep" understanding of a formula or algorithm, even without naming the framework explicitly. This defines the 23-stage content structure (-1 to 22) that every topic should be walked through so nothing is memorized and everything is derived. Pairs with the premium-math-typesetting skill for visual presentation once the content is structured this way.
 ---
 
-# Discovery-Based Lecture Framework
+# ML Learning Framework
 
-A 17-stage pedagogical structure (numbered 0–16) for teaching any formula, algorithm, or technical concept so that the learner *arrives* at it rather than memorizes it. This is the content skeleton — use `premium-math-typesetting` for how it gets visually rendered once structured.
+A 23-stage pedagogical structure (numbered -1 to 22) for teaching any formula, algorithm, or technical concept so that the learner *arrives* at it rather than memorizes it. This is the content skeleton — use `premium-math-typesetting` for how it gets visually rendered once structured.
 
 Not every stage needs equal depth for every topic. Short topics can compress several stages into a paragraph each; foundational topics (like a core loss function or a canonical algorithm) deserve the full treatment. Never skip a stage silently — if it's genuinely not applicable, say so briefly rather than omitting it.
 
-## The 17 stages
+## The 23 stages
 
-**0 — Problem**
-Start before the formula exists. Present a concrete, real-world scenario (a business, a person, a decision) where something needs to be measured, predicted, or decided, and no tool yet exists to do it. This is the "Zillow predicting house prices" move — ground the abstraction in a situation with stakes.
+**-1. Cognitive Pattern**
+• What type of thinking does this topic require?
+• Geometry?
+• Optimization?
+• Probability?
+• Transformation?
+• Proof?
+• Inference?
+• Counting?
+• Approximation?
+• Pattern Recognition?
 
-**1 — History**
-Briefly situate the idea in time: who ran into this problem first, roughly when, and what constraint of that era shaped the solution (limited compute, a competing method that failed, an adjacent field's technique being borrowed). Keep this tight — a few sentences, not a biography. Skip invented or uncertain historical claims rather than fabricating specifics.
+**0. Problem**
+• Real-world problem
+• Why does this problem exist?
+• What happens if we don't solve it?
 
-**2 — Engineering**
-Show the practical, non-mathematical reasoning an engineer would use before any formula appears: what are the requirements the solution must satisfy? (e.g. "errors must not cancel," "must be computable without huge matrices"). This is where candidate approaches get compared and rejected on practical grounds.
+**1. History**
+• Why was this invented?
+• What older method failed?
+• Historical motivation
 
-**3 — Mathematical Translation**
-Convert the engineering requirements from stage 2 into mathematical language for the first time. Each requirement should map visibly to a mathematical property (non-negativity → absolute value or square; differentiability → rules out absolute value; etc.).
+**2. Engineering Thinking**
+• Before mathematics
+• What properties should the solution satisfy?
+• Practical constraints
 
-**4 — Formula Construction**
-Build the formula piece by piece, vertically, each line justified by the requirement that demanded it (see `premium-math-typesetting` for the step-flow visual pattern). End with the complete formula in a proper equation panel, never dropped in as a fait accompli.
+**3. Mathematical Translation**
+Convert engineering requirements into mathematics
 
-**5 — Formula Anatomy**
-Take the finished formula apart symbol by symbol. Every variable, parameter, operator, and constant gets a plain-language role — not just a name, but *why it's there* and what real-world quantity it represents.
+**4. Formula Construction**
+Build the formula line-by-line
+Never present it directly
 
-**6 — Derivation**
-Show what happens when you manipulate the formula further — usually differentiation, but can be simplification, decomposition, or a proof of a key property. Explain *why* this manipulation is being done (what question it answers) before doing it.
+**5. Formula Anatomy**
+Every symbol
+Every constant
+Every operator
+Why it exists
 
-**7 — Algorithm**
-Turn the math into a procedure: the ordered steps a machine or person would actually execute. Pseudocode or annotated code belongs here.
+**6. Derivation**
+Differentiate
+Simplify
+Prove
+Transform
+Explain WHY every step happens
 
-**8 — Optimization**
-Address what breaks at scale or in practice, and the engineering response to it (e.g. closed-form → too expensive → gradient descent → still slow → mini-batch/SGD). This is usually its own mini-evolution chain.
+**7. Algorithm**
+Convert mathematics into executable steps
+Pseudocode
+Flowchart
 
-**9 — Edge Cases**
-Where does this formula or algorithm behave unexpectedly, fail, or need a guard? (division by zero, non-convexity, outliers, degenerate inputs, ill-conditioned matrices, etc.)
+**8. Optimization**
+Computational improvements
+Time complexity
+Memory
+Practical implementations
 
-**10 — Pattern Recognition**
-Teach the learner to recognize *when* a real-world problem calls for this tool — the signals in a problem statement or dataset that should make this formula come to mind.
+**9. Edge Cases**
+Failure cases
+Numerical instability
+Assumptions
+Limitations
 
-**11 — Formula Shape Recognition**
-Teach the learner to recognize this formula's *shape* even when notation differs — e.g. spotting a Σ(prediction − actual)² pattern under different variable names across different papers, courses, or codebases.
+**10. Hidden Trigger Recognition ⭐**
+What words in a question should immediately trigger this topic?
+Example:
+"Centered"
+"Orthogonal"
+"Margin"
+"Variance"
+"Responsibility"
+"Kernel"
 
-**12 — Problem Families**
-Zoom out: what broader family of problems does this belong to, and what sibling techniques exist in that family? (e.g. MSE as one member of the loss-function family alongside MAE, Huber loss, cross-entropy.)
+**11. Pattern Recognition**
+When should I use this?
+Real-world identification
 
-**13 — Expert Thinking**
-Describe the mental shortcuts, intuitions, or rules of thumb a practitioner uses instead of re-deriving from scratch every time — how someone fluent in the topic actually thinks about it day to day.
+**12. Formula Shape Recognition**
+Recognize formulas under different notation
 
-**14 — Exam Shortcuts**
-Practical tricks for solving problems under exam or interview time pressure: shortcut identities, common trap questions, what graders look for, fast sanity checks.
+**13. Symbol Translation ⭐**
+Translate
+notation ↔ meaning
+notation ↔ intuition
+notation ↔ implementation
 
-**15 — Industry Implementation**
-How this actually appears in production systems or real tools — library function names, common implementation details, what changes between textbook version and production version.
+**14. Computational Flow ⭐**
+Complete pipeline:
+Raw Data → Preprocessing → Formula → Optimization → Prediction
 
-**16 — Connections**
-Close by linking this topic to what comes next or what it connects to elsewhere in the curriculum — the thread that ties this lecture to the next one, or to a parallel topic the learner already knows.
+**15. Problem Families**
+Related algorithms
+Similar formulas
+Alternatives
 
-## Using this with lecture note conversions
+**16. Invariant Library ⭐**
+Always True
+Sometimes True
+Never True
+Counterexamples
 
-When the user sends raw lecture notes (often written as a similar discovery-narrative already, arrows and all) and asks for an HTML artifact:
+**17. Expert Thinking**
+Mental shortcuts
+Intuition
+Pattern compression
 
-1. Map the source content onto the 17 stages — most raw notes will already cover stages 0–8 in some form; stages 9–16 often need to be added/expanded since source notes tend to stop at the algorithm.
-2. Preserve any framework or evolution-chain content the source material already has (roadmaps, formula evolution maps) — these usually map onto stage 12 (Problem Families) or stand as their own closing section.
-3. Build the visual artifact per `premium-math-typesetting` conventions and the existing MLT notes design system (dark navy background, gold/teal/purple accents, Fraunces/Inter/JetBrains Mono).
-4. If the source material is thin on later stages (9–16), it's fine to build them out with standard, well-established knowledge for that topic — flag additions as extensions beyond the source notes if the distinction matters to the user.</code></pre></div>
+**18. Examiner Trap Library ⭐**
+Common traps
+Wrong options
+Hidden assumptions
+Reverse questions
 
-              <h3>2. Premium Math Typesetting</h3>
+**19. Exam Shortcuts**
+Fast solving
+Elimination tricks
+Memory hacks
+
+**20. Industry Implementation**
+sklearn
+PyTorch
+TensorFlow
+Production systems
+
+**21. Connections**
+Previous topics
+Future topics
+Entire ML roadmap
+
+**22. One-Page Brain ⭐**
+Entire topic compressed into one page:
+• Core intuition
+• 5 formulas
+• 3 diagrams
+• 5 triggers
+• 5 traps
+• 5 shortcuts
+• Dependencies
+• Cheat sheet</code></pre></div>
+
+              <h3>2. IITM Question Solving Framework (v2.0)</h3>
+              <p>Add this skill as a custom instruction or file named <code>iitm-question-solving-framework</code>:</p>
+              <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
+name: iitm-question-solving-framework
+description: >
+  Purpose: Solve IITM MLT questions by recognizing how the examiner thinks, not just by applying formulas. Use the 17-step question solving pipeline.
+---
+
+# IITM Question Solving Framework (v2.0)
+
+Purpose: Solve IITM MLT questions by recognizing how the examiner thinks, not just by applying formulas.
+
+## The 17-Step Pipeline
+
+① Read Question Carefully
+
+② Identify Question Type ⭐
+Is it:
+• Calculation
+• Property
+• Proof
+• Counterexample
+• Inference
+• Construction
+• Optimization
+• Comparison
+• Recognition
+
+③ Hidden Trigger Detection ⭐
+Spot keywords:
+"Centered"
+"Orthogonal"
+"Maximum"
+"Support Vector"
+"Kernel"
+"Convex"
+"Responsibility"
+"Entropy"
+
+④ Pattern Identification
+Which question family is this?
+Have I solved this pattern before?
+
+⑤ Symbol Translation ⭐
+Convert notation into plain English:
+x, μ, Σ, λ, φ, α, γ, etc.
+
+⑥ Given → Asked
+Extract:
+Inputs, Unknowns, Constraints
+
+⑦ Dependency Graph ⭐
+Which concepts are required?
+Example: PCA → Covariance → Eigenvalues → Projection → Variance
+
+⑧ Fundamental Idea
+Which theorem?
+Which property?
+Which algorithm?
+
+⑨ Visual Memory
+Draw quick diagram:
+Geometry, Graph, Matrix, Tree, Flow
+
+⑩ Mathematical Solution
+Solve systematically
+Show clean derivation
+
+⑪ Reverse Check ⭐
+Does answer satisfy original assumptions?
+
+⑫ Super Shortcut
+Can I eliminate options?
+Can symmetry help?
+Can dimensions help?
+
+⑬ Wrong Option Elimination ⭐
+Why are other options wrong?
+Which misconception do they test?
+
+⑭ Common Mistakes
+Sign errors
+Missing normalization
+Wrong dimensions
+Formula confusion
+
+⑮ Mental Model
+Compress the entire solution into one intuition
+
+⑯ Similar Question Patterns
+Previous PYQs
+Variations
+Reverse questions
+
+⑰ Confidence Check ⭐
+Units correct?
+Dimensions correct?
+Probability valid?
+PSD?
+Orthogonal?
+Margin satisfied?
+Constraints satisfied?
+
+✔ Final Answer</code></pre></div>
+
+              <h3>3. Cognitive Pattern Library</h3>
+              <p>Add this skill as a custom instruction or file named <code>cognitive-pattern-library</code>:</p>
+              <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
+name: cognitive-pattern-library
+description: >
+  This is a thinking framework. Every new topic should be tagged with one or more reasoning modes before studying it.
+---
+
+# Cognitive Pattern Library
+
+This is not a note or question framework—it's a thinking framework. Every new topic should be tagged with one or more reasoning modes before you study it.
+
+## Thinking Patterns
+
+1. Geometry
+2. Optimization
+3. Probability
+4. Statistics
+5. Linear Algebra
+6. Transformation
+7. Pattern Recognition
+8. Logical Inference
+9. Property Proof
+10. Counterexample
+11. Algorithm Design
+12. Computational Complexity
+13. Approximation
+14. Numerical Stability
+15. Decision Making
+16. Information Theory
+17. Graphical Reasoning
+18. Constraint Satisfaction
+19. Estimation
+20. Generalization</code></pre></div>
+
+              <h3>4. Exam Pattern Atlas</h3>
+              <p>Add this skill as a custom instruction or file named <code>exam-pattern-atlas</code>:</p>
+              <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
+name: exam-pattern-atlas
+description: >
+  This framework should be built topic by topic from PYQs to map the exam patterns.
+---
+
+# Exam Pattern Atlas
+
+This should be built topic by topic from PYQs.
+
+## Atlas Structure
+
+Topic → Core Intuition → Prerequisites → Hidden Triggers → Thinking Pattern → Formula Family → Computational Pipeline → PYQ Patterns → Difficulty Levels → Examiner Traps → Reverse Questions → Common Variations → Fast Recognition Rules → One-Minute Revision</code></pre></div>
+
+              <h3>5. Premium Math Typesetting</h3>
               <p>Add this skill as a custom instruction or file named <code>premium-math-typesetting</code>:</p>
               <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
 name: premium-math-typesetting
@@ -335,6 +572,197 @@ This skill is the formatting layer for the ongoing IIT Madras MLT interactive HT
 - [ ] Each major equation has an explanation, intuition, numerical example, interpretation, and common mistakes
 - [ ] Each major formula has a small SVG process illustration
 - [ ] Everything scales responsively without overflow or unreadable shrinkage</code></pre></div>
+
+              <h2>Modern Application Development 2 (MAD2) Skills</h2>
+              <h3>1. MAD2 Learning Framework V4 (Execution First)</h3>
+              <p>Add this skill as a custom instruction or file named <code>mad2-learning-framework-v4</code>:</p>
+              <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
+name: mad2-learning-framework-v4
+description: >
+  Use this skill whenever converting MAD2 lecture notes, explaining JavaScript/Vue concepts, or designing MAD2 questions and coding practice. Follows the MAD2 Learning OS and the 15 core execution-first modules.
+---
+
+# MAD2 Learning Framework V4 (Execution First)
+
+                     MAD2 LEARNING OS
+                           │
+        ┌──────────────────┴──────────────────┐
+        │                                     │
+   Learn Concept                       Solve Questions
+        │                                     │
+        ▼                                     ▼
+ Concept Blueprint                   Question Classifier
+        │                                     │
+        ▼                                     ▼
+ Engine Model                      Question Solver Algorithm
+        │                                     │
+        ▼                                     ▼
+ Execution Visualizer              Pattern Recognition
+        │                                     │
+        ▼                                     ▼
+ Guided Practice                  Mistake Analyzer
+        │                                     │
+        ▼                                     ▼
+ Revision Engine                  Exam Simulator
+
+## MODULE 1 — Concept Blueprint
+
+Purpose: Understand the topic in 3 minutes. Every topic follows exactly the same template.
+Structure: Identity → Problem → Why invented → Real-life use → Internal Working → Syntax → Mini Example
+
+Example: filter()
+Identity: Keeps selected elements
+Problem: Need only matching data
+Real Life: Passed students, Completed tasks
+
+## MODULE 2 — Engine Model ⭐⭐⭐
+
+This is the biggest improvement. Instead of learning JavaScript, learn how JavaScript thinks. Every topic begins with ONE engine question.
+
+Topic | Engine Question
+---|---
+var/let | Where does it live?
+this | Who owns it?
+Promise | When does it execute?
+map | What happens to each element?
+Vue | What changed?
+Slot | What gets rendered?
+Router | Which component is shown?
+Vuex | Who changes the state?
+
+## MODULE 3 — Question Classifier ⭐⭐⭐⭐⭐
+
+Before reading code, Ask: "What kind of question is this?"
+Question → Scope? → Ownership? → Execution? → Transformation? → Rendering? → Reactivity? → Architecture?
+Immediately activate the correct solver.
+
+## MODULE 4 — Question Solver ⭐⭐⭐⭐⭐
+
+This is missing from almost every notebook. Every topic gets its own algorithm.
+
+### Scope Solver
+Draw Memory → Draw Blocks → Place Variables → Execute
+
+### this Solver
+Who called function? → Normal? → Arrow? → bind? → call? → apply?
+
+### Promise Solver
+Sync → Microtask → Macrotask
+
+### Array Solver
+Input → Iteration → Callback → Output
+
+### Vue Solver
+Data → Method → Reactive → DOM
+
+## MODULE 5 — Execution Visualizer ⭐⭐⭐⭐⭐
+
+Every topic has an animation representation.
+
+### Promise Example
+Pending → Resolved → then() → Output
+
+### watch Example
+Data changes → watch() → API Call
+
+### filter Example
+Array → Condition → Keep? → Output
+
+## MODULE 6 — Pattern Library
+
+Instead of sorting by week, organize by pattern:
+
+### Pattern: Ownership
+Contains: `this`, `bind`, `call`, `apply`, `prototype`, `static`
+
+### Pattern: Execution
+Contains: `Promise`, `async`, `await`, `setTimeout`
+
+### Pattern: Memory
+Contains: `var`, `let`, `const`, `closure`
+
+### Pattern: Rendering
+Contains: `slot`, `props`, `v-model`, `router`, `v-for`
+
+### Pattern: Transformation
+Contains: `map`, `filter`, `reduce`, `find`
+
+## MODULE 7 — Practice Pyramid
+
+Not random practice.
+Recognition → Syntax → Predict Output → Explain Output → Debug → Modify Code → Mixed Question → PYQ → Hard PYQ
+
+## MODULE 8 — Trap Book
+
+Every topic maps top traps.
+
+### Scope Trap
+- Wrong: var is block scoped
+- Correct: var ignores blocks
+
+### this Trap
+- Wrong: Arrow has this
+- Correct: Arrow inherits this
+
+## MODULE 9 — Mistake Journal
+
+Every mistake becomes:
+Question → Wrong Assumption → Correct Rule → Trigger Sentence → 2 Similar Questions
+
+## MODULE 10 — Revision Engine
+
+Every topic:
+30 sec → 2 min → 5 min → Practice → PYQ
+
+## MODULE 11 — Exam Simulator
+
+Exactly IITM style:
+Easy → Trap → MSQ → Output → Mixed → PYQ
+
+## MODULE 12 — Analytics Dashboard
+
+Track:
+Accuracy → Average Time → Weak Pattern → Revision Due → Confidence
+
+## MODULE 13 — Question Generator ⭐⭐⭐⭐⭐
+
+This feature makes the system truly powerful. Every concept automatically generates practice:
+Recognition ×3 → Output ×5 → Debug ×3 → Modification ×2 → Mixed ×2 → PYQ Variant ×5
+You'll never run out of practice, and every new question targets the same reasoning pattern.
+
+## MODULE 14 — PYQ DNA Analysis ⭐⭐⭐⭐⭐
+
+Instead of storing PYQs, dissect them. Every PYQ is tagged like this:
+PYQ → Concepts → Pattern → Difficulty → Trap → Required Solver → Common Mistake
+
+Example: Scope Question
+- Pattern: Memory
+- Solver: Scope Solver
+- Trap: var ignores block
+- Difficulty: Medium
+Over time, you'll see that many different-looking questions actually share the same underlying DNA.
+
+## MODULE 15 — Knowledge Graph
+
+Instead of isolated topics, map their relationships.
+
+### JavaScript
+├── Scope
+├── Closures
+├── Objects
+├── Classes
+├── Async
+└── Arrays
+
+### Vue
+├── Components
+├── Props
+├── Emit
+├── Slots
+├── Router
+└── Vuex
+
+Learning one node immediately shows its related concepts.</code></pre></div>
             </div>
           </div>
 
