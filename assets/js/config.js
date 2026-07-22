@@ -379,8 +379,8 @@ const COURSE_STRUCTURES = {
           "week": "Week 01 - JavaScript Fundamentals",
           "order": 7,
           "slug": "study-guide",
-          "lastModified": "2026-07-06T14:34:56.263Z",
-          "readingTime": 62,
+          "lastModified": "2026-07-15T15:11:14.804Z",
+          "readingTime": 64,
           "tags": [],
           "keywords": []
         }
@@ -1434,7 +1434,7 @@ const COURSE_STRUCTURES = {
           "week": "Week 02 - Kernel PCA",
           "order": 3,
           "slug": "l10-feature-transformation",
-          "lastModified": "2026-07-06T13:37:37.428Z",
+          "lastModified": "2026-07-13T16:02:04.036Z",
           "readingTime": 45,
           "tags": [],
           "keywords": []
@@ -1784,6 +1784,19 @@ const COURSE_STRUCTURES = {
           "slug": "part-4-gmm-em",
           "lastModified": "2026-07-04T05:03:31.039Z",
           "readingTime": 1,
+          "tags": [],
+          "keywords": []
+        },
+        {
+          "title": "Recap - Weeks 1 to 4",
+          "file": "Recap - Weeks 1 to 4.html",
+          "path": "Week 04 - Estimation GMM EM/Recap - Weeks 1 to 4.html",
+          "course": "mlt",
+          "week": "Week 04 - Estimation GMM EM",
+          "order": 14,
+          "slug": "recap-weeks-1-to-4",
+          "lastModified": "2026-07-17T15:14:27.489Z",
+          "readingTime": 20,
           "tags": [],
           "keywords": []
         }

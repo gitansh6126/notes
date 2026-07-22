@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Least Squares Error — The Formula You Invent, Not Memorize</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  :root{
+    --bg: #0a0c14;
+    --bg-grid: rgba(255,255,255,0.035);
+    --panel: #12151f;
+    --panel-2: #161a26;
+    --border: rgba(255,255,255,0.09);
+    --text: #e8e9ee;
+    --text-dim: #9298ab;
+    --text-faint: #656c80;
+
+    --gold: #e3b34f;
+    --teal: #46d0c2;
+    --purple: #ab8ff0;
+    --red: #ef6a6a;
+    --green: #63c88a;
+    --blue: #6ea8f0;
+
+    --serif: "Fraunces", "STIX Two Math", Georgia, serif;
+    --sans: "Inter", -apple-system, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(227,179,79,0.06), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(70,208,194,0.05), transparent 45%),
+      repeating-linear-gradient(0deg, var(--bg-grid) 0px, var(--bg-grid) 1px, transparent 1px, transparent 42px),
+      repeating-linear-gradient(90deg, var(--bg-grid) 0px, var(--bg-grid) 1px, transparent 1px, transparent 42px),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    line-height: 1.6;
+    padding-bottom: 6rem;
+  }
+
+  .wrap{ max-width: 880px; margin: 0 auto; padding: 0 1.5rem; }
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding: 5rem 1.5rem 3.5rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .hero .eyebrow{
+    font-family: var(--mono);
+    color: var(--teal);
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+  }
+  .hero h1{
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2rem, 6vw, 3.4rem);
+    line-height: 1.15;
+    max-width: 780px;
+    margin: 0 auto 1.2rem;
+    background: linear-gradient(135deg, #fff 30%, var(--gold) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p.sub{
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .hero .badge-row{
+    margin-top: 2rem;
+    display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap;
+  }
+  .badge{
+    font-family: var(--mono); font-size: 0.72rem; padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border); border-radius: 999px; color: var(--text-dim);
+  }
+
+  /* ---------- SECTION SCAFFOLD ---------- */
+  section{ padding: 3.5rem 0; border-bottom: 1px solid var(--border); }
+  .part-label{
+    font-family: var(--mono); color: var(--gold); font-size: 0.8rem;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.6rem;
+  }
+  h2.title{
+    font-family: var(--serif); font-weight: 600; font-size: clamp(1.5rem, 4vw, 2.1rem);
+    margin-bottom: 1rem;
+  }
+  h3.sub-title{
+    font-family: var(--serif); font-weight: 600; font-size: 1.25rem;
+    margin: 2rem 0 0.9rem; color: var(--text);
+  }
+  p.lead{ color: var(--text-dim); font-size: 1.02rem; max-width: 640px; margin-bottom: 1.2rem; }
+
+  /* ---------- BOX CARDS ---------- */
+  .card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.4rem 1.5rem;
+    margin: 1rem 0;
+  }
+  .card-grid{
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.2rem 0;
+  }
+  @media (max-width: 620px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .house-card{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.3rem 1.4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .house-card::before{
+    content: "🏠"; position: absolute; top: 0.8rem; right: 1rem; font-size: 1.4rem; opacity: 0.5;
+  }
+  .house-row{ display:flex; justify-content: space-between; padding: 0.35rem 0; font-family: var(--mono); font-size: 0.92rem; }
+  .house-row .k{ color: var(--text-faint); }
+  .house-row .v{ color: var(--text); font-weight: 500; }
+  .house-row.diff .v.pos{ color: var(--green); }
+  .house-row.diff .v.neg{ color: var(--red); }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.3rem 0;
+    border: 1px solid; display: flex; gap: 0.8rem; align-items: flex-start;
+  }
+  .callout .icon{ font-size: 1.2rem; line-height: 1.3; }
+  .callout .body{ font-size: 0.95rem; color: var(--text); }
+  .callout .body b{ display:block; font-family: var(--sans); font-weight:700; margin-bottom:0.2rem; }
+  .callout.problem{ background: rgba(239,106,106,0.07); border-color: rgba(239,106,106,0.35); }
+  .callout.problem b{ color: var(--red); }
+  .callout.insight{ background: rgba(70,208,194,0.07); border-color: rgba(70,208,194,0.35); }
+  .callout.insight b{ color: var(--teal); }
+  .callout.win{ background: rgba(99,200,138,0.08); border-color: rgba(99,200,138,0.35); }
+  .callout.win b{ color: var(--green); }
+  .callout.real-world{ background: rgba(171,143,240,0.08); border-color: rgba(171,143,240,0.35); }
+  .callout.real-world b{ color: var(--purple); }
+
+  /* ---------- TABLES ---------- */
+  table{ width: 100%; border-collapse: collapse; margin: 1.2rem 0; font-size: 0.92rem; }
+  thead th{
+    font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--text-faint); text-align: left; padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border);
+  }
+  tbody td{ padding: 0.65rem 0.8rem; border-bottom: 1px solid var(--border); font-family: var(--mono); }
+  tbody tr:last-child td{ border-bottom: none; }
+  tbody tr.winner td{ background: rgba(99,200,138,0.06); color: var(--green); font-weight: 600; }
+  tbody tr.rejected td{ color: var(--text-faint); text-decoration: line-through; }
+
+  /* ---------- VERTICAL FLOW ---------- */
+  .flow{ display: flex; flex-direction: column; align-items: center; margin: 1.6rem 0; }
+  .flow-step{
+    background: var(--panel-2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0.75rem 1.3rem; text-align: center; min-width: 220px; max-width: 90%;
+    font-family: var(--mono); font-size: 0.9rem;
+  }
+  .flow-step .step-label{ color: var(--text-faint); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem;}
+  .flow-step .step-expr{ color: var(--text); font-size: 1rem; }
+  .flow-arrow{ color: var(--text-faint); font-size: 1.1rem; margin: 0.25rem 0; }
+
+  /* ---------- EQUATION PANEL ---------- */
+  .eq-panel{
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2.2rem 1.5rem 1.6rem;
+    margin: 1.6rem 0;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  }
+  .eq-panel .eq-tag{
+    font-family: var(--mono); font-size: 0.72rem; color: var(--text-faint);
+    position: absolute; top: 0.9rem; left: 1.2rem; letter-spacing: 0.05em;
+  }
+  .eq-panel .eq-number{
+    font-family: var(--mono); font-size: 0.72rem; color: var(--text-faint);
+    position: absolute; top: 0.9rem; right: 1.2rem;
+  }
+  .eq-main{
+    font-family: var(--serif); font-size: clamp(1.3rem, 4vw, 2rem); font-style: italic;
+    letter-spacing: 0.01em;
+  }
+  .eq-main.big-op{ font-size: clamp(1.6rem, 5.5vw, 2.6rem); }
+  .sym-fn{ color: var(--purple); font-style: normal; }
+  .sym-param{ color: var(--gold); }
+  .sym-var{ color: var(--blue); }
+  .sym-const{ color: var(--green); }
+  .sym-op{ color: var(--red); font-style: normal; }
+
+  .legend{ display: flex; flex-wrap: wrap; gap: 0.7rem; justify-content: center; margin-top: 1rem; }
+  .legend .chip{
+    font-family: var(--mono); font-size: 0.78rem; padding: 0.3rem 0.7rem;
+    border-radius: 999px; border: 1px solid var(--border); color: var(--text-dim);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .legend .dot{ width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ---------- SYMBOL ANATOMY GRID ---------- */
+  .anatomy-grid{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.9rem; margin: 1.4rem 0; }
+  @media (max-width: 620px){ .anatomy-grid{ grid-template-columns: 1fr; } }
+  .anatomy-card{
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.1rem;
+  }
+  .anatomy-card .sym{ font-family: var(--serif); font-style: italic; font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .anatomy-card .role{ font-family: var(--mono); font-size: 0.75rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem;}
+  .anatomy-card .meaning{ font-size: 0.9rem; color: var(--text-dim); }
+
+  /* ---------- STEP TIMELINE (evolution chain) ---------- */
+  .timeline{ position: relative; margin: 2rem 0 1rem; padding-left: 2.2rem; }
+  .timeline::before{
+    content:""; position: absolute; left: 0.65rem; top: 0.4rem; bottom: 0.4rem; width: 2px;
+    background: linear-gradient(180deg, var(--gold), var(--teal), var(--purple));
+  }
+  .t-step{ position: relative; margin-bottom: 1.1rem; }
+  .t-step::before{
+    content: attr(data-n); position: absolute; left: -2.2rem; top: 0;
+    width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--panel-2);
+    border: 1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    font-family: var(--mono); font-size: 0.7rem; color: var(--gold);
+  }
+  .t-step .t-title{ font-weight: 600; font-size: 0.95rem; }
+  .t-step .t-desc{ font-size: 0.85rem; color: var(--text-faint); }
+
+  /* ---------- FULL EVOLUTION CHAIN (horizontal scroller on mobile) ---------- */
+  .chain{
+    display: flex; flex-direction: column; gap: 0; align-items: center;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 16px;
+    padding: 1.6rem 1rem; margin: 1.6rem 0;
+  }
+  .chain-node{
+    font-family: var(--mono); font-size: 0.85rem; text-align: center;
+    padding: 0.5rem 1rem; border-radius: 8px; color: var(--text);
+  }
+  .chain-node.milestone{ background: rgba(227,179,79,0.1); color: var(--gold); font-weight: 700; border: 1px solid rgba(227,179,79,0.3); }
+  .chain-arrow{ color: var(--text-faint); font-size: 0.95rem; }
+
+  /* ---------- CODE BLOCK ---------- */
+  .code-block{
+    background: #0d1018; border: 1px solid var(--border); border-radius: 12px;
+    padding: 1.1rem 1.3rem; margin: 1.2rem 0; font-family: var(--mono); font-size: 0.85rem;
+    overflow-x: auto; position: relative;
+  }
+  .code-block .tag{
+    position: absolute; top: -0.6rem; left: 1rem; background: var(--bg);
+    padding: 0 0.5rem; font-size: 0.68rem; color: var(--teal); letter-spacing: 0.05em;
+  }
+  .code-block .c-comment{ color: var(--text-faint); }
+  .code-block .c-kw{ color: var(--purple); }
+  .code-block .c-num{ color: var(--gold); }
+  .code-block .c-var{ color: var(--blue); }
+
+  /* ---------- SVG DIAGRAM WRAPPER ---------- */
+  .diagram-wrap{ margin: 1.6rem 0; display:flex; justify-content:center; }
+  .diagram-wrap svg{ width: 100%; max-width: 620px; height: auto; }
+
+  /* ---------- MISC ---------- */
+  .kicker-num{ font-family: var(--mono); color: var(--text-faint); font-size: 0.85rem; }
+  ul.plain{ margin-left: 1.2rem; color: var(--text-dim); }
+  ul.plain li{ margin-bottom: 0.35rem; }
+
+  .toc{
+    position: sticky; top: 0; z-index: 10; backdrop-filter: blur(10px);
+    background: rgba(10,12,20,0.85); border-bottom: 1px solid var(--border);
+    padding: 0.7rem 1.5rem; overflow-x: auto; white-space: nowrap;
+  }
+  .toc a{
+    color: var(--text-faint); text-decoration: none; font-family: var(--mono);
+    font-size: 0.78rem; margin-right: 1.3rem; transition: color 0.2s;
+  }
+  .toc a:hover{ color: var(--gold); }
+
+  footer{ text-align: center; padding: 3rem 1.5rem 1rem; color: var(--text-faint); font-family: var(--mono); font-size: 0.8rem; }
+
+  @media (max-width: 620px){
+    .hero{ padding: 3.2rem 1.2rem 2.4rem; }
+    section{ padding: 2.4rem 0; }
+    .card{ padding: 1.1rem 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="toc">
+  <a href="#part1">0 · Problem</a>
+  <a href="#history">1 · History</a>
+  <a href="#part2">2 · Engineering</a>
+  <a href="#part3">3 · Math Translation</a>
+  <a href="#part4">4 · Formula Construction</a>
+  <a href="#anatomy">5 · Anatomy</a>
+  <a href="#derivative">6 · Derivation</a>
+  <a href="#gd">7 · Algorithm</a>
+  <a href="#chain">8 · Optimization</a>
+  <a href="#edge">9 · Edge Cases</a>
+  <a href="#pattern">10 · Pattern Recognition</a>
+  <a href="#shape">11 · Formula Shape</a>
+  <a href="#families">12 · Problem Families</a>
+  <a href="#expert">13 · Expert Thinking</a>
+  <a href="#exam">14 · Exam Shortcuts</a>
+  <a href="#industry">15 · Industry</a>
+  <a href="#connections">16 · Connections</a>
+  <a href="#roadmap">Roadmap</a>
+  <a href="#map">Formula Map</a>
+</nav>
+
+<header class="hero">
+  <div class="eyebrow">MLT · Linear Regression · Origin Story</div>
+  <h1>You Don't Memorize MSE. You Invent It.</h1>
+  <p class="sub">Twenty minutes before the formula exists — we start with a business problem, not a symbol. By the end, every piece of <span style="font-style:italic">J(w) = 1/n Σ(ŷ − y)²</span> will feel obvious, because you built it yourself.</p>
+  <div class="badge-row">
+    <span class="badge">🏠 Real-world: house prices</span>
+    <span class="badge">🧮 Zero memorization</span>
+    <span class="badge">📈 Ends in Gradient Descent</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- PART 1 -->
+  <section id="part1">
+    <div class="part-label">Stage 0 · Problem</div>
+    <h2 class="title">The Real Problem</h2>
+    <p class="lead">Imagine you're Zillow. Your entire job is predicting house prices. Two houses just closed — how did your model do?</p>
+
+    <div class="card-grid">
+      <div class="house-card">
+        <div class="house-row"><span class="k">Actual</span><span class="v">₹80 lakh</span></div>
+        <div class="house-row"><span class="k">Predicted</span><span class="v">₹82 lakh</span></div>
+        <div class="house-row diff"><span class="k">Difference</span><span class="v pos">+2 lakh</span></div>
+      </div>
+      <div class="house-card">
+        <div class="house-row"><span class="k">Actual</span><span class="v">₹60 lakh</span></div>
+        <div class="house-row"><span class="k">Predicted</span><span class="v">₹55 lakh</span></div>
+        <div class="house-row diff"><span class="k">Difference</span><span class="v neg">−5 lakh</span></div>
+      </div>
+    </div>
+
+    <div class="callout real-world">
+      <div class="icon">❓</div>
+      <div class="body"><b>The real question</b>How do we know whether our model is <em>good</em>? Not "good on this house" — good overall. We need <strong>one number</strong> that summarizes performance across every prediction.</div>
+    </div>
+  </section>
+
+  <!-- HISTORY (Stage 1) -->
+  <section id="history">
+    <div class="part-label">Stage 1 · History</div>
+    <h2 class="title">Where This Actually Came From</h2>
+    <p class="lead">Least squares predates machine learning by two centuries — it wasn't invented for houses at all.</p>
+
+    <div class="timeline">
+      <div class="t-step" data-n="1795"><div class="t-title">Gauss (and Legendre, in print first, 1805)</div><div class="t-desc">Needed to predict the orbit of the newly-discovered asteroid Ceres from a handful of noisy telescope observations — no computers, just pen and paper.</div></div>
+      <div class="t-step" data-n="1800s"><div class="t-title">Astronomy → Statistics</div><div class="t-desc">The same "minimize squared deviation" idea got adopted across geodesy and statistics for fitting any noisy measurement to a model.</div></div>
+      <div class="t-step" data-n="1900s"><div class="t-title">Statistics → Regression</div><div class="t-desc">Formalized as ordinary least squares regression, the standard tool for fitting a line to data for most of the 20th century.</div></div>
+      <div class="t-step" data-n="Now"><div class="t-title">Regression → Machine Learning</div><div class="t-desc">The exact same objective became the default loss function for training predictive models — the "Zillow" problem in Stage 0 is a two-century-old idea in new clothes.</div></div>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">🔭</div>
+      <div class="body"><b>Why this matters</b>The constraint that shaped the formula wasn't "make gradient descent easy" — gradient descent didn't exist yet. It was "give me a closed-form answer solvable by hand." That constraint is exactly why squaring (not absolute value) won: squares are easy to differentiate with 1800s calculus.</div>
+    </div>
+  </section>
+
+  <!-- PART 2 -->
+  <section id="part2">
+    <div class="part-label">Stage 2 · Engineering</div>
+    <h2 class="title">First Attempt: Just Add the Errors</h2>
+    <p class="lead">The obvious first move: sum up every error across all houses.</p>
+
+    <div class="card">
+      <div style="display:flex; flex-wrap:wrap; gap:0.6rem; font-family:var(--mono); justify-content:center; font-size:1.05rem;">
+        <span style="color:var(--green)">+2</span>
+        <span style="color:var(--red)">−5</span>
+        <span style="color:var(--green)">+8</span>
+        <span style="color:var(--red)">−5</span>
+        <span style="color:var(--green)">+4</span>
+        <span style="color:var(--red)">−4</span>
+        <span style="color:var(--text-faint)">=</span>
+        <span style="color:var(--gold); font-weight:700;">0</span>
+      </div>
+    </div>
+
+    <div class="callout problem">
+      <div class="icon">⚠️</div>
+      <div class="body"><b>Problem discovered</b>A total of <strong>zero</strong> looks like a perfect model. It isn't — the positive and negative errors just cancelled out. Some houses were wildly mispriced in opposite directions, and simple addition hid it completely.</div>
+    </div>
+  </section>
+
+  <!-- PART 3 -->
+  <section id="part3">
+    <div class="part-label">Stage 3 · Mathematical Translation</div>
+    <h2 class="title">Need #1: Errors Should Never Cancel</h2>
+    <p class="lead">So we need a transformation that removes the sign before we sum. A few candidates:</p>
+
+    <table>
+      <thead><tr><th>Idea</th><th>−5 becomes</th><th>−10 becomes</th><th>−100 becomes</th><th>Verdict</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Absolute value</td><td>5</td><td>10</td><td>100</td>
+          <td style="color:var(--text-dim)">Works, but not differentiable at 0</td>
+        </tr>
+        <tr class="winner">
+          <td>Square</td><td>25</td><td>100</td><td>10,000</td>
+          <td>No sign issue · differentiable · punishes big misses</td>
+        </tr>
+        <tr class="rejected">
+          <td>Cube</td><td>−125</td><td>−1,000</td><td>−1,000,000</td>
+          <td>Negative again — rejected</td>
+        </tr>
+        <tr class="rejected">
+          <td>Power 4 / Power 10</td><td>625 / huge</td><td>10,000 / huge</td><td>huge</td>
+          <td>Works, but wildly over-punishes — rejected</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout win">
+      <div class="icon">✅</div>
+      <div class="body"><b>Square wins — for four specific reasons</b>
+        <ul class="plain" style="margin-top:0.5rem;">
+          <li>No sign cancellation</li>
+          <li>Differentiable everywhere (unlike absolute value)</li>
+          <li>Large mistakes get punished harder than small ones</li>
+          <li>Makes optimization mathematically easy later</li>
+        </ul>
+        Not because mathematicians "liked" the square. Because it's the only candidate that satisfies every requirement at once.
+      </div>
+    </div>
+  </section>
+
+  <!-- PART 4 -->
+  <section id="part4">
+    <div class="part-label">Stage 4 · Formula Construction</div>
+    <h2 class="title">Formula Construction — Built From Scratch</h2>
+    <p class="lead">Now we build the formula piece by piece. Every line below exists because the previous line demanded it.</p>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-label">Need prediction</div><div class="step-expr sym-fn">ŷ</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Need reality</div><div class="step-expr sym-var">y</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Difference</div><div class="step-expr"><span class="sym-fn">ŷ</span> − <span class="sym-var">y</span></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Need positive → square</div><div class="step-expr">(<span class="sym-fn">ŷ</span> − <span class="sym-var">y</span>)<sup>2</sup></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Need all samples → summation</div><div class="step-expr"><span class="sym-op">Σ</span><sub>i</sub> (<span class="sym-fn">ŷ</span><sub>i</sub> − <span class="sym-var">y</span><sub>i</sub>)<sup>2</sup></div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Need dataset-independence → average</div><div class="step-expr"><sup>1</sup>⁄<sub>n</sub> <span class="sym-op">Σ</span><sub>i</sub> (<span class="sym-fn">ŷ</span><sub>i</sub> − <span class="sym-var">y</span><sub>i</sub>)<sup>2</sup></div></div>
+    </div>
+
+    <div class="eq-panel">
+      <div class="eq-tag">Mean Squared Error</div>
+      <div class="eq-number">Eq. 1.1</div>
+      <div class="eq-main big-op"><span class="sym-fn">J</span>(<span class="sym-param">w</span>) = <sup>1</sup>⁄<sub>n</sub> <span class="sym-op">Σ</span><sub>i=1</sub><sup>n</sup> (<span class="sym-fn">ŷ</span><sub>i</sub> − <span class="sym-var">y</span><sub>i</sub>)<sup>2</sup></div>
+      <div class="legend">
+        <span class="chip"><span class="dot" style="background:var(--purple)"></span>function — J, ŷ</span>
+        <span class="chip"><span class="dot" style="background:var(--gold)"></span>parameter — w</span>
+        <span class="chip"><span class="dot" style="background:var(--blue)"></span>variable — y</span>
+        <span class="chip"><span class="dot" style="background:var(--red)"></span>operator — Σ</span>
+      </div>
+    </div>
+
+    <div class="callout win">
+      <div class="icon">🎉</div>
+      <div class="body"><b>You just invented MSE</b>No formula sheet, no memorization — every symbol above is the direct, forced consequence of a requirement from Stages 0–3.</div>
+    </div>
+  </section>
+
+  <!-- ANATOMY -->
+  <section id="anatomy">
+    <div class="part-label">Stage 5 · Formula Anatomy</div>
+    <h2 class="title">Formula Anatomy — Every Symbol Has a Story</h2>
+    <p class="lead">Read <span class="sym-fn">J</span>(<span class="sym-param">w</span>) not as "cost function of w" but as a sentence:</p>
+
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--purple)">J</div>
+        <div class="role">Company dashboard</div>
+        <div class="meaning">How bad the model currently is — the single number leadership would look at.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--gold)">w</div>
+        <div class="role">Current knobs</div>
+        <div class="meaning">The values the engineer is allowed to change to make predictions better.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--purple)">ŷ</div>
+        <div class="role">Machine's guess</div>
+        <div class="meaning">What the model currently predicts, given the current knobs.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--blue)">y</div>
+        <div class="role">Reality</div>
+        <div class="meaning">The actual sale price. The ground truth we're being judged against.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--red)">( )²</div>
+        <div class="role">Punish big mistakes</div>
+        <div class="meaning">Removes the sign, stays differentiable, and penalizes large errors disproportionately.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--green)">1/n</div>
+        <div class="role">Fair comparison</div>
+        <div class="meaning">Makes the score independent of dataset size, so 10 houses and 10 million are comparable.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DERIVATIVE -->
+  <section id="derivative">
+    <div class="part-label">Stage 6 · Derivation</div>
+    <h2 class="title">Can We Directly Find the Best w?</h2>
+    <p class="lead">We differentiate — because the derivative answers one exact question:</p>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-label">If we increase w</div><div class="step-expr">does error increase?</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Or</div><div class="step-expr">does it decrease?</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">And</div><div class="step-expr">by how much?</div></div>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div class="body"><b>The derivative becomes inevitable</b>Once you need to know the direction and steepness of change, differentiation isn't a "next chapter" — it's the only tool that answers the question we just asked.</div>
+    </div>
+  </section>
+
+  <!-- GRADIENT DESCENT -->
+  <section id="gd">
+    <div class="part-label">Stage 7 · Algorithm</div>
+    <h2 class="title">Then Gradient Descent Is Born</h2>
+    <p class="lead">The derivative gives a direct, closed-form answer — but it hits a wall at scale.</p>
+
+    <div class="flow">
+      <div class="flow-step"><div class="step-label">Million features</div><div class="step-expr">→ huge matrix</div></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><div class="step-label">Huge matrix</div><div class="step-expr">→ inversion impossible</div></div>
+    </div>
+
+    <div class="callout problem">
+      <div class="icon">🧱</div>
+      <div class="body"><b>Need another idea</b>The engineer thinks: instead of jumping straight to the answer, let's <em>walk</em>. Take a small step. Check the error. Repeat.</div>
+    </div>
+
+    <div class="code-block">
+      <span class="tag">gradient_descent.py</span>
+<span class="c-kw">for</span> step <span class="c-kw">in</span> range(iterations):<br>
+&nbsp;&nbsp;<span class="c-comment"># how wrong are we, and in which direction?</span><br>
+&nbsp;&nbsp;grad = compute_gradient(<span class="c-var">w</span>, data)<br>
+&nbsp;&nbsp;<span class="c-comment"># take a small, controlled step downhill</span><br>
+&nbsp;&nbsp;<span class="c-var">w</span> = <span class="c-var">w</span> − <span class="c-var">eta</span> * grad&nbsp;&nbsp;<span class="c-comment"># eta = learning rate</span><br>
+&nbsp;&nbsp;<span class="c-kw">if</span> error_barely_changed(): <span class="c-kw">break</span>&nbsp;&nbsp;<span class="c-comment"># converged</span>
+    </div>
+
+    <div class="eq-panel">
+      <div class="eq-tag">Weight update rule</div>
+      <div class="eq-number">Eq. 1.2</div>
+      <div class="eq-main"><span class="sym-param">w</span> ← <span class="sym-param">w</span> − <span class="sym-const">η</span> <span class="sym-op">∇</span><span class="sym-fn">J</span>(<span class="sym-param">w</span>)</div>
+      <div class="legend">
+        <span class="chip"><span class="dot" style="background:var(--gold)"></span>parameter — w</span>
+        <span class="chip"><span class="dot" style="background:var(--green)"></span>constant — η (learning rate)</span>
+        <span class="chip"><span class="dot" style="background:var(--red)"></span>operator — ∇ (gradient)</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- FULL CHAIN -->
+  <section id="chain">
+    <div class="part-label">Stage 8 · Optimization</div>
+    <h2 class="title">The Complete Evolution</h2>
+    <p class="lead">Every idea above, chained end to end — this is the real story arc of linear regression, not a list of unrelated formulas.</p>
+
+    <div class="chain">
+      <div class="chain-node milestone">Business Problem</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need prediction</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need measure of goodness</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need error</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need non-negative error</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need to punish large mistakes → Square</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need overall dataset → Summation</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need fair comparison → Average</div><div class="chain-arrow">↓</div>
+      <div class="chain-node milestone">Loss Function (MSE)</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need minimum → Derivative</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Need optimum → Solve → Matrix</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Too expensive at scale</div><div class="chain-arrow">↓</div>
+      <div class="chain-node milestone">Gradient Descent</div><div class="chain-arrow">↓</div>
+      <div class="chain-node">Still slow → Mini-Batch → SGD</div><div class="chain-arrow">↓</div>
+      <div class="chain-node milestone">GPU → Deep Learning</div>
+    </div>
+  </section>
+
+  <!-- EDGE CASES (Stage 9) -->
+  <section id="edge">
+    <div class="part-label">Stage 9 · Edge Cases</div>
+    <h2 class="title">Where This Formula Breaks</h2>
+    <p class="lead">MSE is elegant, not bulletproof. Know where it bites back.</p>
+
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--red); font-size:1.1rem;">⚠</div>
+        <div class="role">Outlier sensitivity</div>
+        <div class="meaning">Squaring means one badly mispriced mansion can dominate the entire loss and drag every weight toward fitting it.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--red); font-size:1.1rem;">⚠</div>
+        <div class="role">Non-invertible XᵀX</div>
+        <div class="meaning">The closed-form solution needs (XᵀX)⁻¹. If features are collinear, this matrix is singular — no unique solution exists without a pseudo-inverse or regularization.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--red); font-size:1.1rem;">⚠</div>
+        <div class="role">Unscaled features</div>
+        <div class="meaning">Gradient descent zig-zags or diverges when one feature is in lakhs and another is a 0–1 ratio — feature scaling isn't optional in practice.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="sym" style="color:var(--red); font-size:1.1rem;">⚠</div>
+        <div class="role">Learning rate too high</div>
+        <div class="meaning">The "walk downhill" step from Stage 8 can overshoot the minimum entirely and diverge instead of converge.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PATTERN RECOGNITION (Stage 10) -->
+  <section id="pattern">
+    <div class="part-label">Stage 10 · Pattern Recognition</div>
+    <h2 class="title">When Should This Come to Mind?</h2>
+    <p class="lead">Signals in a problem statement that should make you reach for MSE / linear regression:</p>
+    <ul class="plain">
+      <li>The target you're predicting is a continuous number (price, temperature, time), not a category</li>
+      <li>You expect roughly proportional, additive relationships between inputs and the output</li>
+      <li>Large errors are meaningfully worse than small ones (not just "different") — squaring is the tell</li>
+      <li>You need an interpretable, differentiable objective you can optimize directly</li>
+    </ul>
+  </section>
+
+  <!-- FORMULA SHAPE RECOGNITION (Stage 11) -->
+  <section id="shape">
+    <div class="part-label">Stage 11 · Formula Shape Recognition</div>
+    <h2 class="title">Spot This Shape Under Different Names</h2>
+    <p class="lead">The pattern <em>Σ(something − reference)²</em> shows up everywhere in ML, wearing different notation:</p>
+
+    <table>
+      <thead><tr><th>Where it appears</th><th>Same shape as MSE</th></tr></thead>
+      <tbody>
+        <tr><td>Variance</td><td>Σ(x − mean)² — "reference" is the mean, not a prediction</td></tr>
+        <tr><td>K-Means objective</td><td>Σ‖x − centroid‖² — squared distance to the nearest cluster center</td></tr>
+        <tr><td>PCA reconstruction error</td><td>Σ‖x − x̂‖² — squared distance between original and reconstructed point</td></tr>
+        <tr><td>RMSE</td><td>√MSE — same formula, just square-rooted back to the original units</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout insight">
+      <div class="icon">👁</div>
+      <div class="body"><b>Why this matters</b>Once you see "sum of squared distance to something," you already half-understand the new algorithm — only the "something" changes.</div>
+    </div>
+  </section>
+
+  <!-- PROBLEM FAMILIES (Stage 12) -->
+  <section id="families">
+    <div class="part-label">Stage 12 · Problem Families</div>
+    <h2 class="title">MSE's Extended Family</h2>
+    <p class="lead">MSE is one member of the loss-function family — each sibling relaxes or changes one of the requirements from Stage 2.</p>
+
+    <table>
+      <thead><tr><th>Loss</th><th>What it changes vs. MSE</th></tr></thead>
+      <tbody>
+        <tr><td>MAE (L1)</td><td>Uses absolute value instead of square — less outlier-sensitive, not smoothly differentiable at 0</td></tr>
+        <tr><td>Huber Loss</td><td>Quadratic for small errors, linear for large ones — a deliberate compromise between MSE and MAE</td></tr>
+        <tr><td>Cross-Entropy</td><td>Same "penalize being wrong" idea, redesigned for probabilities instead of continuous values (classification, not regression)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- EXPERT THINKING (Stage 13) -->
+  <section id="expert">
+    <div class="part-label">Stage 13 · Expert Thinking</div>
+    <h2 class="title">How a Practitioner Actually Thinks About This</h2>
+    <ul class="plain">
+      <li>A jagged, oscillating loss curve → learning rate is too high, not "the model is bad"</li>
+      <li>Train error low, test error high → overfitting, not an MSE problem — look at regularization first</li>
+      <li>Loss plateaus early → check feature scaling before assuming convergence</li>
+      <li>One feature dominates the fit → suspect an outlier or an unscaled column before questioning the model</li>
+    </ul>
+  </section>
+
+  <!-- EXAM SHORTCUTS (Stage 14) -->
+  <section id="exam">
+    <div class="part-label">Stage 14 · Exam Shortcuts</div>
+    <h2 class="title">Fast Answers Under Time Pressure</h2>
+
+    <div class="eq-panel">
+      <div class="eq-tag">Closed-form solution</div>
+      <div class="eq-number">Eq. 1.3</div>
+      <div class="eq-main"><span class="sym-param">w</span>* = (<span class="sym-var">X</span><sup>T</sup><span class="sym-var">X</span>)<sup>−1</sup><span class="sym-var">X</span><sup>T</sup><span class="sym-var">y</span></div>
+    </div>
+
+    <ul class="plain">
+      <li>Common trap: forgetting the factor of 2 that appears when differentiating the square, then vanishes when set to zero — doesn't change w*, but shows up if asked for the gradient expression itself</li>
+      <li>MSE vs SSE vs RMSE are the same core sum — the only difference is whether you divide by n and whether you square-root at the end. Read the question carefully for which one is asked</li>
+      <li>Forgetting the bias/intercept term is the single most common mark-loss on this topic — check whether X includes a column of 1s</li>
+    </ul>
+  </section>
+
+  <!-- INDUSTRY IMPLEMENTATION (Stage 15) -->
+  <section id="industry">
+    <div class="part-label">Stage 15 · Industry Implementation</div>
+    <h2 class="title">What This Looks Like in Production</h2>
+
+    <div class="code-block">
+      <span class="tag">python</span>
+      <span class="c-kw">from</span> sklearn.linear_model <span class="c-kw">import</span> LinearRegression<br>
+      <span class="c-kw">from</span> sklearn.metrics <span class="c-kw">import</span> mean_squared_error<br><br>
+      model = LinearRegression()<br>
+      model.fit(X_train, y_train)<br>
+      loss = mean_squared_error(y_test, model.predict(X_test))
+    </div>
+
+    <ul class="plain">
+      <li>Deep learning frameworks expose this directly: <code style="font-family:var(--mono); color:var(--teal);">torch.nn.MSELoss()</code></li>
+      <li>Production training almost never uses vanilla gradient descent — Adam, RMSprop, and other adaptive optimizers replace the plain update rule from Stage 7 while keeping the same underlying loss</li>
+      <li>Batches are vectorized and run on GPUs; the "walk downhill" loop from Stage 8 becomes thousands of matrix operations per second rather than one step at a time</li>
+    </ul>
+  </section>
+
+  <!-- CONNECTIONS (Stage 16) -->
+  <section id="connections">
+    <div class="part-label">Stage 16 · Connections</div>
+    <h2 class="title">Where This Leads Next</h2>
+
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <div class="role" style="color:var(--gold)">Ridge / Lasso</div>
+        <div class="meaning">Add a penalty term to J(w) to fix the non-invertible XᵀX and overfitting issues from Stage 9.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="role" style="color:var(--gold)">Maximum Likelihood</div>
+        <div class="meaning">MSE turns out to be exactly what you get from maximizing likelihood under a Gaussian noise assumption — same formula, different derivation path.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="role" style="color:var(--gold)">Logistic Regression</div>
+        <div class="meaning">Swap the continuous target for a probability and MSE's role is taken over by cross-entropy — same "prediction vs. reality" skeleton.</div>
+      </div>
+      <div class="anatomy-card">
+        <div class="role" style="color:var(--gold)">Neural Network Output Layer</div>
+        <div class="meaning">A single-layer linear regression is literally a one-neuron neural network trained with this exact loss.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROADMAP -->
+  <section id="roadmap">
+    <div class="part-label">Reference · Course Roadmap</div>
+    <h2 class="title">Evolution Tree: How This Topic Should Be Taught</h2>
+    <p class="lead">The full chapter arc for Linear Regression — each step is the forced consequence of the one before it.</p>
+
+    <div class="timeline">
+      <div class="t-step" data-n="1"><div class="t-title">The Prediction Problem</div><div class="t-desc">Why do we need a model at all?</div></div>
+      <div class="t-step" data-n="2"><div class="t-title">Why a Linear Relationship?</div></div>
+      <div class="t-step" data-n="3"><div class="t-title">Representing Data as Vectors</div></div>
+      <div class="t-step" data-n="4"><div class="t-title">Building the Prediction Equation</div></div>
+      <div class="t-step" data-n="5"><div class="t-title">What Makes a Good Prediction?</div></div>
+      <div class="t-step" data-n="6"><div class="t-title">Inventing the Error Function</div></div>
+      <div class="t-step" data-n="7"><div class="t-title">Why Squared Error?</div></div>
+      <div class="t-step" data-n="8"><div class="t-title">Constructing the Cost Function</div></div>
+      <div class="t-step" data-n="9"><div class="t-title">Finding the Best Parameters</div></div>
+      <div class="t-step" data-n="10"><div class="t-title">Why Differentiation?</div></div>
+      <div class="t-step" data-n="11"><div class="t-title">Closed-Form Solution</div></div>
+      <div class="t-step" data-n="12"><div class="t-title">Matrix Interpretation</div></div>
+      <div class="t-step" data-n="13"><div class="t-title">Why Closed-Form Fails at Scale</div></div>
+      <div class="t-step" data-n="14"><div class="t-title">Gradient Descent</div></div>
+      <div class="t-step" data-n="15"><div class="t-title">Learning Rate</div></div>
+      <div class="t-step" data-n="16"><div class="t-title">Convergence</div></div>
+      <div class="t-step" data-n="17"><div class="t-title">Stochastic Gradient Descent</div></div>
+      <div class="t-step" data-n="18"><div class="t-title">Mini-Batch SGD</div></div>
+      <div class="t-step" data-n="19"><div class="t-title">Feature Scaling</div></div>
+      <div class="t-step" data-n="20"><div class="t-title">Regularization</div></div>
+      <div class="t-step" data-n="21"><div class="t-title">Kernel Trick</div></div>
+      <div class="t-step" data-n="22"><div class="t-title">Probabilistic Interpretation</div></div>
+      <div class="t-step" data-n="23"><div class="t-title">Maximum Likelihood</div></div>
+      <div class="t-step" data-n="24"><div class="t-title">Modern Industry Pipeline</div></div>
+    </div>
+  </section>
+
+  <!-- FORMULA MAP -->
+  <section id="map">
+    <div class="part-label">Reference · Formula Map</div>
+    <h2 class="title">Formula Evolution Map</h2>
+    <p class="lead">Nothing appears by magic — each formula is the next logical consequence of the one before it.</p>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 560 720" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#656c80"/>
+          </marker>
+        </defs>
+        <!-- nodes -->
+        <g font-family="JetBrains Mono, monospace" font-size="15">
+          <!-- Prediction -->
+          <rect x="180" y="10" width="200" height="46" rx="10" fill="#161a26" stroke="rgba(255,255,255,0.09)"/>
+          <text x="280" y="30" text-anchor="middle" fill="#9298ab" font-size="11">PREDICTION</text>
+          <text x="280" y="47" text-anchor="middle" fill="#ab8ff0">ŷ = wx</text>
+          <line x1="280" y1="56" x2="280" y2="82" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Residual -->
+          <rect x="180" y="82" width="200" height="46" rx="10" fill="#161a26" stroke="rgba(255,255,255,0.09)"/>
+          <text x="280" y="102" text-anchor="middle" fill="#9298ab" font-size="11">RESIDUAL</text>
+          <text x="280" y="119" text-anchor="middle" fill="#6ea8f0">e = y − ŷ</text>
+          <line x1="280" y1="128" x2="280" y2="154" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Squared Residual -->
+          <rect x="180" y="154" width="200" height="46" rx="10" fill="#161a26" stroke="rgba(255,255,255,0.09)"/>
+          <text x="280" y="174" text-anchor="middle" fill="#9298ab" font-size="11">SQUARED RESIDUAL</text>
+          <text x="280" y="191" text-anchor="middle" fill="#ef6a6a">e²</text>
+          <line x1="280" y1="200" x2="280" y2="226" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Dataset error -->
+          <rect x="180" y="226" width="200" height="46" rx="10" fill="#161a26" stroke="rgba(255,255,255,0.09)"/>
+          <text x="280" y="246" text-anchor="middle" fill="#9298ab" font-size="11">DATASET ERROR</text>
+          <text x="280" y="263" text-anchor="middle" fill="#ef6a6a">Σe²</text>
+          <line x1="280" y1="272" x2="280" y2="298" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Average error / MSE -->
+          <rect x="150" y="298" width="260" height="52" rx="10" fill="rgba(227,179,79,0.1)" stroke="rgba(227,179,79,0.35)"/>
+          <text x="280" y="318" text-anchor="middle" fill="#e3b34f" font-size="11">AVERAGE ERROR</text>
+          <text x="280" y="338" text-anchor="middle" fill="#e3b34f" font-weight="bold">MSE = J(w)</text>
+          <line x1="280" y1="350" x2="280" y2="376" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Gradient -->
+          <rect x="180" y="376" width="200" height="46" rx="10" fill="#161a26" stroke="rgba(255,255,255,0.09)"/>
+          <text x="280" y="396" text-anchor="middle" fill="#9298ab" font-size="11">GRADIENT</text>
+          <text x="280" y="413" text-anchor="middle" fill="#ef6a6a">∇J(w)</text>
+          <line x1="280" y1="422" x2="280" y2="448" stroke="#656c80" marker-end="url(#arrow)"/>
+
+          <!-- Weight update -->
+          <rect x="130" y="448" width="300" height="52" rx="10" fill="rgba(70,208,194,0.08)" stroke="rgba(70,208,194,0.3)"/>
+          <text x="280" y="468" text-anchor="middle" fill="#46d0c2" font-size="11">WEIGHT UPDATE</text>
+          <text x="280" y="488" text-anchor="middle" fill="#46d0c2" font-weight="bold">w ← w − η∇J(w)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="callout insight">
+      <div class="icon">🔗</div>
+      <div class="body"><b>Read it top to bottom</b>Prediction needs comparison → comparison needs a residual → residual needs a sign fix → dataset needs aggregation → aggregation needs fairness → optimization needs a gradient → gradient needs a step. Nothing skips a link.</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>Least Squares Error — built the way it was discovered, not the way it's memorized · MLT Study Notes</footer>
+
+</body>
+</html>

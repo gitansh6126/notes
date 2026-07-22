@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MLT Weeks 1-4 Recap — Problem-First, Mental Models & Intuition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {
+    delimiters: [
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
+    ],
+    macros: {
+      '\\N': '\\mathcal{N}',
+      '\\L': '\\mathcal{L}',
+      '\\R': '\\mathbb{R}',
+      '\\given': '\\mid'
+    },
+    throwOnError: false
+  });">
+</script>
+<style>
+  :root {
+    --bg: #f4f5f9;
+    --surface: #ffffff;
+    --ink: #1a1e2b;
+    --ink-soft: #505770;
+    --ink-faint: #8b91a5;
+    --line: #dde0e9;
+    --blue: #1e4f8a;
+    --blue-soft: #e9eef7;
+    --blue-deep: #12355e;
+    --gold: #b5872a;
+    --gold-soft: #f6ecd3;
+    --gold-deep: #8f6a1c;
+    --rust: #a8482a;
+    --rust-soft: #f7e6df;
+    --rust-deep: #7c2d15;
+    --teal: #2c6b5d;
+    --teal-soft: #e2efec;
+    --teal-deep: #1a443a;
+    --purple: #5a3e8a;
+    --purple-soft: #ede7f5;
+    --purple-deep: #3c2460;
+    --green: #3d7a4a;
+    --green-soft: #e6f0e8;
+    --green-deep: #24522f;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
+    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+
+  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+
+  .hero {
+    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
+    color: #f0f1f8;
+    padding: 60px 0 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 36px 36px;
+    pointer-events: none;
+  }
+  .hero .container { position: relative; z-index: 1; }
+  
+  .hero .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #d9b872;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero .tag::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #d9b872;
+  }
+
+  .hero h1 {
+    font-weight: 800;
+    font-size: clamp(28px, 4.5vw, 44px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    letter-spacing: -0.02em;
+  }
+  .hero h1 span { color: #d9b872; }
+
+  .hero p {
+    font-size: 15px;
+    color: #b8bdd0;
+    max-width: 720px;
+    margin: 0 0 24px;
+    line-height: 1.5;
+  }
+
+  .nav-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 16px;
+  }
+  .nav-tab {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 8px 16px;
+    border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #b8bdd0;
+    background: rgba(255,255,255,0.03);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  .nav-tab:hover {
+    border-color: #d9b872;
+    color: #f0f1f8;
+    background: rgba(255,255,255,0.07);
+  }
+
+  main { padding: 48px 0 80px; }
+
+  .week-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 48px;
+    box-shadow: var(--shadow);
+  }
+
+  .week-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 12px;
+  }
+
+  .week-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold-deep);
+    background: var(--gold-soft);
+    border-radius: 6px;
+    padding: 3px 8px;
+    text-transform: uppercase;
+  }
+
+  .week-title {
+    font-weight: 700;
+    font-size: 22px;
+    margin: 0;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+
+  /* Educational Framework Cards */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media (min-width: 768px) {
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+  }
+
+  .edu-card {
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid transparent;
+  }
+
+  .card-problem {
+    background-color: var(--rust-soft);
+    border-color: rgba(168, 72, 42, 0.15);
+    color: var(--rust-deep);
+  }
+  .card-problem h4 { color: var(--rust); }
+
+  .card-model {
+    background-color: var(--purple-soft);
+    border-color: rgba(90, 62, 138, 0.15);
+    color: var(--purple-deep);
+  }
+  .card-model h4 { color: var(--purple); }
+
+  .card-intuition {
+    background-color: var(--teal-soft);
+    border-color: rgba(44, 107, 93, 0.15);
+    color: var(--teal-deep);
+  }
+  .card-intuition h4 { color: var(--teal); }
+
+  .edu-card h4 {
+    margin: 0 0 10px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .edu-card p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  /* Math Panel */
+  .math-panel {
+    background: linear-gradient(160deg, #161b2a, #1c2237);
+    color: #e2e4ed;
+    border: 1px solid #2d334b;
+    border-left: 4px solid var(--gold);
+    border-radius: 8px;
+    padding: 24px;
+    margin: 20px 0;
+    position: relative;
+    overflow-x: auto;
+  }
+  .math-panel-title {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: #5f6785;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .math-desc {
+    font-size: 13.5px;
+    color: #a5adc6;
+    margin-top: 12px;
+    margin-bottom: 0;
+    line-height: 1.5;
+  }
+
+  /* Tables */
+  .comparison-table-wrapper {
+    overflow-x: auto;
+    margin: 24px 0 12px;
+  }
+  table.comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    text-align: left;
+  }
+  table.comparison-table th, table.comparison-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.comparison-table th {
+    background-color: var(--blue-soft);
+    color: var(--blue-deep);
+    font-weight: 600;
+  }
+  table.comparison-table tr:hover td {
+    background-color: #fafbfc;
+  }
+
+  .ref-links {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .ref-btn {
+    font-size: 12px;
+    color: var(--blue);
+    background-color: var(--blue-soft);
+    border: 1px solid rgba(30,79,138,0.1);
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s ease;
+  }
+  .ref-btn:hover {
+    background-color: var(--blue);
+    color: #fff;
+  }
+  .visual-panel {
+    margin: 24px 0;
+    text-align: center;
+  }
+  .visual-panel svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    box-shadow: var(--shadow);
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="container">
+    <div class="tag">MLT Concept Quick-Recall</div>
+    <h1>Weeks 1 to 4 <span>Core Recap</span></h1>
+    <p>
+      A high-density review of Principal Component Analysis, Kernel PCA, K-Means Clustering, GMM, and EM. Built using the <strong>problem-first</strong> paradigm, structured <strong>mental models</strong>, and <strong>real-life intuition</strong> to cement fundamental concepts before exams.
+    </p>
+    <div class="nav-tabs">
+      <a href="#week1" class="nav-tab">W1: PCA</a>
+      <a href="#week2" class="nav-tab">W2: Kernel PCA</a>
+      <a href="#week3" class="nav-tab">W3: K-Means</a>
+      <a href="#week4" class="nav-tab">W4: GMM & EM</a>
+    </div>
+  </div>
+</div>
+
+<main class="container">
+
+  <!-- WEEK 1 -->
+  <section id="week1" class="week-section">
+    <div class="week-header">
+      <span class="week-badge">Week 01</span>
+      <h2 class="week-title">Dimensionality Reduction & Linear PCA</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="edu-card card-problem">
+        <h4>The Problem</h4>
+        <p>
+          High-dimensional datasets (e.g., $1000 \times 1000$ pixel images) are hard to visualize, computationally heavy, and prone to overfitting. Many features are highly correlated or redundant. Simple column dropping throws away data. How do we reduce dimensions while preserving maximum information?
+        </p>
+      </div>
+
+      <div class="edu-card card-model">
+        <h4>Mental Model</h4>
+        <p>
+          Think of a 3D cloud of data. Instead of observing it along the standard $x,y,z$ axes, we want to find a new camera angle (orthogonal coordinate system) where the first axis points along the direction of maximum spread (variance) of the cloud, and the second axis is perpendicular to the first, holding the next highest spread.
+        </p>
+      </div>
+    </div>
+
+    <div class="edu-card card-intuition" style="margin-bottom: 20px;">
+      <h4>Real-Life Intuition: The Shadow Projection</h4>
+      <p>
+        Imagine holding a 3D teapot in front of a flashlight, projecting its shadow onto a 2D wall. If you point the flashlight from the front, the shadow might collapse into a flat circle, hiding the handle and spout. To capture the "true shape" of the teapot in 2D, you must rotate it until the shadow is as wide and detailed as possible. The orientation that produces the shadow with the greatest spread (variance) represents the first principal component directions.
+      </p>
+    </div>
+
+    <div class="visual-panel">
+      <svg viewBox="0 0 400 200" width="100%" height="auto" style="background:#fff; border-radius:8px; border:1px solid var(--line);">
+        <line x1="20" y1="180" x2="380" y2="180" stroke="#f0f0f5" stroke-width="1"/>
+        <line x1="20" y1="180" x2="20" y2="20" stroke="#f0f0f5" stroke-width="1"/>
+        
+        <circle cx="100" cy="140" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="120" cy="130" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="140" cy="115" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="160" cy="110" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="180" cy="95" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="200" cy="90" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="220" cy="85" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="240" cy="70" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="260" cy="65" r="4" fill="#a8482a" opacity="0.6"/>
+        <circle cx="280" cy="50" r="4" fill="#a8482a" opacity="0.6"/>
+        
+        <line x1="100" y1="140" x2="120" y2="125" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        <line x1="140" y1="115" x2="152" y2="106" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        <line x1="180" y1="95" x2="184" y2="92" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        <line x1="220" y1="85" x2="216" y2="88" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        <line x1="260" y1="65" x2="248" y2="74" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        <line x1="280" y1="50" x2="260" y2="65" stroke="#8b91a5" stroke-dasharray="3,3"/>
+        
+        <line x1="50" y1="170" x2="330" y2="20" stroke="var(--blue)" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+        <line x1="200" y1="90" x2="160" y2="30" stroke="var(--gold)" stroke-width="2" marker-end="url(#arrow-gold)"/>
+        
+        <text x="260" y="35" fill="var(--blue)" font-family="monospace" font-size="11" font-weight="bold">PC1 (Max Variance)</text>
+        <text x="145" y="25" fill="var(--gold)" font-family="monospace" font-size="11" font-weight="bold">PC2</text>
+        <text x="40" y="193" fill="var(--ink-soft)" font-family="sans-serif" font-size="10">Original Feature 1</text>
+        
+        <defs>
+          <marker id="arrow-blue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--blue)"/>
+          </marker>
+          <marker id="arrow-gold" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gold)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="math-panel">
+      <span class="math-panel-title">Math in a Nutshell</span>
+      $$ \max_{\mathbf{w}} \mathbf{w}^T \mathbf{\Sigma} \mathbf{w} \quad \text{subject to} \quad \mathbf{w}^T\mathbf{w} = 1 $$
+      $$ \text{Formulating the Lagrangian: } \mathcal{L}(\mathbf{w}, \lambda) = \mathbf{w}^T \mathbf{\Sigma} \mathbf{w} - \lambda(\mathbf{w}^T\mathbf{w} - 1) $$
+      $$ \text{Setting derivative to zero gives the Eigenvalue Problem: } \mathbf{\Sigma} \mathbf{w} = \lambda \mathbf{w} $$
+      <p class="math-desc">
+        $\mathbf{\Sigma}$ is the sample covariance matrix $\frac{1}{N}X^T X$ (for centered $X$). The projection direction $\mathbf{w}$ is an eigenvector of $\mathbf{\Sigma}$, and the corresponding eigenvalue $\lambda$ is the variance captured along that direction.
+      </p>
+    </div>
+
+    <div class="ref-links">
+      <a href="../Week 01 - Intro Representation PCA/L6 - PCA Part 1.html" class="ref-btn">L6: PCA Part 1</a>
+      <a href="../Week 01 - Intro Representation PCA/L7 - PCA Part 2.html" class="ref-btn">L7: PCA Part 2</a>
+      <a href="../Week 01 - Intro Representation PCA/Part 1 (Covariance).html" class="ref-btn">Part 1: Covariance</a>
+      <a href="../Week 01 - Intro Representation PCA/Part 2 (Eigenvalues).html" class="ref-btn">Part 2: Eigenvalues</a>
+    </div>
+  </section>
+
+  <!-- WEEK 2 -->
+  <section id="week2" class="week-section">
+    <div class="week-header">
+      <span class="week-badge">Week 02</span>
+      <h2 class="week-title">Non-Linear PCA & The Kernel Trick</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="edu-card card-problem">
+        <h4>The Problem</h4>
+        <p>
+          Linear PCA only works if the data lies on a flat, linear subspace. If the dataset forms non-linear shapes (like concentric circles, spirals, or Swiss rolls), linear PCA will compress them by smashing them into each other, completely destroying the grouping boundaries and structure.
+        </p>
+      </div>
+
+      <div class="edu-card card-model">
+        <h4>Mental Model</h4>
+        <p>
+          Map the input data non-linearly into a much higher-dimensional space where the curved structure "unfolds" and becomes linear. Once unfolded, we can perform standard linear PCA. Crucially, we bypass calculating the coordinates in that massive space by computing only pairwise distances/similarities.
+        </p>
+      </div>
+    </div>
+
+    <div class="edu-card card-intuition" style="margin-bottom: 20px;">
+      <h4>Real-Life Intuition: Lifting the Flat Paper</h4>
+      <p>
+        Imagine a flat piece of paper with a circle of blue dots inside a outer ring of red dots. In 2D, you cannot separate these with a straight line. Now, imagine poking the center of the paper from below, pushing the blue dots up to form a 3D cone. The red dots remain on the table. Now, a flat sheet of cardboard (a 2D plane) can easily slide between the blue dots and red dots to separate them. Higher dimensions simplify non-linear structures.
+      </p>
+    </div>
+
+    <div class="visual-panel">
+      <svg viewBox="0 0 500 200" width="100%" height="auto" style="background:#fff; border-radius:8px; border:1px solid var(--line);">
+        <g transform="translate(10, 0)">
+          <rect x="10" y="20" width="160" height="160" rx="6" fill="#fcfcfd" stroke="#e4e4eb"/>
+          <circle cx="90" cy="40" r="4.5" fill="#a8482a"/>
+          <circle cx="40" cy="90" r="4.5" fill="#a8482a"/>
+          <circle cx="140" cy="90" r="4.5" fill="#a8482a"/>
+          <circle cx="90" cy="140" r="4.5" fill="#a8482a"/>
+          <circle cx="55" cy="55" r="4.5" fill="#a8482a"/>
+          <circle cx="125" cy="55" r="4.5" fill="#a8482a"/>
+          <circle cx="55" cy="125" r="4.5" fill="#a8482a"/>
+          <circle cx="125" cy="125" r="4.5" fill="#a8482a"/>
+          <circle cx="90" cy="90" r="4.5" fill="#1e4f8a"/>
+          <circle cx="90" cy="70" r="4.5" fill="#1e4f8a"/>
+          <circle cx="90" cy="110" r="4.5" fill="#1e4f8a"/>
+          <circle cx="70" cy="90" r="4.5" fill="#1e4f8a"/>
+          <circle cx="110" cy="90" r="4.5" fill="#1e4f8a"/>
+          <text x="90" y="193" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="var(--ink-soft)">Input Space (Non-linear)</text>
+        </g>
+
+        <g transform="translate(195, 0)">
+          <path d="M 0 100 L 30 100" stroke="var(--gold)" stroke-width="3" fill="none" marker-end="url(#arrow-gold-map)"/>
+          <text x="15" y="85" text-anchor="middle" font-family="monospace" font-size="11" font-weight="bold" fill="var(--gold-deep)">Φ(x)</text>
+          <defs>
+            <marker id="arrow-gold-map" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--gold)"/>
+            </marker>
+          </defs>
+        </g>
+
+        <g transform="translate(240, 0)">
+          <rect x="10" y="20" width="240" height="160" rx="6" fill="#fcfcfd" stroke="#e4e4eb"/>
+          
+          <path d="M 40 140 Q 130 170 220 140" stroke="#f0f0f5" stroke-width="1.5" fill="none"/>
+          <path d="M 60 100 Q 130 130 200 100" stroke="#f0f0f5" stroke-width="1.5" fill="none"/>
+          <path d="M 80 60 Q 130 85 180 60" stroke="#f0f0f5" stroke-width="1.5" fill="none"/>
+          
+          <polygon points="30,110 230,95 210,135 10,150" fill="rgba(44, 107, 93, 0.12)" stroke="var(--teal)" stroke-width="1" stroke-dasharray="2,2"/>
+          <text x="22" y="145" fill="var(--teal-deep)" font-family="sans-serif" font-size="9" font-weight="bold">Separating Hyperplane</text>
+          
+          <circle cx="130" cy="145" r="4.5" fill="#1e4f8a"/>
+          <circle cx="115" cy="140" r="4.5" fill="#1e4f8a"/>
+          <circle cx="145" cy="140" r="4.5" fill="#1e4f8a"/>
+          <circle cx="130" cy="130" r="4.5" fill="#1e4f8a"/>
+          <circle cx="130" cy="150" r="4.5" fill="#1e4f8a"/>
+          
+          <circle cx="50" cy="70" r="4.5" fill="#a8482a"/>
+          <circle cx="70" cy="55" r="4.5" fill="#a8482a"/>
+          <circle cx="210" cy="70" r="4.5" fill="#a8482a"/>
+          <circle cx="190" cy="55" r="4.5" fill="#a8482a"/>
+          <circle cx="95" cy="45" r="4.5" fill="#a8482a"/>
+          <circle cx="165" cy="45" r="4.5" fill="#a8482a"/>
+          
+          <line x1="130" y1="165" x2="130" y2="30" stroke="#8b91a5" stroke-width="1" stroke-dasharray="4,4"/>
+          
+          <text x="130" y="193" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="var(--ink-soft)">Feature Space (Linear PCA)</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="math-panel">
+      <span class="math-panel-title">Math in a Nutshell</span>
+      $$ \text{Feature mapping: } \mathbf{x} \to \Phi(\mathbf{x}) \implies \text{Covariance in feature space: } \mathbf{\Sigma}_\Phi = \frac{1}{N} \sum_{i=1}^N \Phi(\mathbf{x}_i)\Phi(\mathbf{x}_i)^T $$
+      $$ \text{Eigenvector is a linear combination of mapped points: } \mathbf{w} = \sum_{i=1}^N \alpha_i \Phi(\mathbf{x}_i) $$
+      $$ \text{Substituting gives the Kernel Eigenvalue Problem: } \widetilde{\mathbf{K}} \boldsymbol{\alpha} = \lambda \boldsymbol{\alpha} $$
+      $$ \text{Where } \mathbf{K}_{ij} = k(\mathbf{x}_i, \mathbf{x}_j) = \langle\Phi(\mathbf{x}_i), \Phi(\mathbf{x}_j)\rangle \quad \text{(Kernel Trick - no explicit } \Phi(\mathbf{x}) \text{ calculation)} $$
+      <p class="math-desc">
+        $\widetilde{\mathbf{K}}$ is the centered kernel matrix: $\widetilde{\mathbf{K}} = \mathbf{K} - \mathbf{1}_N\mathbf{K} - \mathbf{K}\mathbf{1}_N + \mathbf{1}_N\mathbf{K}\mathbf{1}_N$ where $\mathbf{1}_N$ is a matrix with elements $1/N$.
+      </p>
+    </div>
+
+    <div class="ref-links">
+      <a href="../Week 02 - Kernel PCA/L10 - Feature Transformation.html" class="ref-btn">L10: Feature Transformation</a>
+      <a href="../Week 02 - Kernel PCA/L11 - Kernel Functions.html" class="ref-btn">L11: Kernels</a>
+      <a href="../Week 02 - Kernel PCA/L12 - Kernel PCA.html" class="ref-btn">L12: Kernel PCA</a>
+    </div>
+  </section>
+
+  <!-- WEEK 3 -->
+  <section id="week3" class="week-section">
+    <div class="week-header">
+      <span class="week-badge">Week 03</span>
+      <h2 class="week-title">K-Means Clustering & Initialization</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="edu-card card-problem">
+        <h4>The Problem</h4>
+        <p>
+          Given a collection of unlabeled data points (e.g. historical credit card transactions), how do we automatically group them into $K$ distinct clusters such that points within each cluster are highly similar, while separate clusters are distinct?
+        </p>
+      </div>
+
+      <div class="edu-card card-model">
+        <h4>Mental Model</h4>
+        <p>
+          Lloyd's algorithm uses iterative coordinate descent. You place $K$ pins randomly. Then alternate:
+          1. <strong>Assign:</strong> Every data point registers with the nearest pin.
+          2. <strong>Update:</strong> Each pin moves to the physical center of gravity (mean) of all its registered points.
+          Repeat until the pins stop moving.
+        </p>
+      </div>
+    </div>
+
+    <div class="edu-card card-intuition" style="margin-bottom: 20px;">
+      <h4>Real-Life Intuition: Franchise Store Placement</h4>
+      <p>
+        Imagine placing $K$ pizza delivery hubs across a city. Initially, you place them randomly. Customers always order from their nearest hub (Assignment). After a month, you look at all orders for Hub A and move Hub A to the geographic center of its actual customers (Update). You do this for all hubs and repeat. Over time, the hubs migrate to the perfect central positions, minimizing the average travel distance for all customers.
+      </p>
+    </div>
+
+    <div class="visual-panel">
+      <svg viewBox="0 0 450 200" width="100%" height="auto" style="background:#fff; border-radius:8px; border:1px solid var(--line);">
+        <g>
+          <circle cx="80" cy="60" r="4" fill="#a8482a" opacity="0.6"/>
+          <circle cx="60" cy="80" r="4" fill="#a8482a" opacity="0.6"/>
+          <circle cx="90" cy="85" r="4" fill="#a8482a" opacity="0.6"/>
+          <circle cx="110" cy="70" r="4" fill="#a8482a" opacity="0.6"/>
+          <circle cx="70" cy="95" r="4" fill="#a8482a" opacity="0.6"/>
+          <circle cx="50" cy="50" r="6" fill="none" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="2,2"/>
+          <path d="M 50 50 Q 65 65 82 78" stroke="#a8482a" stroke-width="1" stroke-dasharray="2,2" fill="none" marker-end="url(#arrow-red-km)"/>
+          <path d="M 82 72 L 85 78 L 91 79 L 87 83 L 88 89 L 82 86 L 76 89 L 77 83 L 73 79 L 79 78 Z" fill="#a8482a"/>
+        </g>
+
+        <g>
+          <circle cx="220" cy="130" r="4" fill="#1e4f8a" opacity="0.6"/>
+          <circle cx="240" cy="150" r="4" fill="#1e4f8a" opacity="0.6"/>
+          <circle cx="210" cy="160" r="4" fill="#1e4f8a" opacity="0.6"/>
+          <circle cx="260" cy="140" r="4" fill="#1e4f8a" opacity="0.6"/>
+          <circle cx="235" cy="120" r="4" fill="#1e4f8a" opacity="0.6"/>
+          <circle cx="280" cy="165" r="6" fill="none" stroke="#1e4f8a" stroke-width="1.5" stroke-dasharray="2,2"/>
+          <path d="M 280 165 Q 260 155 233 140" stroke="#1e4f8a" stroke-width="1" stroke-dasharray="2,2" fill="none" marker-end="url(#arrow-blue-km)"/>
+          <path d="M 233 134 L 236 140 L 242 141 L 238 145 L 239 151 L 233 148 L 227 151 L 228 145 L 224 141 L 230 140 Z" fill="#1e4f8a"/>
+        </g>
+
+        <g>
+          <circle cx="350" cy="70" r="4" fill="#2c6b5d" opacity="0.6"/>
+          <circle cx="370" cy="50" r="4" fill="#2c6b5d" opacity="0.6"/>
+          <circle cx="380" cy="80" r="4" fill="#2c6b5d" opacity="0.6"/>
+          <circle cx="330" cy="90" r="4" fill="#2c6b5d" opacity="0.6"/>
+          <circle cx="360" cy="95" r="4" fill="#2c6b5d" opacity="0.6"/>
+          <circle cx="320" cy="50" r="6" fill="none" stroke="#2c6b5d" stroke-width="1.5" stroke-dasharray="2,2"/>
+          <path d="M 320 50 Q 335 60 358 77" stroke="#2c6b5d" stroke-width="1" stroke-dasharray="2,2" fill="none" marker-end="url(#arrow-teal-km)"/>
+          <path d="M 358 71 L 361 77 L 367 78 L 363 82 L 364 88 L 358 85 L 352 88 L 353 82 L 349 78 L 355 77 Z" fill="#2c6b5d"/>
+        </g>
+
+        <defs>
+          <marker id="arrow-red-km" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#a8482a"/>
+          </marker>
+          <marker id="arrow-blue-km" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e4f8a"/>
+          </marker>
+          <marker id="arrow-teal-km" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#2c6b5d"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="math-panel">
+      <span class="math-panel-title">Math in a Nutshell</span>
+      $$ \text{Objective: Minimize Distortion (Inertia): } J(\mathbf{r}, \boldsymbol{\mu}) = \sum_{i=1}^N \sum_{k=1}^K r_{ik} \|\mathbf{x}_i - \boldsymbol{\mu}_k\|^2 $$
+      $$ \text{E-step (Assignment): } r_{ik} = \begin{cases} 1 & \text{if } k = \arg\min_j \|\mathbf{x}_i - \boldsymbol{\mu}_j\|^2 \\ 0 & \text{otherwise} \end{cases} $$
+      $$ \text{M-step (Update Centroids): } \boldsymbol{\mu}_k = \frac{\sum_{i=1}^N r_{ik} \mathbf{x}_i}{\sum_{i=1}^N r_{ik}} $$
+      <p class="math-desc">
+        Since both steps minimize $J$, K-Means is guaranteed to converge. However, it can get trapped in local minima. K-Means++ resolves this by initializing centers sequentially: choose the next center with probability proportional to the squared distance to the nearest existing center $D(\mathbf{x})^2$.
+      </p>
+    </div>
+
+    <div class="ref-links">
+      <a href="../Week 03 - K-Means Clustering/L14 - Lloyd Algorithm.html" class="ref-btn">L14: Lloyd Algorithm</a>
+      <a href="../Week 03 - K-Means Clustering/L15 - KMeans Convergence.html" class="ref-btn">L15: Convergence</a>
+      <a href="../Week 03 - K-Means Clustering/L17 - Centroid Initialization.html" class="ref-btn">L17: Initialization</a>
+      <a href="../Week 03 - K-Means Clustering/L18 - Choosing K.html" class="ref-btn">L18: Choosing K</a>
+    </div>
+  </section>
+
+  <!-- WEEK 4 -->
+  <section id="week4" class="week-section">
+    <div class="week-header">
+      <span class="week-badge">Week 04</span>
+      <h2 class="week-title">Parameter Estimation, GMM & EM</h2>
+    </div>
+
+    <div class="grid-2">
+      <div class="edu-card card-problem">
+        <h4>The Problem</h4>
+        <p>
+          1. <strong>Estimation:</strong> How do we determine the parameters of a probability distribution from observed data?
+          2. <strong>Overlapping Clusters:</strong> K-Means uses "hard" assignments (0 or 1) and assumes spherical boundaries. If clusters overlap, have elliptical shapes, or vary in density, K-Means fails.
+        </p>
+      </div>
+
+      <div class="edu-card card-model">
+        <h4>Mental Model</h4>
+        <p>
+          <strong>MLE vs MAP:</strong> Tune distribution knobs to maximize likelihood of observed data. MLE is purely data-driven; MAP includes a prior belief to regularize.
+          <br><strong>GMM & EM:</strong> Model data as a mixture of $K$ different bell curves. Since we don't know which point came from which bell curve (latent variable), we run the EM algorithm: guess labels softly (E-step), update bell curve shapes based on guesses (M-step).
+        </p>
+      </div>
+    </div>
+
+    <div class="edu-card card-intuition" style="margin-bottom: 20px;">
+      <h4>Real-Life Intuition: Separating Genders by Height</h4>
+      <p>
+        Imagine you have a list of heights of 1000 people, but their gender labels (Male/Female) are hidden. You know height distribution is a mixture of two normal curves (Male and Female).
+        <br><strong>E-step:</strong> Look at a person's height. If they are 6'1", assign a 90% probability of being Male. If 5'2", assign a 15% probability of being Male. These are <em>responsibilities</em>.
+        <br><strong>M-step:</strong> Recalculate the average height of males by computing a weighted average of heights of all 1000 people, using their "Male probability" as the weight. Do the same for females. Repeat.
+      </p>
+    </div>
+
+    <div class="visual-panel">
+      <svg viewBox="0 0 450 170" width="100%" height="auto" style="background:#fff; border-radius:8px; border:1px solid var(--line);">
+        <ellipse cx="160" cy="85" rx="80" ry="45" fill="none" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="4,4"/>
+        <ellipse cx="160" cy="85" rx="50" ry="28" fill="none" stroke="#a8482a" stroke-width="2"/>
+        <ellipse cx="160" cy="85" rx="20" ry="11" fill="none" stroke="#a8482a" stroke-width="1" opacity="0.4"/>
+        <circle cx="160" cy="85" r="3" fill="#a8482a"/>
+        <text x="160" y="78" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--rust)">μ₁</text>
+
+        <ellipse cx="280" cy="85" rx="85" ry="50" fill="none" stroke="#1e4f8a" stroke-width="1.5" stroke-dasharray="4,4"/>
+        <ellipse cx="280" cy="85" rx="55" ry="32" fill="none" stroke="#1e4f8a" stroke-width="2"/>
+        <ellipse cx="280" cy="85" rx="22" ry="13" fill="none" stroke="#1e4f8a" stroke-width="1" opacity="0.4"/>
+        <circle cx="280" cy="85" r="3" fill="#1e4f8a"/>
+        <text x="280" y="78" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--blue)">μ₂</text>
+
+        <circle cx="100" cy="75" r="4.5" fill="#a8482a"/>
+        <circle cx="120" cy="105" r="4.5" fill="#a8482a"/>
+        <circle cx="140" cy="65" r="4.5" fill="#a8482a"/>
+
+        <circle cx="200" cy="80" r="5" fill="url(#grad-red-blue-70-30)"/>
+        <circle cx="220" cy="90" r="5" fill="url(#grad-red-blue-50-50)"/>
+        <circle cx="240" cy="75" r="5" fill="url(#grad-red-blue-30-70)"/>
+
+        <circle cx="300" cy="100" r="4.5" fill="#1e4f8a"/>
+        <circle cx="320" cy="70" r="4.5" fill="#1e4f8a"/>
+        <circle cx="340" cy="95" r="4.5" fill="#1e4f8a"/>
+
+        <text x="220" y="22" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="bold" fill="var(--ink-soft)">Gaussian Mixture Models (Overlapping & Soft Assignment)</text>
+        <text x="220" y="152" text-anchor="middle" font-family="sans-serif" font-size="9" fill="var(--purple-deep)">Middle points colored by mixture responsibility (γ)</text>
+
+        <defs>
+          <linearGradient id="grad-red-blue-70-30" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#a8482a" />
+            <stop offset="70%" stop-color="#a8482a" />
+            <stop offset="100%" stop-color="#1e4f8a" />
+          </linearGradient>
+          <linearGradient id="grad-red-blue-50-50" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#a8482a" />
+            <stop offset="50%" stop-color="#a8482a" />
+            <stop offset="50%" stop-color="#1e4f8a" />
+            <stop offset="100%" stop-color="#1e4f8a" />
+          </linearGradient>
+          <linearGradient id="grad-red-blue-30-70" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#a8482a" />
+            <stop offset="30%" stop-color="#a8482a" />
+            <stop offset="100%" stop-color="#1e4f8a" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="math-panel">
+      <span class="math-panel-title">Math in a Nutshell</span>
+      $$ \text{MLE: } \theta_{\text{MLE}} = \arg\max_\theta \sum_{i=1}^N \ln p(\mathbf{x}_i \given \theta) \quad \Big| \quad \text{MAP: } \theta_{\text{MAP}} = \arg\max_\theta \left[ \sum_{i=1}^N \ln p(\mathbf{x}_i \given \theta) + \ln p(\theta) \right] $$
+      $$ \text{GMM Formulation: } p(\mathbf{x}) = \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x} \given \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) \quad \text{where } \sum_k \pi_k = 1 $$
+      $$ \text{EM E-Step (Responsibilities): } \gamma_{ik} = \frac{\pi_k \mathcal{N}(\mathbf{x}_i \given \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)}{\sum_{j=1}^K \pi_j \mathcal{N}(\mathbf{x}_i \given \boldsymbol{\mu}_j, \boldsymbol{\Sigma}_j)} $$
+      $$ \text{EM M-Step Updates: } \boldsymbol{\mu}_k = \frac{\sum_i \gamma_{ik}\mathbf{x}_i}{N_k}, \quad \boldsymbol{\Sigma}_k = \frac{\sum_i \gamma_{ik}(\mathbf{x}_i - \boldsymbol{\mu}_k)(\mathbf{x}_i - \boldsymbol{\mu}_k)^T}{N_k}, \quad \pi_k = \frac{N_k}{N} \quad \text{with } N_k = \sum_i \gamma_{ik} $$
+      $$ \text{Jensen's Lower Bound (ELBO): } \ln p(X \given \theta) = \ln \sum_Z q(Z) \frac{p(X, Z \given \theta)}{q(Z)} \ge \sum_Z q(Z) \ln \frac{p(X, Z \given \theta)}{q(Z)} $$
+      <p class="math-desc">
+        Jensen's Inequality states that for a concave function $f$, $f(\mathbb{E}[X]) \ge \mathbb{E}[f(X)]$. The logarithm is concave, allowing EM to maximize the ELBO lower bound, which guarantees the true log-likelihood never decreases.
+      </p>
+    </div>
+
+    <!-- COMPARISON TABLES -->
+    <h3>Core Comparisons</h3>
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>K-Means Clustering</th>
+            <th>Gaussian Mixture Models (GMM)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Assignment Type</strong></td>
+            <td>Hard assignment (0 or 1)</td>
+            <td>Soft assignment (probabilities / responsibilities $\gamma_{ik}$)</td>
+          </tr>
+          <tr>
+            <td><strong>Cluster Boundary Shape</strong></td>
+            <td>Spherical / Linear Voronoi Cells (Euclidean)</td>
+            <td>Elliptical / Flexible (Covariance matrices $\mathbf{\Sigma}_k$)</td>
+          </tr>
+          <tr>
+            <td><strong>Underlying Model</strong></td>
+            <td>Geometric / Distance-based heuristic</td>
+            <td>Probabilistic / Generative density estimator</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="comparison-table-wrapper">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Aspect</th>
+            <th>Maximum Likelihood Estimation (MLE)</th>
+            <th>Maximum A Posteriori (MAP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Philosophy</strong></td>
+            <td>Frequentist: Parameters are fixed, unknown constants.</td>
+            <td>Bayesian: Parameters are random variables with a prior.</td>
+          </tr>
+          <tr>
+            <td><strong>Objective</strong></td>
+            <td>Maximize $p(X \given \theta)$ (likelihood of the data)</td>
+            <td>Maximize $p(X \given \theta)p(\theta)$ (posterior probability)</td>
+          </tr>
+          <tr>
+            <td><strong>Overfitting Risk</strong></td>
+            <td>High, especially with small sample sizes</td>
+            <td>Low, prior acts as a regularizer (e.g. L2 penalty)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ref-links">
+      <a href="../Week 04 - Estimation GMM EM/L20 - MLE.html" class="ref-btn">L20: MLE</a>
+      <a href="../Week 04 - Estimation GMM EM/L21 - Bayesian Estimation.html" class="ref-btn">L21: Bayesian Estimation</a>
+      <a href="../Week 04 - Estimation GMM EM/L22 - GMM.html" class="ref-btn">L22: GMM</a>
+      <a href="../Week 04 - Estimation GMM EM/L24 - Jensen Inequality.html" class="ref-btn">L24: Jensen's Inequality</a>
+      <a href="../Week 04 - Estimation GMM EM/L26 - EM Algorithm.html" class="ref-btn">L26: EM Algorithm</a>
+    </div>
+  </section>
+
+</main>
+
+</body>
+</html>
