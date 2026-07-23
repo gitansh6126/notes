@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 33 — Probabilistic View of Linear Regression</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0e17;
+    --panel-bg: #12141c;
+    --panel-border: rgba(255,255,255,0.08);
+    --card-bg: #141826;
+    --card-border: rgba(255,255,255,0.07);
+    --text: #e7e9f0;
+    --text-dim: #9aa1b5;
+    --text-dimmer: #6b7288;
+
+    --gold: #e8b84b;
+    --teal: #3fd6c4;
+    --purple: #b892f0;
+    --blue: #5fa8f5;
+    --green: #6fd08a;
+    --red: #f0708a;
+
+    --serif-math-font: "Fraunces", "STIX Two Math", serif;
+    --body-font: "Inter", sans-serif;
+    --mono-font: "JetBrains Mono", monospace;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,146,240,0.07), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(63,214,196,0.06), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    line-height: 1.65;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; padding: 0 1.25rem; }
+
+  .hero{ padding: 3.5rem 1.25rem 2.5rem; text-align:center; border-bottom: 1px solid var(--panel-border); margin-bottom: 2.5rem; background: linear-gradient(180deg, rgba(184,146,240,0.05), transparent 70%); }
+  .hero .eyebrow{ font-family: var(--mono-font); font-size: 0.8rem; letter-spacing: 0.15em; color: var(--teal); text-transform: uppercase; }
+  .hero h1{ font-family: var(--serif-math-font); font-weight: 600; font-size: clamp(1.4rem, 4.2vw, 2.4rem); margin: 0.6rem 0 0.8rem; background: linear-gradient(90deg, var(--gold), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub{ color: var(--text-dim); max-width: 640px; margin: 0 auto; font-size: 1.02rem; }
+  .badge-row{ display:flex; gap: 0.6rem; justify-content:center; flex-wrap:wrap; margin-top: 1.4rem; }
+  .badge{ font-family: var(--mono-font); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim); background: rgba(255,255,255,0.02); }
+  .badge.geo{ color: var(--blue); border-color: rgba(95,168,245,0.3); }
+  .badge.pat{ color: var(--purple); border-color: rgba(184,146,240,0.3); }
+  .badge.dec{ color: var(--gold); border-color: rgba(232,184,75,0.3); }
+
+  .stage-tag{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+  h2.section-title{ font-family: var(--serif-math-font); font-size: clamp(1.15rem, 2.8vw, 1.55rem); font-weight: 600; margin: 0 0 1rem 0; display:flex; align-items:center; gap:0.6rem; }
+  h2.section-title .num{ font-family: var(--mono-font); font-size: 0.85rem; color: var(--bg); background: var(--teal); border-radius: 8px; width: 2rem; height:2rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  section.block{ margin-bottom: 3rem; }
+
+  .card{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.6rem 1.7rem; margin-bottom: 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .card h3{ margin-top:0; font-family: var(--serif-math-font); font-weight:600; font-size: 1.1rem; }
+  .card-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .card-grid.two{ grid-template-columns: repeat(2,1fr); }
+  @media (max-width: 800px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .callout{ border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.3rem 0; border-left: 4px solid var(--teal); background: rgba(63,214,196,0.06); font-size: 0.95rem; }
+  .callout.warn{ border-left-color: var(--red); background: rgba(240,112,138,0.07); }
+  .callout.tip{ border-left-color: var(--gold); background: rgba(232,184,75,0.07); }
+  .callout.biz{ border-left-color: var(--purple); background: rgba(184,146,240,0.07); }
+  .callout .co-label{ font-family: var(--mono-font); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; display:block; margin-bottom: 0.4rem; opacity: 0.85; }
+
+  .eq-panel{ background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.2rem 1.6rem 1.8rem; margin: 1.6rem 0; box-shadow: 0 8px 30px rgba(0,0,0,0.25); text-align: center; position: relative; }
+  .eq-panel .eq-number{ position: absolute; bottom: 0.7rem; right: 1.15rem; font-size: 0.75rem; opacity: 0.45; font-family: var(--mono-font); }
+  .eq-panel .eq-label{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .eq-main{ font-family: var(--serif-math-font); font-size: clamp(1rem, 2.6vw, 1.45rem); line-height: 2.2; }
+  .sym-var{ color: var(--blue); font-style: italic; }
+  .sym-param{ color: var(--gold); font-style: italic; }
+  .sym-const{ color: var(--green); }
+  .sym-fn{ color: var(--purple); }
+  .sym-op{ color: var(--red); font-size: 1.2em; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap: 0.8rem 1.6rem; justify-content:center; margin-top: 1.2rem; font-size: 0.85rem; padding: 0.9rem 0; border-top: 1px dashed var(--panel-border); }
+  .legend div{ color: var(--text-dim); }
+  .legend span.sym{ font-family: var(--serif-math-font); font-weight:600; margin-right:0.3rem; }
+
+  table.data-table{ width:100%; border-collapse: collapse; font-size: 0.92rem; background: var(--card-bg); border-radius: 12px; overflow:hidden; }
+  table.data-table th{ background: rgba(255,255,255,0.04); color: var(--teal); text-align:left; padding: 0.7rem 0.9rem; font-family: var(--mono-font); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  table.data-table td{ padding: 0.7rem 0.9rem; border-top: 1px solid var(--card-border); color: var(--text-dim); }
+  table.data-table tr:hover td{ background: rgba(255,255,255,0.02); }
+  .scroll-x{ overflow-x:auto; border-radius:12px; }
+
+  pre{ background: #0a0c13; border:1px solid var(--card-border); border-radius: 12px; padding: 1.1rem 1.2rem; overflow-x:auto; font-family: var(--mono-font); font-size: 0.83rem; line-height: 1.6; }
+  code{ font-family: var(--mono-font); }
+  .cm{ color: var(--text-dimmer); font-style: italic;}
+  .kw{ color: var(--purple); }
+  .st{ color: var(--green); }
+  .fn{ color: var(--teal); }
+  .nb{ color: var(--gold); }
+
+  .flow{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin: 1.5rem 0; }
+  .flow .step{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem; text-align:center; min-width: 100px; }
+  .flow .arrow{ color: var(--teal); font-size: 1.3rem; }
+  @media (max-width: 700px){ .flow{ flex-direction: column; } .flow .arrow{ transform: rotate(90deg); } }
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap: 0.55rem; margin-top: 0.8rem; }
+  .pill{ font-family: var(--mono-font); font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 8px; background: rgba(232,184,75,0.1); color: var(--gold); border: 1px solid rgba(232,184,75,0.25); }
+
+  .trap{ border: 1px solid rgba(240,112,138,0.25); background: rgba(240,112,138,0.05); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.9rem; }
+  .trap .t-head{ display:flex; gap:0.6rem; align-items:center; font-weight:600; color: var(--red); margin-bottom:0.3rem; }
+
+  .timeline{ position:relative; padding-left: 2.2rem; margin: 1.6rem 0; }
+  .timeline::before{ content:""; position:absolute; left: 0.85rem; top:0.4rem; bottom:0.4rem; width:2px; background: linear-gradient(180deg, var(--teal), var(--purple)); }
+  .tstep{ position:relative; margin-bottom: 1.4rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem 1.2rem; }
+  .tstep::before{ content: attr(data-n); position:absolute; left: -2.2rem; top: 1rem; width: 1.7rem; height:1.7rem; border-radius:50%; background: var(--teal); color:#0b0e17; font-family: var(--mono-font); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .tstep h4{ margin:0 0 0.5rem; font-family: var(--serif-math-font); font-size: 1rem; color: var(--text); }
+  .tstep .expr{ font-family: var(--serif-math-font); font-size: 1.0rem; text-align:center; padding: 0.6rem 0; }
+  .tstep p.why{ margin: 0.4rem 0 0; color: var(--text-dim); font-size: 0.87rem; }
+
+  .brain{ background: linear-gradient(160deg, rgba(184,146,240,0.08), rgba(63,214,196,0.05)); border: 1px solid var(--panel-border); border-radius: 20px; padding: 1.8rem; }
+  .brain-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px){ .brain-grid{ grid-template-columns: 1fr; } }
+  .brain h4{ font-family: var(--mono-font); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin: 0 0 0.5rem; }
+  .brain ul{ margin: 0; padding-left: 1.1rem; font-size: 0.9rem; color: var(--text-dim); }
+  .brain li{ margin-bottom: 0.3rem; }
+
+  footer.foot{ text-align:center; color: var(--text-dimmer); font-size: 0.82rem; margin-top: 3rem; }
+  .toc{ display:flex; flex-wrap:wrap; gap: 0.5rem; justify-content:center; margin: 1.6rem 0 0; }
+  .toc a{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dim); text-decoration:none; border: 1px solid var(--panel-border); border-radius: 999px; padding: 0.3rem 0.7rem; }
+  .toc a:hover{ color: var(--teal); border-color: var(--teal); }
+
+  .svg-wrap{ display:flex; justify-content:center; margin: 1.4rem 0; }
+  .svg-wrap svg{ max-width: 100%; height:auto; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">IIT Madras · Machine Learning Techniques</div>
+  <h1>Lecture 33 — Probabilistic View of Linear Regression</h1>
+  <p class="sub">Where "minimize squared error" stops being a design choice and becomes a consequence — of one quiet assumption about noise.</p>
+  <div class="badge-row">
+    <span class="badge geo">Cognitive Pattern: Probability</span>
+    <span class="badge pat">Cognitive Pattern: Statistical Estimation</span>
+    <span class="badge dec">Cognitive Pattern: Formal Justification</span>
+  </div>
+  <div class="toc">
+    <a href="#problem">0 · Why Ask "Why Squared Error?"</a>
+    <a href="#model">3 · The Generative Model</a>
+    <a href="#diagram">Visual: Noise as a Bell Curve</a>
+    <a href="#mle">6 · The MLE Derivation</a>
+    <a href="#families">15 · Noise → Loss Function</a>
+    <a href="#edge">9 · Edge Cases</a>
+    <a href="#triggers">10 · Triggers</a>
+    <a href="#traps">18 · Exam Traps</a>
+    <a href="#industry">20 · Code</a>
+    <a href="#brain">22 · One-Page Brain</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1, 0, 1, 2 -->
+<section class="block" id="problem">
+  <div class="stage-tag">Stage -1 → 2 · Cognitive Pattern, Problem, Engineering Thinking</div>
+  <h2 class="section-title"><span class="num">0</span>Squared Error Felt Arbitrary — Was It?</h2>
+  <div class="card">
+    <h3>Every earlier lecture used squared error without justifying it statistically</h3>
+    <p>Lecture 28 chose squared error because it's non-negative and differentiable. That's a good engineering reason, but it leaves an honest gap: <em>is squared error the "correct" thing to minimize, or just a convenient one?</em> This lecture answers that by asking a different question first — not "what should we minimize?" but "what process could have generated this data?" — and showing the squared-error answer falls out on its own.</p>
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS lens</span>
+    If you assume every RMS batch's actual revenue deviates from your model's prediction by pure random noise scattered symmetrically around zero (some batches over-perform, some under-perform, no systematic bias), this lecture shows that assumption alone — nothing else — justifies fitting by squared error.
+  </div>
+</section>
+
+<!-- STAGE 3-5: THE MODEL -->
+<section class="block" id="model">
+  <div class="stage-tag">Stage 3 → 5 · Mathematical Translation, Anatomy</div>
+  <h2 class="section-title"><span class="num">3</span>Assuming a Data-Generating Process</h2>
+  <p>Instead of just fitting a line, assume there's a true underlying process that <em>produced</em> the labels:</p>
+  <div class="eq-panel">
+    <div class="eq-label">The generative model</div>
+    <div class="eq-main"><span class="sym-var">y</span><sub>i</sub> <span class="sym-op">=</span> <span class="sym-param">w</span><sup class="sym-const">T</sup><span class="sym-var">x</span><sub>i</sub> <span class="sym-op">+</span> <span class="sym-fn">ϵ</span></div>
+    <div class="eq-number">Eq. 33.1</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-param">w</span> — the true, fixed (but unknown) parameter vector we want to estimate</div>
+    <div><span class="sym sym-fn">ϵ</span> — random noise, assumed <span style="font-family:var(--serif-math-font);">𝒩(0, σ²)</span> — Gaussian, mean zero, known variance σ²</div>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">Reading the assumption</span>
+    Mean-zero noise means the true relationship really is linear <em>on average</em> — errors are symmetric scatter, not systematic bias in one direction. This is a real, checkable modeling assumption, not a mathematical convenience.
+  </div>
+  <p>Because ϵ is Gaussian and just shifts the mean, y itself — conditioned on x and w — is also Gaussian:</p>
+  <div class="eq-panel">
+    <div class="eq-label">Conditional distribution of a single label</div>
+    <div class="eq-main"><span class="sym-fn">P</span>(<span class="sym-var">y</span><sub>i</sub> | <span class="sym-var">x</span><sub>i</sub>; <span class="sym-param">w</span>) <span class="sym-op">∼</span> 𝒩(<span class="sym-param">w</span><sup class="sym-const">T</sup><span class="sym-var">x</span><sub>i</sub>, <span class="sym-const">σ</span><sup class="sym-const">2</sup>)</div>
+    <div class="eq-number">Eq. 33.2</div>
+  </div>
+</section>
+
+<!-- VISUAL -->
+<section class="block" id="diagram">
+  <h2 class="section-title"><span class="num">🖼</span>Likelihood, Pictured</h2>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 460 260" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="220" x2="430" y2="220" stroke="#6b7288" stroke-width="1"/>
+      <path d="M 40,215 C 100,215 150,60 230,60 C 310,60 360,215 420,215" fill="none" stroke="#5fa8f5" stroke-width="2.2"/>
+      <line x1="230" y1="220" x2="230" y2="58" stroke="#e8b84b" stroke-width="1.6" stroke-dasharray="4,4"/>
+      <text x="200" y="240" fill="#e8b84b" font-size="11" font-family="Fraunces" font-style="italic">wᵀxᵢ &nbsp;(predicted mean)</text>
+
+      <circle cx="300" cy="220" r="4.5" fill="#f0708a"/>
+      <line x1="300" y1="220" x2="300" y2="130" stroke="#f0708a" stroke-width="1.4" stroke-dasharray="3,3"/>
+      <circle cx="300" cy="130" r="3.5" fill="#f0708a"/>
+      <text x="308" y="128" fill="#f0708a" font-size="11" font-family="Fraunces" font-style="italic">yᵢ (observed)</text>
+      <text x="270" y="238" fill="#f0708a" font-size="10" font-family="Inter">actual label</text>
+
+      <text x="40" y="35" fill="#9aa1b5" font-size="11" font-family="Inter">Height of the curve at yᵢ = how "likely" this observation is under w</text>
+    </svg>
+  </div>
+  <div class="callout">
+    <span class="co-label">Reading the diagram</span>
+    The bell curve is centered exactly at the model's prediction wᵀxᵢ. The observed label yᵢ sits somewhere under that curve — usually near the peak, sometimes in the tails. The <strong>height of the curve at yᵢ</strong> is literally P(yᵢ|xᵢ;w) — the likelihood contributed by this one data point. A model w that puts high curves under most of your observed points has high total likelihood.
+  </div>
+</section>
+
+<!-- STAGE 6: MLE DERIVATION -->
+<section class="block" id="mle">
+  <div class="stage-tag">Stage 6 · Derivation</div>
+  <h2 class="section-title"><span class="num">6</span>From Likelihood to Squared Error</h2>
+  <div class="timeline">
+    <div class="tstep" data-n="1">
+      <h4>Write the likelihood over all n IID points</h4>
+      <div class="expr">L(w) = ∏ᵢ₌₁ⁿ P(yᵢ|xᵢ;w)</div>
+      <p class="why">IID lets the joint probability of the whole dataset factor into a plain product of each point's individual probability.</p>
+    </div>
+    <div class="tstep" data-n="2">
+      <h4>Substitute the Gaussian density</h4>
+      <div class="expr">L(w) = ∏ᵢ (1/√(2πσ²)) · exp(−(yᵢ − wᵀxᵢ)² / 2σ²)</div>
+      <p class="why">Just plugging Eq. 33.2's Gaussian PDF in for each P(yᵢ|xᵢ;w).</p>
+    </div>
+    <div class="tstep" data-n="3">
+      <h4>Take the log — product becomes a sum</h4>
+      <div class="expr">log L(w) = Σᵢ [ −½log(2πσ²) − (yᵢ − wᵀxᵢ)² / 2σ² ]</div>
+      <p class="why">Log is monotonic, so maximizing log L(w) is exactly equivalent to maximizing L(w) — but sums are far easier to differentiate than products.</p>
+    </div>
+    <div class="tstep" data-n="4">
+      <h4>Drop everything that doesn't depend on w</h4>
+      <div class="expr">argmax_w log L(w) = argmax_w [ −Σᵢ (yᵢ − wᵀxᵢ)² / 2σ² ]</div>
+      <p class="why">The −½log(2πσ²) term is a constant with respect to w (σ² is assumed known) — it shifts log L(w) up or down but can't change which w maximizes it, so it's dropped.</p>
+    </div>
+    <div class="tstep" data-n="5">
+      <h4>Flip the sign: maximizing a negative = minimizing the positive</h4>
+      <div class="expr">= argmin_w Σᵢ (yᵢ − wᵀxᵢ)² &nbsp;&nbsp; = argmin_w Σᵢ (wᵀxᵢ − yᵢ)²</div>
+      <p class="why">1/2σ² is a positive constant multiplier, so it doesn't change the argmin either. What's left is exactly the sum-of-squared-errors objective from Lecture 28 — reached with zero mention of "differentiability" as a justification.</p>
+    </div>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">The punchline</span>
+    <strong>Maximizing likelihood under Gaussian noise is mathematically identical to minimizing squared error.</strong> Every closed-form, geometric, and kernel-based technique from Lectures 29–32 was — without saying so explicitly — always solving this exact MLE problem.
+  </div>
+</section>
+
+<!-- STAGE 15: NOISE -> LOSS FAMILIES -->
+<section class="block" id="families">
+  <div class="stage-tag">Stage 15 · Problem Families — the general pattern this reveals</div>
+  <h2 class="section-title"><span class="num">15</span>Every Loss Function Hides a Noise Assumption</h2>
+  <div class="card">
+    <h3>The general recipe, stated by this lecture</h3>
+    <p>Nothing in the derivation above was specific to the Gaussian — swap in a different noise distribution, and MLE will hand you a different loss function automatically.</p>
+  </div>
+  <table class="data-table">
+    <tr><th>Assumed noise ϵ</th><th>MLE loss function</th><th>Why</th></tr>
+    <tr><td>Gaussian, 𝒩(0, σ²)</td><td>Squared Error (L2) — Least Squares</td><td>Gaussian log-density has a squared term in its exponent</td></tr>
+    <tr><td>Laplacian</td><td>Absolute Error (L1) — Mean Absolute Error</td><td>Laplacian log-density has |·| in its exponent instead of a square</td></tr>
+  </table>
+  <div class="callout warn">
+    <span class="co-label">Looking ahead — beyond what's stated in this lecture</span>
+    This same recipe is exactly what will justify loss functions in classification later in the course — e.g. assuming a Bernoulli-distributed label leads to logistic/cross-entropy loss instead of squared error. Not covered in this lecture, but it's the same "noise/label distribution → loss function" pattern reappearing.
+  </div>
+</section>
+
+<!-- STAGE 9: EDGE CASES -->
+<section class="block" id="edge">
+  <div class="stage-tag">Stage 9 · Edge Cases</div>
+  <h2 class="section-title"><span class="num">9</span>What This Assumes That Could Be Wrong</h2>
+  <div class="card-grid two">
+    <div class="card">
+      <h3 style="color:var(--red);">Noise isn't actually Gaussian</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">If real errors have heavier tails than a Gaussian (occasional huge outliers), squared error over-penalizes those outliers relative to what MLE under the true distribution would want — this is precisely why L1/Laplacian assumptions exist as an alternative.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold);">σ² isn't actually known</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">The derivation treats σ² as a known constant so it can be dropped from the argmax. If σ² must also be estimated, it becomes a second parameter under MLE — it doesn't change the resulting w*, but it does change what else the model can tell you (e.g. prediction intervals).</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 10, 11: TRIGGERS -->
+<section class="block" id="triggers">
+  <div class="stage-tag">Stage 10 → 11 · Hidden Trigger Recognition, Pattern Recognition</div>
+  <h2 class="section-title"><span class="num">10</span>Words That Should Instantly Trigger This Topic</h2>
+  <div class="pill-row">
+    <span class="pill">"maximum likelihood estimation"</span>
+    <span class="pill">"Gaussian noise assumption"</span>
+    <span class="pill">"data-generating process"</span>
+    <span class="pill">"log-likelihood"</span>
+    <span class="pill">"why squared error"</span>
+    <span class="pill">"IID data points"</span>
+  </div>
+</section>
+
+<!-- STAGE 18: TRAPS -->
+<section class="block" id="traps">
+  <div class="stage-tag">Stage 18 · Examiner Trap Library</div>
+  <h2 class="section-title"><span class="num">18</span>Common Exam Traps</h2>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 1 — forgetting the sign flip between argmax and argmin</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">Maximizing the log-likelihood requires maximizing a <em>negative</em> sum of squares — which is the same as minimizing the (positive) sum of squares. Writing "MLE ⟹ maximize Σ(yᵢ−wᵀxᵢ)²" instead of minimize is a sign error that flips the entire optimization direction.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 2 — treating likelihood as a probability</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">L(w) = P(data | w) is a function of w for <em>fixed observed data</em> — not a probability distribution over w, and it doesn't need to integrate to 1 over w. Calling L(w) "the probability of w" is a common but incorrect phrasing.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 3 — assuming squared error is the "correct" loss in general</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">Squared error is only the MLE-justified loss <em>under a Gaussian noise assumption</em>. If a question describes noise with heavy tails or asymmetry, blindly defending squared error as "the standard, correct choice" ignores that its justification is conditional on that specific assumption.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="block" id="industry">
+  <div class="stage-tag">Stage 20 · Industry Implementation</div>
+  <h2 class="section-title"><span class="num">20</span>Verifying MLE = Least Squares in Code</h2>
+  <pre><code><span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> scipy.optimize <span class="kw">import</span> minimize
+
+<span class="cm"># Negative log-likelihood under Gaussian noise (dropping the constant term)</span>
+<span class="kw">def</span> <span class="fn">neg_log_likelihood</span>(w, X, y, sigma2=<span class="nb">1.0</span>):
+    residuals = X @ w - y
+    <span class="kw">return</span> np.sum(residuals**<span class="nb">2</span>) / (<span class="nb">2</span> * sigma2)   <span class="cm"># minimizing this == maximizing log L(w)</span>
+
+result = minimize(neg_log_likelihood, x0=np.zeros(X.shape[<span class="nb">1</span>]), args=(X, y))
+w_mle = result.x
+
+<span class="cm"># Sanity check: this should match the closed-form Normal Equation solution</span>
+w_closed_form = np.linalg.inv(X.T @ X) @ X.T @ y
+<span class="cm"># w_mle ≈ w_closed_form, confirming MLE under Gaussian noise = least squares</span></code></pre>
+</section>
+
+<!-- STAGE 21: CONNECTIONS -->
+<section class="block">
+  <div class="stage-tag">Stage 21 · Connections</div>
+  <h2 class="section-title"><span class="num">21</span>Full Circle to MLE Elsewhere in the Course</h2>
+  <div class="callout">
+    <span class="co-label">Not a new tool — a familiar one, reapplied</span>
+    MLE isn't new to this course — it's the same estimation principle used earlier for GMM in the unsupervised unit. What's new here is applying it to a <em>regression</em> generative model instead of a clustering one, and discovering it reproduces a loss function you already had by other means.
+  </div>
+  <div class="flow">
+    <div class="step" style="opacity:0.6;">Lectures 28-32<br><small style="color:var(--text-dimmer)">Squared error, taken as given</small></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:var(--teal); box-shadow:0 0 0 1px var(--teal);">You Are Here<br><small style="color:var(--text-dimmer)">Lecture 33: why it's given</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Estimator Analysis<br><small style="color:var(--text-dimmer)">bias, variance, consistency</small></div>
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="block" id="brain">
+  <div class="stage-tag">Stage 22 · One-Page Brain</div>
+  <h2 class="section-title"><span class="num">22</span>Everything on One Page</h2>
+  <div class="brain">
+    <div class="brain-grid">
+      <div>
+        <h4>Core Intuition</h4>
+        <ul>
+          <li>Assume a generative process: yᵢ = wᵀxᵢ + ϵ, ϵ ~ 𝒩(0, σ²)</li>
+          <li>MLE picks the w that makes the observed data most probable</li>
+          <li>Under Gaussian noise, that's provably the same w as least squares</li>
+          <li>Different noise assumption → different "natural" loss function</li>
+        </ul>
+        <h4 style="margin-top:1rem;">Key Formulas</h4>
+        <ul>
+          <li>yᵢ = wᵀxᵢ + ϵ, &nbsp; P(yᵢ|xᵢ;w) ~ 𝒩(wᵀxᵢ, σ²)</li>
+          <li>L(w) = ∏ᵢ P(yᵢ|xᵢ;w)</li>
+          <li>argmax_w log L(w) = argmin_w Σᵢ(wᵀxᵢ − yᵢ)²</li>
+          <li>Gaussian → L2, Laplacian → L1</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5 Triggers</h4>
+        <ul>
+          <li>"maximum likelihood estimation" / "MLE"</li>
+          <li>"Gaussian noise assumption"</li>
+          <li>"data-generating process"</li>
+          <li>"log-likelihood" / "IID"</li>
+          <li>"why squared error"</li>
+        </ul>
+        <h4 style="margin-top:1rem;">5 Traps</h4>
+        <ul>
+          <li>argmax log-likelihood ⟹ argMIN squared error (sign flip!)</li>
+          <li>L(w) is not a probability distribution over w</li>
+          <li>Squared error's justification is conditional on Gaussian noise</li>
+          <li>σ² known vs estimated changes what σ contributes, not w*</li>
+          <li>Heavy-tailed noise → squared error over-penalizes outliers</li>
+        </ul>
+      </div>
+    </div>
+    <h4 style="margin-top:1.4rem;">Dependencies</h4>
+    <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">Builds on: the squared-error objective from Lecture 28, now justified rather than assumed. Reuses: MLE, the same estimation principle from GMM in the unsupervised unit. Feeds into: statistical analysis of ŵ_MLE (bias, variance, consistency), and — much later — the same noise/label-distribution-to-loss-function pattern for classification.</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="foot">Lecture 33 · Probabilistic View of Linear Regression — study notes</footer>
+
+</body>
+</html>

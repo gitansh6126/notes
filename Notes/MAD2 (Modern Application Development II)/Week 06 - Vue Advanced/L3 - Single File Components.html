@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Managing Components (SFCs) — MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1120;
+    --surface:#141B2E;
+    --surface-2:#1C2540;
+    --border:#26314D;
+    --text:#E7ECF5;
+    --muted:#8B96AD;
+    --template:#F5A623;
+    --script:#4C8DFF;
+    --styleblock:#2DD4BF;
+    --build:#9B6BFF;
+    --danger:#FF6B6B;
+    --good:#4ADE80;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 10% -10%, rgba(155,107,255,0.12), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 100% 10%, rgba(76,141,255,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  .jumpnav{position:sticky; top:0; z-index:50; background:rgba(11,17,32,0.88); backdrop-filter:blur(10px); border-bottom:1px solid var(--border);}
+  .jumpnav-inner{max-width:1080px;margin:0 auto;padding:10px 24px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;}
+  .jumpnav-inner::-webkit-scrollbar{display:none;}
+  .jumpnav a{flex:0 0 auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); text-decoration:none; padding:6px 12px; border-radius:20px; border:1px solid var(--border); white-space:nowrap; transition:all .15s ease;}
+  .jumpnav a:hover{color:var(--text); border-color:var(--build); background:var(--surface);}
+
+  .hero{padding:56px 0 40px; text-align:center;}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.15em; color:var(--build); text-transform:uppercase; margin-bottom:14px;}
+  h1.title{font-family:var(--mono); font-weight:700; font-size:clamp(26px,5vw,44px); margin:0 0 14px; line-height:1.15;}
+  h1.title span{color:var(--script);}
+  .subtitle{color:var(--muted); max-width:660px; margin:0 auto; font-size:15.5px;}
+
+  /* SIGNATURE: THE SFC STACK -> COMPILER -> OUTPUT */
+  .stack-wrap{display:flex; justify-content:center; margin:40px 0 10px;}
+  .stack-rig{width:min(720px,94vw); display:flex; align-items:center; gap:16px;}
+  @media(max-width:760px){.stack-rig{flex-direction:column;}}
+  .sfc-file{
+    flex:1; background:linear-gradient(180deg,#1A2338,#121A2C); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden; box-shadow:0 24px 50px -20px rgba(0,0,0,0.55);
+  }
+  .sfc-titlebar{font-family:var(--mono); font-size:11.5px; color:var(--muted); padding:9px 14px; border-bottom:1px solid var(--border); background:rgba(255,255,255,0.02);}
+  .sfc-band{padding:12px 14px; border-left:4px solid var(--band-color); font-family:var(--mono); font-size:11.5px; border-bottom:1px solid var(--border);}
+  .sfc-band:last-child{border-bottom:none;}
+  .sfc-band .tag{color:var(--band-color); font-weight:600;}
+  .sfc-band .desc{color:var(--muted); font-size:11px; margin-top:2px;}
+  .sfc-band.t{--band-color:var(--template);}
+  .sfc-band.s{--band-color:var(--script);}
+  .sfc-band.c{--band-color:var(--styleblock);}
+  .rig-arrow{font-size:24px; color:var(--muted); flex:0 0 auto;}
+  @media(max-width:760px){.rig-arrow{transform:rotate(90deg);}}
+  .compiler-box{
+    flex:0 0 auto; background:var(--surface-2); border:1px solid var(--build); border-radius:12px;
+    padding:16px 18px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--build); min-width:120px;
+  }
+  .compiler-box .name{font-weight:700; font-size:13px;}
+  .output-stack{flex:1; display:flex; flex-direction:column; gap:8px;}
+  .output-item{background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:9px 12px; font-family:var(--mono); font-size:11.5px; color:var(--muted);}
+  .stack-caption{text-align:center; font-size:12px; color:var(--muted); margin-top:16px; font-family:var(--mono);}
+
+  section{padding:52px 0; border-top:1px solid var(--border);}
+  section:first-of-type{border-top:none;}
+  .modtag{font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .modtag .num{width:22px;height:22px;border-radius:6px;background:var(--surface-2); display:inline-flex;align-items:center;justify-content:center; color:var(--build); font-size:11px; border:1px solid var(--border);}
+  h2.modh{font-family:var(--mono); font-size:clamp(20px,3vw,27px); margin:0 0 22px; font-weight:700;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 24px; margin-bottom:16px;}
+  .card-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .card-grid.three{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:720px){.card-grid,.card-grid.three{grid-template-columns:1fr;}}
+  .card h3{font-family:var(--mono); font-size:14.5px; margin:0 0 10px; color:var(--text);}
+  .card p{margin:0; font-size:14.5px; color:var(--muted);}
+  .b-template{border-left:3px solid var(--template);}
+  .b-script{border-left:3px solid var(--script);}
+  .b-style{border-left:3px solid var(--styleblock);}
+  .b-build{border-left:3px solid var(--build);}
+  .b-danger{border-left:3px solid var(--danger);}
+
+  .topic-card{background:linear-gradient(135deg, rgba(155,107,255,0.07), rgba(76,141,255,0.05)); border:1px solid var(--border); border-radius:14px; padding:26px 28px;}
+  .tc-row{display:flex; flex-wrap:wrap; gap:24px; margin-top:14px;}
+  .tc-item{flex:1 1 200px;}
+  .tc-label{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+  .tc-value{font-size:15px; margin-top:4px; font-weight:600;}
+  .stars{color:var(--template); letter-spacing:1px;}
+  .stars.dim{color:#3A4560;}
+
+  .callout{border-radius:10px; padding:16px 18px; margin:16px 0; display:flex; gap:12px; font-size:14.5px; border:1px solid var(--border);}
+  .callout .ico{font-size:18px; flex:0 0 auto;}
+  .callout.info{background:rgba(76,141,255,0.08); border-color:rgba(76,141,255,0.3);}
+  .callout.warn{background:rgba(255,107,107,0.08); border-color:rgba(255,107,107,0.3);}
+  .callout.analogy{background:rgba(155,107,255,0.08); border-color:rgba(155,107,255,0.3);}
+  .callout.good{background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.3);}
+
+  .mistake-pair{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+  @media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
+  .m-wrong,.m-right{border-radius:10px; padding:14px 16px; font-size:14px; border:1px solid var(--border);}
+  .m-wrong{background:rgba(255,107,107,0.07); border-color:rgba(255,107,107,0.25);}
+  .m-right{background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.25);}
+  .m-wrong b,.m-right b{font-family:var(--mono); font-size:12px; display:block; margin-bottom:4px;}
+  .m-wrong b{color:var(--danger);}
+  .m-right b{color:var(--good);}
+
+  pre.code{background:#0A0F1D; border:1px solid var(--border); border-radius:10px; padding:18px 20px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.7; margin:14px 0;}
+  .tok-key{color:#4C8DFF;}
+  .tok-str{color:#4ADE80;}
+  .tok-fn{color:#F5A623;}
+  .tok-com{color:#5A6A8C; font-style:italic;}
+  .tok-prop{color:#E7ECF5;}
+  .tok-punc{color:#8B96AD;}
+  .tok-tag{color:#9B6BFF;}
+  .tok-attr{color:#4C8DFF;}
+  .code-annot{display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-size:13.5px;}
+  .code-annot .badge{font-family:var(--mono); font-size:11px; background:var(--surface-2); color:var(--build); border:1px solid var(--border); border-radius:6px; padding:2px 8px; flex:0 0 auto;}
+
+  .flow{display:flex; align-items:center; flex-wrap:wrap; gap:0; margin:18px 0;}
+  .flow-step{background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 16px; font-family:var(--mono); font-size:13px; text-align:center; flex:1 1 auto; min-width:120px;}
+  .flow-arrow{color:var(--muted); font-size:18px; padding:0 10px; flex:0 0 auto;}
+  .flow.vertical{flex-direction:column; align-items:stretch;}
+  .flow.vertical .flow-arrow{align-self:center; padding:4px 0;}
+  @media(max-width:640px){.flow{flex-direction:column; align-items:stretch;} .flow .flow-arrow{align-self:center; transform:rotate(90deg); padding:4px 0;}}
+
+  .table-wrap{overflow-x:auto; border-radius:12px; border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+  th{background:var(--surface-2); font-family:var(--mono); font-weight:600; font-size:12px; text-align:left; padding:12px 14px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border);}
+  td{padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface);}
+  tr:last-child td{border-bottom:none;}
+  td.hl-template{color:var(--template);}
+  td.hl-script{color:var(--script);}
+  td.hl-style{color:var(--styleblock);}
+  td.hl-build{color:var(--build);}
+
+  .ladder{display:flex; flex-direction:column; gap:10px;}
+  .rung{display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px;}
+  .rung-num{font-family:var(--mono); font-weight:700; font-size:13px; color:var(--bg); background:linear-gradient(135deg,var(--script),var(--build)); width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .rung-body b{font-size:14px;}
+  .rung-body div{font-size:13px; color:var(--muted); margin-top:2px;}
+
+  .tier{margin-bottom:18px;}
+  .tier-label{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:10px;}
+  .tier.easy .tier-label{background:rgba(74,222,128,0.12); color:var(--good);}
+  .tier.medium .tier-label{background:rgba(245,166,35,0.12); color:var(--template);}
+  .tier.advanced .tier-label{background:rgba(255,107,107,0.12); color:var(--danger);}
+  .qa{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; font-size:14px;}
+  .qa .q{font-weight:600; margin-bottom:6px;}
+  .qa .a{color:var(--muted); font-size:13.5px;}
+
+  .brain-flow{font-family:var(--mono); text-align:center; font-size:14.5px; color:var(--build); background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; letter-spacing:.01em;}
+  .remember-chain{display:flex; flex-direction:column; gap:6px;}
+  .remember-row{display:flex; gap:14px; align-items:center; font-family:var(--mono); font-size:13.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px;}
+  .remember-row .k{width:160px; flex:0 0 auto; font-weight:600;}
+  .remember-row .arrow{color:var(--muted);}
+
+  .palace-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media(max-width:800px){.palace-grid{grid-template-columns:1fr;}}
+  .palace-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; text-align:center;}
+  .palace-card .ico{font-size:26px; margin-bottom:8px;}
+  .palace-card h4{font-family:var(--mono); font-size:13px; color:var(--build); margin:0 0 8px; text-transform:uppercase; letter-spacing:.08em;}
+  .palace-card p{font-size:14px; margin:0;}
+
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:16px;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); font-family:var(--mono);}
+  .legend-dot{width:10px; height:10px; border-radius:3px; flex:0 0 auto;}
+
+  footer{text-align:center; padding:40px 0 10px; color:var(--muted); font-size:12.5px; font-family:var(--mono);}
+</style>
+</head>
+<body>
+
+<nav class="jumpnav">
+  <div class="jumpnav-inner">
+    <a href="#m1">01 Topic Card</a>
+    <a href="#m2">02 Intuition</a>
+    <a href="#m3">03 Mental Model</a>
+    <a href="#m4">04 Patterns</a>
+    <a href="#m5">05 Fundamentals</a>
+    <a href="#m6">06 Execution</a>
+    <a href="#m7">07 Syntax</a>
+    <a href="#m8">08 Walkthrough</a>
+    <a href="#m9">09 Behind Scenes</a>
+    <a href="#m10">10 Real Usage</a>
+    <a href="#m11">11 Mistakes</a>
+    <a href="#m12">12 Debugging</a>
+    <a href="#m13">13 IITM Pattern</a>
+    <a href="#m14">14 Interview</a>
+    <a href="#m15">15 One-Page Brain</a>
+    <a href="#m16">16 Revision Table</a>
+    <a href="#m17">17 Practice Ladder</a>
+    <a href="#m18">18 Memory Palace</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">MAD2 Learning OS · Module W6_L3</div>
+    <h1 class="title">Managing Components <span>with SFCs</span></h1>
+    <p class="subtitle">Scattered global components, string templates, and leaking CSS don't scale. Single File Components pack everything a component needs into one file — and a build tool turns it into something the browser can actually run.</p>
+  </div>
+
+  <div class="stack-wrap">
+    <div class="stack-rig">
+      <div class="sfc-file">
+        <div class="sfc-titlebar">Counter.vue</div>
+        <div class="sfc-band t"><span class="tag">&lt;template&gt;</span><div class="desc">the HTML structure</div></div>
+        <div class="sfc-band s"><span class="tag">&lt;script&gt;</span><div class="desc">the logic, as an ES6 module</div></div>
+        <div class="sfc-band c"><span class="tag">&lt;style scoped&gt;</span><div class="desc">CSS locked to this component only</div></div>
+      </div>
+      <div class="rig-arrow">→</div>
+      <div class="compiler-box">⚙️<div class="name">Vite / Webpack</div>the compiler</div>
+      <div class="rig-arrow">→</div>
+      <div class="output-stack">
+        <div class="output-item">index.html</div>
+        <div class="output-item">bundle.js</div>
+        <div class="output-item">styles.css</div>
+      </div>
+    </div>
+  </div>
+  <div class="stack-caption">One .vue file in → plain HTML/CSS/JS out — the browser never sees the .vue syntax</div>
+
+  <!-- MODULE 1 -->
+  <section id="m1">
+    <div class="modtag"><span class="num">1</span>Topic Card · 30 Seconds</div>
+    <h2 class="modh">Where this fits</h2>
+    <div class="topic-card">
+      <div class="tc-value" style="font-size:18px;">Managing Components with Single File Components (SFCs)</div>
+      <div class="tc-row">
+        <div class="tc-item"><div class="tc-label">Category</div><div class="tc-value">Vue Fundamentals · Build Tooling</div></div>
+        <div class="tc-item"><div class="tc-label">Difficulty</div><div class="tc-value stars">★★★<span class="dim">★★</span></div></div>
+        <div class="tc-item"><div class="tc-label">Importance</div><div class="tc-value stars">★★★★<span class="dim">★</span></div></div>
+        <div class="tc-item"><div class="tc-label">Prerequisites</div><div class="tc-value" style="font-weight:400; font-size:14px;">Vue component basics, global registration, ES6 modules (import/export)</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 2 -->
+  <section id="m2">
+    <div class="modtag"><span class="num">2</span>Core Intuition · WHY</div>
+    <h2 class="modh">Why this exists</h2>
+    <div class="callout analogy">
+      <div class="ico">🗂️</div>
+      <div>Imagine cooking from recipe cards scattered across the kitchen — one card for ingredients pinned to the fridge, the steps scrawled on a napkin, and a photo of the finished plate somewhere in your phone. That's a component built with global registration, string templates, and global CSS. An SFC is a single labeled recipe page: ingredients, steps, and photo, all on the same sheet, filed neatly in a binder — nothing gets misplaced, nothing bleeds into the next recipe.</div>
+    </div>
+    <div class="card"><p>As an app grows past a handful of components, that scattering becomes the actual bottleneck — not the logic itself, but finding and safely changing it without breaking something else.</p></div>
+  </section>
+
+  <!-- MODULE 3 -->
+  <section id="m3">
+    <div class="modtag"><span class="num">3</span>Visual Mental Model</div>
+    <h2 class="modh">One picture, one idea</h2>
+    <div class="flow">
+      <div class="flow-step" style="border-color:var(--template); color:var(--template);">.vue file (template+script+style)</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--build); color:var(--build);">Build tool compiles &amp; bundles</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--good); color:var(--good);">Plain HTML / CSS / JS the browser runs</div>
+    </div>
+    <div class="callout info"><div class="ico">🧠</div><div>Browsers only ever understand HTML, CSS, and JS. A <code>.vue</code> file is a convenience for the developer — it does not exist anymore by the time the code reaches the browser.</div></div>
+  </section>
+
+  <!-- MODULE 4 -->
+  <section id="m4">
+    <div class="modtag"><span class="num">4</span>Pattern Recognition</div>
+    <h2 class="modh">Spot the question instantly</h2>
+    <div class="card"><h3>Trigger words</h3><p><code>.vue</code> file, SFC, <code>scoped</code>, Webpack, Vite, Rollup, esbuild, npm, <code>node_modules</code>, polyfill, supply chain attack, global namespace pollution, build step</p></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>If the question says…</th><th>Reach for</th></tr></thead>
+        <tbody>
+          <tr><td>"CSS leaking into other components"</td><td>Missing <code>scoped</code> attribute</td></tr>
+          <tr><td>"browser can't run this file directly"</td><td>Needs a build step / bundler</td></tr>
+          <tr><td>"malicious code via a dependency"</td><td>Supply chain attack</td></tr>
+          <tr><td>"support for older browsers / ES6+"</td><td>Polyfills, handled by the build tool</td></tr>
+          <tr><td>"one component's name overwrites another"</td><td>Global namespace pollution</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 5 -->
+  <section id="m5">
+    <div class="modtag"><span class="num">5</span>Deep Fundamentals</div>
+    <h2 class="modh">The four questions</h2>
+    <div class="card b-build">
+      <h3>1. Why was this feature created?</h3>
+      <p>As Vue apps grew past a few components, global registration (<code>Vue.component(...)</code>), inline string templates, and global CSS became genuinely unmanageable — name collisions, unreadable templates, and styles bleeding across the whole app.</p>
+    </div>
+    <div class="card b-build">
+      <h3>2. What problem does it solve?</h3>
+      <p>Modularity and encapsulation: every component's HTML, logic, and CSS live together in one file, scoped to that component alone, so it can be reasoned about, edited, and deleted in isolation.</p>
+    </div>
+    <div class="card b-build">
+      <h3>3. What happens internally?</h3>
+      <p>A build tool parses the <code>.vue</code> file's three blocks separately: the template is compiled into a render function, the script is treated as an ES6 module, and scoped styles get rewritten with a unique attribute selector so they can never leak out.</p>
+    </div>
+    <div class="card b-build">
+      <h3>4. How does Vue/JavaScript execute it?</h3>
+      <p>The bundler resolves every <code>import</code>/<code>export</code> across all your <code>.vue</code> files into a dependency graph, then packages it all into plain JS bundles (plus HTML/CSS) that any browser can execute — no special Vue-aware runtime needed in the browser itself.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 6 -->
+  <section id="m6">
+    <div class="modtag"><span class="num">6</span>Execution Flow</div>
+    <h2 class="modh">The internal sequence</h2>
+    <div class="flow vertical">
+      <div class="flow-step" style="border-color:var(--template);">Write Counter.vue (template + script + style)</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Run <code>npm run dev</code> / <code>npm run build</code></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Build tool splits the three blocks apart</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Template → compiled render function</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Scoped style → rewritten with a unique attribute selector</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Bundler resolves imports across every component</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--good); color:var(--good);">Output: plain index.html + bundle.js + styles.css</div>
+    </div>
+  </section>
+
+  <!-- MODULE 7 -->
+  <section id="m7">
+    <div class="modtag"><span class="num">7</span>Syntax Anatomy</div>
+    <h2 class="modh">Every block, explained</h2>
+    <pre class="code">&lt;<span class="tok-tag">template</span>&gt;
+  &lt;<span class="tok-tag">button</span> <span class="tok-attr">@click</span>=<span class="tok-str">"count++"</span>&gt;{{ count }}&lt;/<span class="tok-tag">button</span>&gt;
+&lt;/<span class="tok-tag">template</span>&gt;
+
+&lt;<span class="tok-tag">script</span>&gt;
+<span class="tok-key">export default</span> <span class="tok-punc">{</span>
+  <span class="tok-fn">data</span><span class="tok-punc">() {</span> <span class="tok-key">return</span> <span class="tok-punc">{</span> <span class="tok-prop">count</span><span class="tok-punc">:</span> <span class="tok-fn">0</span> <span class="tok-punc">} }</span>
+<span class="tok-punc">}</span>
+&lt;/<span class="tok-tag">script</span>&gt;
+
+&lt;<span class="tok-tag">style</span> <span class="tok-attr">scoped</span>&gt;
+<span class="tok-prop">button</span> <span class="tok-punc">{</span> <span class="tok-prop">color</span><span class="tok-punc">:</span> <span class="tok-str">teal</span><span class="tok-punc">; }</span>
+&lt;/<span class="tok-tag">style</span>&gt;</pre>
+    <div class="code-annot"><span class="badge">&lt;template&gt;</span> exactly one root-friendly HTML block — the component's markup</div>
+    <div class="code-annot"><span class="badge">&lt;script&gt;</span> an ES6 module — <code>export default</code> is how this component's options object is shared with whatever imports it</div>
+    <div class="code-annot"><span class="badge">&lt;style scoped&gt;</span> the <code>scoped</code> attribute is what tells the compiler to lock these rules to this component only</div>
+  </section>
+
+  <!-- MODULE 8 -->
+  <section id="m8">
+    <div class="modtag"><span class="num">8</span>Code Walkthrough</div>
+    <h2 class="modh">A tiny SFC, imported and used</h2>
+    <pre class="code"><span class="tok-com">// Counter.vue</span>
+&lt;<span class="tok-tag">template</span>&gt;
+  &lt;<span class="tok-tag">button</span> <span class="tok-attr">@click</span>=<span class="tok-str">"increment"</span>&gt;Count: {{ count }}&lt;/<span class="tok-tag">button</span>&gt;
+&lt;/<span class="tok-tag">template</span>&gt;
+
+&lt;<span class="tok-tag">script</span>&gt;
+<span class="tok-key">export default</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">name</span><span class="tok-punc">:</span> <span class="tok-str">'Counter'</span><span class="tok-punc">,</span>
+  <span class="tok-fn">data</span><span class="tok-punc">() {</span>
+    <span class="tok-key">return</span> <span class="tok-punc">{</span> <span class="tok-prop">count</span><span class="tok-punc">:</span> <span class="tok-fn">0</span> <span class="tok-punc">}</span>
+  <span class="tok-punc">},</span>
+  <span class="tok-prop">methods</span><span class="tok-punc">: {</span>
+    <span class="tok-fn">increment</span><span class="tok-punc">() {</span> <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">count</span><span class="tok-punc">++ }</span>
+  <span class="tok-punc">}</span>
+<span class="tok-punc">}</span>
+&lt;/<span class="tok-tag">script</span>&gt;
+
+&lt;<span class="tok-tag">style</span> <span class="tok-attr">scoped</span>&gt;
+<span class="tok-prop">button</span> <span class="tok-punc">{</span> <span class="tok-prop">background</span><span class="tok-punc">:</span> <span class="tok-str">#2DD4BF</span><span class="tok-punc">; }</span>
+&lt;/<span class="tok-tag">style</span>&gt;</pre>
+    <pre class="code"><span class="tok-com">// App.vue</span>
+&lt;<span class="tok-tag">template</span>&gt;
+  &lt;<span class="tok-tag">Counter</span> /&gt;
+&lt;/<span class="tok-tag">template</span>&gt;
+
+&lt;<span class="tok-tag">script</span>&gt;
+<span class="tok-key">import</span> <span class="tok-prop">Counter</span> <span class="tok-key">from</span> <span class="tok-str">'./Counter.vue'</span>
+
+<span class="tok-key">export default</span> <span class="tok-punc">{</span>
+  <span class="tok-prop">components</span><span class="tok-punc">: {</span> <span class="tok-prop">Counter</span> <span class="tok-punc">}</span>
+<span class="tok-punc">}</span>
+&lt;/<span class="tok-tag">script</span>&gt;</pre>
+    <div class="callout good"><div class="ico">✅</div><div>No <code>Vue.component('Counter', ...)</code> registered globally, no chance of another file accidentally defining a component with the same name — <code>Counter</code> only exists where it's explicitly imported.</div></div>
+  </section>
+
+  <!-- MODULE 9 -->
+  <section id="m9">
+    <div class="modtag"><span class="num">9</span>Behind the Scenes</div>
+    <h2 class="modh">What the build tool is really doing</h2>
+    <div class="card-grid">
+      <div class="card b-style">
+        <h3>How "scoped" actually works</h3>
+        <p>The compiler adds a unique attribute — something like <code>data-v-7ba5bd90</code> — to every element the template renders, and rewrites every selector in that <code>&lt;style&gt;</code> block to include the same attribute. The result: identical CSS class names in two different components simply cannot collide.</p>
+      </div>
+      <div class="card b-build">
+        <h3>Bundling &amp; the dependency graph</h3>
+        <p>The bundler starts from your entry file, follows every <code>import</code> statement it finds, and builds a full dependency graph — then packages everything actually used into as few files as possible, often removing unused code entirely (tree-shaking).</p>
+      </div>
+    </div>
+    <div class="callout warn"><div class="ico">⚠️</div><div><b>Supply chain risk:</b> every <code>npm install</code> pulls in code you didn't write and likely haven't read — a compromised or malicious package deep in your dependency tree runs with the same trust as your own code.</div></div>
+  </section>
+
+  <!-- MODULE 10 -->
+  <section id="m10">
+    <div class="modtag"><span class="num">10</span>Real Project Usage</div>
+    <h2 class="modh">Where you've already used this</h2>
+    <div class="card-grid">
+      <div class="card b-build"><h3>GitLab</h3><p>Its web frontend is built from hundreds of Vue SFCs, bundled with Webpack, so teams can own individual components without stepping on each other's CSS.</p></div>
+      <div class="card b-build"><h3>Nintendo &amp; large e-commerce sites</h3><p>Large storefronts use SFCs so a "Product Card" component's styling never accidentally affects a "Cart" component elsewhere on the page.</p></div>
+      <div class="card b-danger"><h3>The 2021 "ua-parser-js" incident</h3><p>A widely-used npm package was compromised and briefly served malware to anyone who installed it — a textbook real-world supply chain attack through a dependency almost no one had audited directly.</p></div>
+      <div class="card b-build"><h3>Vite-powered dashboards</h3><p>Modern internal admin tools favor Vite specifically for its near-instant dev server startup compared to older Webpack-based setups.</p></div>
+    </div>
+  </section>
+
+  <!-- MODULE 11 -->
+  <section id="m11">
+    <div class="modtag"><span class="num">11</span>Common Mistakes</div>
+    <h2 class="modh">Wrong vs. Right</h2>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Forgetting <code>scoped</code> on <code>&lt;style&gt;</code>, letting rules apply globally</div>
+      <div class="m-right"><b>✅ Correct</b><code>&lt;style scoped&gt;</code> — styles stay locked to this component</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Double-clicking a <code>.vue</code> file expecting the browser to open it</div>
+      <div class="m-right"><b>✅ Correct</b><code>.vue</code> files only run through a build tool (Vite/Webpack) — never directly in the browser</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Installing any npm package without checking its popularity, maintenance, or audit results</div>
+      <div class="m-right"><b>✅ Correct</b>Vet dependencies, keep a lockfile, run <code>npm audit</code> periodically</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Mixing global <code>Vue.component()</code> registration with SFC imports for no reason</div>
+      <div class="m-right"><b>✅ Correct</b>Import components explicitly where they're used — avoids name collisions entirely</div>
+    </div>
+  </section>
+
+  <!-- MODULE 12 -->
+  <section id="m12">
+    <div class="modtag"><span class="num">12</span>Debugging Mindset</div>
+    <h2 class="modh">Hunting the bug</h2>
+    <div class="flow">
+      <div class="flow-step">Problem: one component's CSS affects another</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Observe: inspect element, check for the <code>data-v-*</code> attribute</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Find stage: is <code>scoped</code> missing from &lt;style&gt;?</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--good); color:var(--good);">Fix</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Styles leak into other components</td><td>Missing <code>scoped</code> attribute</td><td>Add <code>scoped</code> to the &lt;style&gt; tag</td></tr>
+          <tr><td>"Module not found" on build</td><td>Wrong import path, or package not installed</td><td>Check relative path, re-run <code>npm install</code></td></tr>
+          <tr><td>Build fails after pulling latest code</td><td>node_modules out of sync with package.json</td><td>Delete node_modules, reinstall from the lockfile</td></tr>
+          <tr><td>npm audit reports a vulnerability</td><td>A dependency (direct or nested) has a known issue</td><td>Update the package, or review whether it's actually needed</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 13 -->
+  <section id="m13">
+    <div class="modtag"><span class="num">13</span>IITM Exam Pattern</div>
+    <h2 class="modh">How this shows up on the paper</h2>
+    <div class="card-grid">
+      <div class="card"><h3>Trigger words</h3><p>"CSS should not affect other components", "browser cannot execute directly", "malicious dependency", "bundler"</p></div>
+      <div class="card"><h3>Trap words</h3><p>Questions may conflate Webpack, Vite, Rollup, and esbuild as if interchangeable — know that they differ in speed and approach, not just name.</p></div>
+      <div class="card"><h3>MCQ tricks</h3><p>Watch for options claiming SFCs "run directly in the browser" — false, they always require a build step.</p></div>
+      <div class="card"><h3>PYQ pattern</h3><p>Frequently asks to identify what's missing from a broken SFC snippet (usually the <code>scoped</code> keyword or a missing import).</p></div>
+    </div>
+    <div class="callout info"><div class="ico">🎯</div><div><b>Elimination technique:</b> any option saying "no build tool is required for .vue files" is automatically wrong.</div></div>
+  </section>
+
+  <!-- MODULE 14 -->
+  <section id="m14">
+    <div class="modtag"><span class="num">14</span>Interview Questions</div>
+    <h2 class="modh">Three tiers</h2>
+    <div class="tier easy"><div class="tier-label">Easy</div><div class="qa"><div class="q">What are the three blocks inside a Single File Component?</div><div class="a"><code>&lt;template&gt;</code> for HTML, <code>&lt;script&gt;</code> for logic, and <code>&lt;style&gt;</code> for CSS, all in one .vue file.</div></div></div>
+    <div class="tier medium"><div class="tier-label">Medium</div><div class="qa"><div class="q">How does the "scoped" attribute prevent CSS from leaking?</div><div class="a">The compiler tags every element the component renders with a unique data attribute, and rewrites the component's CSS selectors to require that same attribute — so identical class names in different components never collide.</div></div></div>
+    <div class="tier advanced"><div class="tier-label">Advanced</div><div class="qa"><div class="q">What is a supply chain attack, and how does it apply to an npm-based Vue project?</div><div class="a">It's an attack where malicious code is smuggled in through a trusted third-party dependency rather than the project's own code. Since npm projects can pull in hundreds of nested dependencies, a single compromised package deep in that tree runs with the same privileges as first-party code — making dependency auditing and lockfiles a real security practice, not just hygiene.</div></div></div>
+  </section>
+
+  <!-- MODULE 15 -->
+  <section id="m15">
+    <div class="modtag"><span class="num">15</span>One-Page Brain</div>
+    <h2 class="modh">The whole topic, compressed</h2>
+    <div class="brain-flow">.vue file (template+script+style) → build tool compiles &amp; bundles → plain HTML/CSS/JS the browser runs</div>
+    <div class="remember-chain">
+      <div class="remember-row"><span class="k">template</span><span class="arrow">→</span> the HTML</div>
+      <div class="remember-row"><span class="k">script</span><span class="arrow">→</span> the logic, ES6 module</div>
+      <div class="remember-row"><span class="k">style scoped</span><span class="arrow">→</span> CSS locked to this component</div>
+      <div class="remember-row"><span class="k">Bundler</span><span class="arrow">→</span> Vite/Webpack/Rollup/esbuild</div>
+      <div class="remember-row"><span class="k">npm install</span><span class="arrow">→</span> convenience, but a supply chain risk</div>
+    </div>
+  </section>
+
+  <!-- MODULE 16 -->
+  <section id="m16">
+    <div class="modtag"><span class="num">16</span>Quick Revision Table</div>
+    <h2 class="modh">Scan this before the exam</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>Global Registration</th><th>Single File Components</th></tr></thead>
+        <tbody>
+          <tr><td>Component scope</td><td>Global — name collisions possible</td><td class="hl-build">Explicit import, no collisions</td></tr>
+          <tr><td>Template format</td><td>String template in JS</td><td class="hl-template">Dedicated &lt;template&gt; block, tool-assisted</td></tr>
+          <tr><td>CSS scoping</td><td>Global by default</td><td class="hl-style">Scoped per component with <code>scoped</code></td></tr>
+          <tr><td>Build step required?</td><td>No</td><td class="hl-build">Yes — Vite/Webpack/Rollup/esbuild</td></tr>
+          <tr><td>Browser support / polyfills</td><td>Manual, harder</td><td class="hl-build">Handled by the build tool</td></tr>
+          <tr><td>Best for</td><td>Tiny, simple pages</td><td class="hl-build">Scalable, maintainable applications</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--template);"></span>Template</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--script);"></span>Script</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--styleblock);"></span>Style</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--build);"></span>Build tooling</div>
+    </div>
+  </section>
+
+  <!-- MODULE 17 -->
+  <section id="m17">
+    <div class="modtag"><span class="num">17</span>Practice Ladder</div>
+    <h2 class="modh">Climb one level at a time</h2>
+    <div class="ladder">
+      <div class="rung"><div class="rung-num">1</div><div class="rung-body"><b>Concept</b><div>Explain why global component registration breaks down as an app grows.</div></div></div>
+      <div class="rung"><div class="rung-num">2</div><div class="rung-body"><b>Predict Output</b><div>Given two components with a class named .card, predict whether their styles collide with and without scoped.</div></div></div>
+      <div class="rung"><div class="rung-num">3</div><div class="rung-body"><b>Find the Bug</b><div>Spot why a new component's styles are bleeding into a sibling component.</div></div></div>
+      <div class="rung"><div class="rung-num">4</div><div class="rung-body"><b>MCQ</b><div>Identify which build tool concept (bundling, tree-shaking, polyfilling) a scenario describes.</div></div></div>
+      <div class="rung"><div class="rung-num">5</div><div class="rung-body"><b>Coding</b><div>Write a small SFC with a scoped style block and import it into a parent component.</div></div></div>
+      <div class="rung"><div class="rung-num">6</div><div class="rung-body"><b>Mini Project</b><div>Split a single-file prototype app into three separate SFCs with clean imports.</div></div></div>
+      <div class="rung"><div class="rung-num">7</div><div class="rung-body"><b>Interview</b><div>Explain, unaided, how you'd audit a project's dependencies for supply chain risk.</div></div></div>
+    </div>
+  </section>
+
+  <!-- MODULE 18 -->
+  <section id="m18">
+    <div class="modtag"><span class="num">18</span>Memory Palace</div>
+    <h2 class="modh">Three anchors, forever</h2>
+    <div class="palace-grid">
+      <div class="palace-card"><div class="ico">📏</div><h4>Rule</h4><p>One file, one component, one scope — nothing leaks in or out.</p></div>
+      <div class="palace-card"><div class="ico">🔤</div><h4>Mnemonic</h4><p><b>"T-S-S in, plain out."</b> Template, Script, Style go in; plain HTML/CSS/JS comes out.</p></div>
+      <div class="palace-card"><div class="ico">🗺️</div><h4>Visual</h4><p>.vue file 📄 → build tool ⚙️ → index.html + bundle.js + styles.css — the compiler is the only thing standing between your code and the browser.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>MAD2 Learning OS — Managing Components with SFCs — W6_L3</footer>
+
+</body>
+</html>

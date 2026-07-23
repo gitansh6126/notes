@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Classification — Lecture 41</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  /* base surfaces */
+  --bg:#0F1720;
+  --bg2:#16212C;
+  --bg3:#1C2933;
+  --paper:#FBF7EE;
+  --paper2:#F3EEE0;
+  --ink:#1C2430;
+  --ink-soft:#5B6472;
+  --on-dark:#EDEDE3;
+  --on-dark-soft:#9FAAB6;
+
+  /* two-class identity (diagrams only, kept separate from symbol-role colors) */
+  --cls-a:#E2572D;
+  --cls-a-soft:rgba(226,87,45,0.14);
+  --cls-b:#1FA08E;
+  --cls-b-soft:rgba(31,160,142,0.14);
+
+  /* fixed symbol-role palette — same meaning everywhere in the document */
+  --sym-var:#5B9BD5;      /* variables: x, y, data */
+  --sym-param:#E0A639;    /* parameters: w, learned values */
+  --sym-const:#4CAF7D;    /* constants: n, fixed numbers */
+  --sym-fn:#9B6BD9;       /* functions: h(), Loss(), sign(), I() */
+  --sym-op:#E2574B;       /* important operators: Σ, ≠, boundary */
+
+  --line-dark:rgba(237,237,227,0.10);
+  --line-light:rgba(28,36,48,0.12);
+  --serif:'Fraunces',serif;
+  --sans:'Inter',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --radius:18px;
+  --shadow: 0 24px 60px -32px rgba(0,0,0,0.55);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0) 6%),
+    repeating-linear-gradient(0deg, var(--line-dark) 0 1px, transparent 1px 42px),
+    repeating-linear-gradient(90deg, var(--line-dark) 0 1px, transparent 1px 42px),
+    var(--bg);
+  color:var(--on-dark);
+  font-family:var(--sans);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--serif); font-weight:600; margin:0 0 .4em; letter-spacing:-.01em;}
+p{margin:0 0 1em;}
+.katex{font-size:1.08em;}
+a{color:inherit;}
+sub,sup{font-size:65%;}
+
+/* ===== Layout shell ===== */
+.shell{max-width:1180px; margin:0 auto; padding:0 24px;}
+.layout{display:grid; grid-template-columns:230px 1fr; gap:44px; align-items:start; padding-top:36px;}
+@media (max-width: 980px){ .layout{grid-template-columns:1fr;} }
+
+/* ===== Nav ===== */
+.toc{position:sticky; top:20px; background:var(--bg3); border:1px solid var(--line-dark); border-radius:var(--radius); padding:18px 16px; max-height:calc(100vh - 40px); overflow-y:auto;}
+.toc-title{font-family:var(--mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--on-dark-soft); margin-bottom:12px; padding:0 6px;}
+.toc a{display:flex; gap:10px; align-items:baseline; font-size:13.5px; color:var(--on-dark-soft); text-decoration:none; padding:7px 6px; border-radius:8px; transition:.15s;}
+.toc a:hover{color:var(--on-dark); background:rgba(255,255,255,0.05);}
+.toc a.active{color:var(--on-dark); background:rgba(226,87,45,0.14);}
+.toc a span.n{font-family:var(--mono); color:var(--cls-a); font-size:11px; min-width:20px;}
+@media (max-width: 980px){
+  .toc{position:static; max-height:none;}
+  .toc-inner{display:none;}
+  .toc.open .toc-inner{display:block;}
+  .toc-toggle{display:flex !important;}
+}
+.toc-toggle{display:none; width:100%; justify-content:space-between; align-items:center; background:none; border:none; color:var(--on-dark); font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; cursor:pointer; padding:4px 6px;}
+
+/* ===== Hero ===== */
+.hero{padding:64px 0 40px; display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center;}
+@media (max-width:820px){ .hero{grid-template-columns:1fr; padding-top:20px;} }
+.eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--cls-a); margin-bottom:14px; display:flex; align-items:center; gap:10px;}
+.eyebrow::before{content:''; width:22px; height:1px; background:var(--cls-a);}
+.hero h1{font-size:clamp(34px,5.4vw,58px); line-height:1.03; color:var(--on-dark);}
+.hero h1 em{font-style:italic; color:var(--cls-b);}
+.hero-sub{font-size:17px; color:var(--on-dark-soft); max-width:46ch; margin-bottom:26px;}
+.meta-row{display:flex; flex-wrap:wrap; gap:10px;}
+.meta-pill{font-family:var(--mono); font-size:12px; color:var(--on-dark); border:1px solid var(--line-dark); border-radius:999px; padding:7px 13px; display:flex; gap:7px; align-items:center; background:rgba(255,255,255,0.03);}
+.meta-pill b{color:var(--on-dark-soft); font-weight:500;}
+.stars{color:var(--sym-param); letter-spacing:1px;}
+
+.scatter-wrap{position:relative; aspect-ratio:1/1; max-width:420px; margin:0 auto;}
+.scatter{position:relative; width:100%; height:100%; background:var(--paper); border-radius:20px; border:1px solid var(--line-dark); box-shadow:var(--shadow); overflow:hidden;}
+.scatter .grid-lines{position:absolute; inset:0; background-image:repeating-linear-gradient(0deg, var(--line-light) 0 1px, transparent 1px 34px), repeating-linear-gradient(90deg, var(--line-light) 0 1px, transparent 1px 34px); opacity:.6;}
+.dot{position:absolute; width:13px; height:13px; border-radius:50%; box-shadow:0 2px 6px rgba(0,0,0,0.18); border:2px solid var(--paper);}
+.dot.a{background:var(--cls-a);} .dot.b{background:var(--cls-b);}
+.boundary{position:absolute; left:-10%; top:64%; width:120%; height:2.5px; background:repeating-linear-gradient(90deg, var(--ink) 0 10px, transparent 10px 18px); transform:rotate(-24deg); transform-origin:left center; animation:draw 1.6s ease-out;}
+@keyframes draw{from{clip-path:inset(0 100% 0 0);} to{clip-path:inset(0 0% 0 0);}}
+.boundary-label{position:absolute; right:8%; top:12%; font-family:var(--mono); font-size:12px; color:var(--ink-soft); background:var(--paper2); border:1px solid var(--line-light); padding:4px 9px; border-radius:8px;}
+.scatter-caption{text-align:center; font-family:var(--mono); font-size:12px; color:var(--on-dark-soft); margin-top:14px;}
+.scatter-caption .a{color:var(--cls-a);} .scatter-caption .b{color:var(--cls-b);}
+
+/* ===== Section shell ===== */
+.section{padding:54px 0; border-top:1px solid var(--line-dark);}
+.section:first-of-type{border-top:none;}
+.section-head{display:flex; align-items:baseline; gap:14px; margin-bottom:26px;}
+.section-num{font-family:var(--mono); font-size:13px; color:var(--cls-a);}
+.section h2{font-size:clamp(22px,3vw,30px); color:var(--on-dark);}
+.lede{font-size:16px; color:var(--on-dark-soft); max-width:70ch; margin-bottom:22px;}
+
+/* ===== Cards ===== */
+.card{background:var(--paper); color:var(--ink); border-radius:var(--radius); padding:26px 28px; box-shadow:var(--shadow); border:1px solid rgba(0,0,0,0.04);}
+.card p{color:var(--ink);} .card p.soft{color:var(--ink-soft);}
+.card h3{color:var(--ink); font-size:18px;}
+.card-grid{display:grid; gap:20px;}
+.grid-2{grid-template-columns:1fr 1fr;} .grid-3{grid-template-columns:repeat(3,1fr);}
+@media (max-width:760px){ .grid-2, .grid-3{grid-template-columns:1fr;} }
+
+.tag{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono); font-size:11.5px; padding:5px 10px; border-radius:999px; margin:0 6px 6px 0;}
+.tag.geo{background:rgba(91,155,213,0.14); color:var(--sym-var);}
+.tag.opt{background:rgba(31,160,142,0.14); color:var(--cls-b);}
+.tag.cnt{background:rgba(224,166,57,0.14); color:var(--sym-param);}
+
+/* callouts */
+.callout{border-radius:16px; padding:20px 22px; margin:18px 0; border:1px solid transparent;}
+.callout-title{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:8px; display:flex; gap:8px; align-items:center;}
+.callout.trap{background:rgba(224,166,57,0.10); border-color:rgba(224,166,57,0.35); color:var(--on-dark);}
+.callout.trap .callout-title{color:var(--sym-param);}
+.callout.analogy{background:rgba(31,160,142,0.10); border-color:rgba(31,160,142,0.3); color:var(--on-dark);}
+.callout.analogy .callout-title{color:var(--cls-b);}
+.callout.rule{background:rgba(226,87,45,0.10); border-color:rgba(226,87,45,0.3); color:var(--on-dark);}
+.callout.rule .callout-title{color:var(--cls-a);}
+.callout.mistake{background:rgba(226,87,75,0.10); border-color:rgba(226,87,75,0.32); color:var(--on-dark);}
+.callout.mistake .callout-title{color:var(--sym-op);}
+.callout.example{background:rgba(91,155,213,0.10); border-color:rgba(91,155,213,0.3); color:var(--on-dark);}
+.callout.example .callout-title{color:var(--sym-var);}
+.callout p:last-child{margin-bottom:0;}
+
+/* code */
+.code{background:#0C1319; border:1px solid var(--line-dark); border-radius:14px; padding:18px 20px; font-family:var(--mono); font-size:13px; color:#D9E0E8; overflow-x:auto; line-height:1.7;}
+.code .c{color:#7C8A9A; font-style:italic;}
+.code .k{color:var(--cls-a);}
+.code .f{color:var(--cls-b);}
+.code .n{color:var(--sym-param);}
+
+/* table */
+table{width:100%; border-collapse:collapse; font-size:14.5px;}
+th,td{text-align:left; padding:10px 12px; border-bottom:1px solid var(--line-light);}
+th{font-family:var(--mono); font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-soft);}
+td code, td .m{font-family:var(--mono); font-size:13px; background:var(--paper2); padding:2px 6px; border-radius:5px;}
+tr:last-child td{border-bottom:none;}
+
+/* flow diagram */
+.flow{display:flex; flex-wrap:wrap; gap:0; align-items:center; justify-content:center; margin:22px 0;}
+.flow-step{background:var(--paper2); border:1px solid var(--line-light); border-radius:12px; padding:12px 16px; font-family:var(--mono); font-size:12.5px; color:var(--ink); text-align:center; min-width:110px;}
+.flow-arrow{color:var(--cls-a); font-size:18px; padding:0 10px; font-family:var(--mono);}
+@media (max-width:700px){ .flow{flex-direction:column;} .flow-arrow{transform:rotate(90deg); padding:6px 0;} }
+
+.pill-list{display:flex; flex-wrap:wrap; gap:9px;}
+.pill{background:var(--bg3); border:1px solid var(--line-dark); border-radius:999px; padding:8px 14px; font-family:var(--mono); font-size:12.5px; color:var(--on-dark);}
+
+.inv-col{border-radius:14px; padding:18px 20px;}
+.inv-col.always{background:rgba(31,160,142,0.10); border:1px solid rgba(31,160,142,0.3);}
+.inv-col.sometimes{background:rgba(224,166,57,0.10); border:1px solid rgba(224,166,57,0.3);}
+.inv-col.never{background:rgba(226,87,45,0.10); border:1px solid rgba(226,87,45,0.3);}
+.inv-col h4{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px;}
+.inv-col.always h4{color:var(--cls-b);} .inv-col.sometimes h4{color:var(--sym-param);} .inv-col.never h4{color:var(--cls-a);}
+.inv-col ul{margin:0; padding-left:18px;} .inv-col li{margin-bottom:9px; font-size:14px; color:var(--on-dark);}
+
+.trap-card{background:var(--paper); color:var(--ink); border-radius:14px; padding:18px 20px; margin-bottom:14px; border-left:4px solid var(--sym-param);}
+.trap-q{font-weight:600; margin-bottom:6px;}
+.trap-a{color:var(--ink-soft); font-size:14.5px;}
+.trap-a b{color:var(--cls-a);}
+
+.roadmap{display:flex; align-items:center; overflow-x:auto; gap:0; padding:10px 4px 20px;}
+.rm-node{flex:0 0 auto; text-align:center; min-width:130px;}
+.rm-dot{width:16px; height:16px; border-radius:50%; background:var(--bg3); border:2px solid var(--on-dark-soft); margin:0 auto 10px;}
+.rm-node.here .rm-dot{background:var(--cls-a); border-color:var(--cls-a); box-shadow:0 0 0 6px var(--cls-a-soft);}
+.rm-label{font-family:var(--mono); font-size:12px; color:var(--on-dark-soft);}
+.rm-node.here .rm-label{color:var(--on-dark); font-weight:600;}
+.rm-line{flex:1 1 40px; height:2px; background:var(--line-dark); min-width:30px;}
+
+.brain{background:linear-gradient(160deg, var(--bg3), var(--bg2)); border:1px solid var(--line-dark); border-radius:22px; padding:32px;}
+.brain .card{margin-bottom:0;}
+
+footer{text-align:center; padding:50px 0 70px; color:var(--on-dark-soft); font-family:var(--mono); font-size:12px;}
+.sig{position:relative;}
+.sig::before{content:'§'; position:absolute; top:-14px; left:-6px; font-family:var(--serif); font-size:64px; color:rgba(226,87,45,0.12); z-index:0; pointer-events:none;}
+
+/* ================= PREMIUM MATH TYPESETTING COMPONENTS ================= */
+
+/* Equation Panel */
+.eq-panel{
+  position:relative;
+  background:linear-gradient(165deg, var(--bg3), var(--bg2));
+  border:1px solid var(--line-dark);
+  border-radius:20px;
+  padding:38px 28px 30px;
+  margin:26px 0 0;
+  box-shadow:var(--shadow);
+  text-align:center;
+  overflow:hidden;
+}
+.eq-panel::before{content:''; position:absolute; top:0; left:0; right:0; height:4px; background:var(--eq-accent, var(--sym-op));}
+.eq-label{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--on-dark-soft); margin-bottom:20px;}
+.eq-main{font-family:var(--serif); font-size:clamp(1.25rem, 3vw, 2.15rem); color:var(--on-dark); line-height:2.1;}
+.eq-main .katex-display{margin:.3em 0;}
+.eq-number{position:absolute; bottom:14px; right:20px; font-family:var(--mono); font-size:11px; color:var(--on-dark-soft); opacity:.7;}
+
+/* Symbol legend */
+.legend{display:flex; flex-wrap:wrap; gap:10px 22px; justify-content:center; padding:18px 20px 4px; margin-top:0; border-top:1px dashed var(--line-dark);}
+.legend-item{display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--on-dark-soft);}
+.legend-item i{width:10px; height:10px; border-radius:50%; display:inline-block; flex:0 0 auto;}
+.legend-item b{color:var(--on-dark); font-family:var(--serif); font-style:italic; font-weight:600; font-size:13.5px;}
+
+/* Step timeline */
+.timeline{position:relative; padding-left:50px; margin:26px 0 4px;}
+.timeline::before{content:''; position:absolute; left:18px; top:6px; bottom:6px; width:2px; background:var(--line-dark);}
+.tl-step{position:relative; margin-bottom:24px;}
+.tl-step:last-child{margin-bottom:0;}
+.tl-badge{position:absolute; left:-50px; top:0; width:36px; height:36px; border-radius:50%; background:var(--bg3); border:2px solid var(--sym-op); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:13px; color:var(--on-dark);}
+.tl-title{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--on-dark-soft); margin-bottom:8px;}
+.tl-expr{font-family:var(--serif); font-size:20px; color:var(--on-dark); background:var(--bg3); display:inline-block; padding:10px 18px; border-radius:10px; border:1px solid var(--line-dark);}
+.tl-why{font-size:13.5px; color:var(--on-dark-soft); margin-top:8px;}
+
+/* SVG concept illustration wrapper */
+.svg-wrap{margin:22px 0 4px; text-align:center;}
+.svg-wrap svg{max-width:100%; height:auto;}
+.svg-cap{font-family:var(--mono); font-size:11.5px; color:var(--on-dark-soft); margin-top:10px;}
+
+/* sub-sections under an equation panel */
+.eq-followup{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:22px;}
+@media (max-width:760px){ .eq-followup{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="layout">
+    <nav class="toc" id="toc">
+      <button class="toc-toggle" onclick="document.getElementById('toc').classList.toggle('open')">
+        <span>Contents</span><span>▾</span>
+      </button>
+      <div class="toc-inner">
+        <div class="toc-title">On this page</div>
+        <a href="#problem"><span class="n">00</span>The Problem</a>
+        <a href="#history"><span class="n">01</span>A Bit of History</a>
+        <a href="#thinking"><span class="n">02</span>Engineering → Math</a>
+        <a href="#formula"><span class="n">03</span>Building the Loss</a>
+        <a href="#anatomy"><span class="n">04</span>Formula Anatomy</a>
+        <a href="#hyperplane"><span class="n">05</span>Linear Classifiers</a>
+        <a href="#hard"><span class="n">06</span>Why It's Hard</a>
+        <a href="#algorithm"><span class="n">07</span>The Algorithm</a>
+        <a href="#flow"><span class="n">08</span>Computational Flow</a>
+        <a href="#regression"><span class="n">09</span>Why Not Regression?</a>
+        <a href="#symbols"><span class="n">10</span>Symbol Translator</a>
+        <a href="#triggers"><span class="n">11</span>Trigger Words</a>
+        <a href="#invariants"><span class="n">12</span>Always / Sometimes / Never</a>
+        <a href="#traps"><span class="n">13</span>Examiner Traps</a>
+        <a href="#roadmap"><span class="n">14</span>Where It Leads</a>
+        <a href="#brain"><span class="n">15</span>One-Page Brain</a>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">Lecture 41 · Supervised Learning</div>
+          <h1>Sorting the world into <em>two piles</em></h1>
+          <p class="hero-sub">Regression taught a machine to guess a number. Binary classification teaches it to make a decision — and that small shift turns out to hide one of the deepest problems in machine learning.</p>
+          <div class="meta-row">
+            <span class="meta-pill"><b>Category</b> Supervised Learning</span>
+            <span class="meta-pill"><b>Difficulty</b> <span class="stars">★★☆☆☆</span></span>
+            <span class="meta-pill"><b>Importance</b> <span class="stars">★★★★★</span></span>
+            <span class="meta-pill"><b>Needs</b> Linear Regression, Dot Products</span>
+          </div>
+          <div style="margin-top:20px;" class="pill-list">
+            <span class="tag geo">◆ Geometry</span>
+            <span class="tag opt">◆ Optimization</span>
+            <span class="tag cnt">◆ Counting</span>
+          </div>
+        </div>
+        <div>
+          <div class="scatter-wrap">
+            <div class="scatter">
+              <div class="grid-lines"></div>
+              <div class="boundary"></div>
+              <div class="boundary-label">w&#7488;x = 0</div>
+              <div class="dot a" style="left:18%; top:22%;"></div>
+              <div class="dot a" style="left:30%; top:12%;"></div>
+              <div class="dot a" style="left:12%; top:40%;"></div>
+              <div class="dot a" style="left:42%; top:30%;"></div>
+              <div class="dot a" style="left:24%; top:52%;"></div>
+              <div class="dot a" style="left:8%; top:14%;"></div>
+              <div class="dot a" style="left:38%; top:8%;"></div>
+              <div class="dot b" style="left:66%; top:52%;"></div>
+              <div class="dot b" style="left:80%; top:66%;"></div>
+              <div class="dot b" style="left:58%; top:70%;"></div>
+              <div class="dot b" style="left:72%; top:40%;"></div>
+              <div class="dot b" style="left:88%; top:48%;"></div>
+              <div class="dot b" style="left:60%; top:84%;"></div>
+              <div class="dot b" style="left:84%; top:80%;"></div>
+            </div>
+          </div>
+          <div class="scatter-caption"><span class="a">● class +1</span> &nbsp; vs &nbsp; <span class="b">● class −1</span> &nbsp;·&nbsp; separated by a hyperplane</div>
+        </div>
+      </section>
+
+      <!-- ===== 00 PROBLEM ===== -->
+      <section class="section sig" id="problem">
+        <div class="section-head"><span class="section-num">00</span><h2>The problem regression can't answer</h2></div>
+        <p class="lede">A doctor doesn't want a number between "definitely benign" and "definitely malignant" — they want a decision. An inbox doesn't want a "spamminess score" — it wants the email sorted into the right folder. Classification exists because a huge slice of real decisions are <b>discrete</b>, not continuous.</p>
+        <div class="card">
+          <p><b>Formally:</b> binary classification is supervised learning where we map input features <span class="math">\(\textcolor{#5B9BD5}{x} \in \mathbb{R}^d\)</span> to one of exactly two discrete labels <span class="math">\(\textcolor{#5B9BD5}{y}\)</span>, usually written as <span class="math">\(\{0,1\}\)</span> or <span class="math">\(\{-1,1\}\)</span>. The choice of labeling scheme is just bookkeeping — mathematically interchangeable depending on what's convenient for a given algorithm.</p>
+          <div class="callout analogy">
+            <div class="callout-title">✺ Think of it like...</div>
+            <p>A bouncer at a club door. They don't hand out a "coolness score" from 0 to 100 — they make one call: <b>in</b> or <b>not in</b>. Every input, no matter how borderline, collapses to one of two outcomes. That collapsing-to-a-decision is the entire game of classification.</p>
+          </div>
+          <p class="soft" style="margin-bottom:0;"><b>What happens if we don't solve it properly?</b> We're left forcing round pegs into square holes — using tools built for continuous prediction (regression) on problems that are fundamentally about drawing a line between two groups. As we'll see, that mismatch causes real, measurable damage.</p>
+        </div>
+      </section>
+
+      <!-- ===== 01 HISTORY ===== -->
+      <section class="section" id="history">
+        <div class="section-head"><span class="section-num">01</span><h2>A bit of history</h2></div>
+        <p class="lede">Least-squares regression is centuries old — Gauss and Legendre were fitting continuous curves to astronomical data in the 1800s. When machine learning inherited that toolkit, the first instinct for "classify this" problems was: <i>just reuse regression and threshold the output.</i></p>
+        <div class="card">
+          <p>That instinct is <b>reasonable</b> but, as we'll prove later in this lecture, quietly broken. It set up exactly the tension this lecture resolves: regression was built to make continuous values as close as possible to a target. Classification only cares whether you land on the <i>correct side</i> of a boundary — magnitude is irrelevant. That mismatch in what's being optimized is the historical motivation for treating classification as its own discipline, starting from the most literal metric imaginable: <b>just count the mistakes.</b></p>
+        </div>
+      </section>
+
+      <!-- ===== 02 ENGINEERING -> MATH ===== -->
+      <section class="section" id="thinking">
+        <div class="section-head"><span class="section-num">02</span><h2>Engineering thinking → mathematical translation</h2></div>
+        <p class="lede">Before writing a single equation, decide what a good scoring rule should <i>feel</i> like.</p>
+        <div class="card-grid grid-2">
+          <div class="card">
+            <h3>🛠 Engineering requirement</h3>
+            <p class="soft">A mistake is a mistake — full stop. A loan application rejected by a hair should count exactly the same as one rejected by a mile. We don't want the "how wrong" to matter, only the "wrong or right."</p>
+          </div>
+          <div class="card">
+            <h3>🔢 Mathematical translation</h3>
+            <p class="soft">Turn "right or wrong" into a number using a switch: compare the prediction <span class="math">\(\textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i})\)</span> to the true label <span class="math">\(\textcolor{#5B9BD5}{y_i}\)</span>, and output exactly <span class="math">\(1\)</span> if they disagree, <span class="math">\(0\)</span> if they agree. No partial credit, no penalty for degree of wrongness.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 03 BUILDING THE LOSS (STEP TIMELINE) ===== -->
+      <section class="section" id="formula">
+        <div class="section-head"><span class="section-num">03</span><h2>Building the 0–1 loss, piece by piece</h2></div>
+        <p class="lede">We never hand you the formula cold. Watch it get assembled, one justified step at a time.</p>
+        <div class="card">
+          <div class="timeline">
+            <div class="tl-step">
+              <div class="tl-badge">1</div>
+              <div class="tl-title">Compare one prediction</div>
+              <div class="tl-expr">\( \textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i}) \overset{?}{=} \textcolor{#5B9BD5}{y_i} \)</div>
+              <div class="tl-why">Start with the single most basic question: did the model get this <i>one</i> example right?</div>
+            </div>
+            <div class="tl-step">
+              <div class="tl-badge">2</div>
+              <div class="tl-title">Turn it into a hard switch</div>
+              <div class="tl-expr">\( \textcolor{#9B6BD9}{\mathbb{I}}(\textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i}) \textcolor{#E2574B}{\neq} \textcolor{#5B9BD5}{y_i}) \)</div>
+              <div class="tl-why">Wrap the comparison in the indicator function — it collapses "right/wrong" into exactly <span class="math">\(1\)</span> or <span class="math">\(0\)</span>, nothing in between.</div>
+            </div>
+            <div class="tl-step">
+              <div class="tl-badge">3</div>
+              <div class="tl-title">Add up every mistake</div>
+              <div class="tl-expr">\( \textcolor{#E2574B}{\sum_{i=1}^{n}} \textcolor{#9B6BD9}{\mathbb{I}}(\textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i}) \textcolor{#E2574B}{\neq} \textcolor{#5B9BD5}{y_i}) \)</div>
+              <div class="tl-why">Sum the switch across all <span class="math">\(\textcolor{#4CAF7D}{n}\)</span> training points — this is a raw mistake <i>count</i>, not yet a rate.</div>
+            </div>
+            <div class="tl-step">
+              <div class="tl-badge">4</div>
+              <div class="tl-title">Normalize into a rate</div>
+              <div class="tl-expr">\( \textcolor{#4CAF7D}{\dfrac{1}{n}}\textcolor{#E2574B}{\sum_{i=1}^{n}} \textcolor{#9B6BD9}{\mathbb{I}}(\textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i}) \textcolor{#E2574B}{\neq} \textcolor{#5B9BD5}{y_i}) \)</div>
+              <div class="tl-why">Divide by <span class="math">\(\textcolor{#4CAF7D}{n}\)</span> so the result is a fraction between 0 and 1 — comparable across datasets of any size.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equation Panel: The 0-1 Loss -->
+        <div class="eq-panel" style="--eq-accent:#E2574B;">
+          <div class="eq-label">The 0–1 Loss Function</div>
+          <div class="eq-main">\[ \textcolor{#9B6BD9}{\text{Loss}}(\textcolor{#9B6BD9}{h}) \;=\; \textcolor{#4CAF7D}{\frac{1}{n}} \; \textcolor{#E2574B}{\sum_{i=1}^{n}} \; \textcolor{#9B6BD9}{\mathbb{I}}\!\left(\textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x_i}) \; \textcolor{#E2574B}{\neq} \; \textcolor{#5B9BD5}{y_i}\right) \]</div>
+          <div class="eq-number">Eq. 1.1</div>
+          <div class="legend">
+            <span class="legend-item"><i style="background:#5B9BD5;"></i><b>x, y</b> — feature vector &amp; true label</span>
+            <span class="legend-item"><i style="background:#4CAF7D;"></i><b>n</b> — number of training points</span>
+            <span class="legend-item"><i style="background:#9B6BD9;"></i><b>h, 𝕀</b> — hypothesis &amp; indicator function</span>
+            <span class="legend-item"><i style="background:#E2574B;"></i><b>Σ, ≠</b> — sum over data, mismatch test</span>
+          </div>
+        </div>
+
+        <!-- SVG concept illustration -->
+        <div class="svg-wrap">
+          <svg viewBox="0 0 720 140" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9FAAB6"/></marker>
+            </defs>
+            <!-- boxes -->
+            <rect x="10" y="45" width="120" height="50" rx="10" fill="#1C2933" stroke="#5B9BD5" stroke-width="1.5"/>
+            <text x="70" y="66" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="12">Prediction</text>
+            <text x="70" y="82" text-anchor="middle" fill="#5B9BD5" font-family="Fraunces" font-style="italic" font-size="14">h(xᵢ)</text>
+
+            <line x1="130" y1="70" x2="172" y2="70" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <circle cx="196" cy="70" r="22" fill="#1C2933" stroke="#E2574B" stroke-width="1.5"/>
+            <text x="196" y="75" text-anchor="middle" fill="#E2574B" font-family="Fraunces" font-size="16">≠</text>
+
+            <line x1="218" y1="70" x2="256" y2="70" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <rect x="256" y="45" width="110" height="50" rx="10" fill="#1C2933" stroke="#5B9BD5" stroke-width="1.5"/>
+            <text x="311" y="66" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="12">True label</text>
+            <text x="311" y="82" text-anchor="middle" fill="#5B9BD5" font-family="Fraunces" font-style="italic" font-size="14">yᵢ</text>
+
+            <line x1="366" y1="70" x2="404" y2="70" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <rect x="404" y="40" width="100" height="60" rx="10" fill="#1C2933" stroke="#9B6BD9" stroke-width="1.5"/>
+            <text x="454" y="64" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="11">Indicator</text>
+            <text x="454" y="84" text-anchor="middle" fill="#9B6BD9" font-family="Fraunces" font-size="18">𝕀(·)</text>
+
+            <line x1="504" y1="70" x2="542" y2="70" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <rect x="542" y="40" width="90" height="60" rx="10" fill="#1C2933" stroke="#E2574B" stroke-width="1.5"/>
+            <text x="587" y="60" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="10">sum ÷ n</text>
+            <text x="587" y="84" text-anchor="middle" fill="#E2574B" font-family="Fraunces" font-size="20">Σ/n</text>
+
+            <line x1="632" y1="70" x2="668" y2="70" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow1)"/>
+            <rect x="668" y="45" width="48" height="50" rx="10" fill="#E2574B" opacity="0.16" stroke="#E2574B" stroke-width="1.5"/>
+            <text x="692" y="75" text-anchor="middle" fill="#E2574B" font-family="Fraunces" font-weight="600" font-size="14">Loss</text>
+          </svg>
+          <div class="svg-cap">Conceptual pipeline: compare → flag mismatch → count → normalize → error rate</div>
+        </div>
+
+        <div class="eq-followup">
+          <div class="callout example">
+            <div class="callout-title">🔢 Worked example</div>
+            <p style="margin:0;">Say <span class="math">\(n=5\)</span> predictions: <span class="math">\(\hat y = [1,-1,1,1,-1]\)</span> vs true <span class="math">\(y=[1,-1,-1,1,1]\)</span>. Points 3 and 5 disagree → 2 mistakes. <span class="math">\(\text{Loss}=\tfrac{2}{5}=0.4\)</span> — the model is wrong 40% of the time.</p>
+          </div>
+          <div class="callout mistake">
+            <div class="callout-title">✗ Common mistakes</div>
+            <p style="margin:0;">Confusing loss with accuracy (they're opposites: <span class="math">\(\text{accuracy}=1-\text{Loss}\)</span>); forgetting the <span class="math">\(1/n\)</span> and reporting a raw count instead of a rate; assuming this loss is smooth enough for plain gradient descent.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 04 ANATOMY (legend-style) ===== -->
+      <section class="section" id="anatomy">
+        <div class="section-head"><span class="section-num">04</span><h2>Formula anatomy — every symbol, explained</h2></div>
+        <div class="card">
+          <table>
+            <tr><th>Symbol</th><th>Role</th><th>Why it's there</th></tr>
+            <tr><td class="m" style="color:#9B6BD9;">\(\text{Loss}(h)\)</td><td><span style="color:#9B6BD9;">● function</span></td><td>The single number we're trying to make as small as possible.</td></tr>
+            <tr><td class="m" style="color:#4CAF7D;">\(\frac{1}{n}\)</td><td><span style="color:#4CAF7D;">● constant</span></td><td>Converts a raw mistake count into a fraction between 0 and 1.</td></tr>
+            <tr><td class="m" style="color:#E2574B;">\(\sum_{i=1}^n\)</td><td><span style="color:#E2574B;">● operator</span></td><td>Look at every single training example, not just one.</td></tr>
+            <tr><td class="m" style="color:#9B6BD9;">\(\mathbb{I}(\cdot)\)</td><td><span style="color:#9B6BD9;">● function</span></td><td>Outputs 1 if the condition inside is true, 0 otherwise — no in-between.</td></tr>
+            <tr><td class="m" style="color:#5B9BD5;">\(h(x_i)\)</td><td><span style="color:#5B9BD5;">● variable</span></td><td>What our model predicted for example <span class="math">\(i\)</span>.</td></tr>
+            <tr><td class="m" style="color:#5B9BD5;">\(y_i\)</td><td><span style="color:#5B9BD5;">● variable</span></td><td>What the correct answer actually was.</td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== 05 LINEAR CLASSIFIERS (EQUATION PANEL) ===== -->
+      <section class="section" id="hyperplane">
+        <div class="section-head"><span class="section-num">05</span><h2>Linear classifiers — drawing the line</h2></div>
+        <p class="lede">The 0–1 loss tells us <i>how</i> to grade a hypothesis. It says nothing about what shape that hypothesis can take. The simplest useful choice: restrict the search to <b>linear</b> hypotheses.</p>
+
+        <div class="eq-panel" style="--eq-accent:#E0A639;">
+          <div class="eq-label">The Linear Classifier Hypothesis</div>
+          <div class="eq-main">\[ \textcolor{#9B6BD9}{h}(\textcolor{#5B9BD5}{x}) \;=\; \textcolor{#9B6BD9}{\text{sign}}\!\left(\textcolor{#E0A639}{w}^{\mathsf T} \textcolor{#5B9BD5}{x}\right) \]</div>
+          <div class="eq-number">Eq. 1.2</div>
+          <div class="legend">
+            <span class="legend-item"><i style="background:#5B9BD5;"></i><b>x</b> — feature vector (a data point)</span>
+            <span class="legend-item"><i style="background:#E0A639;"></i><b>w</b> — learned weight vector (a parameter)</span>
+            <span class="legend-item"><i style="background:#9B6BD9;"></i><b>sign, h</b> — the sign function &amp; the hypothesis</span>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <ul style="color:var(--ink); padding-left:20px; margin:0;">
+            <li style="margin-bottom:8px;">The model learns one weight vector <span class="math" style="color:#E0A639;">\(w\)</span>.</li>
+            <li style="margin-bottom:8px;">If <span class="math">\(\textcolor{#E0A639}{w}^{\mathsf T} \textcolor{#5B9BD5}{x} > 0\)</span> → predict the <span style="color:var(--cls-a); font-weight:600;">positive class</span>.</li>
+            <li style="margin-bottom:8px;">If <span class="math">\(\textcolor{#E0A639}{w}^{\mathsf T} \textcolor{#5B9BD5}{x} < 0\)</span> → predict the <span style="color:var(--cls-b); font-weight:600;">negative class</span>.</li>
+            <li>The set of points where <span class="math">\(\textcolor{#E0A639}{w}^{\mathsf T} \textcolor{#5B9BD5}{x} = 0\)</span> is the <b>decision boundary</b> — a hyperplane (just a line, in 2D).</li>
+          </ul>
+        </div>
+
+        <!-- SVG concept illustration -->
+        <div class="svg-wrap">
+          <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9FAAB6"/></marker>
+            </defs>
+            <rect x="10" y="45" width="120" height="55" rx="10" fill="#1C2933" stroke="#5B9BD5" stroke-width="1.5"/>
+            <text x="70" y="66" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="11">Features</text>
+            <text x="70" y="86" text-anchor="middle" fill="#5B9BD5" font-family="Fraunces" font-style="italic" font-size="16">x</text>
+
+            <line x1="130" y1="72" x2="168" y2="72" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <rect x="168" y="40" width="130" height="62" rx="10" fill="#1C2933" stroke="#E0A639" stroke-width="1.5"/>
+            <text x="233" y="62" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="11">Weighted sum</text>
+            <text x="233" y="86" text-anchor="middle" fill="#E0A639" font-family="Fraunces" font-style="italic" font-size="16">wᵀx</text>
+
+            <line x1="298" y1="72" x2="336" y2="72" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <rect x="336" y="40" width="110" height="62" rx="10" fill="#1C2933" stroke="#9B6BD9" stroke-width="1.5"/>
+            <text x="391" y="62" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="11">sign(·)</text>
+            <text x="391" y="86" text-anchor="middle" fill="#9B6BD9" font-family="Fraunces" font-size="16">+ / −</text>
+
+            <line x1="446" y1="72" x2="484" y2="72" stroke="#9FAAB6" stroke-width="1.5" marker-end="url(#arrow2)"/>
+            <rect x="484" y="45" width="146" height="55" rx="10" fill="#1C2933" stroke="#E2574B" stroke-width="1.5"/>
+            <text x="557" y="66" text-anchor="middle" fill="#EDEDE3" font-family="JetBrains Mono" font-size="11">Predicted class</text>
+            <text x="530" y="88" fill="#E2572D" font-family="Fraunces" font-weight="600" font-size="14">+1</text>
+            <text x="580" y="88" fill="#1FA08E" font-family="Fraunces" font-weight="600" font-size="14">−1</text>
+          </svg>
+          <div class="svg-cap">Conceptual pipeline: features → weighted sum → sign → class label</div>
+        </div>
+
+        <div class="eq-followup">
+          <div class="callout example">
+            <div class="callout-title">🔢 Worked example</div>
+            <p style="margin:0;">Let <span class="math">\(\textcolor{#E0A639}{w}=[2,-1]\)</span> and <span class="math">\(\textcolor{#5B9BD5}{x}=[3,4]\)</span>. Then <span class="math">\(w^{\mathsf T}x = (2\!\cdot\!3)+(-1\!\cdot\!4) = 2\)</span>. Since <span class="math">\(2>0\)</span>, <span class="math">\(h(x)=\text{sign}(2)=+1\)</span> — this point is predicted to be in the positive class.</p>
+          </div>
+          <div class="callout mistake">
+            <div class="callout-title">✗ Common mistakes</div>
+            <p style="margin:0;">Forgetting a bias term <span class="math">\(b\)</span> (so the boundary is forced through the origin); assuming <span class="math">\(w\)</span> must be a unit vector — it doesn't, only its <i>direction</i> matters for the sign; treating the size of <span class="math">\(w^{\mathsf T}x\)</span> as a confidence score without extra justification.</p>
+          </div>
+        </div>
+
+        <div class="callout analogy">
+          <div class="callout-title">✺ Think of it like...</div>
+          <p style="margin:0;">A property fence. <span class="math">\(w\)</span> decides the fence's angle and position. Everything on one side belongs to the neighbor on the left; everything on the other side belongs to the neighbor on the right. The fence itself — <span class="math">\(w^{\mathsf T}x=0\)</span> — is neutral territory, belonging to neither.</p>
+        </div>
+      </section>
+
+      <!-- ===== 06 WHY HARD ===== -->
+      <section class="section" id="hard">
+        <div class="section-head"><span class="section-num">06</span><h2>Why the 0–1 loss is secretly brutal</h2></div>
+        <p class="lede">It's the most <i>honest</i> loss function — but honesty comes at a steep computational price.</p>
+        <div class="card-grid grid-2">
+          <div class="card">
+            <h3>📉 Non-differentiable</h3>
+            <p class="soft" style="margin-bottom:14px;">Picture the loss as you nudge one point across the boundary: it sits flat at 0, then <i>jumps</i> straight to 1 the instant it crosses — a staircase, not a slope.</p>
+            <div style="display:flex; align-items:flex-end; gap:2px; height:70px; border-bottom:2px solid var(--ink-soft); border-left:2px solid var(--ink-soft); padding:0 6px;">
+              <div style="width:40%; height:4px; background:var(--cls-b); align-self:flex-start; margin-top:4px;"></div>
+              <div style="width:2px; height:60px; background:var(--cls-a);"></div>
+              <div style="width:40%; height:4px; background:var(--cls-a); align-self:flex-start; margin-top:4px; margin-left:auto;"></div>
+            </div>
+            <p class="soft" style="margin:8px 0 0; font-size:12.5px;">Flat → vertical jump → flat. Gradient descent has nothing to grab onto: the slope is 0 almost everywhere and undefined at the jump.</p>
+          </div>
+          <div class="card">
+            <h3>🧩 NP-hard</h3>
+            <p class="soft">Finding the hyperplane that minimizes the exact mistake count means, in the worst case, checking combinatorially many ways to arrange the boundary among the points. There's no known efficient (polynomial-time) algorithm that solves this exactly for general datasets.</p>
+          </div>
+        </div>
+        <div class="callout trap">
+          <div class="callout-title">⚠ So what do we actually do?</div>
+          <p style="margin:0;">We don't minimize the 0–1 loss directly. Instead — foreshadowing later lectures — we minimize a smooth <b>surrogate loss</b> that behaves similarly but is differentiable, and is what gradient descent can actually work with.</p>
+        </div>
+      </section>
+
+      <!-- ===== 07 ALGORITHM ===== -->
+      <section class="section" id="algorithm">
+        <div class="section-head"><span class="section-num">07</span><h2>From math to executable steps</h2></div>
+        <p class="lede">Annotated, runnable-shape pseudocode for prediction and for computing the loss.</p>
+        <div class="code">
+<span class="c"># predict() applies the linear hypothesis h(x) = sign(w^T x)</span>
+<span class="k">def</span> <span class="f">predict</span>(x, w):
+    score = <span class="f">dot</span>(w, x)          <span class="c"># this is w^T x</span>
+    <span class="k">if</span> score > <span class="n">0</span>:
+        <span class="k">return</span> <span class="n">+1</span>          <span class="c"># right of the boundary</span>
+    <span class="k">else</span>:
+        <span class="k">return</span> <span class="n">-1</span>          <span class="c"># left of the boundary</span>
+
+<span class="c"># zero_one_loss() implements Loss(h) = (1/n) * sum( I(h(x_i) != y_i) )</span>
+<span class="k">def</span> <span class="f">zero_one_loss</span>(X, y, w):
+    n = <span class="f">len</span>(X)
+    errors = <span class="n">0</span>
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(n):
+        <span class="k">if</span> <span class="f">predict</span>(X[i], w) != y[i]:   <span class="c"># the indicator I(.)</span>
+            errors += <span class="n">1</span>
+    <span class="k">return</span> errors / n              <span class="c"># the 1/n normalizer</span>
+        </div>
+      </section>
+
+      <!-- ===== 08 COMPUTATIONAL FLOW ===== -->
+      <section class="section" id="flow">
+        <div class="section-head"><span class="section-num">08</span><h2>The complete computational flow</h2></div>
+        <p class="lede">Where does this formula actually live inside a real pipeline?</p>
+        <div class="card">
+          <div class="flow">
+            <div class="flow-step">Raw&nbsp;Data</div><div class="flow-arrow">→</div>
+            <div class="flow-step">Feature Vector <span class="math">\(x\)</span></div><div class="flow-arrow">→</div>
+            <div class="flow-step">Score <span class="math">\(w^{\mathsf T}x\)</span></div><div class="flow-arrow">→</div>
+            <div class="flow-step">sign(·)</div><div class="flow-arrow">→</div>
+            <div class="flow-step">Predicted <span class="math">\(\hat y\)</span></div><div class="flow-arrow">→</div>
+            <div class="flow-step">Compare to <span class="math">\(y\)</span></div><div class="flow-arrow">→</div>
+            <div class="flow-step" style="background:var(--cls-a-soft); color:var(--cls-a); border-color:transparent;">Loss</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 09 WHY NOT REGRESSION ===== -->
+      <section class="section" id="regression">
+        <div class="section-head"><span class="section-num">09</span><h2>Why not just reuse linear regression?</h2></div>
+        <p class="lede">This is the trap the whole lecture is building toward. It seems reasonable: fit a regression line, threshold it. Here's precisely why that's unprincipled.</p>
+        <div class="callout analogy">
+          <div class="callout-title">✺ Think of it like...</div>
+          <p style="margin:0;">A teacher who only needs to know "pass or fail," but is secretly grading on the <i>exact score</i>. One student aces the exam with 100% — far beyond the 40% pass mark. The teacher, obsessed with matching exact scores, drags the whole passing curve upward to "explain" that 100%, even though the pass/fail outcome hadn't changed <i>at all</i>. Everyone near the original boundary is now misclassified, purely because of a student who was already, unambiguously, a pass.</p>
+        </div>
+        <div class="card">
+          <p><b>What's happening mathematically:</b> linear regression minimizes squared distance between prediction and target. It is sensitive to <i>magnitude</i>. If a point sits very far from the boundary, regression tilts the whole line to reduce that large squared error — even though that point's classification was already correct and needed zero help.</p>
+          <p class="soft" style="margin-bottom:0;">Squared-error loss cares how far you are from a number. 0–1 loss cares only which side of a line you're on. Those are different questions, and optimizing for one does not reliably answer the other.</p>
+        </div>
+        <div class="card-grid grid-2" style="margin-top:20px;">
+          <div class="card">
+            <h3 style="color:var(--cls-b);">✓ 0–1 loss / linear classifier</h3>
+            <p class="soft" style="margin-bottom:0;">An extreme, obviously-correct point contributes exactly 0 to the loss — same as a point that barely crossed the line correctly. The boundary doesn't move because of it.</p>
+          </div>
+          <div class="card">
+            <h3 style="color:var(--cls-a);">✗ Linear regression</h3>
+            <p class="soft" style="margin-bottom:0;">That same extreme point creates a huge squared error, so the fitted line rotates to accommodate it — potentially misclassifying points that were previously correct.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 10 SYMBOL TRANSLATOR ===== -->
+      <section class="section" id="symbols">
+        <div class="section-head"><span class="section-num">10</span><h2>Symbol translator</h2></div>
+        <p class="lede">Notation ↔ meaning ↔ code, so you can move fluidly between a paper, a lecture slide, and an implementation. Colors match the roles used throughout this page.</p>
+        <div class="card">
+          <table>
+            <tr><th>Notation</th><th>Plain meaning</th><th>In code</th></tr>
+            <tr><td class="m" style="color:#5B9BD5;">\(x \in \mathbb{R}^d\)</td><td>A single example, described by <span class="math">\(d\)</span> numeric features</td><td><code>x = [x1, ..., xd]</code></td></tr>
+            <tr><td class="m" style="color:#5B9BD5;">\(y\)</td><td>The true label for that example</td><td><code>y</code></td></tr>
+            <tr><td class="m" style="color:#E0A639;">\(w\)</td><td>The weight vector that defines the boundary's orientation</td><td><code>w</code></td></tr>
+            <tr><td class="m" style="color:#9B6BD9;">\(h(x)\)</td><td>The model's prediction function</td><td><code>predict(x, w)</code></td></tr>
+            <tr><td class="m" style="color:#9B6BD9;">\(\mathbb{I}(\cdot)\)</td><td>1 if the condition holds, else 0</td><td><code>int(condition)</code></td></tr>
+            <tr><td class="m" style="color:#E2574B;">\(w^{\mathsf T}x = 0\)</td><td>The decision boundary itself</td><td><code>np.dot(w, x) == 0</code></td></tr>
+          </table>
+        </div>
+      </section>
+
+      <!-- ===== 11 TRIGGER WORDS ===== -->
+      <section class="section" id="triggers">
+        <div class="section-head"><span class="section-num">11</span><h2>Trigger words — recognize it instantly</h2></div>
+        <p class="lede">The moment you spot these in a question, your brain should jump straight to this lecture.</p>
+        <div class="card">
+          <div class="pill-list" style="margin-bottom:18px;">
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">discrete labels</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">classify</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">decision boundary</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">sign function</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">hyperplane</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">0/1 loss</span>
+            <span class="pill" style="border-color:var(--cls-a); color:var(--cls-a);">misclassification rate</span>
+          </div>
+          <p class="soft" style="margin-bottom:0;"><b>Reach for this topic whenever</b> the target variable has no natural ordering or magnitude — it's pure group membership, not a quantity. "How much" belongs to regression; "which one" belongs here.</p>
+        </div>
+      </section>
+
+      <!-- ===== 12 INVARIANTS ===== -->
+      <section class="section" id="invariants">
+        <div class="section-head"><span class="section-num">12</span><h2>Always · Sometimes · Never</h2></div>
+        <p class="lede">Most exam traps live in the gap between these three columns.</p>
+        <div class="card-grid grid-3">
+          <div class="inv-col always">
+            <h4>✓ Always true</h4>
+            <ul>
+              <li>0–1 loss is always between 0 and 1 — it's a rate, not a raw count.</li>
+              <li>The decision boundary <span class="math">\(w^{\mathsf T}x=0\)</span> is a hyperplane.</li>
+              <li>0–1 loss is always piecewise-flat, with jumps only at misclassification points.</li>
+            </ul>
+          </div>
+          <div class="inv-col sometimes">
+            <h4>≈ Sometimes true</h4>
+            <ul>
+              <li>Labels are <span class="math">\(\{0,1\}\)</span> <i>or</i> <span class="math">\(\{-1,1\}\)</span> — the choice depends on the algorithm's convenience, not a fixed rule.</li>
+              <li>A boundary that perfectly separates the training data <i>sometimes</i> fails to generalize to new data.</li>
+              <li>Rounding a regression output sometimes happens to match the 0–1-optimal boundary — by luck, not by design.</li>
+            </ul>
+          </div>
+          <div class="inv-col never">
+            <h4>✗ Never true</h4>
+            <ul>
+              <li>0–1 loss is never differentiable at the decision boundary — never feed it straight into gradient descent.</li>
+              <li>Exact 0–1 loss minimization is never tractable for general datasets (it's NP-hard).</li>
+              <li>Linear regression's squared-error objective is never equivalent to counting misclassifications.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 13 EXAMINER TRAPS ===== -->
+      <section class="section" id="traps">
+        <div class="section-head"><span class="section-num">13</span><h2>Examiner trap library</h2></div>
+        <p class="lede">Written the way an exam would phrase them — including the tempting wrong answer.</p>
+
+        <div class="trap-card">
+          <div class="trap-q">"Since accuracy = 1 − 0–1 loss, can't we just gradient-descend on accuracy directly?"</div>
+          <div class="trap-a"><b>Trap:</b> No — accuracy is just a linear transform of the same step function. It inherits the exact same non-differentiability problem.</div>
+        </div>
+        <div class="trap-card">
+          <div class="trap-q">An MCQ option claims: "The 0–1 loss is convex."</div>
+          <div class="trap-a"><b>Trap:</b> False. It isn't even continuous, so convexity doesn't apply the way test-takers assume when they see a "loss function."</div>
+        </div>
+        <div class="trap-card">
+          <div class="trap-q">"We can just use linear regression for classification by rounding the output."</div>
+          <div class="trap-a"><b>Trap:</b> Technically runnable, but unprincipled — sensitive to outlier magnitude, as shown in Section 09. Exams often ask you to <i>justify</i> why this fails, not just state that it does.</div>
+        </div>
+        <div class="trap-card">
+          <div class="trap-q">Reverse phrasing: "Which loss function directly counts the number of errors?"</div>
+          <div class="trap-a"><b>Trap:</b> Students overthink and reach for squared loss. The answer is the plain 0–1 loss — it's defined to do exactly that, nothing fancier.</div>
+        </div>
+        <div class="callout trap">
+          <div class="callout-title">⚡ Fast shortcut</div>
+          <p style="margin:0;">See "count the mistakes" or "accuracy" anywhere in a question about loss functions → jump straight to <span class="math">\(\text{Loss}(h)=\frac1n\sum \mathbb{I}(h(x_i)\neq y_i)\)</span>. Don't overthink it.</p>
+        </div>
+      </section>
+
+      <!-- ===== 14 ROADMAP ===== -->
+      <section class="section" id="roadmap">
+        <div class="section-head"><span class="section-num">14</span><h2>Where this leads</h2></div>
+        <p class="lede">Because exact 0–1 loss minimization is impractical, the rest of the course replaces it with well-behaved surrogates.</p>
+        <div class="card">
+          <div class="roadmap">
+            <div class="rm-node"><div class="rm-dot"></div><div class="rm-label">Linear<br>Regression</div></div>
+            <div class="rm-line"></div>
+            <div class="rm-node here"><div class="rm-dot"></div><div class="rm-label">Binary Classification<br>0–1 Loss</div></div>
+            <div class="rm-line"></div>
+            <div class="rm-node"><div class="rm-dot"></div><div class="rm-label">Surrogate<br>Losses</div></div>
+            <div class="rm-line"></div>
+            <div class="rm-node"><div class="rm-dot"></div><div class="rm-label">Logistic Regr.<br>/ SVM / Perceptron</div></div>
+          </div>
+          <p class="soft" style="margin:6px 0 0;"><b>Where you'll meet it in real tools:</b> scikit-learn's <code>LogisticRegression</code> and <code>SVC</code>; PyTorch's <code>BCELoss</code> and <code>CrossEntropyLoss</code>. None of these minimize 0–1 loss directly — every one of them optimizes a smooth stand-in for it (hinge loss for SVMs, log-loss for logistic regression).</p>
+        </div>
+      </section>
+
+      <!-- ===== 15 ONE PAGE BRAIN ===== -->
+      <section class="section" id="brain">
+        <div class="section-head"><span class="section-num">15</span><h2>One-page brain</h2></div>
+        <p class="lede">Everything above, compressed onto the page you actually re-read before an exam.</p>
+        <div class="brain">
+          <div class="card-grid grid-2">
+            <div class="card">
+              <h3 style="margin-bottom:10px;">Core intuition</h3>
+              <p class="soft" style="margin-bottom:0;">Classification isn't "predict a number" — it's "pick a side." Grade it by counting mistakes, not by measuring distance.</p>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px;">Key formulas</h3>
+              <p style="margin-bottom:6px;">\[\textcolor{#9B6BD9}{\text{Loss}}(h)=\textcolor{#4CAF7D}{\tfrac1n}\textcolor{#E2574B}{\sum_i} \textcolor{#9B6BD9}{\mathbb{I}}(h(x_i)\textcolor{#E2574B}{\neq} y_i)\]</p>
+              <p style="margin-bottom:0;">\[h(x)=\text{sign}(\textcolor{#E0A639}{w}^{\mathsf T}x)\]</p>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px;">Triggers</h3>
+              <p class="soft" style="margin-bottom:0;">classify · discrete labels · decision boundary · sign · hyperplane · misclassification rate</p>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px;">Top traps</h3>
+              <p class="soft" style="margin-bottom:0;">0–1 loss isn't convex or differentiable · regression ≠ classification · exact minimization is NP-hard</p>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px;">Dependencies</h3>
+              <p class="soft" style="margin-bottom:0;"><b>Needs:</b> vectors, dot products, linear regression.<br><b>Leads to:</b> surrogate losses, logistic regression, SVMs.</p>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px;">One-line cheat</h3>
+              <p class="soft" style="margin-bottom:0;">Regression punishes <i>distance</i> from the target; classification only cares which <i>side</i> you're on. Never confuse the two objectives.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer>Lecture 41 · Introduction to Binary Classification — built for deep understanding, not memorization.<br>Formula color key: <span style="color:#5B9BD5;">■</span> variables &nbsp;<span style="color:#E0A639;">■</span> parameters &nbsp;<span style="color:#4CAF7D;">■</span> constants &nbsp;<span style="color:#9B6BD9;">■</span> functions &nbsp;<span style="color:#E2574B;">■</span> operators</footer>
+    </main>
+  </div>
+</div>
+
+<script>
+renderMathInElement(document.body, {
+  delimiters: [
+    {left: "$$", right: "$$", display: true},
+    {left: "\\[", right: "\\]", display: true},
+    {left: "\\(", right: "\\)", display: false}
+  ],
+  throwOnError: false
+});
+
+const links = document.querySelectorAll('.toc a');
+const sections = Array.from(links).map(l => document.querySelector(l.getAttribute('href')));
+function onScroll(){
+  let idx = 0;
+  const y = window.scrollY + 140;
+  sections.forEach((s, i) => { if(s && s.offsetTop <= y) idx = i; });
+  links.forEach((l,i) => l.classList.toggle('active', i===idx));
+}
+document.addEventListener('scroll', onScroll);
+onScroll();
+</script>
+</body>
+</html>

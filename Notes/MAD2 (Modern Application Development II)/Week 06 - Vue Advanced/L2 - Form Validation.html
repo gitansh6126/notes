@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Form Validation — MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1120;
+    --surface:#141B2E;
+    --surface-2:#1C2540;
+    --border:#26314D;
+    --text:#E7ECF5;
+    --muted:#8B96AD;
+    --client:#4C8DFF;
+    --server:#9B6BFF;
+    --valid:#4ADE80;
+    --invalid:#FF6B6B;
+    --pending:#F5A623;
+    --mono:'IBM Plex Mono', monospace;
+    --sans:'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 10% -10%, rgba(76,141,255,0.12), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 100% 10%, rgba(155,107,255,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  .jumpnav{position:sticky; top:0; z-index:50; background:rgba(11,17,32,0.88); backdrop-filter:blur(10px); border-bottom:1px solid var(--border);}
+  .jumpnav-inner{max-width:1080px;margin:0 auto;padding:10px 24px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;}
+  .jumpnav-inner::-webkit-scrollbar{display:none;}
+  .jumpnav a{flex:0 0 auto; font-family:var(--mono); font-size:11.5px; color:var(--muted); text-decoration:none; padding:6px 12px; border-radius:20px; border:1px solid var(--border); white-space:nowrap; transition:all .15s ease;}
+  .jumpnav a:hover{color:var(--text); border-color:var(--client); background:var(--surface);}
+
+  .hero{padding:56px 0 40px; text-align:center;}
+  .eyebrow{font-family:var(--mono); font-size:12px; letter-spacing:.15em; color:var(--client); text-transform:uppercase; margin-bottom:14px;}
+  h1.title{font-family:var(--mono); font-weight:700; font-size:clamp(28px,5vw,46px); margin:0 0 14px; line-height:1.15;}
+  h1.title span{color:var(--server);}
+  .subtitle{color:var(--muted); max-width:640px; margin:0 auto; font-size:15.5px;}
+
+  /* SIGNATURE: THE TWO GATES */
+  .gates-wrap{display:flex; justify-content:center; margin:40px 0 10px;}
+  .gates{width:min(640px,92vw); display:flex; gap:14px; align-items:stretch;}
+  @media(max-width:600px){.gates{flex-direction:column;}}
+  .gate{
+    flex:1; background:linear-gradient(180deg,#1A2338,#121A2C);
+    border:1px solid var(--border); border-top:4px solid var(--gate-color);
+    border-radius:14px; padding:18px 18px 16px;
+    box-shadow:0 24px 50px -20px rgba(0,0,0,0.55);
+  }
+  .gate.client{--gate-color:var(--client);}
+  .gate.server{--gate-color:var(--server);}
+  .gate-title{font-family:var(--mono); font-weight:700; font-size:14px; color:var(--gate-color); display:flex; align-items:center; gap:8px; margin-bottom:4px;}
+  .gate-sub{font-size:12px; color:var(--muted); margin-bottom:12px;}
+  .gate-check{display:flex; align-items:center; gap:8px; font-size:13px; padding:7px 0; border-top:1px dashed var(--border);}
+  .gate-check:first-of-type{border-top:none;}
+  .gate-check .mark{color:var(--gate-color); font-family:var(--mono); flex:0 0 auto;}
+  .gate-arrow-between{
+    display:flex; align-items:center; justify-content:center; color:var(--muted); font-size:22px; flex:0 0 auto;
+  }
+  @media(max-width:600px){.gate-arrow-between{transform:rotate(90deg); padding:4px 0;}}
+  .gates-caption{text-align:center; font-size:12px; color:var(--muted); margin-top:14px; font-family:var(--mono);}
+
+  section{padding:52px 0; border-top:1px solid var(--border);}
+  section:first-of-type{border-top:none;}
+  .modtag{font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px; display:flex; align-items:center; gap:8px;}
+  .modtag .num{width:22px;height:22px;border-radius:6px;background:var(--surface-2); display:inline-flex;align-items:center;justify-content:center; color:var(--client); font-size:11px; border:1px solid var(--border);}
+  h2.modh{font-family:var(--mono); font-size:clamp(20px,3vw,27px); margin:0 0 22px; font-weight:700;}
+
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 24px; margin-bottom:16px;}
+  .card-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .card-grid.three{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:720px){.card-grid,.card-grid.three{grid-template-columns:1fr;}}
+  .card h3{font-family:var(--mono); font-size:14.5px; margin:0 0 10px; color:var(--text);}
+  .card p{margin:0; font-size:14.5px; color:var(--muted);}
+  .b-client{border-left:3px solid var(--client);}
+  .b-server{border-left:3px solid var(--server);}
+  .b-valid{border-left:3px solid var(--valid);}
+  .b-invalid{border-left:3px solid var(--invalid);}
+
+  .topic-card{background:linear-gradient(135deg, rgba(76,141,255,0.07), rgba(155,107,255,0.05)); border:1px solid var(--border); border-radius:14px; padding:26px 28px;}
+  .tc-row{display:flex; flex-wrap:wrap; gap:24px; margin-top:14px;}
+  .tc-item{flex:1 1 200px;}
+  .tc-label{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+  .tc-value{font-size:15px; margin-top:4px; font-weight:600;}
+  .stars{color:var(--pending); letter-spacing:1px;}
+  .stars.dim{color:#3A4560;}
+
+  .callout{border-radius:10px; padding:16px 18px; margin:16px 0; display:flex; gap:12px; font-size:14.5px; border:1px solid var(--border);}
+  .callout .ico{font-size:18px; flex:0 0 auto;}
+  .callout.info{background:rgba(76,141,255,0.08); border-color:rgba(76,141,255,0.3);}
+  .callout.warn{background:rgba(255,107,107,0.08); border-color:rgba(255,107,107,0.3);}
+  .callout.analogy{background:rgba(155,107,255,0.08); border-color:rgba(155,107,255,0.3);}
+  .callout.good{background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.3);}
+
+  .mistake-pair{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+  @media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
+  .m-wrong,.m-right{border-radius:10px; padding:14px 16px; font-size:14px; border:1px solid var(--border);}
+  .m-wrong{background:rgba(255,107,107,0.07); border-color:rgba(255,107,107,0.25);}
+  .m-right{background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.25);}
+  .m-wrong b,.m-right b{font-family:var(--mono); font-size:12px; display:block; margin-bottom:4px;}
+  .m-wrong b{color:var(--invalid);}
+  .m-right b{color:var(--valid);}
+
+  pre.code{background:#0A0F1D; border:1px solid var(--border); border-radius:10px; padding:18px 20px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.7; margin:14px 0;}
+  .tok-key{color:#4C8DFF;}
+  .tok-str{color:#4ADE80;}
+  .tok-fn{color:#F5A623;}
+  .tok-com{color:#5A6A8C; font-style:italic;}
+  .tok-prop{color:#E7ECF5;}
+  .tok-punc{color:#8B96AD;}
+  .tok-tag{color:#9B6BFF;}
+  .tok-attr{color:#4C8DFF;}
+  .code-annot{display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-size:13.5px;}
+  .code-annot .badge{font-family:var(--mono); font-size:11px; background:var(--surface-2); color:var(--client); border:1px solid var(--border); border-radius:6px; padding:2px 8px; flex:0 0 auto;}
+
+  .flow{display:flex; align-items:center; flex-wrap:wrap; gap:0; margin:18px 0;}
+  .flow-step{background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:12px 16px; font-family:var(--mono); font-size:13px; text-align:center; flex:1 1 auto; min-width:120px;}
+  .flow-arrow{color:var(--muted); font-size:18px; padding:0 10px; flex:0 0 auto;}
+  .flow.vertical{flex-direction:column; align-items:stretch;}
+  .flow.vertical .flow-arrow{align-self:center; padding:4px 0;}
+  @media(max-width:640px){.flow{flex-direction:column; align-items:stretch;} .flow .flow-arrow{align-self:center; transform:rotate(90deg); padding:4px 0;}}
+
+  .table-wrap{overflow-x:auto; border-radius:12px; border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+  th{background:var(--surface-2); font-family:var(--mono); font-weight:600; font-size:12px; text-align:left; padding:12px 14px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; border-bottom:1px solid var(--border);}
+  td{padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface);}
+  tr:last-child td{border-bottom:none;}
+  td.hl-client{color:var(--client);}
+  td.hl-server{color:var(--server);}
+  td.hl-valid{color:var(--valid);}
+  td.hl-invalid{color:var(--invalid);}
+
+  .ladder{display:flex; flex-direction:column; gap:10px;}
+  .rung{display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 16px;}
+  .rung-num{font-family:var(--mono); font-weight:700; font-size:13px; color:var(--bg); background:linear-gradient(135deg,var(--client),var(--server)); width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .rung-body b{font-size:14px;}
+  .rung-body div{font-size:13px; color:var(--muted); margin-top:2px;}
+
+  .tier{margin-bottom:18px;}
+  .tier-label{font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:10px;}
+  .tier.easy .tier-label{background:rgba(74,222,128,0.12); color:var(--valid);}
+  .tier.medium .tier-label{background:rgba(245,166,35,0.12); color:var(--pending);}
+  .tier.advanced .tier-label{background:rgba(255,107,107,0.12); color:var(--invalid);}
+  .qa{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; font-size:14px;}
+  .qa .q{font-weight:600; margin-bottom:6px;}
+  .qa .a{color:var(--muted); font-size:13.5px;}
+
+  .brain-flow{font-family:var(--mono); text-align:center; font-size:15px; color:var(--client); background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px; letter-spacing:.02em;}
+  .remember-chain{display:flex; flex-direction:column; gap:6px;}
+  .remember-row{display:flex; gap:14px; align-items:center; font-family:var(--mono); font-size:13.5px; background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px;}
+  .remember-row .k{width:180px; flex:0 0 auto; font-weight:600;}
+  .remember-row .arrow{color:var(--muted);}
+
+  .palace-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media(max-width:800px){.palace-grid{grid-template-columns:1fr;}}
+  .palace-card{background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px; text-align:center;}
+  .palace-card .ico{font-size:26px; margin-bottom:8px;}
+  .palace-card h4{font-family:var(--mono); font-size:13px; color:var(--client); margin:0 0 8px; text-transform:uppercase; letter-spacing:.08em;}
+  .palace-card p{font-size:14px; margin:0;}
+
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:16px;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); font-family:var(--mono);}
+  .legend-dot{width:10px; height:10px; border-radius:3px; flex:0 0 auto;}
+
+  /* mini form mock used in module 8/10 */
+  .mock-form{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin:14px 0;}
+  .mock-field{margin-bottom:12px;}
+  .mock-label{font-family:var(--mono); font-size:12px; color:var(--muted); display:block; margin-bottom:6px;}
+  .mock-input{background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:9px 12px; font-family:var(--sans); font-size:13.5px; color:var(--text); width:100%;}
+  .mock-input.bad{border-color:var(--invalid);}
+  .mock-error{color:var(--invalid); font-size:12px; margin-top:5px; font-family:var(--mono);}
+  .mock-btn{background:linear-gradient(135deg,var(--client),var(--server)); border:none; color:#fff; font-family:var(--mono); font-size:13px; padding:9px 18px; border-radius:6px; margin-top:4px; font-weight:600;}
+
+  footer{text-align:center; padding:40px 0 10px; color:var(--muted); font-size:12.5px; font-family:var(--mono);}
+</style>
+</head>
+<body>
+
+<nav class="jumpnav">
+  <div class="jumpnav-inner">
+    <a href="#m1">01 Topic Card</a>
+    <a href="#m2">02 Intuition</a>
+    <a href="#m3">03 Mental Model</a>
+    <a href="#m4">04 Patterns</a>
+    <a href="#m5">05 Fundamentals</a>
+    <a href="#m6">06 Execution</a>
+    <a href="#m7">07 Syntax</a>
+    <a href="#m8">08 Walkthrough</a>
+    <a href="#m9">09 Behind Scenes</a>
+    <a href="#m10">10 Real Usage</a>
+    <a href="#m11">11 Mistakes</a>
+    <a href="#m12">12 Debugging</a>
+    <a href="#m13">13 IITM Pattern</a>
+    <a href="#m14">14 Interview</a>
+    <a href="#m15">15 One-Page Brain</a>
+    <a href="#m16">16 Revision Table</a>
+    <a href="#m17">17 Practice Ladder</a>
+    <a href="#m18">18 Memory Palace</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">MAD2 Learning OS · Module W6_L2</div>
+    <h1 class="title">Vue Form <span>Validation</span></h1>
+    <p class="subtitle">Every form your app collects has to pass through two checkpoints — a friendly one that helps the user, and a strict one that protects the server. This is how Vue builds both.</p>
+  </div>
+
+  <div class="gates-wrap">
+    <div class="gates">
+      <div class="gate client">
+        <div class="gate-title">🟦 Client Gate</div>
+        <div class="gate-sub">Fast · friendly · for UX</div>
+        <div class="gate-check"><span class="mark">→</span>Required fields filled?</div>
+        <div class="gate-check"><span class="mark">→</span>Email matches a pattern?</div>
+        <div class="gate-check"><span class="mark">→</span>Numbers add up correctly?</div>
+        <div class="gate-check"><span class="mark">→</span>Show errors instantly, no page reload</div>
+      </div>
+      <div class="gate-arrow-between">→</div>
+      <div class="gate server">
+        <div class="gate-title">🟪 Server Gate</div>
+        <div class="gate-sub">Strict · mandatory · for security</div>
+        <div class="gate-check"><span class="mark">→</span>Re-checks everything, trusts nothing</div>
+        <div class="gate-check"><span class="mark">→</span>Blocks malicious or malformed input</div>
+        <div class="gate-check"><span class="mark">→</span>Protects the database</div>
+        <div class="gate-check"><span class="mark">→</span>The only gate that truly matters for security</div>
+      </div>
+    </div>
+  </div>
+  <div class="gates-caption">The Two Gates — client validation is a courtesy, server validation is the law</div>
+
+  <!-- MODULE 1 -->
+  <section id="m1">
+    <div class="modtag"><span class="num">1</span>Topic Card · 30 Seconds</div>
+    <h2 class="modh">Where this fits</h2>
+    <div class="topic-card">
+      <div class="tc-value" style="font-size:18px;">Vue Form Validation</div>
+      <div class="tc-row">
+        <div class="tc-item"><div class="tc-label">Category</div><div class="tc-value">Vue Fundamentals · Forms &amp; UX</div></div>
+        <div class="tc-item"><div class="tc-label">Difficulty</div><div class="tc-value stars">★★<span class="dim">★★★</span></div></div>
+        <div class="tc-item"><div class="tc-label">Importance</div><div class="tc-value stars">★★★★★</div></div>
+        <div class="tc-item"><div class="tc-label">Prerequisites</div><div class="tc-value" style="font-weight:400; font-size:14px;"><code>v-model</code>, reactive data, event handling, the <code>mounted</code> hook</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 2 -->
+  <section id="m2">
+    <div class="modtag"><span class="num">2</span>Core Intuition · WHY</div>
+    <h2 class="modh">Why this exists</h2>
+    <div class="callout analogy">
+      <div class="ico">🛂</div>
+      <div>Think of a nightclub bouncer and an airport security scanner. The bouncer (client-side validation) gives you fast, friendly feedback at the door — "no, you forgot your ID" — so you're not stuck in a long line for nothing. But a determined person can walk around the bouncer. Airport security (server-side validation) is the checkpoint that actually can't be skipped, because it's the one guarding what really matters.</div>
+    </div>
+    <div class="card"><p>Client-side validation exists purely to make the experience faster and friendlier. It is never a security boundary — anyone can open DevTools, disable JavaScript, or send a raw request straight to your server, bypassing every client-side check entirely.</p></div>
+  </section>
+
+  <!-- MODULE 3 -->
+  <section id="m3">
+    <div class="modtag"><span class="num">3</span>Visual Mental Model</div>
+    <h2 class="modh">One picture, one idea</h2>
+    <div class="flow">
+      <div class="flow-step">User types</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--client); color:var(--client);">Client Gate checks format</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--invalid); color:var(--invalid);">Fail → inline errors, no submit</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step" style="border-color:var(--valid); color:var(--valid);">Pass client checks</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--server); color:var(--server);">Server Gate re-validates</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Accepted → saved to database</div>
+    </div>
+    <div class="callout info"><div class="ico">🧠</div><div><b>Two gates, one truth:</b> the client gate improves experience; the server gate is the only one that actually protects anything.</div></div>
+  </section>
+
+  <!-- MODULE 4 -->
+  <section id="m4">
+    <div class="modtag"><span class="num">4</span>Pattern Recognition</div>
+    <h2 class="modh">Spot the question instantly</h2>
+    <div class="card"><h3>Trigger words</h3><p><code>v-model</code>, <code>@submit</code>, <code>.prevent</code>, <code>novalidate</code>, <code>errors</code> array, regex, required field, "stop the form from submitting", async validation, Vuelidate, Vee-Validate</p></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>If the question says…</th><th>Reach for</th></tr></thead>
+        <tbody>
+          <tr><td>"show/hide an error message, toggled often"</td><td><code>v-show</code></td></tr>
+          <tr><td>"remove element from DOM entirely when condition false"</td><td><code>v-if</code></td></tr>
+          <tr><td>"stop the browser's normal form submission"</td><td><code>@submit.prevent</code></td></tr>
+          <tr><td>"disable the browser's built-in HTML validation"</td><td><code>novalidate</code> attribute</td></tr>
+          <tr><td>"check against the backend before proceeding"</td><td>async validation via <code>fetch</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 5 -->
+  <section id="m5">
+    <div class="modtag"><span class="num">5</span>Deep Fundamentals</div>
+    <h2 class="modh">The four questions</h2>
+    <div class="card b-client">
+      <h3>1. Why was this feature created?</h3>
+      <p>Forms are the main channel through which users send data into an application. Left unchecked, bad input can break business logic, corrupt data, or open security holes — so both browsers and frameworks evolved tools to catch problems as early as possible.</p>
+    </div>
+    <div class="card b-client">
+      <h3>2. What problem does it solve?</h3>
+      <p>Two separate problems, actually: a UX problem (don't make users wait on a round trip to discover they forgot the "@" in their email) and a security problem (never trust anything a client claims, because the client can be manipulated).</p>
+    </div>
+    <div class="card b-client">
+      <h3>3. What happens internally?</h3>
+      <p>Vue's <code>v-model</code> keeps a form field's value in sync with reactive data via a getter/setter pair. On submit, the browser's default action (a real HTTP POST + page navigation) is intercepted so custom JavaScript can run first.</p>
+    </div>
+    <div class="card b-client">
+      <h3>4. How does Vue/JavaScript execute it?</h3>
+      <p><code>event.preventDefault()</code> — written as <code>.prevent</code> in Vue's template shorthand — synchronously cancels the browser's default submission behavior the instant the handler runs, before any validation logic even executes.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 6 -->
+  <section id="m6">
+    <div class="modtag"><span class="num">6</span>Execution Flow</div>
+    <h2 class="modh">The internal sequence</h2>
+    <div class="flow vertical">
+      <div class="flow-step">User types into an input bound with v-model</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">Reactive data updates instantly</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">User clicks submit</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--client);">@submit.prevent halts the default POST</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">checkForm() runs, errors array rebuilt</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--invalid); color:var(--invalid);">errors.length &gt; 0 → show messages, stop here</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--server); color:var(--server);">no errors → fetch() sends data to server</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--valid); color:var(--valid);">Server re-validates → accepts or rejects</div>
+    </div>
+  </section>
+
+  <!-- MODULE 7 -->
+  <section id="m7">
+    <div class="modtag"><span class="num">7</span>Syntax Anatomy</div>
+    <h2 class="modh">Every keyword, explained</h2>
+    <pre class="code">&lt;<span class="tok-tag">form</span> <span class="tok-attr">novalidate</span> <span class="tok-attr">@submit.prevent</span>=<span class="tok-str">"checkForm"</span>&gt;</pre>
+    <div class="code-annot"><span class="badge">novalidate</span> tells the browser: skip your built-in popups, I'm handling validation myself</div>
+    <div class="code-annot"><span class="badge">@submit</span> Vue's shorthand for listening to the form's submit event</div>
+    <div class="code-annot"><span class="badge">.prevent</span> Vue's event modifier — automatically calls event.preventDefault() for you</div>
+    <div class="code-annot"><span class="badge">checkForm</span> the method that runs the actual validation logic</div>
+
+    <pre class="code">&lt;<span class="tok-tag">p</span> <span class="tok-attr">v-if</span>=<span class="tok-str">"errors.length"</span>&gt;
+  &lt;<span class="tok-tag">li</span> <span class="tok-attr">v-for</span>=<span class="tok-str">"e in errors"</span>&gt;{{ e }}&lt;/<span class="tok-tag">li</span>&gt;
+&lt;/<span class="tok-tag">p</span>&gt;</pre>
+    <div class="code-annot"><span class="badge">v-if</span> only renders this block into the DOM when errors exist — nothing rendered at all when the array is empty</div>
+    <div class="code-annot"><span class="badge">errors.length</span> truthy check — zero is falsy, any count above zero is truthy</div>
+    <div class="code-annot"><span class="badge">v-for</span> loops over each error message to list them individually</div>
+  </section>
+
+  <!-- MODULE 8 -->
+  <section id="m8">
+    <div class="modtag"><span class="num">8</span>Code Walkthrough</div>
+    <h2 class="modh">A tiny validated form</h2>
+    <div class="mock-form">
+      <div class="mock-field">
+        <label class="mock-label">EMAIL</label>
+        <input class="mock-input bad" value="notanemail">
+        <div class="mock-error">✗ Please enter a valid email address</div>
+      </div>
+      <div class="mock-field">
+        <label class="mock-label">MONTHLY BUDGET ITEMS (must total 1000)</label>
+        <input class="mock-input bad" value="400 + 400 = 800">
+        <div class="mock-error">✗ Your items must add up to exactly 1000</div>
+      </div>
+      <button class="mock-btn">Submit</button>
+    </div>
+    <pre class="code"><span class="tok-key">export default</span> <span class="tok-punc">{</span>
+  <span class="tok-fn">data</span><span class="tok-punc">() {</span>
+    <span class="tok-key">return</span> <span class="tok-punc">{</span>
+      <span class="tok-prop">email</span><span class="tok-punc">:</span> <span class="tok-str">''</span><span class="tok-punc">,</span>
+      <span class="tok-prop">budgetItems</span><span class="tok-punc">: [</span><span class="tok-fn">400</span><span class="tok-punc">,</span> <span class="tok-fn">400</span><span class="tok-punc">],</span>
+      <span class="tok-prop">errors</span><span class="tok-punc">: []</span>
+    <span class="tok-punc">}</span>
+  <span class="tok-punc">},</span>
+  <span class="tok-prop">methods</span><span class="tok-punc">: {</span>
+    <span class="tok-fn">checkForm</span><span class="tok-punc">() {</span>
+      <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">errors</span> <span class="tok-punc">= []</span>   <span class="tok-com">// reset before every check</span>
+
+      <span class="tok-key">const</span> <span class="tok-prop">emailPattern</span> <span class="tok-punc">= /</span><span class="tok-str">^[^\s@]+@[^\s@]+\.[^\s@]+$</span><span class="tok-punc">/</span>
+      <span class="tok-key">if</span> <span class="tok-punc">(!</span><span class="tok-prop">emailPattern</span><span class="tok-punc">.</span><span class="tok-fn">test</span><span class="tok-punc">(</span><span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">email</span><span class="tok-punc">)) {</span>
+        <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">errors</span><span class="tok-punc">.</span><span class="tok-fn">push</span><span class="tok-punc">(</span><span class="tok-str">'Please enter a valid email address'</span><span class="tok-punc">)</span>
+      <span class="tok-punc">}</span>
+
+      <span class="tok-key">const</span> <span class="tok-prop">total</span> <span class="tok-punc">=</span> <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">budgetItems</span><span class="tok-punc">.</span><span class="tok-fn">reduce</span><span class="tok-punc">((</span><span class="tok-prop">a</span><span class="tok-punc">,</span><span class="tok-prop">b</span><span class="tok-punc">) =&gt;</span> <span class="tok-prop">a</span><span class="tok-punc">+</span><span class="tok-prop">b</span><span class="tok-punc">,</span> <span class="tok-fn">0</span><span class="tok-punc">)</span>
+      <span class="tok-key">if</span> <span class="tok-punc">(</span><span class="tok-prop">total</span> <span class="tok-punc">!==</span> <span class="tok-fn">1000</span><span class="tok-punc">) {</span>
+        <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">errors</span><span class="tok-punc">.</span><span class="tok-fn">push</span><span class="tok-punc">(</span><span class="tok-str">'Your items must add up to exactly 1000'</span><span class="tok-punc">)</span>
+      <span class="tok-punc">}</span>
+
+      <span class="tok-key">if</span> <span class="tok-punc">(</span><span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">errors</span><span class="tok-punc">.</span><span class="tok-prop">length</span><span class="tok-punc">) {</span> <span class="tok-key">return</span> <span class="tok-punc">}</span>   <span class="tok-com">// stop here, .prevent already blocked the POST</span>
+
+      <span class="tok-com">// otherwise, safe to send onward to the server</span>
+      <span class="tok-fn">fetch</span><span class="tok-punc">(</span><span class="tok-str">'/api/submit'</span><span class="tok-punc">, {</span> <span class="tok-prop">method</span><span class="tok-punc">:</span> <span class="tok-str">'POST'</span><span class="tok-punc">,</span> <span class="tok-prop">body</span><span class="tok-punc">:</span> <span class="tok-fn">JSON</span><span class="tok-punc">.</span><span class="tok-fn">stringify</span><span class="tok-punc">(</span><span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">$data</span><span class="tok-punc">) })</span>
+    <span class="tok-punc">}</span>
+  <span class="tok-punc">}</span>
+<span class="tok-punc">}</span></pre>
+  </section>
+
+  <!-- MODULE 9 -->
+  <section id="m9">
+    <div class="modtag"><span class="num">9</span>Behind the Scenes</div>
+    <h2 class="modh">What Vue &amp; the browser are really doing</h2>
+    <div class="card-grid">
+      <div class="card b-client">
+        <h3>event.preventDefault()</h3>
+        <p>Every DOM event carries a default action — for a form's submit event, that default is "send an HTTP POST and navigate away." Calling preventDefault() flags the event so the browser skips that default action, while everything else about the event still fires normally.</p>
+      </div>
+      <div class="card b-server">
+        <h3>Async validation</h3>
+        <p>A fetch-based check (e.g. "does this city exist?") is asynchronous — the function has to pause with <code>await</code>, often flipping a <code>loading</code> flag so the UI can show a spinner while it waits for the network response.</p>
+      </div>
+    </div>
+    <div class="callout warn"><div class="ico">⚠️</div><div>Because JavaScript can be disabled, edited in DevTools, or skipped entirely by a direct API call, every one of these client-side checks must be assumed absent by the server. The server re-runs its own version of every rule, independently.</div></div>
+  </section>
+
+  <!-- MODULE 10 -->
+  <section id="m10">
+    <div class="modtag"><span class="num">10</span>Real Project Usage</div>
+    <h2 class="modh">Where you've already used this</h2>
+    <div class="card-grid">
+      <div class="card b-client"><h3>Google Sign-up</h3><p>Password strength and "passwords match" checks appear instantly as you type — pure client-side UX, no server round trip needed yet.</p></div>
+      <div class="card b-server"><h3>Username availability</h3><p>Gmail/Instagram-style sign-ups fire an async request to the server as you type a username, since only the server's database actually knows what's taken.</p></div>
+      <div class="card b-client"><h3>Checkout card fields</h3><p>Amazon/Stripe checkouts validate card number format and expiry client-side before ever hitting the payment network, saving a wasted request.</p></div>
+      <div class="card b-server"><h3>Weather app city search</h3><p>Before saving a city, the app calls the weather API to confirm the city actually exists — a validation call that can only be answered by the server.</p></div>
+    </div>
+  </section>
+
+  <!-- MODULE 11 -->
+  <section id="m11">
+    <div class="modtag"><span class="num">11</span>Common Mistakes</div>
+    <h2 class="modh">Wrong vs. Right</h2>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Trusting client-side validation as the only line of defense</div>
+      <div class="m-right"><b>✅ Correct</b>Always re-validate every field again on the server, independently</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Forgetting <code>.prevent</code> on @submit</div>
+      <div class="m-right"><b>✅ Correct</b><code>@submit.prevent="checkForm"</code> — stops the page reloading before validation even runs</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Using <code>v-if</code> for something toggled on every keystroke</div>
+      <div class="m-right"><b>✅ Correct</b>Use <code>v-show</code> for frequently-toggled elements — cheaper than repeatedly destroying/recreating DOM nodes</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Appending to the errors array on every check without resetting first</div>
+      <div class="m-right"><b>✅ Correct</b><code>this.errors = []</code> at the start of every validation run</div>
+    </div>
+  </section>
+
+  <!-- MODULE 12 -->
+  <section id="m12">
+    <div class="modtag"><span class="num">12</span>Debugging Mindset</div>
+    <h2 class="modh">Hunting the bug</h2>
+    <div class="flow">
+      <div class="flow-step">Problem: page reloads on submit</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Observe: URL bar changed / network tab shows navigation</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Find stage: is .prevent missing on @submit?</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--valid); color:var(--valid);">Fix</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>Form still reloads the page</td><td>Missing <code>.prevent</code> modifier</td><td>Use <code>@submit.prevent="checkForm"</code></td></tr>
+          <tr><td>Browser shows its own popup, not yours</td><td>Forgot <code>novalidate</code> on the form</td><td>Add <code>novalidate</code> to take full control</td></tr>
+          <tr><td>Old errors linger after fixing input</td><td>errors array never reset</td><td>Clear <code>this.errors = []</code> at the top of checkForm()</td></tr>
+          <tr><td>Regex "matches" invalid emails</td><td>Missing anchors <code>^</code> / <code>$</code></td><td>Anchor the pattern to the full string</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 13 -->
+  <section id="m13">
+    <div class="modtag"><span class="num">13</span>IITM Exam Pattern</div>
+    <h2 class="modh">How this shows up on the paper</h2>
+    <div class="card-grid">
+      <div class="card"><h3>Trigger words</h3><p>"stop form submission", "remove from DOM vs hide", "server must re-validate", "regex pattern"</p></div>
+      <div class="card"><h3>Trap words</h3><p>Options that swap <code>v-if</code> and <code>v-show</code>, or claim client-side validation alone is "secure enough".</p></div>
+      <div class="card"><h3>MCQ tricks</h3><p>Watch for answers implying client-side validation can be trusted for security — always false.</p></div>
+      <div class="card"><h3>PYQ pattern</h3><p>Often asks to identify what a given snippet's <code>errors</code> array will contain, or which directive best fits a described toggle behavior.</p></div>
+    </div>
+    <div class="callout info"><div class="ico">🎯</div><div><b>Elimination technique:</b> if an option says client-side validation replaces server-side checks — eliminate it immediately, every time.</div></div>
+  </section>
+
+  <!-- MODULE 14 -->
+  <section id="m14">
+    <div class="modtag"><span class="num">14</span>Interview Questions</div>
+    <h2 class="modh">Three tiers</h2>
+    <div class="tier easy"><div class="tier-label">Easy</div><div class="qa"><div class="q">What's the difference between v-if and v-show?</div><div class="a">v-if adds/removes the element from the DOM entirely; v-show keeps it in the DOM and just toggles CSS display.</div></div></div>
+    <div class="tier medium"><div class="tier-label">Medium</div><div class="qa"><div class="q">Why is client-side validation not enough on its own?</div><div class="a">Client-side code runs in an environment the user fully controls — it can be disabled, edited, or bypassed by sending requests directly to the server, so the server must independently verify every field.</div></div></div>
+    <div class="tier advanced"><div class="tier-label">Advanced</div><div class="qa"><div class="q">How would you implement an async validation check without blocking the UI?</div><div class="a">Mark the field as "checking" with a loading flag, fire the fetch call, await its response, then update the errors array and clear the loading flag — the UI reflects each state (idle/checking/valid/invalid) reactively throughout.</div></div></div>
+  </section>
+
+  <!-- MODULE 15 -->
+  <section id="m15">
+    <div class="modtag"><span class="num">15</span>One-Page Brain</div>
+    <h2 class="modh">The whole topic, compressed</h2>
+    <div class="brain-flow">Type → Client Gate (UX) → Submit intercepted → Server Gate (security) → Accepted</div>
+    <div class="remember-chain">
+      <div class="remember-row"><span class="k">v-if</span><span class="arrow">→</span> removes from DOM</div>
+      <div class="remember-row"><span class="k">v-show</span><span class="arrow">→</span> just hides visually</div>
+      <div class="remember-row"><span class="k">.prevent</span><span class="arrow">→</span> stops default submit</div>
+      <div class="remember-row"><span class="k">novalidate</span><span class="arrow">→</span> disables browser's own checks</div>
+      <div class="remember-row"><span class="k">Client validation</span><span class="arrow">→</span> UX only, never trust it for security</div>
+    </div>
+  </section>
+
+  <!-- MODULE 16 -->
+  <section id="m16">
+    <div class="modtag"><span class="num">16</span>Quick Revision Table</div>
+    <h2 class="modh">Scan this before the exam</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th></th><th>v-if</th><th>v-show</th><th>Client Validation</th><th>Server Validation</th></tr></thead>
+        <tbody>
+          <tr><td>Removes from DOM?</td><td>✅</td><td>❌ (just hidden)</td><td>—</td><td>—</td></tr>
+          <tr><td>Good for frequent toggling?</td><td>❌ (recreates each time)</td><td>✅</td><td>—</td><td>—</td></tr>
+          <tr><td>Purpose</td><td>Conditional rendering</td><td>Conditional visibility</td><td class="hl-client">Fast feedback, better UX</td><td class="hl-server">Security, data integrity</td></tr>
+          <tr><td>Can be bypassed?</td><td>—</td><td>—</td><td class="hl-invalid">Yes, easily</td><td class="hl-valid">No — it's the last line of defense</td></tr>
+          <tr><td>Typical trigger</td><td>Condition changes rarely</td><td>Condition changes often</td><td class="hl-client">On input / on submit</td><td class="hl-server">On every incoming request</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--client);"></span>Client-side</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--server);"></span>Server-side</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--valid);"></span>Valid / safe</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--invalid);"></span>Invalid / risky</div>
+    </div>
+  </section>
+
+  <!-- MODULE 17 -->
+  <section id="m17">
+    <div class="modtag"><span class="num">17</span>Practice Ladder</div>
+    <h2 class="modh">Climb one level at a time</h2>
+    <div class="ladder">
+      <div class="rung"><div class="rung-num">1</div><div class="rung-body"><b>Concept</b><div>Explain why client-side validation alone is never secure.</div></div></div>
+      <div class="rung"><div class="rung-num">2</div><div class="rung-body"><b>Predict Output</b><div>Given a checkForm() snippet, predict the contents of the errors array for sample input.</div></div></div>
+      <div class="rung"><div class="rung-num">3</div><div class="rung-body"><b>Find the Bug</b><div>Spot why a form still reloads the page despite a checkForm() method existing.</div></div></div>
+      <div class="rung"><div class="rung-num">4</div><div class="rung-body"><b>MCQ</b><div>Choose the correct directive (v-if vs v-show) for five different UI scenarios.</div></div></div>
+      <div class="rung"><div class="rung-num">5</div><div class="rung-body"><b>Coding</b><div>Write a checkForm() that validates a required field and an email regex.</div></div></div>
+      <div class="rung"><div class="rung-num">6</div><div class="rung-body"><b>Mini Project</b><div>Build a sign-up form with client-side checks plus an async username-availability call.</div></div></div>
+      <div class="rung"><div class="rung-num">7</div><div class="rung-body"><b>Interview</b><div>Explain, unaided, how you'd design both the client and server validation for a real signup flow.</div></div></div>
+    </div>
+  </section>
+
+  <!-- MODULE 18 -->
+  <section id="m18">
+    <div class="modtag"><span class="num">18</span>Memory Palace</div>
+    <h2 class="modh">Three anchors, forever</h2>
+    <div class="palace-grid">
+      <div class="palace-card"><div class="ico">📏</div><h4>Rule</h4><p>Client validation is a courtesy; server validation is the law.</p></div>
+      <div class="palace-card"><div class="ico">🔤</div><h4>Mnemonic</h4><p><b>"Bouncer, then Border."</b> The bouncer (client) is fast and friendly; the border (server) is the one that actually can't be skipped.</p></div>
+      <div class="palace-card"><div class="ico">🗺️</div><h4>Visual</h4><p>Type 🟦 → Client Gate → Submit intercepted → 🟪 Server Gate → Accepted — two gates, one truth.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>MAD2 Learning OS — Vue Form Validation — W6_L2</footer>
+
+</body>
+</html>
