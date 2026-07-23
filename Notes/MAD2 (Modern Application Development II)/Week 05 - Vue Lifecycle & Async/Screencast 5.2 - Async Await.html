@@ -3,468 +3,559 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Async Await — Study Notes</title>
+<title>Async & Await — Dispatch Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-:root{
-  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
-  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
-  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
-  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
-  --code-bg:#0D1118; --radius:14px;
-}
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
-  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
-}
-.wrap{max-width:900px;margin:0 auto;}
-.hero{
-  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
-  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
-}
-.hero::after{
-  content:""; position:absolute; top:-40%; right:-10%;
-  width:280px;height:280px;border-radius:50%;
-  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
-}
-.eyebrow{
-  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
-}
-.eyebrow::before{content:"\25CF"; font-size:10px;}
-h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
-.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
-.hero p b{color:var(--green);}
-.section-tag{
-  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
-  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
-}
-.section-tag .n{
-  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
-  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-  color:var(--green); font-weight:700; font-size:11px;
-}
-.card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px 26px; margin-bottom:18px;
-}
-.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
-.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
-.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
-.emoji-h{
-  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
-}
-.emoji-h .e{font-size:20px;}
-.analogy-box{
-  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
-.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
-.industry-box{
-  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
-.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
-.mistake-box{
-  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
-.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
-.tip-box{
-  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
-.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
-.impact-card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px; margin:20px 0;
-}
-.impact-label{
-  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
-  color:#4ADE94; font-weight:700; margin-bottom:16px;
-  display:flex; align-items:center; gap:10px;
-}
-.impact-label::before{
-  content:""; width:4px; height:18px;
-  background:#4ADE94; border-radius:3px; flex-shrink:0;
-}
-.impact-grid{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-  gap:14px;
-}
-.impact-item{
-  background:#161B26; border:1px solid #232A38;
-  border-radius:10px; padding:16px;
-}
-.impact-item .company{
-  font-size:13px; font-weight:700; color:#4ADE94;
-  margin-bottom:6px; display:flex; align-items:center; gap:6px;
-}
-.impact-item .company::before{
-  content:">"; font-family:'JetBrains Mono',monospace;
-  color:#4ADE94; font-size:11px; opacity:0.5;
-}
-.impact-item .impact-text{
-  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
-}
-.impact-item .impact-text strong{color:#F0B450;}
-.impact-item .impact-text b{color:#E7EAF2;}
-pre{
-  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
-  padding:16px 18px; overflow-x:auto; margin:12px 0;
-  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
-}
-code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
-.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
-.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
-@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
-.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
-.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
-.comp-card .c-desc{font-size:12px; color:var(--muted);}
-.comp-card.old .c-title{color:var(--red);}
-.comp-card.new .c-title{color:var(--green);}
-.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
-.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
-.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
-.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
-@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
-.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
-.rev-item b{color:var(--green);}
-ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
-li{margin:4px 0; color:var(--text);}
-.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+  :root{
+    --bg: #0A0F1E;
+    --panel: #121A2E;
+    --panel-hi: #182342;
+    --line: #26325A;
+    --text: #E7ECFA;
+    --muted: #8C96B8;
+    --amber: #F5A623;
+    --amber-glow: rgba(245,166,35,.35);
+    --green: #34D399;
+    --green-glow: rgba(52,211,153,.35);
+    --red: #F87171;
+    --red-glow: rgba(248,113,113,.35);
+    --blue: #5AC8FA;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 500px at 10% -10%, rgba(90,200,250,.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(245,166,35,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--amber-glow);}
+  a{color:var(--blue);}
+
+  /* ===== Top board / hero ===== */
+  .board-header{
+    padding:56px 20px 40px;
+    border-bottom:1px solid var(--line);
+    position:relative;
+    overflow:hidden;
+  }
+  .board-header::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size:36px 36px;
+    pointer-events:none;
+  }
+  .header-inner{max-width:960px;margin:0 auto;position:relative;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--amber);
+    text-transform:uppercase;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber-glow);animation:pulse 1.8s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  h1.title{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(32px,5vw,54px);
+    margin:14px 0 8px;
+    letter-spacing:-.02em;
+  }
+  .subtitle{color:var(--muted); font-size:16px; max-width:640px;}
+  .split-flap{
+    margin-top:28px;
+    display:flex; gap:10px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:13px;
+  }
+  .flap{
+    background:var(--panel); border:1px solid var(--line);
+    padding:8px 14px; border-radius:8px; color:var(--muted);
+  }
+  .flap b{color:var(--text); font-weight:600;}
+
+  /* ===== Layout shells ===== */
+  .wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+  section.module{padding:52px 0; border-bottom:1px solid var(--line);}
+  section.module:last-of-type{border-bottom:none;}
+  .mod-label{
+    font-family:var(--mono); font-size:12px; letter-spacing:.12em;
+    color:var(--blue); text-transform:uppercase; margin-bottom:10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .mod-label::before{content:"›"; color:var(--amber);}
+  h2.mod-title{
+    font-family:var(--display); font-size:clamp(22px,3.4vw,30px);
+    margin:0 0 18px; font-weight:600; letter-spacing:-.01em;
+  }
+  p.lead{color:var(--muted); font-size:16px; max-width:70ch;}
+
+  /* ===== Cards ===== */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:22px 24px;
+  }
+  .card-grid{display:grid; gap:16px;}
+  @media(min-width:640px){ .cols-2{grid-template-columns:1fr 1fr;} .cols-3{grid-template-columns:repeat(3,1fr);} }
+
+  /* Topic card (module 1) */
+  .topic-card{
+    background:linear-gradient(160deg, var(--panel-hi), var(--panel));
+    border:1px solid var(--line); border-radius:16px; padding:26px;
+    display:grid; gap:16px; grid-template-columns:1fr;
+  }
+  @media(min-width:640px){ .topic-card{grid-template-columns:1.3fr 1fr;} }
+  .topic-field{display:flex; flex-direction:column; gap:4px;}
+  .topic-field .k{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.1em;}
+  .topic-field .v{font-size:15px; font-weight:600;}
+  .stars{color:var(--amber); letter-spacing:2px;}
+  .stars .off{color:#31406B;}
+
+  /* Callouts */
+  .callout{border-radius:12px; padding:16px 18px; border:1px solid; display:flex; gap:12px; align-items:flex-start; margin:14px 0;}
+  .callout .icon{font-size:18px; line-height:1.4;}
+  .callout.intuition{background:rgba(90,200,250,.07); border-color:rgba(90,200,250,.3);}
+  .callout.good{background:rgba(52,211,153,.08); border-color:rgba(52,211,153,.35);}
+  .callout.bad{background:rgba(248,113,113,.08); border-color:rgba(248,113,113,.35);}
+  .callout.warn{background:rgba(245,166,35,.08); border-color:rgba(245,166,35,.35);}
+
+  /* Diagram flow */
+  .flow{display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-family:var(--mono); font-size:13px; margin:18px 0;}
+  .flow .step{background:var(--panel-hi); border:1px solid var(--line); padding:9px 14px; border-radius:9px; white-space:nowrap;}
+  .flow .arrow{color:var(--amber); font-size:16px;}
+  .flow.vertical{flex-direction:column; align-items:flex-start;}
+  .flow.vertical .arrow{transform:rotate(90deg); margin-left:20px;}
+
+  /* Departure board (visual mental model) */
+  .depboard{
+    background:#060A16; border:1px solid var(--line); border-radius:14px;
+    padding:18px; font-family:var(--mono); overflow-x:auto;
+  }
+  .depboard-row{display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:10px; padding:10px 6px; border-bottom:1px dashed #1c2745; font-size:13px; min-width:460px;}
+  .depboard-row.head{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em;}
+  .depboard-row:last-child{border-bottom:none;}
+  .status{padding:2px 9px; border-radius:20px; font-size:11px; font-weight:600; display:inline-block;}
+  .status.pending{background:rgba(245,166,35,.15); color:var(--amber); border:1px solid var(--amber);}
+  .status.fulfilled{background:rgba(52,211,153,.15); color:var(--green); border:1px solid var(--green);}
+  .status.rejected{background:rgba(248,113,113,.15); color:var(--red); border:1px solid var(--red);}
+
+  /* Trigger words / pills */
+  .pillbox{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 18px;}
+  .pill{font-family:var(--mono); font-size:12px; background:var(--panel-hi); border:1px solid var(--line); padding:6px 12px; border-radius:20px; color:var(--text);}
+  .pill.trap{border-color:var(--red); color:var(--red);}
+  .pill.trigger{border-color:var(--blue); color:var(--blue);}
+
+  /* Code block */
+  .code-block{
+    background:#060A16; border:1px solid var(--line); border-radius:12px;
+    overflow:hidden; margin:16px 0;
+  }
+  .code-head{display:flex; align-items:center; gap:8px; padding:10px 14px; border-bottom:1px solid var(--line); background:var(--panel);}
+  .code-head span{width:10px; height:10px; border-radius:50%; display:inline-block;}
+  .code-head .r{background:#F87171;} .code-head .y{background:#F5A623;} .code-head .g{background:#34D399;}
+  .code-head .fname{margin-left:8px; font-family:var(--mono); font-size:12px; color:var(--muted);}
+  pre{margin:0; padding:18px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.7;}
+  code{font-family:var(--mono);}
+  .tok-kw{color:#C792EA;} .tok-fn{color:#82AAFF;} .tok-str{color:#C3E88D;} .tok-com{color:#5A6685; font-style:italic;} .tok-num{color:#F78C6C;} .tok-var{color:#EEFFFF;}
+  .annot-list{list-style:none; margin:14px 0 0; padding:0; display:grid; gap:8px;}
+  .annot-list li{display:flex; gap:10px; font-size:14px; color:var(--muted);}
+  .annot-list code{color:var(--amber); background:var(--panel-hi); padding:1px 7px; border-radius:5px; font-size:12.5px; flex-shrink:0;}
+
+  /* Table */
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:14px 0;}
+  thead th{
+    font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.08em;
+    color:var(--muted); text-align:left; padding:10px 12px; border-bottom:1px solid var(--line);
+  }
+  tbody td{padding:11px 12px; border-bottom:1px solid var(--line);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,.02);}
+  .tbl-wrap{overflow-x:auto; border:1px solid var(--line); border-radius:12px;}
+  .tbl-wrap table{margin:0;}
+
+  /* Real project usage */
+  .usage-card{display:flex; gap:14px; align-items:flex-start;}
+  .usage-badge{
+    width:42px; height:42px; border-radius:10px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--display); font-weight:700; font-size:15px;
+    background:var(--panel-hi); border:1px solid var(--line); color:var(--amber);
+  }
+
+  /* Practice ladder */
+  .ladder{display:flex; flex-direction:column; gap:10px;}
+  .rung{
+    display:flex; align-items:center; gap:14px; background:var(--panel);
+    border:1px solid var(--line); border-radius:10px; padding:12px 16px;
+  }
+  .rung .lvl{
+    font-family:var(--mono); font-weight:700; font-size:13px; color:var(--bg);
+    background:var(--amber); border-radius:7px; padding:4px 9px; flex-shrink:0;
+  }
+
+  /* Memory palace */
+  .palace-grid{display:grid; gap:14px;}
+  @media(min-width:640px){.palace-grid{grid-template-columns:repeat(3,1fr);}}
+  .palace-card{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:20px;}
+  .palace-card .tag{font-family:var(--mono); font-size:11px; color:var(--amber); text-transform:uppercase; letter-spacing:.1em;}
+  .palace-card .big{font-family:var(--display); font-size:17px; margin-top:8px; font-weight:600;}
+
+  /* One page brain */
+  .brain-flow{
+    background:linear-gradient(160deg, var(--panel-hi), var(--panel));
+    border:1px solid var(--line); border-radius:14px; padding:24px;
+  }
+  .remember-row{display:grid; grid-template-columns:auto 1fr; gap:14px; align-items:center; padding:8px 0; border-bottom:1px dashed var(--line); font-family:var(--mono); font-size:13.5px;}
+  .remember-row:last-child{border-bottom:none;}
+  .remember-row .key{color:var(--blue); text-align:right;}
+
+  footer{padding:40px 20px 60px; text-align:center; color:var(--muted); font-size:13px; font-family:var(--mono);}
+
+  @media(max-width:480px){
+    .depboard-row{grid-template-columns:1.4fr 1fr 1fr; min-width:400px;}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-<div class="hero">
-  <div class="eyebrow">Week 05 · Screencast 5.2</div>
-  <h1>Async / Await</h1>
-  <p>Modern JavaScript's syntax for writing asynchronous code that <b>reads like synchronous code</b>. Built on Promises, <b>async/await</b> eliminates callback hell and makes error handling straightforward with <b>try/catch</b>.</p>
-</div>
-
-<div class="section-tag"><span class="n">1</span> THE <code>async</code> KEYWORD</div>
-<div class="card">
-  <h2>Making a Function Return a Promise</h2>
-  <p class="def">Adding the <b>async</b> keyword before a function declaration makes it always return a Promise. If the function returns a value, that value is wrapped in a resolved promise automatically.</p>
-
-  <pre><span class="cmt">// Without async — returns a string directly</span>
-<span class="kw">function</span> <span class="fn">greet</span>(name) {
-  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>
-}
-console.log(<span class="fn">greet</span>(<span class="str">'Alice'</span>))  <span class="cmt">// "Hello, Alice!"</span>
-
-<span class="cmt">// With async — always returns a Promise</span>
-<span class="kw">async function</span> <span class="fn">asyncGreet</span>(name) {
-  <span class="kw">return</span> <span class="str">`Hello, ${name}!`</span>
-}
-console.log(<span class="fn">asyncGreet</span>(<span class="str">'Alice'</span>))  <span class="cmt">// Promise {&lt;fulfilled&gt;: "Hello, Alice!"}</span>
-<span class="fn">asyncGreet</span>(<span class="str">'Alice'</span>).<span class="fn">then</span>(console.log)  <span class="cmt">// "Hello, Alice!"</span></pre>
-
-  <div class="analogy-box">
-    <div class="a-label">Real-World Analogy</div>
-    <div class="a-text">An <b>async function</b> is like ordering a coffee at a busy café. The barista gives you a receipt (a Promise) immediately. That receipt guarantees you'll get coffee eventually, but you don't stand there waiting — you can chat with friends while they make it. When the coffee's ready, the receipt is "redeemed" for the actual coffee.</div>
+<header class="board-header">
+  <div class="header-inner">
+    <div class="eyebrow"><span class="dot"></span>MAD2 · Screencast 5.2 · Live Dispatch</div>
+    <h1 class="title">Async &amp; Await</h1>
+    <p class="subtitle">JavaScript is a single-threaded language — but the web can't afford to wait around. This is how it dispatches long-running work without ever freezing the line.</p>
+    <div class="split-flap">
+      <div class="flap">CATEGORY <b>JS Fundamentals</b></div>
+      <div class="flap">DIFFICULTY <b>★★★☆☆</b></div>
+      <div class="flap">IMPORTANCE <b>★★★★★</b></div>
+      <div class="flap">EST. READ <b>14 min</b></div>
+    </div>
   </div>
+</header>
 
-  <pre><span class="cmt">// Async arrow function</span>
-<span class="kw">const</span> <span class="fn">fetchData</span> = <span class="kw">async</span> () => {
-  <span class="kw">return</span> { id: <span class="str">1</span>, name: <span class="str">'Item'</span> }
-}
+<main class="wrap">
 
-<span class="cmt">// Async as object method</span>
-<span class="kw">const</span> api = {
-  <span class="fn">async get</span>(url) {
-    <span class="kw">return</span> <span class="fn">fetch</span>(url)
+  <!-- MODULE 1 — TOPIC CARD -->
+  <section class="module" id="m1">
+    <div class="mod-label">Module 01 · Topic Card</div>
+    <h2 class="mod-title">30 Seconds to Orient</h2>
+    <div class="topic-card">
+      <div class="card-grid cols-2">
+        <div class="topic-field"><span class="k">Topic</span><span class="v">Async &amp; Await</span></div>
+        <div class="topic-field"><span class="k">Category</span><span class="v">JavaScript · Asynchronous Programming</span></div>
+        <div class="topic-field"><span class="k">Difficulty</span><span class="v stars">★★★<span class="off">☆☆</span></span></div>
+        <div class="topic-field"><span class="k">Importance</span><span class="v stars">★★★★★</span></div>
+      </div>
+      <div class="topic-field">
+        <span class="k">Prerequisites</span>
+        <span class="v" style="font-weight:400; font-size:14px; color:var(--muted);">Functions, callbacks, and a rough sense of what a Promise is — you'll get the full picture below either way.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 2 — CORE INTUITION -->
+  <section class="module" id="m2">
+    <div class="mod-label">Module 02 · Core Intuition</div>
+    <h2 class="mod-title">Why This Exists</h2>
+    <div class="callout intuition">
+      <span class="icon">💡</span>
+      <div>
+        <p style="margin:0 0 10px;">Imagine one waiter running an entire restaurant. If they had to stand at the kitchen window until every dish finished cooking, the whole restaurant would freeze — no new orders, no refills, nothing.</p>
+        <p style="margin:0;">Instead, the waiter <b>drops off the order and moves on</b>. When the kitchen rings the bell, the waiter comes back to deliver the food. JavaScript's single thread works the same way: <code style="color:var(--amber)">async</code>/<code style="color:var(--amber)">await</code> lets it fire off slow work (network calls, timers) and keep serving everyone else, then come back exactly when the result is ready.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 3 — VISUAL MENTAL MODEL -->
+  <section class="module" id="m3">
+    <div class="mod-label">Module 03 · Visual Mental Model</div>
+    <h2 class="mod-title">The Departure Board</h2>
+    <p class="lead">Every async call is a flight on the board: it takes off, the tower keeps working other traffic, and the board updates the moment it lands.</p>
+    <div class="depboard">
+      <div class="depboard-row head"><div>Operation</div><div>Status</div><div>Landed at</div></div>
+      <div class="depboard-row"><div>fetch('/user')</div><div><span class="status pending">PENDING</span></div><div>—</div></div>
+      <div class="depboard-row"><div>setTimeout(3s)</div><div><span class="status fulfilled">FULFILLED</span></div><div>+3.00s</div></div>
+      <div class="depboard-row"><div>fetch('/orders')</div><div><span class="status rejected">REJECTED</span></div><div>404 error</div></div>
+    </div>
+    <div class="flow" style="margin-top:20px;">
+      <div class="step">Order Placed</div><div class="arrow">→</div>
+      <div class="step">Kitchen (Background)</div><div class="arrow">→</div>
+      <div class="step">🔔 Ready</div><div class="arrow">→</div>
+      <div class="step">Main Thread Resumes</div>
+    </div>
+  </section>
+
+  <!-- MODULE 4 — PATTERN RECOGNITION -->
+  <section class="module" id="m4">
+    <div class="mod-label">Module 04 · Pattern Recognition</div>
+    <h2 class="mod-title">Spot It Instantly</h2>
+    <p class="lead" style="margin-bottom:6px;">Trigger words:</p>
+    <div class="pillbox">
+      <span class="pill trigger">async</span><span class="pill trigger">await</span><span class="pill trigger">Promise</span>
+      <span class="pill trigger">.then()</span><span class="pill trigger">.catch()</span><span class="pill trigger">fetch()</span>
+      <span class="pill trigger">pending / fulfilled / rejected</span><span class="pill trigger">try...catch</span>
+    </div>
+    <div class="card">
+      <p style="margin:0; font-family:var(--mono); font-size:14px;">
+        <span style="color:var(--muted);">Recognition shortcut:</span><br>
+        "must wait for it" <span style="color:var(--amber);">→</span> <code style="color:var(--blue);">await</code>&nbsp;&nbsp;·&nbsp;&nbsp;
+        "runs later, might fail" <span style="color:var(--amber);">→</span> <code style="color:var(--blue);">Promise</code>&nbsp;&nbsp;·&nbsp;&nbsp;
+        "catch the error" <span style="color:var(--amber);">→</span> <code style="color:var(--blue);">try/catch</code> or <code style="color:var(--blue);">.catch()</code>
+      </p>
+    </div>
+  </section>
+
+  <!-- MODULE 5 — DEEP FUNDAMENTALS -->
+  <section class="module" id="m5">
+    <div class="mod-label">Module 05 · Deep Fundamentals</div>
+    <h2 class="mod-title">Understanding, Not Memorizing</h2>
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="mod-label" style="margin-bottom:8px;">Why was it created?</div>
+        <p style="margin:0; color:var(--muted); font-size:14px;">Chaining many <code style="color:var(--amber);">.then()</code> calls for sequential async steps produced deeply nested, hard-to-read "callback hell." Async/await gives that same behavior a flat, linear shape.</p>
+      </div>
+      <div class="card">
+        <div class="mod-label" style="margin-bottom:8px;">What problem does it solve?</div>
+        <p style="margin:0; color:var(--muted); font-size:14px;">It lets JavaScript start slow operations (network, timers, I/O) without blocking the single main thread that also handles clicks, scrolls, and rendering.</p>
+      </div>
+      <div class="card">
+        <div class="mod-label" style="margin-bottom:8px;">What happens internally?</div>
+        <p style="margin:0; color:var(--muted); font-size:14px;">An <code style="color:var(--amber);">async</code> function always returns a Promise. Hitting <code style="color:var(--amber);">await</code> pauses <i>that function only</i> — not the whole program — until the awaited Promise settles.</p>
+      </div>
+      <div class="card">
+        <div class="mod-label" style="margin-bottom:8px;">How does JS execute it?</div>
+        <p style="margin:0; color:var(--muted); font-size:14px;">The rest of the program keeps running past the async call. Once the awaited value is ready, the paused function's remaining code resumes as if it were synchronous.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 6 — EXECUTION FLOW -->
+  <section class="module" id="m6">
+    <div class="mod-label">Module 06 · Execution Flow</div>
+    <h2 class="mod-title">The Internal Sequence</h2>
+    <div class="flow vertical">
+      <div class="step">Async function called</div><div class="arrow">→</div>
+      <div class="step">Function immediately returns a pending Promise</div><div class="arrow">→</div>
+      <div class="step">Main thread keeps running the rest of the script</div><div class="arrow">→</div>
+      <div class="step">Awaited operation completes (data arrives / timer fires)</div><div class="arrow">→</div>
+      <div class="step">Function resumes exactly where it paused</div><div class="arrow">→</div>
+      <div class="step">Function finishes → Promise resolves (or rejects)</div>
+    </div>
+  </section>
+
+  <!-- MODULE 7 — SYNTAX ANATOMY -->
+  <section class="module" id="m7">
+    <div class="mod-label">Module 07 · Syntax Anatomy</div>
+    <h2 class="mod-title">Every Piece, Explained</h2>
+    <div class="code-block">
+      <div class="code-head"><span class="r"></span><span class="y"></span><span class="g"></span><span class="fname">anatomy.js</span></div>
+      <pre><code><span class="tok-kw">async</span> <span class="tok-kw">function</span> <span class="tok-fn">getUser</span>() {
+  <span class="tok-kw">const</span> <span class="tok-var">response</span> = <span class="tok-kw">await</span> <span class="tok-fn">fetch</span>(<span class="tok-str">'/api/user'</span>);
+  <span class="tok-kw">return</span> <span class="tok-var">response</span>;
+}</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code>async</code> Marks this function as asynchronous — it will now always return a Promise, even if you write a plain <code>return</code> statement.</li>
+      <li><code>function getUser()</code> A normal function declaration — the name and parentheses work exactly like any other function.</li>
+      <li><code>await</code> Pauses <i>only this function</i> until the Promise on its right settles. Legal only inside a function marked <code>async</code>.</li>
+      <li><code>fetch('/api/user')</code> Returns a Promise immediately — <code>await</code> is what unwraps it into the actual response.</li>
+      <li><code>return response</code> Because the function is <code>async</code>, this value is automatically wrapped in a resolved Promise for whoever calls <code>getUser()</code>.</li>
+    </ul>
+  </section>
+
+  <!-- MODULE 8 — CODE WALKTHROUGH -->
+  <section class="module" id="m8">
+    <div class="mod-label">Module 08 · Code Walkthrough</div>
+    <h2 class="mod-title">Line by Line</h2>
+    <div class="code-block">
+      <div class="code-head"><span class="r"></span><span class="y"></span><span class="g"></span><span class="fname">walkthrough.js</span></div>
+      <pre><code><span class="tok-kw">async</span> <span class="tok-kw">function</span> <span class="tok-fn">loadDashboard</span>() {
+  <span class="tok-kw">try</span> {
+    <span class="tok-kw">const</span> <span class="tok-var">user</span> = <span class="tok-kw">await</span> <span class="tok-fn">fetchUser</span>();      <span class="tok-com">// pause until user arrives</span>
+    <span class="tok-kw">const</span> <span class="tok-var">orders</span> = <span class="tok-kw">await</span> <span class="tok-fn">fetchOrders</span>(); <span class="tok-com">// then pause until orders arrive</span>
+    <span class="tok-fn">render</span>(<span class="tok-var">user</span>, <span class="tok-var">orders</span>);
+  } <span class="tok-kw">catch</span> (<span class="tok-var">err</span>) {
+    <span class="tok-fn">showError</span>(<span class="tok-var">err</span>);              <span class="tok-com">// any rejection lands here</span>
   }
-}</pre>
-
-  <div class="tip-box">
-    <div class="t-label">Key Insight</div>
-    <div class="t-text">The <b>async</b> keyword doesn't make the function asynchronous internally — it enables the use of <b>await</b> inside it and wraps the return value in a Promise. The function body still runs synchronously until it hits an <b>await</b>.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">2</span> THE <code>await</code> KEYWORD</div>
-<div class="card">
-  <h2>Pausing Execution</h2>
-  <p class="def"><b>await</b> can only be used inside an async function. It pauses the execution of the function until the Promise resolves, then returns the resolved value. The rest of the program continues running — only the async function is "paused."</p>
-
-  <pre><span class="kw">async function</span> <span class="fn">getUser</span>(id) {
-  console.log(<span class="str">'Fetching user...'</span>)
-  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
-  <span class="cmt">// Execution pauses here until fetch resolves</span>
-  <span class="kw">const</span> user = <span class="kw">await</span> response.<span class="fn">json</span>()
-  console.log(<span class="str">'User fetched:'</span>, user.name)
-  <span class="kw">return</span> user
-}
-
-<span class="cmt">// Output:</span>
-<span class="cmt">// "Fetching user..."  (immediately)</span>
-<span class="cmt">// (pause — network request in flight)</span>
-<span class="cmt">// "User fetched: Alice"  (when resolved)</span></pre>
-
-  <div class="comparison">
-    <div class="comp-card old">
-      <div class="c-title">Without await</div>
-      <div class="c-desc><code>const user = fetch('/api/user')</code> — user is a Promise object, not the actual data. You'd need <code>.then()</code> to access the value.</div>
+}</code></pre>
     </div>
-    <div class="comp-card new">
-      <div class="c-title">With await</div>
-      <div class="c-desc><code>const user = await fetch('/api/user')</code> — execution pauses, then user is the actual Response object. Code reads top-to-bottom like sync.</div>
+    <div class="flow" style="margin-top:16px;">
+      <div class="step">fetchUser()</div><div class="arrow">→</div>
+      <div class="step">await settles</div><div class="arrow">→</div>
+      <div class="step">fetchOrders()</div><div class="arrow">→</div>
+      <div class="step">await settles</div><div class="arrow">→</div>
+      <div class="step">render()</div>
     </div>
-  </div>
+    <p style="color:var(--muted); font-size:14px;">If <code style="color:var(--amber);">fetchUser()</code> or <code style="color:var(--amber);">fetchOrders()</code> rejects at any point, execution jumps straight into the <code style="color:var(--amber);">catch</code> block — nothing below the failing line runs.</p>
+  </section>
 
-  <div class="industry-box">
-    <div class="i-label">Industry Context</div>
-    <div class="i-text">Major frameworks (Vue, React, Svelte) all embrace async/await for data fetching. Vue's <code>async mounted()</code>, React's <code>useEffect</code> with async, and Svelte's <code>{#await}</code> block all rely on the same Promise mechanics. Edge functions (Cloudflare Workers, Vercel Edge) use async/await as the default pattern for serverless handlers.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">3</span> ERROR HANDLING WITH TRY/CATCH</div>
-<div class="card">
-  <h2>Catching Failures Gracefully</h2>
-  <p class="def">The <b>try/catch</b> block catches any error that occurs inside the <b>try</b> block — including rejected Promises. This is much cleaner than chaining <code>.catch()</code> on every Promise.</p>
-
-  <pre><span class="kw">async function</span> <span class="fn">getUserSafely</span>(id) {
-  <span class="kw">try</span> {
-    <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
-    <span class="kw">if</span> (!res.<span class="prop">ok</span>) {
-      <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${res.status}: ${res.statusText}`</span>)
-    }
-    <span class="kw">return await</span> res.<span class="fn">json</span>()
-  } <span class="kw">catch</span> (err) {
-    console.error(<span class="str">'Failed to fetch user:'</span>, err.message)
-    <span class="kw">return</span> { id, name: <span class="str">'Unknown'</span> }  <span class="cmt">// fallback</span>
-  }
-}
-
-<span class="cmt">// .then() equivalent — harder to read with more nesting</span>
-<span class="kw">function</span> <span class="fn">getUserWithThen</span>(id) {
-  <span class="kw">return</span> <span class="fn">fetch</span>(<span class="str">`/api/users/${id}`</span>)
-    .<span class="fn">then</span>(res => {
-      <span class="kw">if</span> (!res.<span class="prop">ok</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP ${res.status}`</span>)
-      <span class="kw">return</span> res.<span class="fn">json</span>()
-    })
-    .<span class="fn">catch</span>(err => {
-      console.error(err.message)
-      <span class="kw">return</span> { id, name: <span class="str">'Unknown'</span> }
-    })
-}</pre>
-
-  <div class="analogy-box">
-    <div class="a-label">Real-World Analogy</div>
-    <div class="a-text"><b>try/catch</b> is like planning a picnic: you bring a blanket and food (the try block), but you also pack an umbrella just in case it rains (the catch block). If it's sunny, the umbrella stays in the bag. If it rains, you grab the umbrella and the picnic goes on. Without it, rain would ruin everything and you'd have no backup plan.</div>
-  </div>
-
-  <div class="mistake-box">
-    <div class="m-label">Common Mistake</div>
-    <div class="m-text"><b>Forgetting to await inside try/catch</b> — if you forget <code>await</code> on a Promise inside try, the function won't throw synchronously. The Promise rejection becomes an unhandled rejection, and your catch block never fires. Always <code>await</code> Promises you expect to reject.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">4</span> SEQUENTIAL VS PARALLEL</div>
-<div class="card">
-  <h2>Order Matters</h2>
-  <p class="def">Using multiple <b>await</b> expressions sequentially waits for each Promise to resolve before starting the next. Use <b>Promise.all</b> when the operations are independent and can run in parallel.</p>
-
-  <h3>Sequential (Slow)</h3>
-  <pre><span class="kw">async function</span> <span class="fn">loadDashboardSequential</span>() {
-  <span class="cmt">// Each fetch waits for the previous one — 300ms + 300ms + 300ms = 900ms</span>
-  <span class="kw">const</span> users = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/users'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-  <span class="kw">const</span> posts = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-  <span class="kw">const</span> comments = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/comments'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-  <span class="kw">return</span> { users, posts, comments }
-}</pre>
-
-  <h3>Parallel (Fast)</h3>
-  <pre><span class="kw">async function</span> <span class="fn">loadDashboardParallel</span>() {
-  <span class="cmt">// All three fetch at the same time — max(300, 300, 300) = 300ms</span>
-  <span class="kw">const</span> [users, posts, comments] = <span class="kw">await</span> <span class="fn">Promise.all</span>([
-    <span class="fn">fetch</span>(<span class="str">'/api/users'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()),
-    <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()),
-    <span class="fn">fetch</span>(<span class="str">'/api/comments'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-  ])
-  <span class="kw">return</span> { users, posts, comments }
-}</pre>
-
-  <div class="tip-box">
-    <div class="t-label">Performance Tip</div>
-    <div class="t-text">Use <b>Promise.allSettled</b> when you need all results even if some fail — it never rejects, returning an array of <code>{status, value/reason}</code> objects. Use <b>Promise.race</b> when you only need the fastest result (e.g., timeout logic).</div>
-  </div>
-
-  <h3>Promise.allSettled Example</h3>
-  <pre><span class="kw">async function</span> <span class="fn">loadWithPartialFailure</span>() {
-  <span class="kw">const</span> results = <span class="kw">await</span> <span class="fn">Promise.allSettled</span>([
-    <span class="fn">fetch</span>(<span class="str">'/api/users'</span>),
-    <span class="fn">fetch</span>(<span class="str">'/api/invalid-endpoint'</span>),
-    <span class="fn">fetch</span>(<span class="str">'/api/posts'</span>)
-  ])
-  results.<span class="fn">forEach</span>((r, i) => {
-    <span class="kw">if</span> (r.<span class="prop">status</span> === <span class="str">'fulfilled'</span>) {
-      console.log(<span class="str">`Request ${i} succeeded`</span>)
-    } <span class="kw">else</span> {
-      console.log(<span class="str">`Request ${i} failed:`</span>, r.<span class="prop">reason</span>)
-    }
-  })
-}</pre>
-</div>
-
-<div class="section-tag"><span class="n">5</span> COMPARISON: THEN VS ASYNC/AWAIT</div>
-<div class="card">
-  <div class="comparison">
-    <div class="comp-card old">
-      <div class="c-title">.then() Chains</div>
-      <div class="c-desc>Nested callbacks, hard to read with multiple sequential operations. Error handling via separate <code>.catch()</code>. Mixing sync and async logic is awkward.</div>
+  <!-- MODULE 9 — BEHIND THE SCENES -->
+  <section class="module" id="m9">
+    <div class="mod-label">Module 09 · Behind the Scenes</div>
+    <h2 class="mod-title">What the Engine Is Actually Doing</h2>
+    <div class="flow vertical">
+      <div class="step">Promise created → state: <span style="color:var(--amber);">pending</span></div><div class="arrow">→</div>
+      <div class="step">Async operation runs off the main thread (browser/OS level)</div><div class="arrow">→</div>
+      <div class="step">Operation finishes → resolve() or reject() called</div><div class="arrow">→</div>
+      <div class="step">State becomes <span style="color:var(--green);">fulfilled</span> or <span style="color:var(--red);">rejected</span></div><div class="arrow">→</div>
+      <div class="step">await unwraps the value / try-catch traps the error</div>
     </div>
-    <div class="comp-card new">
-      <div class="c-title">async/await</div>
-      <div class="c-desc">Linear, top-to-bottom reading. Single try/catch for all errors. Easy to mix with sync logic. Debugging works naturally (step over works).</div>
+    <div class="callout warn">
+      <span class="icon">⚙️</span>
+      <p style="margin:0;">A Promise can only ever transition <b>once</b>: pending → fulfilled, or pending → rejected. It never flips back, and it never settles twice — that's what makes it a reliable placeholder for a future value.</p>
     </div>
-  </div>
+  </section>
 
-  <pre><span class="cmt">// .then() — multiple sequential fetches get nested</span>
-<span class="fn">fetch</span>(<span class="str">'/api/user'</span>)
-  .<span class="fn">then</span>(res => res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(user => {
-    <span class="kw">return</span> <span class="fn">fetch</span>(<span class="str">`/api/orders/${user.id}`</span>)
-  })
-  .<span class="fn">then</span>(res => res.<span class="fn">json</span>())
-  .<span class="fn">then</span>(orders => console.log(orders))
-  .<span class="fn">catch</span>(err => console.error(err))
-
-<span class="cmt">// async/await — linear and clear</span>
-<span class="kw">async function</span> <span class="fn">getUserOrders</span>() {
-  <span class="kw">try</span> {
-    <span class="kw">const</span> user = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/user'</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-    <span class="kw">const</span> orders = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/orders/${user.id}`</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>())
-    console.log(orders)
-  } <span class="kw">catch</span> (err) {
-    console.error(err)
-  }
-}</pre>
-</div>
-
-<div class="section-tag"><span class="n">6</span> COMMON MISTAKES</div>
-<div class="card">
-  <div class="mistake-box">
-    <div class="m-label">Mistake 1: await in a loop</div>
-    <div class="m-text"><b>Using <code>await</code> inside a <code>for</code> or <code>forEach</code> loop</b> makes it sequential when it should be parallel. <code>forEach</code> doesn't respect <code>await</code> at all — it fires all Promises concurrently without waiting.</div>
-  </div>
-
-  <pre><span class="cmt">// ❌ BAD — forEach doesn't await</span>
-<span class="kw">async function</span> <span class="fn">badLoop</span>(ids) {
-  ids.<span class="fn">forEach</span>(<span class="kw">async</span> id => {
-    <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>)
-    console.log(data)  <span class="cmt">// fires immediately, logs undefined</span>
-  })
-  console.log(<span class="str">'Done'</span>)  <span class="cmt">// prints BEFORE any fetch completes</span>
-}
-
-<span class="cmt">// ✅ GOOD — for...of is sequential (use when order matters)</span>
-<span class="kw">async function</span> <span class="fn">goodSequentialLoop</span>(ids) {
-  <span class="kw">for</span> (<span class="kw">const</span> id <span class="kw">of</span> ids) {
-    <span class="kw">const</span> data = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>)
-    console.log(data)  <span class="cmt">// one at a time, in order</span>
-  }
-}
-
-<span class="cmt">// ✅ BEST — Promise.all for independent parallel requests</span>
-<span class="kw">async function</span> <span class="fn">bestParallel</span>(ids) {
-  <span class="kw">const</span> results = <span class="kw">await</span> <span class="fn">Promise.all</span>(
-    ids.<span class="fn">map</span>(id => <span class="fn">fetch</span>(<span class="str">`/api/${id}`</span>).<span class="fn">then</span>(r => r.<span class="fn">json</span>()))
-  )
-  console.log(results)  <span class="cmt">// all at once, fastest total time</span>
-}</pre>
-
-  <div class="mistake-box">
-    <div class="m-label">Mistake 2: Forgetting await</div>
-    <div class="m-text"><b>Calling an async function without <code>await</code></b> gives you a Promise instead of the actual value. This is especially common in Vue lifecycle hooks and event handlers.</div>
-  </div>
-
-  <pre><span class="cmt">// ❌ BAD — forgetting await</span>
-<span class="fn">mounted</span>() {
-  <span class="kw">this</span>.<span class="fn">user</span> = <span class="fn">fetchUser</span>(<span class="str">'123'</span>)   <span class="cmt">// this.user = Promise, not the user object!</span>
-}
-
-<span class="cmt">// ✅ GOOD — await the async function</span>
-<span class="kw">async function</span> <span class="fn">mounted</span>() {
-  <span class="kw">this</span>.<span class="fn">user</span> = <span class="kw">await</span> <span class="fn">fetchUser</span>(<span class="str">'123'</span>)  <span class="cmt">// this.user = actual user object ✅</span>
-}</pre>
-</div>
-
-<div class="section-tag"><span class="n">7</span> TOP-LEVEL AWAIT</div>
-<div class="card">
-  <h2>await Outside async Functions</h2>
-  <p class="def">In modern JavaScript (ES2022+), you can use <b>await</b> at the top level of modules without wrapping it in an async function. This works in browsers (with <code>&lt;script type="module"&gt;</code>), Node.js ESM, and Deno.</p>
-
-  <pre><span class="cmt">// top-level-await.js — ES module</span>
-<span class="kw">import</span> { <span class="fn">fetch</span> } <span class="kw">from</span> <span class="str">'node:http'</span>
-
-console.log(<span class="str">'Loading config...'</span>)
-<span class="kw">const</span> config = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/config'</span>)
-console.log(<span class="str">'Config loaded:'</span>, config)
-
-<span class="kw">export</span> <span class="kw">default</span> config  <span class="cmt">// modules that import this will wait</span></pre>
-
-  <div class="tip-box">
-    <div class="t-label">Warning</div>
-    <div class="t-text"><b>Top-level await blocks module execution</b> — any module that imports from a module with top-level await will wait for it to resolve. Use it sparingly for initialization code (config loading, DB connections) and never in a hot-path import chain.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">8</span> PRODUCTION USE CASES</div>
-<div class="impact-card">
-  <div class="impact-label">Production Impact</div>
-  <div class="impact-grid">
-    <div class="impact-item">
-      <div class="company">Walmart-scale Dashboard</div>
-      <p class="impact-text">Used <code>async mounted()</code> without <code>try/catch</code> — a malformed API response was silently swallowed while the checkout API returned 503s. Bug went undetected for <b>11 hours</b>, costing an estimated <strong>$2M in lost sales</strong>.</p>
+  <!-- MODULE 10 — REAL PROJECT USAGE -->
+  <section class="module" id="m10">
+    <div class="mod-label">Module 10 · Real Project Usage</div>
+    <h2 class="mod-title">Where You've Already Used This</h2>
+    <div class="card-grid cols-2">
+      <div class="card usage-card"><div class="usage-badge">SW</div><div><b>Swiggy</b><p style="margin:6px 0 0; color:var(--muted); font-size:14px;">Polls the order-status API every few seconds using <code style="color:var(--amber);">async</code> functions, so your live tracker updates without ever freezing the map.</p></div></div>
+      <div class="card usage-card"><div class="usage-badge">IG</div><div><b>Instagram</b><p style="margin:6px 0 0; color:var(--muted); font-size:14px;">Awaits image and video data as you scroll, loading the feed in the background while you keep scrolling uninterrupted.</p></div></div>
+      <div class="card usage-card"><div class="usage-badge">GM</div><div><b>Gmail</b><p style="margin:6px 0 0; color:var(--muted); font-size:14px;">Fetches new emails asynchronously in the background; the inbox stays fully interactive while requests are pending.</p></div></div>
+      <div class="card usage-card"><div class="usage-badge">NF</div><div><b>Netflix</b><p style="margin:6px 0 0; color:var(--muted); font-size:14px;">Awaits video metadata and buffered chunks so playback controls stay responsive while the next segment loads.</p></div></div>
     </div>
-    <div class="impact-item">
-      <div class="company">Google Cloud Console</div>
-      <p class="impact-text">Missing <code>.catch()</code> in <code>Promise.all()</code> caused blank renders for <b>14% of users</b> in asia-east1 for 3 days. Fix: <code>Promise.allSettled()</code> with per-Promise error boundaries contained failures regionally.</p>
+  </section>
+
+  <!-- MODULE 11 — COMMON MISTAKES -->
+  <section class="module" id="m11">
+    <div class="mod-label">Module 11 · Common Mistakes</div>
+    <h2 class="mod-title">Wrong vs. Correct</h2>
+    <div class="callout bad"><span class="icon">❌</span><p style="margin:0;">Using <code style="color:var(--red);">await</code> in a plain function — throws <code style="color:var(--red);">SyntaxError: await is only valid in async function</code>.</p></div>
+    <div class="callout good"><span class="icon">✅</span><p style="margin:0;">Mark the enclosing function <code style="color:var(--green);">async</code> before using <code style="color:var(--green);">await</code> inside it.</p></div>
+    <div class="callout bad" style="margin-top:22px;"><span class="icon">❌</span><p style="margin:0;">Writing an <code style="color:var(--red);">await</code> with no <code style="color:var(--red);">try/catch</code> — a rejection surfaces as an unhandled promise rejection and silently breaks the flow.</p></div>
+    <div class="callout good"><span class="icon">✅</span><p style="margin:0;">Wrap awaited calls in <code style="color:var(--green);">try { } catch (err) { }</code> so failures are handled gracefully.</p></div>
+    <div class="callout bad" style="margin-top:22px;"><span class="icon">❌</span><p style="margin:0;"><code style="color:var(--red);">await</code>-ing unrelated promises one after another — each one blocks the next, even though they don't depend on each other.</p></div>
+    <div class="callout good"><span class="icon">✅</span><p style="margin:0;">Use <code style="color:var(--green);">Promise.all([...])</code> to run independent async calls in parallel.</p></div>
+  </section>
+
+  <!-- MODULE 12 — DEBUGGING MINDSET -->
+  <section class="module" id="m12">
+    <div class="mod-label">Module 12 · Debugging Mindset</div>
+    <h2 class="mod-title">Trace It Like a Detective</h2>
+    <div class="flow">
+      <div class="step">Problem</div><div class="arrow">→</div>
+      <div class="step">Observe Error</div><div class="arrow">→</div>
+      <div class="step">Find Stage</div><div class="arrow">→</div>
+      <div class="step">Fix</div>
     </div>
-  </div>
-</div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>You See</th><th>Likely Stage</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td><code style="color:var(--red);">await is only valid in async function</code></td><td>Function definition</td><td>Add the <code style="color:var(--amber);">async</code> keyword</td></tr>
+          <tr><td><code style="color:var(--red);">Uncaught (in promise) TypeError</code></td><td>Inside the awaited call</td><td>Wrap in <code style="color:var(--amber);">try/catch</code>, check the response before using it</td></tr>
+          <tr><td>Console logs run out of expected order</td><td>Mixing sync assumptions with async code</td><td>Trace which lines are actually awaited vs. fire-and-forget</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
-<div class="section-tag"><span class="n">9</span> INTERVIEW Q&amp;A</div>
-<div class="card">
-  <div class="qa-box">
-    <div class="q">Q: What happens when you use <code>await</code> on a non-Promise value?</div>
-    <div class="a">A: It works fine — <code>await</code> wraps non-Promise values in <code>Promise.resolve()</code>. <code>await 42</code> becomes <code>await Promise.resolve(42)</code>, which resolves to 42. It's a no-op for non-Promise values.</div>
-  </div>
-  <div class="qa-box">
-    <div class="q">Q: How does async/await relate to the event loop?</div>
-    <div class="a">A: When execution hits an <code>await</code>, the async function yields control back to the event loop. The microtask queue handles the Promise resolution, and when resolved, the function is placed back on the call stack at the <code>await</code> point. This is why async/await doesn't block the main thread.</div>
-  </div>
-  <div class="qa-box">
-    <div class="q">Q: Can you use <code>await</code> inside a <code>map()</code> or <code>filter()</code>?</div>
-    <div class="a">A: No — <code>await</code> inside <code>map()</code> returns an array of Promises, not values. Use <code>Promise.all(array.map(async ...))</code> instead. Similarly, <code>filter</code> won't work directly — filter the resolved values afterward.</div>
-  </div>
-</div>
+  <!-- MODULE 13 — IITM EXAM PATTERN -->
+  <section class="module" id="m13">
+    <div class="mod-label">Module 13 · IITM Exam Pattern</div>
+    <h2 class="mod-title">How This Shows Up on Paper</h2>
+    <p class="lead" style="margin-bottom:6px;">Trigger words</p>
+    <div class="pillbox"><span class="pill trigger">async</span><span class="pill trigger">await</span><span class="pill trigger">Promise state</span><span class="pill trigger">try/catch</span></div>
+    <p class="lead" style="margin-bottom:6px;">Trap words</p>
+    <div class="pillbox"><span class="pill trap">"prints immediately"</span><span class="pill trap">"blocks the thread"</span><span class="pill trap">"runs before"</span></div>
+    <div class="card-grid cols-2" style="margin-top:8px;">
+      <div class="card"><div class="mod-label" style="margin-bottom:8px;">MCQ Tricks</div><p style="margin:0; color:var(--muted); font-size:14px;">Questions often ask for console.log <b>order</b> — remember: everything synchronous runs first, awaited code resumes only after.</p></div>
+      <div class="card"><div class="mod-label" style="margin-bottom:8px;">PYQ Pattern</div><p style="margin:0; color:var(--muted); font-size:14px;">"What is logged, and in what order?" given a mix of sync statements and awaited calls.</p></div>
+    </div>
+    <div class="callout warn" style="margin-top:16px;"><span class="icon">🎯</span><p style="margin:0;"><b>Elimination technique:</b> cross out any option claiming an awaited line finishes "before" the synchronous code that follows it in the same function call — that ordering is never correct.</p></div>
+  </section>
 
-<div class="section-tag"><span class="n">10</span> QUICK REVISION</div>
-<div class="card">
-  <div class="rev-grid">
-    <div class="rev-item"><b>async</b> — makes a function return a Promise, enables <code>await</code></div>
-    <div class="rev-item"><b>await</b> — pauses execution until Promise resolves, returns value</div>
-    <div class="rev-item"><b>try/catch</b> — catches rejected Promises and thrown errors</div>
-    <div class="rev-item"><b>Promise.all</b> — parallel execution, fails fast on any rejection</div>
-    <div class="rev-item"><b>Promise.allSettled</b> — parallel, waits for all to complete regardless</div>
-    <div class="rev-item"><b>Top-level await</b> — <code>await</code> in module scope, blocks importing modules</div>
-    <div class="rev-item"><b>Never use</b> — <code>await</code> in <code>forEach()</code>, forgetting <code>await</code> on calls</div>
-    <div class="rev-item"><b>Debugging</b> — async/await works with breakpoints, step-over works naturally</div>
-  </div>
-</div>
+  <!-- MODULE 14 — INTERVIEW QUESTIONS -->
+  <section class="module" id="m14">
+    <div class="mod-label">Module 14 · Interview Questions</div>
+    <h2 class="mod-title">Three Tiers</h2>
+    <div class="card-grid cols-3">
+      <div class="card"><div class="mod-label" style="margin-bottom:8px; color:var(--green);">Easy</div><p style="margin:0; font-size:14px;">What does the <code style="color:var(--amber);">async</code> keyword actually do to a function?</p></div>
+      <div class="card"><div class="mod-label" style="margin-bottom:8px; color:var(--amber);">Medium</div><p style="margin:0; font-size:14px;">Why prefer <code style="color:var(--amber);">try/catch</code> around <code style="color:var(--amber);">await</code> instead of chaining <code style="color:var(--amber);">.catch()</code>?</p></div>
+      <div class="card"><div class="mod-label" style="margin-bottom:8px; color:var(--red);">Advanced</div><p style="margin:0; font-size:14px;">Walk through exactly what happens internally between calling an async function and it resuming after an awaited Promise settles.</p></div>
+    </div>
+  </section>
 
-<div class="footer-note">MAD2 · Vue.js — study card</div>
-</div>
+  <!-- MODULE 15 — ONE PAGE BRAIN -->
+  <section class="module" id="m15">
+    <div class="mod-label">Module 15 · One-Page Brain</div>
+    <h2 class="mod-title">Compressed Revision</h2>
+    <div class="brain-flow">
+      <div class="flow" style="margin:0 0 18px;">
+        <div class="step">async</div><div class="arrow">→</div><div class="step">returns Promise</div><div class="arrow">→</div>
+        <div class="step">await</div><div class="arrow">→</div><div class="step">pauses fn</div><div class="arrow">→</div>
+        <div class="step">settled</div><div class="arrow">→</div><div class="step">resumes</div>
+      </div>
+      <div class="remember-row"><span class="key">async</span><span>Wraps the return value in a resolved Promise</span></div>
+      <div class="remember-row"><span class="key">await</span><span>Pauses only this function until the Promise settles</span></div>
+      <div class="remember-row"><span class="key">.then / .catch</span><span>Chained callbacks — the pre-async/await style</span></div>
+      <div class="remember-row"><span class="key">try / catch</span><span>Wraps await to trap rejections synchronously-styled</span></div>
+    </div>
+  </section>
+
+  <!-- MODULE 16 — QUICK REVISION TABLE -->
+  <section class="module" id="m16">
+    <div class="mod-label">Module 16 · Quick Revision Table</div>
+    <h2 class="mod-title">Then/Catch vs. Async/Await</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Aspect</th><th>.then() / .catch()</th><th>async / await</th></tr></thead>
+        <tbody>
+          <tr><td>Reads like</td><td>Chained callbacks</td><td>Synchronous code</td></tr>
+          <tr><td>Error handling</td><td><code style="color:var(--amber);">.catch()</code> at end of chain</td><td><code style="color:var(--amber);">try/catch</code> block</td></tr>
+          <tr><td>Nesting risk</td><td>Grows with each step</td><td>Stays flat</td></tr>
+          <tr><td>Debugging</td><td>Stack traces less direct</td><td>Cleaner stack traces</td></tr>
+          <tr><td>Best for</td><td>Simple one-off chains</td><td>Multi-step, readable flows</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 17 — PRACTICE LADDER -->
+  <section class="module" id="m17">
+    <div class="mod-label">Module 17 · Practice Ladder</div>
+    <h2 class="mod-title">Climb, Level by Level</h2>
+    <div class="ladder">
+      <div class="rung"><span class="lvl">L1</span>Explain, in one sentence, what <code style="color:var(--amber);">await</code> does.</div>
+      <div class="rung"><span class="lvl">L2</span>Predict the console.log output of a mix of sync and awaited lines.</div>
+      <div class="rung"><span class="lvl">L3</span>Find the bug: an <code style="color:var(--amber);">await</code> used outside an <code style="color:var(--amber);">async</code> function.</div>
+      <div class="rung"><span class="lvl">L4</span>Answer an MCQ on Promise state transitions.</div>
+      <div class="rung"><span class="lvl">L5</span>Write an async function that fetches and returns JSON data.</div>
+      <div class="rung"><span class="lvl">L6</span>Build a mini dashboard that awaits two API calls and renders both.</div>
+      <div class="rung"><span class="lvl">L7</span>Answer the advanced interview question on internal execution order.</div>
+    </div>
+  </section>
+
+  <!-- MODULE 18 — MEMORY PALACE -->
+  <section class="module" id="m18">
+    <div class="mod-label">Module 18 · Memory Palace</div>
+    <h2 class="mod-title">Three Anchors</h2>
+    <div class="palace-grid">
+      <div class="palace-card"><div class="tag">Rule</div><div class="big">await only pauses the function it's inside — never the whole program.</div></div>
+      <div class="palace-card"><div class="tag">Mnemonic</div><div class="big">A.W.A.I.T — Async Waits, Ain't Interrupting the Thread.</div></div>
+      <div class="palace-card"><div class="tag">Visual</div><div class="big" style="font-family:var(--mono); font-size:14px; font-weight:400; color:var(--muted);">order → 🔔 → deliver<br>(placed, background, resumed)</div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>MAD2 LEARNING OS · SCREENCAST 5.2 · ASYNC &amp; AWAIT</footer>
+
 </body>
 </html>

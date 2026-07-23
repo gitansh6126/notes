@@ -574,195 +574,182 @@ This skill is the formatting layer for the ongoing IIT Madras MLT interactive HT
 - [ ] Everything scales responsively without overflow or unreadable shrinkage</code></pre></div>
 
               <h2>Modern Application Development 2 (MAD2) Skills</h2>
-              <h3>1. MAD2 Learning Framework V4 (Execution First)</h3>
-              <p>Add this skill as a custom instruction or file named <code>mad2-learning-framework-v4</code>:</p>
+              <h3>1. MAD2 Learning Framework V5 (Execution First)</h3>
+              <p>Add this skill as a custom instruction or file named <code>mad2-learning-framework-v5</code>:</p>
               <div class="code-block"><pre style="max-height: 300px; overflow-y: auto;"><code>---
-name: mad2-learning-framework-v4
+name: mad2-learning-framework-v5
 description: >
-  Use this skill whenever converting MAD2 lecture notes, explaining JavaScript/Vue concepts, or designing MAD2 questions and coding practice. Follows the MAD2 Learning OS and the 15 core execution-first modules.
+  Use this skill whenever converting MAD2 (Modern Application Development 2) lecture notes, explaining JavaScript/Vue concepts, or designing MAD2 questions and coding practice. Follows the MAD2 Learning OS: an 18-module execution-first structure (Topic Card through Memory Palace) that walks every topic from core intuition to IITM exam patterns, interview questions, and long-term retention. Trigger this any time the user asks to turn MAD2 lecture content into notes, explain a JS/Vue/backend-dev concept "properly," or build exam/interview-ready understanding of a MAD2 topic — even without naming the framework explicitly.
 ---
 
-# MAD2 Learning Framework V4 (Execution First)
+# MAD2 Learning Framework V5 (Execution First)
 
-                     MAD2 LEARNING OS
-                           │
-        ┌──────────────────┴──────────────────┐
-        │                                     │
-   Learn Concept                       Solve Questions
-        │                                     │
-        ▼                                     ▼
- Concept Blueprint                   Question Classifier
-        │                                     │
-        ▼                                     ▼
- Engine Model                      Question Solver Algorithm
-        │                                     │
-        ▼                                     ▼
- Execution Visualizer              Pattern Recognition
-        │                                     │
-        ▼                                     ▼
- Guided Practice                  Mistake Analyzer
-        │                                     │
-        ▼                                     ▼
- Revision Engine                  Exam Simulator
+                         MAD2 LEARNING OS
+                               │
+        ┌──────────────────────┼──────────────────────┐
+        │                      │                      │
+        ▼                      ▼                      ▼
+ Learn Fundamentals      Write Code           Solve Questions
+        │                      │                      │
+        └──────────────┬───────┴──────────────┬───────┘
+                       ▼                      ▼
+                 Build Projects        Crack IITM Exam
 
-## MODULE 1 — Concept Blueprint
+This is the content skeleton for teaching any MAD2 topic (Vue, JS, backend dev concepts) so a student arrives at understanding rather than memorizes it. Every topic conversion should walk through all 18 modules below, in order. Not every module needs equal depth for every topic — a small topic can compress a module into a sentence — but never skip a module silently; if it's genuinely thin for this topic, say so briefly rather than omitting it. Pairs with premium-math-typesetting for how this gets visually rendered in an HTML artifact (equation panels aren't relevant here, but the box-card/diagram/color-coding visual language is).
 
-Purpose: Understand the topic in 3 minutes. Every topic follows exactly the same template.
-Structure: Identity → Problem → Why invented → Real-life use → Internal Working → Syntax → Mini Example
+## The 18 Modules
 
-Example: filter()
-Identity: Keeps selected elements
-Problem: Need only matching data
-Real Life: Passed students, Completed tasks
+### Module 1 — Topic Card (30 Seconds)
 
-## MODULE 2 — Engine Model ⭐⭐⭐
+Instantly know where the topic belongs. Include:
 
-This is the biggest improvement. Instead of learning JavaScript, learn how JavaScript thinks. Every topic begins with ONE engine question.
+- **Topic** — the name
+- **Category** — e.g. Vue Fundamentals
+- **Difficulty** — star rating, e.g. ⭐⭐☆☆☆
+- **Prerequisites** — what the learner should already know
+- **Importance** — star rating, e.g. ★★★★★
 
-Topic | Engine Question
----|---
-var/let | Where does it live?
-this | Who owns it?
-Promise | When does it execute?
-map | What happens to each element?
-Vue | What changed?
-Slot | What gets rendered?
-Router | Which component is shown?
-Vuex | Who changes the state?
+### Module 2 — Core Intuition (WHY)
 
-## MODULE 3 — Question Classifier ⭐⭐⭐⭐⭐
+Explain in 2–3 simple sentences, no jargon. Example register:
 
-Before reading code, Ask: "What kind of question is this?"
-Question → Scope? → Ownership? → Execution? → Transformation? → Rendering? → Reactivity? → Architecture?
-Immediately activate the correct solver.
+> Every Vue component is like a living object. It is born, becomes visible, reacts to changes, and finally disappears. Lifecycle hooks let us execute code at each of those stages.
 
-## MODULE 4 — Question Solver ⭐⭐⭐⭐⭐
+### Module 3 — Visual Mental Model
 
-This is missing from almost every notebook. Every topic gets its own algorithm.
+Always include a diagram. One picture should explain the whole topic. Example shapes:
 
-### Scope Solver
-Draw Memory → Draw Blocks → Place Variables → Execute
+`Creation → Mounting → Updating ↺ → Destroy`
 
-### this Solver
-Who called function? → Normal? → Arrow? → bind? → call? → apply?
+or an analogy-driven version:
 
-### Promise Solver
-Sync → Microtask → Macrotask
+`Seed → Plant → Growing → Dead`
 
-### Array Solver
-Input → Iteration → Callback → Output
+### Module 4 — Pattern Recognition
 
-### Vue Solver
-Data → Method → Reactive → DOM
+Teach students to recognize questions instantly. List the words that should trigger this topic, then give a recognition shortcut mapping trigger → action. Example:
 
-## MODULE 5 — Execution Visualizer ⭐⭐⭐⭐⭐
+- **Trigger words**: DOM, mounted, this, Arrow Function, Memory Leak, Reactive, beforeDestroy
+- **Recognition shortcut**: DOM → mounted, Cleanup → beforeDestroy
 
-Every topic has an animation representation.
+### Module 5 — Deep Fundamentals
 
-### Promise Example
-Pending → Resolved → then() → Output
+Answer, in order:
 
-### watch Example
-Data changes → watch() → API Call
+1. Why was this feature created?
+2. What problem does it solve?
+3. What happens internally?
+4. How does JavaScript/Vue execute it?
 
-### filter Example
-Array → Condition → Keep? → Output
+*No memorization — only understanding.*
 
-## MODULE 6 — Pattern Library
+### Module 6 — Execution Flow
 
-Instead of sorting by week, organize by pattern:
+Show the internal sequence as a vertical flow. Example:
 
-### Pattern: Ownership
-Contains: `this`, `bind`, `call`, `apply`, `prototype`, `static`
+`Component Created → Reactive Data → Template Compiled → Virtual DOM → Real DOM → User Interaction → Reactive Update → Destroy`
 
-### Pattern: Execution
-Contains: `Promise`, `async`, `await`, `setTimeout`
+### Module 7 — Syntax Anatomy
 
-### Pattern: Memory
-Contains: `var`, `let`, `const`, `closure`
+Break the syntax into pieces and explain every keyword. Example for `mounted() { }`:
 
-### Pattern: Rendering
-Contains: `slot`, `props`, `v-model`, `router`, `v-for`
+- `mounted` — the hook name Vue recognizes
+- `()` — no parameters passed in
+- `{}` — the function body, executed at this stage
+- `this` — bound to the component instance (only if declared as a standard function)
+- `await / async` — safe to use here; explain why per topic
 
-### Pattern: Transformation
-Contains: `map`, `filter`, `reduce`, `find`
+### Module 8 — Code Walkthrough
 
-## MODULE 7 — Practice Pyramid
+Use tiny examples, then explain line-by-line. Show the call sequence as a flow, e.g.:
 
-Not random practice.
-Recognition → Syntax → Predict Output → Explain Output → Debug → Modify Code → Mixed Question → PYQ → Hard PYQ
+`data() → mounted() → fetch() → render() → updated()`
 
-## MODULE 8 — Trap Book
+### Module 9 — Behind the Scenes
 
-Every topic maps top traps.
+Explain what Vue/JavaScript is doing internally — this builds true understanding, not surface recall. Example:
 
-### Scope Trap
-- Wrong: var is block scoped
-- Correct: var ignores blocks
+`Data Changes → Dependency Tracking → Virtual DOM → Diff → Patch → Browser Updates`
 
-### this Trap
-- Wrong: Arrow has this
-- Correct: Arrow inherits this
+### Module 10 — Real Project Usage
 
-## MODULE 9 — Mistake Journal
+Always answer "where is this used?" with recognizable real-world products (e.g. Netflix, Amazon, Gmail, Swiggy, Instagram) and explain concretely how each uses the concept — not just name-dropping.
 
-Every mistake becomes:
-Question → Wrong Assumption → Correct Rule → Trigger Sentence → 2 Similar Questions
+### Module 11 — Common Mistakes
 
-## MODULE 10 — Revision Engine
+Every topic gets a ❌ Wrong / ✅ Correct pairing. Example:
 
-Every topic:
-30 sec → 2 min → 5 min → Practice → PYQ
+- ❌ Trying to access the DOM inside `created()`
+- ✅ Accessing the DOM inside `mounted()`
 
-## MODULE 11 — Exam Simulator
+### Module 12 — Debugging Mindset
 
-Exactly IITM style:
-Easy → Trap → MSQ → Output → Mixed → PYQ
+Teach how to identify bugs with a flow:
 
-## MODULE 12 — Analytics Dashboard
+`Problem → Observe Error → Find Stage → Fix`
 
-Track:
-Accuracy → Average Time → Weak Pattern → Revision Due → Confidence
+Include: console errors, runtime errors, framework warnings, and common fixes.
 
-## MODULE 13 — Question Generator ⭐⭐⭐⭐⭐
+### Module 13 — IITM Exam Pattern
 
-This feature makes the system truly powerful. Every concept automatically generates practice:
-Recognition ×3 → Output ×5 → Debug ×3 → Modification ×2 → Mixed ×2 → PYQ Variant ×5
-You'll never run out of practice, and every new question targets the same reasoning pattern.
+Include:
 
-## MODULE 14 — PYQ DNA Analysis ⭐⭐⭐⭐⭐
+- Trigger Words
+- Trap Words
+- MCQ Tricks
+- PYQ (previous-year-question) Pattern
+- Elimination Technique
 
-Instead of storing PYQs, dissect them. Every PYQ is tagged like this:
-PYQ → Concepts → Pattern → Difficulty → Trap → Required Solver → Common Mistake
+Example shortcut: `DOM → mounted`
 
-Example: Scope Question
-- Pattern: Memory
-- Solver: Scope Solver
-- Trap: var ignores block
-- Difficulty: Medium
-Over time, you'll see that many different-looking questions actually share the same underlying DNA.
+### Module 14 — Interview Questions
 
-## MODULE 15 — Knowledge Graph
+Include three tiers:
 
-Instead of isolated topics, map their relationships.
+- **Easy** — e.g. "Difference between `created()` and `mounted()`?"
+- **Medium** — e.g. "Why avoid arrow functions for hooks?"
+- **Advanced** — e.g. "Explain Virtual DOM updates."
 
-### JavaScript
-├── Scope
-├── Closures
-├── Objects
-├── Classes
-├── Async
-└── Arrays
+### Module 15 — One-Page Brain
 
-### Vue
-├── Components
-├── Props
-├── Emit
-├── Slots
-├── Router
-└── Vuex
+End every topic with a compressed one-page revision flow plus a "remember" chain pairing each stage/hook with its one key fact. Example:
 
-Learning one node immediately shows its related concepts.</code></pre></div>
+`Lifecycle: Creation → Mount → Update → Destroy`
+
+Remember:
+- `created` → Data
+- `mounted` → DOM
+- `updated` → Don't mutate
+- `beforeDestroy` → Cleanup
+
+### Module 16 — Quick Revision Table
+
+A single scannable table, columns tailored to the topic. Example (Vue lifecycle hooks):
+
+| Hook | Data | DOM | Use |
+|---|---|---|---|
+| beforeCreate | ❌ | ❌ | Initialization |
+| created | ✅ | ❌ | API, state |
+| beforeMount | ✅ | ❌ | Last setup |
+| mounted | ✅ | ✅ | DOM |
+| beforeUpdate | ✅ | Old | Before patch |
+| updated | ✅ | New | After patch |
+| beforeDestroy | ✅ | ✅ | Cleanup |
+| destroyed | ❌ | ❌ | Removed |
+
+### Module 17 — Practice Ladder
+
+A 7-level difficulty progression, each level building on the last:
+
+`Level 1 Concept → Level 2 Predict Output → Level 3 Find Bug → Level 4 MCQ → Level 5 Coding → Level 6 Mini Project → Level 7 Interview`
+
+### Module 18 — Memory Palace
+
+End every topic with three memory aids:
+
+- **Rule** — the single governing principle in one sentence (e.g. "Data before DOM.")
+- **Mnemonic** — a short memorable acronym/phrase (e.g. "Create → Mount → Update → Destroy (CMUD)")
+- **Visual** — a simple ASCII timeline or flow reinforcing the same sequence</code></pre></div>
             </div>
           </div>
 

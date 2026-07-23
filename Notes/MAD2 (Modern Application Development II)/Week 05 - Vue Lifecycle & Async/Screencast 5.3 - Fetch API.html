@@ -3,444 +3,681 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fetch API — Study Notes</title>
+<title>The Fetch API — Tracking Slip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-:root{
-  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
-  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
-  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
-  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
-  --code-bg:#0D1118; --radius:14px;
-}
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
-  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
-}
-.wrap{max-width:900px;margin:0 auto;}
-.hero{
-  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
-  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
-}
-.hero::after{
-  content:""; position:absolute; top:-40%; right:-10%;
-  width:280px;height:280px;border-radius:50%;
-  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
-}
-.eyebrow{
-  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
-}
-.eyebrow::before{content:"\25CF"; font-size:10px;}
-h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
-.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
-.hero p b{color:var(--green);}
-.section-tag{
-  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
-  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
-}
-.section-tag .n{
-  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
-  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-  color:var(--green); font-weight:700; font-size:11px;
-}
-.card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px 26px; margin-bottom:18px;
-}
-.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
-.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
-.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
-.emoji-h{
-  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
-}
-.emoji-h .e{font-size:20px;}
-.analogy-box{
-  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
-.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
-.industry-box{
-  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
-.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
-.mistake-box{
-  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
-.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
-.tip-box{
-  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
-.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
-.impact-card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px; margin:20px 0;
-}
-.impact-label{
-  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
-  color:#4ADE94; font-weight:700; margin-bottom:16px;
-  display:flex; align-items:center; gap:10px;
-}
-.impact-label::before{
-  content:""; width:4px; height:18px;
-  background:#4ADE94; border-radius:3px; flex-shrink:0;
-}
-.impact-grid{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-  gap:14px;
-}
-.impact-item{
-  background:#161B26; border:1px solid #232A38;
-  border-radius:10px; padding:16px;
-}
-.impact-item .company{
-  font-size:13px; font-weight:700; color:#4ADE94;
-  margin-bottom:6px; display:flex; align-items:center; gap:6px;
-}
-.impact-item .company::before{
-  content:">"; font-family:'JetBrains Mono',monospace;
-  color:#4ADE94; font-size:11px; opacity:0.5;
-}
-.impact-item .impact-text{
-  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
-}
-.impact-item .impact-text strong{color:#F0B450;}
-.impact-item .impact-text b{color:#E7EAF2;}
-pre{
-  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
-  padding:16px 18px; overflow-x:auto; margin:12px 0;
-  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
-}
-code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
-.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
-.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
-@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
-.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
-.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
-.comp-card .c-desc{font-size:12px; color:var(--muted);}
-.comp-card.old .c-title{color:var(--red);}
-.comp-card.new .c-title{color:var(--green);}
-.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
-.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
-.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
-.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
-@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
-.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
-.rev-item b{color:var(--green);}
-ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
-li{margin:4px 0; color:var(--text);}
-.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+  :root{
+    --ink:#182420;
+    --ink-soft:#33413b;
+    --paper:#f4efe0;
+    --paper-dim:#e9e2cd;
+    --stamp:#d99a3d;
+    --stamp-dark:#a86e22;
+    --transit:#2f7d6b;
+    --transit-dark:#1f5749;
+    --alert:#b8452f;
+    --alert-bg:#f6e2da;
+    --ok-bg:#deeee6;
+    --line: rgba(24,36,32,0.16);
+    --shadow: 0 10px 24px rgba(24,36,32,0.14);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px 80px;}
+  a{color:inherit;}
+  code, .mono{font-family:'JetBrains Mono',monospace;}
+
+  /* ---------- TOP TRACKING RAIL ---------- */
+  .rail{
+    position:sticky;top:0;z-index:50;
+    background:var(--ink);
+    border-bottom:2px dashed rgba(244,239,224,0.25);
+    padding:10px 0;
+  }
+  .rail-inner{
+    max-width:960px;margin:0 auto;padding:0 20px;
+    display:flex;align-items:center;gap:14px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .rail-inner::-webkit-scrollbar{display:none;}
+  .rail-label{
+    color:var(--stamp);font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;
+    padding-right:10px;border-right:1px solid rgba(244,239,224,0.25);
+  }
+  .rail a{
+    font-size:12px;color:rgba(244,239,224,0.65);text-decoration:none;white-space:nowrap;
+    padding:4px 9px;border-radius:20px;transition:.15s;
+  }
+  .rail a:hover{background:rgba(244,239,224,0.1);color:var(--paper);}
+
+  /* ---------- HERO / SHIPPING LABEL ---------- */
+  .hero{padding:56px 0 30px;}
+  .label{
+    background:var(--paper);
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    position:relative;
+    padding:30px 30px 26px;
+    border:2px solid var(--ink);
+    overflow:hidden;
+  }
+  .label::before, .label::after{
+    content:"";position:absolute;top:0;bottom:0;width:26px;
+    background-image:radial-gradient(circle at 13px 0, transparent 12px, var(--ink) 12.5px);
+    background-size:26px 26px;background-repeat:repeat-y;
+  }
+  .label::before{left:-13px;}
+  .label::after{right:-13px;}
+  .label-top{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:2px dashed var(--line);padding-bottom:16px;margin-bottom:16px;
+    flex-wrap:wrap;gap:10px;
+  }
+  .tracking-no{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.08em;color:var(--ink-soft);}
+  .stamp-badge{
+    background:var(--stamp);color:var(--ink);font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:6px 12px;border-radius:30px;
+    transform:rotate(-3deg);border:2px solid var(--ink);
+  }
+  .hero h1{
+    font-family:'Space Grotesk',sans-serif;font-size:clamp(32px,6vw,52px);line-height:1.02;margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .hero .sub{font-size:16px;color:var(--ink-soft);max-width:60ch;margin:0 0 20px;}
+  .meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+  .meta-card{background:var(--paper-dim);border:1px solid var(--line);border-radius:10px;padding:10px 12px;}
+  .meta-card .k{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-soft);font-weight:600;}
+  .meta-card .v{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin-top:3px;}
+  @media(max-width:680px){.meta-grid{grid-template-columns:repeat(2,1fr);}}
+
+  /* ---------- SECTIONS ---------- */
+  section{margin-top:26px;scroll-margin-top:64px;}
+  .card{
+    background:var(--paper);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:26px 28px;border:1px solid rgba(24,36,32,0.08);
+  }
+  .module-eyebrow{
+    display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  }
+  .module-no{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;color:var(--paper);
+    background:var(--ink);padding:4px 9px;border-radius:6px;letter-spacing:.05em;
+  }
+  .module-eyebrow .tag{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--transit-dark);font-weight:700;}
+  h2{font-family:'Space Grotesk',sans-serif;font-size:24px;margin:0 0 14px;letter-spacing:-.01em;}
+  h3{font-family:'Space Grotesk',sans-serif;font-size:16px;margin:18px 0 8px;color:var(--ink-soft);}
+  p{line-height:1.65;font-size:15px;}
+  .intuition{
+    font-size:17px;line-height:1.7;background:var(--ok-bg);border-left:4px solid var(--transit);
+    padding:16px 18px;border-radius:0 10px 10px 0;
+  }
+
+  /* ---------- DIAGRAM (pure CSS flow) ---------- */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:0;margin:18px 0;}
+  .flow-step{
+    background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:12.5px;
+    padding:10px 14px;border-radius:8px;white-space:nowrap;
+  }
+  .flow-step.alt{background:var(--transit);}
+  .flow-arrow{color:var(--stamp-dark);font-weight:700;padding:0 10px;font-size:16px;}
+  @media(max-width:680px){
+    .flow{flex-direction:column;align-items:stretch;}
+    .flow-step{text-align:center;}
+    .flow-arrow{transform:rotate(90deg);padding:6px 0;text-align:center;}
+  }
+
+  /* two-lane analogy diagram */
+  .lane-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0;}
+  @media(max-width:680px){.lane-pair{grid-template-columns:1fr;}}
+  .lane{border:1px dashed var(--line);border-radius:10px;padding:14px;}
+  .lane .lane-title{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ink-soft);margin-bottom:8px;}
+  .lane .flow-step{font-size:12px;padding:8px 10px;}
+
+  /* ---------- TRIGGER PILLS ---------- */
+  .pillbox{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 18px;}
+  .pill{background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:12px;padding:6px 12px;border-radius:20px;}
+  .shortcut{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--paper-dim);
+    border-radius:10px;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:13px;margin-bottom:8px;
+  }
+  .shortcut .arrow{color:var(--stamp-dark);font-weight:700;}
+
+  /* ---------- CODE BLOCKS ---------- */
+  .codebox{
+    background:#12211d;color:#e9e2cd;border-radius:10px;overflow:hidden;margin:14px 0;
+    box-shadow:inset 0 0 0 1px rgba(233,226,205,0.06);
+  }
+  .codebox .filebar{
+    background:#0d1a17;padding:8px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:#9fb0a9;letter-spacing:.05em;display:flex;justify-content:space-between;
+  }
+  .codebox pre{margin:0;padding:16px 18px;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.75;overflow-x:auto;}
+  .codebox .c-key{color:#e79a5c;}
+  .codebox .c-str{color:#9fd1a8;}
+  .codebox .c-fn{color:#7fb7d9;}
+  .codebox .c-cm{color:#6f8079;font-style:italic;}
+  .codebox .c-note{
+    display:block;color:var(--stamp);font-style:normal;font-size:11.5px;padding-left:2px;
+  }
+
+  /* annotated line-by-line list */
+  .anatomy{list-style:none;margin:12px 0;padding:0;}
+  .anatomy li{
+    display:grid;grid-template-columns:120px 1fr;gap:14px;padding:9px 0;border-bottom:1px dashed var(--line);
+    align-items:start;
+  }
+  .anatomy li:last-child{border-bottom:none;}
+  .anatomy code{background:var(--ink);color:var(--stamp);padding:3px 8px;border-radius:6px;font-size:12.5px;font-weight:600;}
+  @media(max-width:600px){.anatomy li{grid-template-columns:1fr;gap:4px;}}
+
+  /* ---------- REAL WORLD USAGE CARDS ---------- */
+  .usage-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:12px;}
+  @media(max-width:680px){.usage-grid{grid-template-columns:1fr;}}
+  .usage-card{background:var(--paper-dim);border-radius:10px;padding:14px 16px;border:1px solid var(--line);}
+  .usage-card .app{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;margin-bottom:4px;}
+  .usage-card p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+
+  /* ---------- CALLOUTS (wrong/correct) ---------- */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0 16px;}
+  @media(max-width:680px){.pair{grid-template-columns:1fr;}}
+  .callout{border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.55;}
+  .callout.wrong{background:var(--alert-bg);border:1px solid rgba(184,69,47,0.3);}
+  .callout.right{background:var(--ok-bg);border:1px solid rgba(47,125,107,0.3);}
+  .callout .lab{font-weight:700;font-family:'Space Grotesk',sans-serif;font-size:12px;display:block;margin-bottom:3px;}
+
+  /* debugging flow */
+  .debug-case{background:var(--paper-dim);border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:4px solid var(--alert);}
+  .debug-case .sym{font-family:'JetBrains Mono',monospace;font-size:12.5px;color:var(--alert);margin-bottom:6px;}
+
+  /* exam pattern */
+  .exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:680px){.exam-grid{grid-template-columns:1fr;}}
+  .exam-block{background:var(--paper-dim);border-radius:10px;padding:14px;}
+  .exam-block .lab{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--transit-dark);margin-bottom:6px;display:block;}
+  .trap{color:var(--alert);}
+
+  /* interview tiers */
+  .tier{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px dashed var(--line);}
+  .tier:last-child{border-bottom:none;}
+  .tier .badge{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    padding:4px 9px;border-radius:20px;white-space:nowrap;margin-top:2px;
+  }
+  .tier.easy .badge{background:var(--ok-bg);color:var(--transit-dark);}
+  .tier.med .badge{background:#f2e6c8;color:var(--stamp-dark);}
+  .tier.adv .badge{background:var(--alert-bg);color:var(--alert);}
+
+  /* one page brain */
+  .brain{background:var(--ink);color:var(--paper);border-radius:12px;padding:22px 24px;}
+  .brain .flow-step{background:rgba(244,239,224,0.1);}
+  .remember{list-style:none;margin:16px 0 0;padding:0;}
+  .remember li{display:flex;gap:14px;padding:7px 0;border-bottom:1px dashed rgba(244,239,224,0.18);align-items:center;}
+  .remember code{font-family:'JetBrains Mono',monospace;background:rgba(244,239,224,0.12);padding:3px 9px;border-radius:6px;min-width:150px;text-align:center;color:var(--stamp);}
+
+  /* revision table */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13.5px;}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-family:'Space Grotesk',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-soft);}
+  td code{background:var(--paper-dim);padding:2px 6px;border-radius:4px;font-size:12px;}
+  .tbl-wrap{overflow-x:auto;}
+
+  /* practice ladder */
+  .ladder{display:flex;flex-direction:column;gap:0;margin-top:14px;}
+  .rung{
+    display:grid;grid-template-columns:56px 1fr;gap:14px;padding:12px 0 12px 0;position:relative;
+  }
+  .rung:not(:last-child)::after{
+    content:"";position:absolute;left:27px;top:44px;bottom:-2px;width:2px;background:var(--line);
+  }
+  .rung .num{
+    width:34px;height:34px;border-radius:50%;background:var(--transit);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;z-index:1;
+  }
+  .rung .lvl-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;margin-bottom:3px;}
+  .rung p{margin:0;font-size:13.5px;color:var(--ink-soft);}
+
+  /* memory palace */
+  .palace{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px;}
+  @media(max-width:680px){.palace{grid-template-columns:1fr;}}
+  .palace-card{background:var(--paper-dim);border:1px solid var(--line);border-radius:10px;padding:16px;text-align:center;}
+  .palace-card .ic{font-size:22px;}
+  .palace-card .lab{font-size:11px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--stamp-dark);margin:8px 0 4px;}
+  .palace-card p{margin:0;font-size:13.5px;}
+
+  footer{text-align:center;color:rgba(244,239,224,0.5);font-size:12px;padding:34px 0 10px;font-family:'JetBrains Mono',monospace;}
 </style>
 </head>
 <body>
+
+<div class="rail">
+  <div class="rail-inner">
+    <span class="rail-label">Tracking</span>
+    <a href="#m1">01 Card</a>
+    <a href="#m2">02 Intuition</a>
+    <a href="#m3">03 Model</a>
+    <a href="#m4">04 Patterns</a>
+    <a href="#m5">05 Fundamentals</a>
+    <a href="#m6">06 Flow</a>
+    <a href="#m7">07 Syntax</a>
+    <a href="#m8">08 Code</a>
+    <a href="#m9">09 Internals</a>
+    <a href="#m10">10 Real World</a>
+    <a href="#m11">11 Mistakes</a>
+    <a href="#m12">12 Debug</a>
+    <a href="#m13">13 Exam</a>
+    <a href="#m14">14 Interview</a>
+    <a href="#m15">15 One-Pager</a>
+    <a href="#m16">16 Table</a>
+    <a href="#m17">17 Practice</a>
+    <a href="#m18">18 Memory</a>
+  </div>
+</div>
+
 <div class="wrap">
 
-<div class="hero">
-  <div class="eyebrow">Week 05 · Screencast 5.3</div>
-  <h1>Fetch API</h1>
-  <p>The native browser API for making HTTP requests — <b>fetch(url, options)</b> returns a Promise that resolves to a <b>Response</b> object. Modern, promise-based, and available in all major browsers.</p>
-</div>
-
-<div class="section-tag"><span class="n">1</span> SYNTAX &amp; BASICS</div>
-<div class="card">
-  <h2>fetch(url, options)</h2>
-  <p class="def"><b>fetch</b> takes a URL (required) and an options object (optional). It returns a Promise that resolves to a <b>Response</b> object representing the server's response — regardless of whether the HTTP status indicates success.</p>
-
-  <pre><span class="cmt">// Basic GET request</span>
-<span class="fn">fetch</span>(<span class="str">'https://api.example.com/items'</span>)
-  .<span class="fn">then</span>(response => console.log(response))
-  .<span class="fn">catch</span>(error => console.error(error))
-
-<span class="cmt">// With async/await (modern style)</span>
-<span class="kw">async function</span> <span class="fn">getItems</span>() {
-  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/items'</span>)
-  <span class="kw">const</span> data = <span class="kw">await</span> response.<span class="fn">json</span>()
-  <span class="kw">return</span> data
-}</pre>
-
-  <div class="comparison">
-    <div class="comp-card old">
-      <div class="c-title">XMLHttpRequest (old)</div>
-      <div class="c-desc">Callback-based, verbose, need to manually check <code>readyState</code> and <code>status</code>. No built-in Promise support. ~10+ lines for a simple GET.</div>
-    </div>
-    <div class="comp-card new">
-      <div class="c-title">fetch (modern)</div>
-      <div class="c-desc">Promise-based, clean syntax, streams support, built-in <code>json()</code>/<code>text()</code> parsers. Works with async/await. ~3 lines for a simple GET.</div>
+  <!-- HERO / MODULE 1 -->
+  <div class="hero" id="m1">
+    <div class="label">
+      <div class="label-top">
+        <span class="tracking-no">TRACKING № JS-FETCH-5.3 &nbsp;·&nbsp; ORIGIN: MAD2 SCREENCAST</span>
+        <span class="stamp-badge">Handle w/ care</span>
+      </div>
+      <h1>The Fetch API</h1>
+      <p class="sub">Sending a courier across the network to fetch or deliver data — and learning to check the parcel before you assume it arrived in good shape.</p>
+      <div class="meta-grid">
+        <div class="meta-card"><div class="k">Category</div><div class="v">JS · Async Web APIs</div></div>
+        <div class="meta-card"><div class="k">Difficulty</div><div class="v">⭐⭐⭐☆☆</div></div>
+        <div class="meta-card"><div class="k">Prerequisites</div><div class="v">Promises, async/await</div></div>
+        <div class="meta-card"><div class="k">Importance</div><div class="v">★★★★★</div></div>
+      </div>
     </div>
   </div>
 
-  <div class="industry-box">
-    <div class="i-label">Industry Context</div>
-    <div class="i-text">fetch is the standard in all modern SPAs. Libraries like <b>axios</b> and <b>ky</b> are wrappers around fetch that add conveniences (automatic JSON parsing, request cancellation, interceptors). In 2024+ JavaScript, the trend is moving toward the native fetch API with thin wrappers rather than heavy HTTP libraries.</div>
-  </div>
-</div>
+  <!-- MODULE 2 -->
+  <section id="m2">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">02</span><span class="tag">Core Intuition</span></div>
+      <h2>Why Fetch Exists</h2>
+      <p class="intuition">Calling <code>fetch()</code> is like handing a courier an address and walking away — you get a <strong>tracking number</strong> (a Promise) immediately, long before the courier has even left the building. That tracking number only tells you the courier reached the destination and got <em>something</em> back. It says nothing about whether the "something" was the package you wanted, a "sorry, out of stock" note, or an empty box. Reading the actual contents is a separate step you do afterward.</p>
+    </div>
+  </section>
 
-<div class="section-tag"><span class="n">2</span> GET REQUEST PATTERN</div>
-<div class="card">
-  <h2>Fetching Data</h2>
-  <p class="def">GET is the default method. Always check <b>response.ok</b> (true for 200-299) or <b>response.status</b> before accessing the body.</p>
+  <!-- MODULE 3 -->
+  <section id="m3">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">03</span><span class="tag">Visual Mental Model</span></div>
+      <h2>One Picture, Two Lanes</h2>
+      <div class="flow">
+        <div class="flow-step">fetch(url)</div><div class="flow-arrow">→</div>
+        <div class="flow-step">Request Sent</div><div class="flow-arrow">→</div>
+        <div class="flow-step alt">Response Arrives</div><div class="flow-arrow">→</div>
+        <div class="flow-step">.json() / .text() / .blob()</div>
+      </div>
+      <div class="lane-pair">
+        <div class="lane">
+          <div class="lane-title">Technical lane</div>
+          <div class="flow-step" style="margin-bottom:6px;">Promise #1 pending</div>
+          <div class="flow-step alt" style="margin-bottom:6px;">Promise #1 resolves → Response</div>
+          <div class="flow-step">Promise #2 resolves → data</div>
+        </div>
+        <div class="lane">
+          <div class="lane-title">Drive-thru analogy</div>
+          <div class="flow-step" style="margin-bottom:6px;">Order placed at speaker</div>
+          <div class="flow-step alt" style="margin-bottom:6px;">Handed a bag at the window</div>
+          <div class="flow-step">Unwrap it — is your order actually inside?</div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <pre><span class="kw">async function</span> <span class="fn">getUser</span>(id) {
-  <span class="kw">try</span> {
-    <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">`https://api.example.com/users/${id}`</span>)
+  <!-- MODULE 4 -->
+  <section id="m4">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">04</span><span class="tag">Pattern Recognition</span></div>
+      <h2>Spot It Instantly</h2>
+      <div class="pillbox">
+        <span class="pill">fetch</span><span class="pill">Promise</span><span class="pill">async / await</span>
+        <span class="pill">.then / .catch</span><span class="pill">response.ok</span><span class="pill">JSON.stringify</span>
+        <span class="pill">FormData</span><span class="pill">network error</span><span class="pill">404 / 500</span>
+      </div>
+      <div class="shortcut"><span>"asynchronous network call"</span><span class="arrow">→</span><span>fetch()</span></div>
+      <div class="shortcut"><span>"did the request truly succeed?"</span><span class="arrow">→</span><span>response.ok</span></div>
+      <div class="shortcut"><span>"send JSON to a server"</span><span class="arrow">→</span><span>JSON.stringify(body) + Content-Type header</span></div>
+      <div class="shortcut"><span>"upload a file / form"</span><span class="arrow">→</span><span>FormData</span></div>
+    </div>
+  </section>
 
-    <span class="cmt">// ❌ Common mistake: assuming fetch throws on 404</span>
-    <span class="cmt">// fetch only rejects on network errors, NOT HTTP errors!</span>
-    <span class="kw">if</span> (!response.<span class="prop">ok</span>) {
-      <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`HTTP Error: ${response.status} ${response.statusText}`</span>)
-    }
+  <!-- MODULE 5 -->
+  <section id="m5">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">05</span><span class="tag">Deep Fundamentals</span></div>
+      <h2>Question the Feature, Not Just the Syntax</h2>
+      <h3>Why was it created?</h3>
+      <p>Its predecessor, <code>XMLHttpRequest</code>, needed nested callbacks and verbose event listeners for every request — hard to read, harder to chain.</p>
+      <h3>What problem does it solve?</h3>
+      <p>It gives every network call a single, Promise-shaped return value, so requests can be chained with <code>.then()</code> or written linearly with <code>async/await</code>.</p>
+      <h3>What happens internally?</h3>
+      <p>The browser opens a connection, sends the request, and resolves the first Promise the moment response <em>headers</em> arrive — the body may still be streaming in.</p>
+      <h3>How does JavaScript execute it?</h3>
+      <p><code>fetch()</code> is non-blocking: it fires the request and immediately returns control to your code. The event loop keeps running; the Promise settles later via the microtask queue once the network layer reports back.</p>
+    </div>
+  </section>
 
-    <span class="kw">const</span> user = <span class="kw">await</span> response.<span class="fn">json</span>()
-    <span class="kw">return</span> user
-  } <span class="kw">catch</span> (err) {
-    <span class="cmt">// Catches both network errors AND our thrown HTTP errors</span>
-    console.error(<span class="str">'Fetch failed:'</span>, err.message)
-    <span class="kw">throw</span> err
-  }
-}
+  <!-- MODULE 6 -->
+  <section id="m6">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">06</span><span class="tag">Execution Flow</span></div>
+      <h2>The Full Trip, Top to Bottom</h2>
+      <div class="flow" style="flex-direction:column;align-items:stretch;">
+        <div class="flow-step">fetch(url, init) called</div>
+        <div class="flow-arrow" style="transform:none;text-align:left;padding:4px 0 4px 14px;">↓</div>
+        <div class="flow-step">Browser opens connection to server</div>
+        <div class="flow-arrow" style="transform:none;text-align:left;padding:4px 0 4px 14px;">↓</div>
+        <div class="flow-step">Server processes request</div>
+        <div class="flow-arrow" style="transform:none;text-align:left;padding:4px 0 4px 14px;">↓</div>
+        <div class="flow-step alt">Response headers arrive → Promise #1 resolves (Response object)</div>
+        <div class="flow-arrow" style="transform:none;text-align:left;padding:4px 0 4px 14px;">↓</div>
+        <div class="flow-step">.json() / .text() / .blob() called on response</div>
+        <div class="flow-arrow" style="transform:none;text-align:left;padding:4px 0 4px 14px;">↓</div>
+        <div class="flow-step alt">Promise #2 resolves → usable data</div>
+      </div>
+    </div>
+  </section>
 
-<span class="cmt">// Usage</span>
-<span class="fn">getUser</span>(<span class="str">'42'</span>)
-  .<span class="fn">then</span>(user => console.log(user.name))
-  .<span class="fn">catch</span>(err => console.error(err.message))</pre>
-
-  <div class="mistake-box">
-    <div class="m-label">Critical Gotcha</div>
-    <div class="m-text"><b>fetch only rejects on network errors</b> (DNS failure, no internet, connection refused). HTTP 404, 500, 403 responses are NOT rejections — they are successful HTTP transactions with error status codes. You <b>must</b> check <code>response.ok</code> or <code>response.status</code> manually every time.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">3</span> RESPONSE PARSING</div>
-<div class="card">
-  <h2>Extracting the Body</h2>
-  <p class="def">The Response object provides several methods to read the body. Each returns a Promise. You can only call one — the body can only be read once (it's a ReadableStream).</p>
-
-  <pre><span class="cmt">// Parse as JSON</span>
-<span class="kw">const</span> data = <span class="kw">await</span> response.<span class="fn">json</span>()   <span class="cmt">// automatic JSON.parse()</span>
-
-<span class="cmt">// Parse as plain text</span>
-<span class="kw">const</span> text = <span class="kw">await</span> response.<span class="fn">text</span>()   <span class="cmt">// for HTML, CSV, plain text</span>
-
-<span class="cmt">// Parse as Blob (binary data, images)</span>
-<span class="kw">const</span> blob = <span class="kw">await</span> response.<span class="fn">blob</span>()   <span class="cmt">// use URL.createObjectURL(blob)</span>
-
-<span class="cmt">// Parse as ArrayBuffer (low-level)</span>
-<span class="kw">const</span> buffer = <span class="kw">await</span> response.<span class="fn">arrayBuffer</span>()  <span class="cmt">// for audio/video processing</span>
-
-<span class="cmt">// Check content type before parsing</span>
-<span class="kw">const</span> contentType = response.<span class="prop">headers</span>.<span class="fn">get</span>(<span class="str">'content-type'</span>)
-<span class="kw">if</span> (contentType?.<span class="fn">includes</span>(<span class="str">'application/json'</span>)) {
-  <span class="kw">return</span> response.<span class="fn">json</span>()
-} <span class="kw">else</span> {
-  <span class="kw">return</span> response.<span class="fn">text</span>()
-}</pre>
-
-  <div class="tip-box">
-    <div class="t-label">Pro Tip</div>
-    <div class="t-text">The body can only be read once. If you need to log the raw response and also use it, clone the response first with <code>response.clone()</code>. Or restructure to avoid needing the raw data after parsing.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">4</span> POST WITH JSON BODY</div>
-<div class="card">
-  <h2>Sending Data</h2>
-  <p class="def">For POST, PUT, and PATCH requests, configure the method, headers (especially <b>Content-Type</b>), and the body. JSON bodies must be serialized with <b>JSON.stringify()</b>.</p>
-
-  <pre><span class="kw">async function</span> <span class="fn">createItem</span>(item) {
-  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/items'</span>, {
-    method: <span class="str">'POST'</span>,
-    headers: {
-      <span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>,
-      <span class="str">'Authorization'</span>: <span class="str">`Bearer ${getToken()}`</span>
-    },
-    body: <span class="fn">JSON.stringify</span>(item)
-  })
-
-  <span class="kw">if</span> (!response.<span class="prop">ok</span>) {
-    <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`POST failed: ${response.status}`</span>)
-  }
-
-  <span class="kw">return</span> response.<span class="fn">json</span>()  <span class="cmt">// API usually returns the created resource</span>
-}
-
-<span class="cmt">// Usage</span>
-<span class="kw">const</span> newItem = <span class="kw">await</span> <span class="fn">createItem</span>({
-  name: <span class="str">'New Widget'</span>,
-  price: <span class="str">29.99</span>
-})
-console.log(<span class="str">'Created:'</span>, newItem.id)</pre>
-
-  <div class="analogy-box">
-    <div class="a-label">Real-World Analogy</div>
-    <div class="a-text">Fetching data is like sending a letter — GET is asking "do you have any information?" and the server writes back. POST is like sending a form in that letter: you put your data (the body) into the envelope, clearly label how to read it (<code>Content-Type: application/json</code> is like saying "the form is filled out in English"), and the server processes it and sends a response back.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">5</span> FORMDATA &amp; FILE UPLOADS</div>
-<div class="card">
-  <h2>Uploading Files</h2>
-  <p class="def">For file uploads or form submissions, use <b>FormData</b> instead of JSON. The browser automatically sets the correct <b>multipart/form-data</b> Content-Type (including the boundary). Do NOT set Content-Type manually with FormData — the browser handles it.</p>
-
-  <pre><span class="kw">async function</span> <span class="fn">uploadAvatar</span>(userId, file) {
-  <span class="kw">const</span> formData = <span class="kw">new</span> <span class="fn">FormData</span>()
-  formData.<span class="fn">append</span>(<span class="str">'avatar'</span>, file)           <span class="cmt">// File or Blob</span>
-  formData.<span class="fn">append</span>(<span class="str">'userId'</span>, userId.<span class="fn">toString</span>()) <span class="cmt">// additional fields</span>
-
-  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'https://api.example.com/upload'</span>, {
-    method: <span class="str">'POST'</span>,
-    <span class="cmt">// ❌ Do NOT set Content-Type — fetch + FormData does it automatically</span>
-    body: formData
-  })
-
-  <span class="kw">if</span> (!response.<span class="prop">ok</span>) <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Upload failed'</span>)
-  <span class="kw">return</span> response.<span class="fn">json</span>()
-}
-
-<span class="cmt">// HTML input handler</span>
-document.<span class="fn">getElementById</span>(<span class="str">'fileInput'</span>).<span class="fn">addEventListener</span>(<span class="str">'change'</span>, <span class="kw">async</span> (e) => {
-  <span class="kw">const</span> file = e.<span class="prop">target</span>.<span class="prop">files</span>[<span class="str">0</span>]
-  <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">uploadAvatar</span>(<span class="str">'42'</span>, file)
-  console.log(<span class="str">'Upload complete:'</span>, result.url)
+  <!-- MODULE 7 -->
+  <section id="m7">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">07</span><span class="tag">Syntax Anatomy</span></div>
+      <h2>Take the Call Apart</h2>
+      <div class="codebox">
+        <div class="filebar"><span>syntax</span><span>fetch(url, init)</span></div>
+        <pre><span class="c-fn">fetch</span>(<span class="c-str">url</span>, {
+  <span class="c-key">method</span>: <span class="c-str">'POST'</span>,
+  <span class="c-key">headers</span>: { <span class="c-str">'Content-Type'</span>: <span class="c-str">'application/json'</span> },
+  <span class="c-key">body</span>: <span class="c-fn">JSON.stringify</span>(data)
 })</pre>
+      </div>
+      <ul class="anatomy">
+        <li><code>fetch</code><span>Global browser function — a built-in Web API, not a language keyword.</span></li>
+        <li><code>url</code><span>First argument: the resource address, as a string (or a <code>Request</code> object).</span></li>
+        <li><code>{ }</code><span>Second argument: the optional <code>init</code> config object.</span></li>
+        <li><code>method</code><span>The HTTP verb — GET, POST, PUT, DELETE. Defaults to GET if omitted.</span></li>
+        <li><code>headers</code><span>Key–value metadata about the request, e.g. telling the server the body is JSON.</span></li>
+        <li><code>body</code><span>The payload for POST/PUT — must be a string, FormData, or Blob, never a raw object.</span></li>
+        <li><code>returns</code><span>A <code>Promise&lt;Response&gt;</code> — resolved once headers come back.</span></li>
+      </ul>
+    </div>
+  </section>
 
-  <div class="mistake-box">
-    <div class="m-label">Common Mistake</div>
-    <div class="m-text"><b>Setting Content-Type manually with FormData</b> — when you set <code>Content-Type: application/json</code> with FormData, the boundary isn't included, and the server can't parse the multipart request. Always omit Content-Type when using FormData; the browser generates the correct value automatically.</div>
-  </div>
-</div>
+  <!-- MODULE 8 -->
+  <section id="m8">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">08</span><span class="tag">Code Walkthrough</span></div>
+      <h2>Five Implementations, Line by Line</h2>
 
-<div class="section-tag"><span class="n">6</span> ABORTCONTROLLER — CANCELLATION</div>
-<div class="card">
-  <h2>Cancel In-Flight Requests</h2>
-  <p class="def"><b>AbortController</b> allows you to cancel a fetch request before it completes. This is essential for cleanup in single-page apps — when a user navigates away from a page, you should cancel pending requests.</p>
+      <h3>1 · Basic GET request</h3>
+      <div class="codebox">
+        <div class="filebar"><span>basic-get.js</span><span>2 promises, 2 awaits</span></div>
+        <pre><span class="c-key">async function</span> <span class="c-fn">getUsers</span>() {
+  <span class="c-cm">// Promise #1: resolves once headers arrive</span>
+  <span class="c-key">const</span> response = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/api/users'</span>);
+  <span class="c-cm">// Promise #2: resolves once the body is parsed</span>
+  <span class="c-key">const</span> data = <span class="c-key">await</span> response.<span class="c-fn">json</span>();
+  <span class="c-key">return</span> data;
+}</pre>
+      </div>
+      <p>Two separate promises are awaited: one for the trip, one for unwrapping the parcel.</p>
 
-  <pre><span class="kw">async function</span> <span class="fn">fetchWithTimeout</span>(url, timeoutMs = <span class="str">5000</span>) {
-  <span class="kw">const</span> controller = <span class="kw">new</span> <span class="fn">AbortController</span>()
-  <span class="kw">const</span> timeout = <span class="fn">setTimeout</span>(() => controller.<span class="fn">abort</span>(), timeoutMs)
-
-  <span class="kw">try</span> {
-    <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(url, { signal: controller.<span class="prop">signal</span> })
-    <span class="fn">clearTimeout</span>(timeout)
-    <span class="kw">return</span> response
-  } <span class="kw">catch</span> (err) {
-    <span class="fn">clearTimeout</span>(timeout)
-    <span class="kw">if</span> (err.<span class="prop">name</span> === <span class="str">'AbortError'</span>) {
-      <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`Request timed out after ${timeoutMs}ms`</span>)
-    }
-    <span class="kw">throw</span> err
+      <h3>2 · Handling HTTP errors</h3>
+      <div class="codebox">
+        <div class="filebar"><span>check-status.js</span><span>response.ok is manual</span></div>
+        <pre><span class="c-key">async function</span> <span class="c-fn">getUsers</span>() {
+  <span class="c-key">const</span> response = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/api/users'</span>);
+  <span class="c-key">if</span> (!response.ok) {
+    <span class="c-cm">// fetch() never rejects for a 404 — you must throw it yourself</span>
+    <span class="c-key">throw new</span> Error(<span class="c-str">`HTTP `</span> + response.status);
   }
-}
+  <span class="c-key">return await</span> response.<span class="c-fn">json</span>();
+}</pre>
+      </div>
+      <p>Without this check, a 404 page silently flows through your code as "successful" data.</p>
 
-<span class="cmt">// In Vue component — cancel on unmount</span>
-<span class="kw">export default</span> {
-  <span class="fn">data</span>() {
-    <span class="kw">return</span> { controller: <span class="kw">null</span> }
-  },
-  <span class="fn">async mounted</span>() {
-    <span class="kw">this</span>.controller = <span class="kw">new</span> <span class="fn">AbortController</span>()
-    <span class="kw">try</span> {
-      <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/data'</span>, {
-        signal: <span class="kw">this</span>.controller.<span class="prop">signal</span>
-      })
-      <span class="kw">this</span>.data = <span class="kw">await</span> res.<span class="fn">json</span>()
-    } <span class="kw">catch</span> (err) {
-      <span class="kw">if</span> (err.<span class="prop">name</span> !== <span class="str">'AbortError'</span>) <span class="kw">throw</span> err
-    }
-  },
-  <span class="fn">beforeDestroy</span>() {
-    <span class="kw">if</span> (<span class="kw">this</span>.controller) <span class="kw">this</span>.controller.<span class="fn">abort</span>()  <span class="cmt">// cancel on unmount</span>
+      <h3>3 · Sending JSON (POST)</h3>
+      <div class="codebox">
+        <div class="filebar"><span>post-json.js</span><span>stringify + header, always paired</span></div>
+        <pre><span class="c-key">async function</span> <span class="c-fn">createUser</span>(user) {
+  <span class="c-key">const</span> response = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/api/users'</span>, {
+    <span class="c-key">method</span>: <span class="c-str">'POST'</span>,
+    <span class="c-key">headers</span>: { <span class="c-str">'Content-Type'</span>: <span class="c-str">'application/json'</span> },
+    <span class="c-key">body</span>: <span class="c-fn">JSON.stringify</span>(user)
+  });
+  <span class="c-key">return await</span> response.<span class="c-fn">json</span>();
+}</pre>
+      </div>
+      <p>The header and the stringify call are a matched pair — the header tells the server how to read the body you just built.</p>
+
+      <h3>4 · Form &amp; file upload</h3>
+      <div class="codebox">
+        <div class="filebar"><span>form-upload.js</span><span>FormData sets its own headers</span></div>
+        <pre><span class="c-key">async function</span> <span class="c-fn">uploadAvatar</span>(formEl) {
+  <span class="c-key">const</span> data = <span class="c-key">new</span> FormData(formEl); <span class="c-cm">// reads &lt;input type="file"&gt; too</span>
+  <span class="c-key">const</span> response = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/api/avatar'</span>, {
+    <span class="c-key">method</span>: <span class="c-str">'POST'</span>,
+    <span class="c-key">body</span>: data <span class="c-cm">// no Content-Type header — the browser sets it</span>
+  });
+  <span class="c-key">return</span> response.ok;
+}</pre>
+      </div>
+      <p><code>FormData</code> reads every field in the form, including binary file input, and packages it as multipart data automatically.</p>
+
+      <h3>5 · Async/await version, end to end</h3>
+      <div class="codebox">
+        <div class="filebar"><span>full-flow.js</span><span>try/catch wraps both awaits</span></div>
+        <pre><span class="c-key">async function</span> <span class="c-fn">loadUser</span>(id) {
+  <span class="c-key">try</span> {
+    <span class="c-key">const</span> response = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">`/api/users/`</span> + id);
+    <span class="c-key">if</span> (!response.ok) <span class="c-key">throw new</span> Error(<span class="c-str">'Not found'</span>);
+    <span class="c-key">const</span> user = <span class="c-key">await</span> response.<span class="c-fn">json</span>();
+    <span class="c-key">return</span> user;
+  } <span class="c-key">catch</span> (err) {
+    <span class="c-cm">// catches BOTH network failures and thrown HTTP errors</span>
+    console.<span class="c-fn">error</span>(<span class="c-str">'Load failed:'</span>, err);
   }
 }</pre>
-
-  <div class="tip-box">
-    <div class="t-label">When To Cancel</div>
-    <div class="t-text">Always abort in-flight requests in <b>beforeDestroy</b> when the component unmounts. Without cancellation, the async callback may try to update state on a destroyed component, causing "Cannot perform setState on unmounted component" warnings and wasted bandwidth.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">7</span> CHECKING RESPONSE STATUS</div>
-<div class="card">
-  <h2>response.ok vs response.status</h2>
-  <p class="def">The Response object has several properties and methods for checking the HTTP status code.</p>
-
-  <pre><span class="kw">async function</span> <span class="fn">fetchWithStatus</span>(url) {
-  <span class="kw">const</span> res = <span class="kw">await</span> <span class="fn">fetch</span>(url)
-
-  console.log(res.<span class="prop">status</span>)        <span class="cmt">// e.g., 200, 404, 500</span>
-  console.log(res.<span class="prop">statusText</span>)    <span class="cmt">// e.g., "OK", "Not Found"</span>
-  console.log(res.<span class="prop">ok</span>)            <span class="cmt">// true if 200-299, false otherwise</span>
-  console.log(res.<span class="prop">redirected</span>)    <span class="cmt">// true if the request was redirected</span>
-  console.log(res.<span class="prop">url</span>)           <span class="cmt">// the final URL after any redirects</span>
-  console.log(res.<span class="prop">type</span>)          <span class="cmt">// "basic", "cors", "opaque", etc.</span>
-
-  <span class="kw">switch</span> (res.<span class="prop">status</span>) {
-    <span class="kw">case</span> <span class="str">200</span>: <span class="kw">return</span> res.<span class="fn">json</span>()      <span class="cmt">// OK</span>
-    <span class="kw">case</span> <span class="str">201</span>: <span class="kw">return</span> res.<span class="fn">json</span>()      <span class="cmt">// Created</span>
-    <span class="kw">case</span> <span class="str">204</span>: <span class="kw">return</span> <span class="kw">null</span>            <span class="cmt">// No Content</span>
-    <span class="kw">case</span> <span class="str">401</span>: <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Unauthorized — redirect to login'</span>)
-    <span class="kw">case</span> <span class="str">403</span>: <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Forbidden'</span>)
-    <span class="kw">case</span> <span class="str">404</span>: <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Not Found'</span>)
-    <span class="kw">case</span> <span class="str">500</span>: <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">'Server Error — try again later'</span>)
-    <span class="kw">default</span>:  <span class="kw">throw new</span> <span class="fn">Error</span>(<span class="str">`Unexpected status: ${res.status}`</span>)
-  }
-}</pre>
-</div>
-
-<div class="section-tag"><span class="n">8</span> PRODUCTION USE CASES</div>
-<div class="impact-card">
-  <div class="impact-label">Production Impact</div>
-  <div class="impact-grid">
-    <div class="impact-item">
-      <div class="company">Major US Airline</div>
-      <p class="impact-text">Used <code>fetch()</code> without checking <code>response.ok</code> — a 503 error showed "No seats available" instead of "Service unavailable" during a flash sale, causing <b>12,000+ abandoned bookings</b>. Fix: HTTP status checks with retry logic <strong>recovered 94%</strong> of sessions.</p>
+      </div>
     </div>
-    <div class="impact-item">
-      <div class="company">Financial Data Platform</div>
-      <p class="impact-text">Sequential <code>fetch()</code> calls caused stale data to displace fresh data — traders made decisions on <b>2-minute-old data</b> during volatile markets. Fix: AbortController + version counter eliminated the bug.</p>
+  </section>
+
+  <!-- MODULE 9 -->
+  <section id="m9">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">09</span><span class="tag">Behind the Scenes</span></div>
+      <h2>What the Browser Is Actually Doing</h2>
+      <div class="flow">
+        <div class="flow-step">fetch() called</div><div class="flow-arrow">→</div>
+        <div class="flow-step">Socket opened, TCP/TLS handshake</div><div class="flow-arrow">→</div>
+        <div class="flow-step">HTTP request sent</div>
+      </div>
+      <div class="flow">
+        <div class="flow-step alt">Server replies with headers first</div><div class="flow-arrow">→</div>
+        <div class="flow-step">Response object created (body still streaming)</div><div class="flow-arrow">→</div>
+        <div class="flow-step alt">Promise #1 resolves</div>
+      </div>
+      <div class="flow">
+        <div class="flow-step">.json() reads &amp; parses the stream</div><div class="flow-arrow">→</div>
+        <div class="flow-step alt">Promise #2 resolves</div>
+      </div>
+      <p>This is why the two promises exist: the connection can succeed (Promise #1) long before the browser has finished downloading and parsing the actual body (Promise #2).</p>
     </div>
-  </div>
+  </section>
+
+  <!-- MODULE 10 -->
+  <section id="m10">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">10</span><span class="tag">Real Project Usage</span></div>
+      <h2>Where This Runs Right Now</h2>
+      <div class="usage-grid">
+        <div class="usage-card"><div class="app">Netflix</div><p>Fetches thumbnail metadata and "next episode" info as you scroll, so rows load in the background without freezing the UI.</p></div>
+        <div class="usage-card"><div class="app">Instagram</div><p>Pull-to-refresh fires a fetch for new feed posts; the app checks response.ok before swapping in new content.</p></div>
+        <div class="usage-card"><div class="app">Swiggy / Zomato</div><p>Fetches nearby restaurants based on location, then POSTs your cart as JSON when you place an order.</p></div>
+        <div class="usage-card"><div class="app">Gmail</div><p>Background fetches poll for new mail; attachments are retrieved with <code>.blob()</code> for binary file data.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 11 -->
+  <section id="m11">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">11</span><span class="tag">Common Mistakes</span></div>
+      <h2>Wrong vs. Correct</h2>
+      <div class="pair">
+        <div class="callout wrong"><span class="lab">❌ Wrong</span>Assuming <code>fetch()</code> rejects on a 404 or 500 response.</div>
+        <div class="callout right"><span class="lab">✅ Correct</span>Always check <code>response.ok</code> (or <code>response.status</code>) and throw manually if it's false.</div>
+      </div>
+      <div class="pair">
+        <div class="callout wrong"><span class="lab">❌ Wrong</span>Using the raw response as if it were your data.</div>
+        <div class="callout right"><span class="lab">✅ Correct</span><code>await response.json()</code> to unwrap the actual payload — that's a second promise.</div>
+      </div>
+      <div class="pair">
+        <div class="callout wrong"><span class="lab">❌ Wrong</span>Passing a plain object directly as <code>body</code>.</div>
+        <div class="callout right"><span class="lab">✅ Correct</span><code>JSON.stringify(obj)</code> plus a matching <code>Content-Type</code> header.</div>
+      </div>
+      <div class="pair">
+        <div class="callout wrong"><span class="lab">❌ Wrong</span>Leaving network failures uncaught.</div>
+        <div class="callout right"><span class="lab">✅ Correct</span>Wrap awaited calls in <code>try/catch</code>, or chain <code>.catch()</code>.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 12 -->
+  <section id="m12">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">12</span><span class="tag">Debugging Mindset</span></div>
+      <h2>Problem → Observe → Find Stage → Fix</h2>
+      <div class="debug-case">
+        <div class="sym">TypeError: Failed to fetch</div>
+        <p style="margin:0;"><strong>Observe:</strong> no status code shows in the Network tab at all. <strong>Find stage:</strong> the request never reached the server — DNS, offline, or CORS. <strong>Fix:</strong> check the URL, connectivity, and CORS headers.</p>
+      </div>
+      <div class="debug-case">
+        <div class="sym">data is undefined after the call</div>
+        <p style="margin:0;"><strong>Observe:</strong> you logged the raw response, not the parsed body. <strong>Find stage:</strong> the parsing step. <strong>Fix:</strong> <code>await response.json()</code> before using the result.</p>
+      </div>
+      <div class="debug-case">
+        <div class="sym">Silent failure on a 404 page</div>
+        <p style="margin:0;"><strong>Observe:</strong> code runs "successfully" but the UI shows garbage. <strong>Find stage:</strong> missing status check. <strong>Fix:</strong> add the <code>response.ok</code> guard.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 13 -->
+  <section id="m13">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">13</span><span class="tag">IITM Exam Pattern</span></div>
+      <h2>How This Shows Up on Paper</h2>
+      <div class="exam-grid">
+        <div class="exam-block"><span class="lab">Trigger words</span>"asynchronous", "resolves", "network error", "status code"</div>
+        <div class="exam-block"><span class="lab">Trap words</span>Any option claiming <span class="trap">"fetch() throws on a 404"</span> — false, a classic trap.</div>
+        <div class="exam-block"><span class="lab">MCQ trick</span>Distinguish a <em>network error</em> (promise rejects) from an <em>HTTP error status</em> (promise resolves, <code>response.ok</code> is false).</div>
+        <div class="exam-block"><span class="lab">PYQ pattern</span>"What does <code>fetch()</code> return?" → a Promise that resolves to a <code>Response</code> object, regardless of HTTP status.</div>
+      </div>
+      <h3>Elimination technique</h3>
+      <p>Cross out any option claiming fetch auto-parses JSON, or auto-rejects on 4xx/5xx — both are the most common wrong-answer bait.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 14 -->
+  <section id="m14">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">14</span><span class="tag">Interview Questions</span></div>
+      <h2>Three Tiers</h2>
+      <div class="tier easy"><span class="badge">Easy</span><p>What does <code>fetch()</code> return?</p></div>
+      <div class="tier med"><span class="badge">Medium</span><p>Why doesn't <code>fetch()</code> reject on a 404 response?</p></div>
+      <div class="tier adv"><span class="badge">Advanced</span><p>Walk through everything that happens internally between calling <code>fetch()</code> and having usable, parsed JSON in a variable.</p></div>
+    </div>
+  </section>
+
+  <!-- MODULE 15 -->
+  <section id="m15">
+    <div class="brain" style="border-radius:var(--radius);box-shadow:var(--shadow);">
+      <div class="module-eyebrow"><span class="module-no" style="background:var(--stamp);color:var(--ink);">15</span><span class="tag" style="color:var(--stamp);">One-Page Brain</span></div>
+      <h2 style="color:var(--paper);">The Whole Topic, Compressed</h2>
+      <div class="flow">
+        <div class="flow-step">Request</div><div class="flow-arrow" style="color:var(--stamp);">→</div>
+        <div class="flow-step">Promise #1 (Response)</div><div class="flow-arrow" style="color:var(--stamp);">→</div>
+        <div class="flow-step">Check response.ok</div><div class="flow-arrow" style="color:var(--stamp);">→</div>
+        <div class="flow-step">Promise #2 (parsed body)</div>
+      </div>
+      <ul class="remember">
+        <li><code>fetch()</code><span>Returns a Promise, always.</span></li>
+        <li><code>response.ok</code><span>True only for status 200–299 — check it manually.</span></li>
+        <li><code>.json()</code><span>Returns another Promise — needs its own await.</span></li>
+        <li><code>FormData</code><span>Handles files and form fields together.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- MODULE 16 -->
+  <section id="m16">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">16</span><span class="tag">Quick Revision Table</span></div>
+      <h2>Scan This the Night Before</h2>
+      <div class="tbl-wrap">
+      <table>
+        <tr><th>Concept</th><th>What it does</th><th>Returns</th><th>Gotcha</th></tr>
+        <tr><td><code>fetch(url)</code></td><td>Sends a GET request</td><td>Promise&lt;Response&gt;</td><td>Doesn't reject on HTTP errors</td></tr>
+        <tr><td><code>response.ok</code></td><td>Checks status is 200–299</td><td>boolean</td><td>Must be checked manually</td></tr>
+        <tr><td><code>response.json()</code></td><td>Parses the JSON body</td><td>Promise&lt;Object&gt;</td><td>Needs its own <code>await</code></td></tr>
+        <tr><td><code>JSON.stringify()</code></td><td>Converts object → string</td><td>string</td><td>Required for a JSON POST body</td></tr>
+        <tr><td><code>FormData</code></td><td>Collects form + file data</td><td>FormData object</td><td>Don't set Content-Type yourself</td></tr>
+        <tr><td><code>async/await</code></td><td>Linear async syntax</td><td>Same as <code>.then</code> chain</td><td>Both awaits are still required</td></tr>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 17 -->
+  <section id="m17">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">17</span><span class="tag">Practice Ladder</span></div>
+      <h2>Climb One Rung at a Time</h2>
+      <div class="ladder">
+        <div class="rung"><div class="num">1</div><div><div class="lvl-title">Concept</div><p>What does <code>fetch()</code> return, and when does it settle?</p></div></div>
+        <div class="rung"><div class="num">2</div><div><div class="lvl-title">Predict Output</div><p>Given a snippet with a missing <code>await</code>, what logs to the console?</p></div></div>
+        <div class="rung"><div class="num">3</div><div><div class="lvl-title">Find the Bug</div><p>Spot the missing <code>response.ok</code> check in a broken snippet.</p></div></div>
+        <div class="rung"><div class="num">4</div><div><div class="lvl-title">MCQ</div><p>Answer an exam-style question distinguishing network vs. HTTP errors.</p></div></div>
+        <div class="rung"><div class="num">5</div><div><div class="lvl-title">Coding</div><p>Write <code>fetchUser(id)</code> using async/await with proper error handling.</p></div></div>
+        <div class="rung"><div class="num">6</div><div><div class="lvl-title">Mini Project</div><p>Build a small "search GitHub users" tool using live fetch calls.</p></div></div>
+        <div class="rung"><div class="num">7</div><div><div class="lvl-title">Interview</div><p>Explain the full request lifecycle out loud, unaided, to another person.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 18 -->
+  <section id="m18">
+    <div class="card">
+      <div class="module-eyebrow"><span class="module-no">18</span><span class="tag">Memory Palace</span></div>
+      <h2>Three Things to Keep Forever</h2>
+      <div class="palace">
+        <div class="palace-card"><div class="ic">📜</div><div class="lab">Rule</div><p>A resolved promise means delivery, not success.</p></div>
+        <div class="palace-card"><div class="ic">🔤</div><div class="lab">Mnemonic</div><p>"Two Promises, One Truth" — one for the trip, one for the parcel, and <code>response.ok</code> is the only truth that matters.</p></div>
+        <div class="palace-card"><div class="ic">🧭</div><div class="lab">Visual</div><p>Order Placed → 🚚 In Transit → 📬 Delivered (check the condition!) → 📦 Open It</p></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 LEARNING OS · SCREENCAST 5.3 · TRACKING № JS-FETCH-5.3</footer>
 </div>
 
-<div class="section-tag"><span class="n">9</span> INTERVIEW Q&amp;A</div>
-<div class="card">
-  <div class="qa-box">
-    <div class="q">Q: Does fetch reject on HTTP 404 or 500 errors?</div>
-    <div class="a">A: No! fetch only rejects on network errors — DNS failures, no internet, CORS failures, connection refused. HTTP 404, 500, 403 are all successful HTTP transactions. You must check <code>response.ok</code> or <code>response.status</code> manually to handle HTTP errors.</div>
-  </div>
-  <div class="qa-box">
-    <div class="q">Q: How do you cancel an in-flight fetch request?</div>
-    <div class="a">A: Use <code>AbortController</code>. Create a new AbortController, pass its <code>signal</code> to fetch's options, and call <code>controller.abort()</code> when you want to cancel. The fetch Promise rejects with an <code>AbortError</code> that you can catch with <code>err.name === 'AbortError'</code>.</div>
-  </div>
-  <div class="qa-box">
-    <div class="q">Q: Can you set a timeout with fetch?</div>
-    <div class="a">A: There's no built-in timeout option. You implement it manually with <code>AbortController</code> + <code>setTimeout</code>: create a controller, set a timeout that calls <code>controller.abort()</code> after N milliseconds, and pass the signal to fetch.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">10</span> QUICK REVISION</div>
-<div class="card">
-  <div class="rev-grid">
-    <div class="rev-item"><b>fetch(url, options)</b> — returns Promise&lt;Response&gt;</div>
-    <div class="rev-item"><b>response.ok</b> — true for 200-299, ALWAYS check this</div>
-    <div class="rev-item"><b>response.json()</b> — parse body as JSON</div>
-    <div class="rev-item"><b>response.text()</b> — parse body as plain text</div>
-    <div class="rev-item"><b>POST JSON</b> — method, headers, JSON.stringify(body)</div>
-    <div class="rev-item"><b>FormData</b> — for file uploads, DON'T set Content-Type</div>
-    <div class="rev-item"><b>AbortController</b> — cancellation + timeouts</div>
-    <div class="rev-item"><b>No auto-error</b> — 404/500 are NOT rejected, check ok!</div>
-  </div>
-</div>
-
-<div class="footer-note">MAD2 · Vue.js — study card</div>
-</div>
 </body>
 </html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to Vue.js — MAD2 Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14;
+    --panel:#141a26;
+    --panel-2:#171f30;
+    --border:rgba(255,255,255,0.08);
+    --text:#e7e9ee;
+    --muted:#8b95a7;
+    --gold:#e8bf5a;
+    --teal:#37c9b8;
+    --purple:#a888f2;
+    --red:#ef7b6b;
+    --blue:#6fa8f0;
+    --serif:"Fraunces", "STIX Two Math", serif;
+    --sans:"Inter", -apple-system, sans-serif;
+    --mono:"JetBrains Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(232,191,90,0.06), transparent 60%),
+      radial-gradient(1000px 500px at 90% 0%, rgba(55,201,184,0.05), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:940px; margin:0 auto; padding:0 1.5rem 6rem;}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:4.5rem 0 3rem; border-bottom:1px solid var(--border); margin-bottom:3rem;}
+  .eyebrow{
+    font-family:var(--mono); font-size:0.78rem; letter-spacing:0.12em;
+    text-transform:uppercase; color:var(--teal);
+    display:flex; align-items:center; gap:0.6rem; margin-bottom:1.1rem;
+  }
+  .eyebrow::before{content:"";width:1.4rem;height:1px;background:var(--teal);display:inline-block;}
+  h1.title{
+    font-family:var(--serif); font-weight:600; font-size:clamp(2.2rem, 6vw, 3.4rem);
+    margin:0 0 0.6rem; letter-spacing:-0.01em;
+    background:linear-gradient(180deg, #fff, #c9cedb 140%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .subtitle{color:var(--muted); font-size:1.05rem; max-width:36rem;}
+
+  /* ---------- SECTIONS ---------- */
+  .section{margin:3.6rem 0;}
+  .sec-label{
+    font-family:var(--mono); font-size:0.75rem; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--gold);
+    margin-bottom:0.6rem; display:flex; align-items:center; gap:0.5rem;
+  }
+  .sec-num{
+    width:1.6rem;height:1.6rem;border-radius:6px;
+    background:rgba(232,191,90,0.12); border:1px solid rgba(232,191,90,0.3);
+    display:flex;align-items:center;justify-content:center; font-size:0.72rem; color:var(--gold);
+  }
+  h2.sec-title{font-family:var(--serif); font-size:clamp(1.5rem, 3.2vw, 1.95rem); font-weight:600; margin:0 0 0.4rem;}
+  .sec-sub{color:var(--muted); font-size:0.92rem; margin:0 0 1.2rem;}
+  p{color:#c7cbd6;}
+
+  /* ---------- CARD & TOPIC CARD ---------- */
+  .card{
+    background:var(--panel); border:1px solid var(--border); border-radius:16px;
+    padding:1.6rem 1.7rem; margin:1.2rem 0; box-shadow:0 10px 30px rgba(0,0,0,0.25);
+  }
+  .card-grid{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+  @media (max-width:680px){.card-grid{grid-template-columns:1fr;}}
+  .card-meta-title{font-family:var(--mono); font-size:0.75rem; color:var(--muted); text-transform:uppercase; margin-bottom:0.2rem;}
+  .card-meta-value{font-size:1.05rem; font-weight:600; color:var(--text);}
+
+  /* ---------- ANALOGY ---------- */
+  .analogy{
+    border-left:3px solid var(--teal);
+    background:linear-gradient(90deg, rgba(55,201,184,0.08), transparent 60%);
+    border-radius:0 12px 12px 0; padding:1.1rem 1.3rem; margin:1.2rem 0;
+  }
+  .analogy .tag{
+    font-family:var(--mono); font-size:0.72rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--teal); margin-bottom:0.4rem; display:block;
+  }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{border-radius:12px; padding:1.1rem 1.3rem; margin:1.2rem 0; border:1px solid; display:flex; gap:0.8rem;}
+  .callout .icon{font-size:1.1rem; line-height:1.4;}
+  .callout.required{border-color:rgba(232,191,90,0.35); background:rgba(232,191,90,0.06);}
+  .callout.warn{border-color:rgba(239,123,107,0.35); background:rgba(239,123,107,0.07);}
+  .callout.tip{border-color:rgba(111,168,240,0.35); background:rgba(111,168,240,0.06);}
+  .callout .body{color:#c7cbd6; font-size:0.95rem;}
+  .callout .body b{color:var(--text);}
+
+  /* ---------- CODE ---------- */
+  .code-panel{background:#0a0d14; border:1px solid var(--border); border-radius:12px; overflow:hidden; margin:1.1rem 0;}
+  .code-head{
+    display:flex; align-items:center; justify-content:space-between; padding:0.55rem 1rem;
+    background:var(--panel-2); border-bottom:1px solid var(--border);
+    font-family:var(--mono); font-size:0.72rem; color:var(--muted);
+  }
+  .code-dots{display:flex; gap:0.35rem;}
+  .code-dots span{width:9px;height:9px;border-radius:50%;background:#333;}
+  pre{margin:0; padding:1.1rem 1.2rem; overflow-x:auto;}
+  code{font-family:var(--mono); font-size:0.85rem; line-height:1.7;}
+  .c-kw{color:var(--purple);} .c-fn{color:var(--blue);} .c-str{color:var(--teal);}
+  .c-com{color:var(--muted); font-style:italic;} .c-var{color:#f0f3f8;} .c-num{color:var(--gold);}
+  .annot{
+    font-family:var(--sans); font-size:0.82rem; color:var(--muted);
+    padding:0 1.2rem 1rem; border-top:1px dashed var(--border); margin-top:0.2rem; padding-top:0.8rem;
+  }
+  .annot b{color:var(--teal); font-weight:600;}
+  .annot.bad b{color:var(--red);}
+
+  /* ---------- TABLE ---------- */
+  table{width:100%; border-collapse:collapse; margin:1.2rem 0; font-size:0.92rem;}
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:0.72rem; text-transform:uppercase;
+    letter-spacing:0.06em; color:var(--gold); padding:0.7rem 0.9rem; border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:0.75rem 0.9rem; border-bottom:1px solid var(--border); color:#c7cbd6; vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  .check{color:var(--teal); font-weight:700;} .cross{color:var(--red); font-weight:700;}
+
+  /* ---------- DIAGRAMS ---------- */
+  .fbox-container{
+    display:flex; flex-direction:column; align-items:center; gap:0.5rem;
+    padding:1.4rem; margin:1.2rem 0;
+    background:var(--panel-2); border:1px solid var(--border); border-radius:14px;
+  }
+  .fbox{
+    font-family:var(--mono); font-size:0.8rem; text-align:center;
+    padding:0.7rem 1.3rem; border-radius:10px; border:1px solid;
+  }
+  .fbox.blue{color:var(--blue); border-color:rgba(111,168,240,0.4); background:rgba(111,168,240,0.06);}
+  .fbox.teal{color:var(--teal); border-color:rgba(55,201,184,0.4); background:rgba(55,201,184,0.06);}
+  .fbox.gold{color:var(--gold); border-color:rgba(232,191,90,0.4); background:rgba(232,191,90,0.06);}
+  .farrow{font-family:var(--mono); font-size:0.75rem; color:var(--muted);}
+
+  /* ---------- SOLVE QUESTIONS ---------- */
+  .qcard{border:1px solid var(--border); border-radius:12px; padding:1rem 1.2rem; margin:0.9rem 0; background:var(--panel);}
+  .qcard .qhead{display:flex; justify-content:space-between; align-items:center; font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin-bottom:0.5rem;}
+  .qcard .qtext{color:var(--text); font-size:0.95rem; margin-bottom:0.5rem;}
+  details.ans{margin-top:0.4rem;}
+  details.ans summary{cursor:pointer; font-family:var(--mono); font-size:0.78rem; color:var(--teal); list-style:none;}
+  details.ans summary::-webkit-details-marker{display:none;}
+  details.ans summary::before{content:"▸ ";}
+  details.ans[open] summary::before{content:"▾ ";}
+  details.ans .a-body{
+    margin-top:0.6rem; font-size:0.9rem; color:#c7cbd6; padding:0.7rem 0.9rem;
+    background:rgba(55,201,184,0.06); border-left:2px solid var(--teal); border-radius:0 8px 8px 0;
+  }
+
+  /* ---------- ONE PAGE BRAIN ---------- */
+  .brain{
+    background:linear-gradient(160deg, rgba(168,136,242,0.08), rgba(55,201,184,0.05));
+    border:1px solid rgba(168,136,242,0.25); border-radius:18px; padding:1.8rem; margin:2rem 0;
+  }
+  .brain h3{font-family:var(--serif); margin:0 0 1rem; font-size:1.25rem; color:var(--text);}
+  .brain-grid{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+  @media (max-width:680px){.brain-grid{grid-template-columns:1fr;}}
+  .brain-col h5{font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--purple); margin:0 0 0.5rem;}
+  .brain-col ul{margin:0; padding-left:1.1rem; font-size:0.88rem; color:#c7cbd6;}
+  .brain-col li{margin-bottom:0.35rem;}
+  .trigger-words{display:flex; flex-wrap:wrap; gap:0.5rem; margin:1rem 0;}
+  .trigger-words span{
+    font-family:var(--mono); font-size:0.78rem; background:rgba(232,191,90,0.1); color:var(--gold);
+    border:1px solid rgba(232,191,90,0.3); padding:0.32rem 0.7rem; border-radius:999px;
+  }
+
+  footer{margin-top:4rem; padding-top:1.5rem; border-top:1px solid var(--border); font-family:var(--mono); font-size:0.75rem; color:var(--muted); text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HERO ============ -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 3 · Lecture 3.1</div>
+    <h1 class="title">Introduction to Vue.js</h1>
+    <p class="subtitle">Understand the shift from imperative DOM manipulation to declarative reactive UI binding.</p>
+  </div>
+
+  <!-- Module 1 — Topic Card (30 Seconds) -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">1</span>Topic Card</div>
+    <h2 class="sec-title">Quick Glance</h2>
+    <div class="card">
+      <div class="card-grid">
+        <div>
+          <div class="card-meta-title">Topic</div>
+          <div class="card-meta-value">Introduction to Vue.js Basics</div>
+        </div>
+        <div>
+          <div class="card-meta-title">Category</div>
+          <div class="card-meta-value">Vue Fundamentals</div>
+        </div>
+        <div>
+          <div class="card-meta-title">Difficulty</div>
+          <div class="card-meta-value">⭐☆☆☆☆ (Beginner)</div>
+        </div>
+        <div>
+          <div class="card-meta-title">Importance</div>
+          <div class="card-meta-value">★★★★★ (Critical Foundation)</div>
+        </div>
+        <div>
+          <div class="card-meta-title">Prerequisites</div>
+          <div class="card-meta-value">HTML/CSS, JavaScript ES6 (Objects, Arrays, DOM fundamentals)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module 2 — Core Intuition (WHY) -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">2</span>Core Intuition</div>
+    <h2 class="sec-title">Why Vue?</h2>
+    <p>In traditional JavaScript development, you write manual DOM update statements every time your state changes. Vue flips this process: you bind your data properties to the HTML template, and Vue watches for changes and handles updates automatically.</p>
+    <div class="analogy">
+      <span class="tag">Analogy</span>
+      Vanilla JS is like drawing a flipbook by hand: if you change one frame, you must redraw all affected frames manually. Vue is like a 3D rendering engine: you change the data variables (coordinates, colors), and the engine draws the frames for you automatically.
+    </div>
+  </div>
+
+  <!-- Module 3 — Visual Mental Model -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">3</span>Visual Mental Model</div>
+    <h2 class="sec-title">Imperative vs Declarative Flow</h2>
+    <div class="fbox-container">
+      <div style="display: flex; gap: 1rem; align-items: center; width: 100%; justify-content: space-around; flex-wrap: wrap;">
+        <div>
+          <h4 style="text-align: center; color: var(--red);">Imperative (Vanilla JS)</h4>
+          <div class="fbox gold">User Action</div>
+          <div class="farrow">↓</div>
+          <div class="fbox gold">Fetch Element</div>
+          <div class="farrow">↓</div>
+          <div class="fbox gold">Modify innerHTML</div>
+        </div>
+        <div style="font-size: 2rem;">⚡</div>
+        <div>
+          <h4 style="text-align: center; color: var(--teal);">Declarative (Vue.js)</h4>
+          <div class="fbox blue">User Action</div>
+          <div class="farrow">↓</div>
+          <div class="fbox blue">Mutate Data Store</div>
+          <div class="farrow">↓</div>
+          <div class="fbox teal">Vue Renders DOM Auto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module 4 — Pattern Recognition -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">4</span>Pattern Recognition</div>
+    <h2 class="sec-title">Identifying Vue Patterns</h2>
+    <p>Look for triggers where DOM updating needs to scale. When you see trigger expressions, map them directly to declarative actions:</p>
+    <div class="trigger-words">
+      <span>document.getElementById</span><span>innerHtml</span><span>addEventListener</span><span>reactive state</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th>Trigger Phrase / Need</th><th>Recognition Shortcut (Vue Mapping)</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Manual DOM target selection</td><td>Use <code>el</code> context target binding</td></tr>
+        <tr><td>Event registration (click/input)</td><td>Use <code>methods</code> key handlers</td></tr>
+        <tr><td>Variable rendering in HTML</td><td>Use Interpolation syntax <code>{{ variable }}</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Module 5 — Deep Fundamentals -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">5</span>Deep Fundamentals</div>
+    <h2 class="sec-title">Why Declarative Rendering Works</h2>
+    <p><b>1. Why was Vue created?</b> Vue was built to resolve complex, error-prone manual DOM updating in large-scale single-page apps.</p>
+    <p><b>2. What problem does it solve?</b> The decoupling of application logic (JS) from visual representations (DOM). State consistency issues are fully avoided.</p>
+    <p><b>3. What happens internally?</b> Vue replaces traditional properties with Getters and Setters (using reactive trackers) to track precisely which components depend on which pieces of state.</p>
+  </div>
+
+  <!-- Module 6 — Execution Flow -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">6</span>Execution Flow</div>
+    <h2 class="sec-title">Instantiating Vue</h2>
+    <div class="fbox-container">
+      <div class="fbox blue">1. Script Loads (Vue CDN/Library)</div>
+      <div class="farrow">↓</div>
+      <div class="fbox blue">2. <code>new Vue({...})</code> Called</div>
+      <div class="farrow">↓</div>
+      <div class="fbox gold">3. <code>data</code> Objects converted to Reactive Proxies</div>
+      <div class="farrow">↓</div>
+      <div class="fbox teal">4. Template binds to target defined by <code>el</code></div>
+    </div>
+  </div>
+
+  <!-- Module 7 — Syntax Anatomy -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">7</span>Syntax Anatomy</div>
+    <h2 class="sec-title">Anatomical Breakdown of a Vue Instance</h2>
+    <div class="code-panel">
+      <div class="code-head"><span>Vue Instance Syntax</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="c-kw">const</span> <span class="c-var">app</span> = <span class="c-kw">new</span> <span class="c-fn">Vue</span>({
+  <span class="c-var">el</span>: <span class="c-str">'#app'</span>,
+  <span class="c-fn">data</span>() {
+    <span class="c-kw">return</span> {
+      <span class="c-var">message</span>: <span class="c-str">'Hello World'</span>
+    }
+  }
+})</code></pre>
+      <div class="annot">
+        - <b>new Vue</b>: Instantiate the core Vue framework constructor.<br>
+        - <b>el</b>: Specifies the target HTML mounting root selector.<br>
+        - <b>data()</b>: A function returning reactive state elements bound to the template.
+      </div>
+    </div>
+  </div>
+
+  <!-- Module 8 — Code Walkthrough -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">8</span>Code Walkthrough</div>
+    <h2 class="sec-title">A Basic Reactive Counter</h2>
+    <div class="code-panel">
+      <div class="code-head"><span>index.html</span><div class="code-dots"><span></span><span></span><span></span></div></div>
+      <pre><code><span class="c-com">&lt;!-- Target Mounting Node --&gt;</span>
+&lt;div <span class="c-kw">id</span>=<span class="c-str">"app"</span>&gt;
+  &lt;p&gt;Count: <span class="c-var">{{ count }}</span>&lt;/p&gt;
+  &lt;button <span class="c-kw">@click</span>=<span class="c-str">"increment"</span>&gt;Add 1&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script <span class="c-kw">src</span>=<span class="c-str">"https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"</span>&gt;&lt;/script&gt;
+&lt;script&gt;
+  <span class="c-kw">new</span> <span class="c-fn">Vue</span>({
+    <span class="c-var">el</span>: <span class="c-str">'#app'</span>,
+    <span class="c-fn">data</span>: { <span class="c-var">count</span>: <span class="c-num">0</span> },
+    <span class="c-var">methods</span>: {
+      <span class="c-fn">increment</span>() { <span class="c-var">this</span>.count++ }
+    }
+  })
+&lt;/script&gt;</code></pre>
+    </div>
+  </div>
+
+  <!-- Module 9 — Behind the Scenes -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">9</span>Behind the Scenes</div>
+    <h2 class="sec-title">The Reactivity Cycle</h2>
+    <p>Under the hood, Vue loops through the properties returned in your <code>data</code> block and wraps them using JavaScript's Object.defineProperty (in Vue 2) or Proxies (in Vue 3). When properties are accessed during template render, Vue records them as "dependencies". When they change, a re-render is triggered automatically.</p>
+  </div>
+
+  <!-- Module 10 — Real Project Usage -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">10</span>Real Project Usage</div>
+    <h2 class="sec-title">Industry Applications</h2>
+    <p><b>Netflix:</b> Utilizes Vue for internal production registries and stream monitoring dashboards to keep updates live without constant refresh requests.</p>
+    <p><b>GitLab:</b> Built their entire issue boards and repo dashboard UI using Vue's declarative directives to ensure updates sync instantly across multiple windows.</p>
+  </div>
+
+  <!-- Module 11 — Common Mistakes -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">11</span>Common Mistakes</div>
+    <h2 class="sec-title">Anti-Patterns to Avoid</h2>
+    <div class="callout warn">
+      <div class="icon">❌</div>
+      <div class="body"><b>Wrong:</b> Adding new properties directly without declaring them in the <code>data</code> object.
+      <pre style="background:none; color:inherit; padding:0; margin:0;"><code>this.newProp = 'Won\'t be reactive';</code></pre></div>
+    </div>
+    <div class="callout required">
+      <div class="icon">✅</div>
+      <div class="body"><b>Correct:</b> Pre-initialize all data variables inside <code>data</code>, even if they start as null/empty.</div>
+    </div>
+  </div>
+
+  <!-- Module 12 — Debugging Mindset -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">12</span>Debugging Mindset</div>
+    <h2 class="sec-title">Vue Warnings &amp; Solutions</h2>
+    <table>
+      <thead>
+        <tr><th>Error Message</th><th>Root Cause</th><th>Immediate Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>"Property or method is not defined on the instance..."</td><td>Misspelled data property or forgot to add it under <code>data</code>/<code>methods</code>.</td><td>Check capitalization and confirm its existence in the instantiation script.</td></tr>
+        <tr><td>"Cannot find element: #app"</td><td>Vue loaded and executed before the target HTML node was parsed by the browser.</td><td>Place the script tag at the bottom of the body, or load it inside a DOMContentLoaded event.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Module 13 — IITM Exam Pattern -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">13</span>IITM Exam Pattern</div>
+    <h2 class="sec-title">Exam Survival Guide</h2>
+    <ul>
+      <li><b>Trap Words:</b> "Imperative Vue" (Vue is strictly declarative), "dynamic reactivity injection" (Vue 2 cannot track property addition directly without <code>Vue.set</code>).</li>
+      <li><b>MCQ Tricks:</b> Watch for arrow functions used in methods where <code>this</code> resolves to window or undefined instead of the Vue instance!</li>
+    </ul>
+  </div>
+
+  <!-- Module 14 — Interview Questions -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">14</span>Interview Questions</div>
+    <div class="qcard">
+      <div class="qhead"><span>Easy</span></div>
+      <div class="qtext">What does declarative rendering mean?</div>
+      <details class="ans"><summary>Reveal Answer</summary>
+        <div class="a-body">It means describing *what* the UI should look like based on current state, leaving the step-by-step DOM updates (*how*) to the framework.</div>
+      </details>
+    </div>
+    <div class="qcard">
+      <div class="qhead"><span>Medium</span></div>
+      <div class="qtext">Why can't Vue automatically track properties added to data after initialization?</div>
+      <details class="ans"><summary>Reveal Answer</summary>
+        <div class="a-body">Because Vue 2 uses `Object.defineProperty` under the hood during the startup phase. It cannot hook into properties that did not exist during that initial conversion pass.</div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Module 15 — One-Page Brain -->
+  <div class="section">
+    <div class="brain">
+      <h3>🧠 One-Page Brain — Introduction to Vue</h3>
+      <div class="brain-grid">
+        <div class="brain-col">
+          <h5>Core Intuition</h5>
+          <ul>
+            <li>No more manual element selections (<code>document.querySelector</code>).</li>
+            <li>Define the state, code the template, mutability triggers updates.</li>
+          </ul>
+        </div>
+        <div class="brain-col">
+          <h5>Remember Chain</h5>
+          <ul>
+            <li><code>el</code> → Hook Target</li>
+            <li><code>data</code> → Reactive State</li>
+            <li><code>methods</code> → Event Actions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Module 16 — Quick Revision Table -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">16</span>Quick Revision Table</div>
+    <h2 class="sec-title">Vanilla JS vs Vue.js</h2>
+    <table>
+      <thead>
+        <tr><th>Feature</th><th>Vanilla JS</th><th>Vue.js</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>UI rendering</td><td>Imperative (manual)</td><td>Declarative (automatic)</td></tr>
+        <tr><td>Data bindings</td><td>Manual updates via innerText</td><td>Auto interpolation via <code>{{}}</code></td></tr>
+        <tr><td>Event handling</td><td><code>addEventListener()</code></td><td><code>v-on</code> or <code>@event</code> directive</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Module 17 — Practice Ladder -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">17</span>Practice Ladder</div>
+    <h2 class="sec-title">Skill Progression</h2>
+    <p><b>Level 1 (Concept):</b> Distinguish declarative templates from string templates.</p>
+    <p><b>Level 2 (Predict Output):</b> What is rendered if <code>count</code> starts at 5 and increment is called twice?</p>
+    <p><b>Level 3 (Find Bug):</b> Fix code where <code>this</code> is broken due to arrow function usage inside methods.</p>
+    <p><b>Level 4 (MCQ):</b> Select options showing valid mounting configurations.</p>
+    <p><b>Level 5 (Coding):</b> Write a Vue app that renders a user's name dynamically as they type into an input field.</p>
+  </div>
+
+  <!-- Module 18 — Memory Palace -->
+  <div class="section">
+    <div class="sec-label"><span class="sec-num">18</span>Memory Palace</div>
+    <h2 class="sec-title">Final Recall Aids</h2>
+    <p><b>Rule:</b> Data is single source of truth, DOM is reflection.</p>
+    <p><b>Mnemonic:</b> E-D-M (Element, Data, Methods) - The holy trinity of basic Vue instances.</p>
+    <pre><code>[Data Store] ──(Auto Diff)──&gt; [Virtual DOM] ──&gt; [Real HTML Page]</code></pre>
+  </div>
+
+  <footer>
+    IIT Madras BSc Degree — MAD2 · Introduction to Vue.js Notes
+  </footer>
+
+</div>
+</body>
+</html>

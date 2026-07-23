@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 31 — Gradient Descent & Stochastic Gradient Descent</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0e17;
+    --panel-bg: #12141c;
+    --panel-border: rgba(255,255,255,0.08);
+    --card-bg: #141826;
+    --card-border: rgba(255,255,255,0.07);
+    --text: #e7e9f0;
+    --text-dim: #9aa1b5;
+    --text-dimmer: #6b7288;
+
+    --gold: #e8b84b;
+    --teal: #3fd6c4;
+    --purple: #b892f0;
+    --blue: #5fa8f5;
+    --green: #6fd08a;
+    --red: #f0708a;
+
+    --serif-math-font: "Fraunces", "STIX Two Math", serif;
+    --body-font: "Inter", sans-serif;
+    --mono-font: "JetBrains Mono", monospace;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,146,240,0.07), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(63,214,196,0.06), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    line-height: 1.65;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; padding: 0 1.25rem; }
+
+  .hero{ padding: 3.5rem 1.25rem 2.5rem; text-align:center; border-bottom: 1px solid var(--panel-border); margin-bottom: 2.5rem; background: linear-gradient(180deg, rgba(184,146,240,0.05), transparent 70%); }
+  .hero .eyebrow{ font-family: var(--mono-font); font-size: 0.8rem; letter-spacing: 0.15em; color: var(--teal); text-transform: uppercase; }
+  .hero h1{ font-family: var(--serif-math-font); font-weight: 600; font-size: clamp(1.4rem, 4.2vw, 2.4rem); margin: 0.6rem 0 0.8rem; background: linear-gradient(90deg, var(--gold), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub{ color: var(--text-dim); max-width: 640px; margin: 0 auto; font-size: 1.02rem; }
+  .badge-row{ display:flex; gap: 0.6rem; justify-content:center; flex-wrap:wrap; margin-top: 1.4rem; }
+  .badge{ font-family: var(--mono-font); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim); background: rgba(255,255,255,0.02); }
+  .badge.geo{ color: var(--blue); border-color: rgba(95,168,245,0.3); }
+  .badge.pat{ color: var(--purple); border-color: rgba(184,146,240,0.3); }
+  .badge.dec{ color: var(--gold); border-color: rgba(232,184,75,0.3); }
+
+  .stage-tag{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+  h2.section-title{ font-family: var(--serif-math-font); font-size: clamp(1.15rem, 2.8vw, 1.55rem); font-weight: 600; margin: 0 0 1rem 0; display:flex; align-items:center; gap:0.6rem; }
+  h2.section-title .num{ font-family: var(--mono-font); font-size: 0.85rem; color: var(--bg); background: var(--teal); border-radius: 8px; width: 2rem; height:2rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  section.block{ margin-bottom: 3rem; }
+
+  .card{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.6rem 1.7rem; margin-bottom: 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .card h3{ margin-top:0; font-family: var(--serif-math-font); font-weight:600; font-size: 1.1rem; }
+  .card-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .card-grid.two{ grid-template-columns: repeat(2,1fr); }
+  @media (max-width: 800px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .callout{ border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.3rem 0; border-left: 4px solid var(--teal); background: rgba(63,214,196,0.06); font-size: 0.95rem; }
+  .callout.warn{ border-left-color: var(--red); background: rgba(240,112,138,0.07); }
+  .callout.tip{ border-left-color: var(--gold); background: rgba(232,184,75,0.07); }
+  .callout.biz{ border-left-color: var(--purple); background: rgba(184,146,240,0.07); }
+  .callout .co-label{ font-family: var(--mono-font); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; display:block; margin-bottom: 0.4rem; opacity: 0.85; }
+
+  .eq-panel{ background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.2rem 1.6rem 1.8rem; margin: 1.6rem 0; box-shadow: 0 8px 30px rgba(0,0,0,0.25); text-align: center; position: relative; }
+  .eq-panel .eq-number{ position: absolute; bottom: 0.7rem; right: 1.15rem; font-size: 0.75rem; opacity: 0.45; font-family: var(--mono-font); }
+  .eq-panel .eq-label{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .eq-main{ font-family: var(--serif-math-font); font-size: clamp(1rem, 2.6vw, 1.5rem); line-height: 2.2; }
+  .sym-var{ color: var(--blue); font-style: italic; }
+  .sym-param{ color: var(--gold); font-style: italic; }
+  .sym-const{ color: var(--green); }
+  .sym-fn{ color: var(--purple); }
+  .sym-op{ color: var(--red); font-size: 1.2em; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap: 0.8rem 1.6rem; justify-content:center; margin-top: 1.2rem; font-size: 0.85rem; padding: 0.9rem 0; border-top: 1px dashed var(--panel-border); }
+  .legend div{ color: var(--text-dim); }
+  .legend span.sym{ font-family: var(--serif-math-font); font-weight:600; margin-right:0.3rem; }
+
+  table.data-table{ width:100%; border-collapse: collapse; font-size: 0.92rem; background: var(--card-bg); border-radius: 12px; overflow:hidden; }
+  table.data-table th{ background: rgba(255,255,255,0.04); color: var(--teal); text-align:left; padding: 0.7rem 0.9rem; font-family: var(--mono-font); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  table.data-table td{ padding: 0.7rem 0.9rem; border-top: 1px solid var(--card-border); color: var(--text-dim); }
+  table.data-table tr:hover td{ background: rgba(255,255,255,0.02); }
+  .scroll-x{ overflow-x:auto; border-radius:12px; }
+
+  pre{ background: #0a0c13; border:1px solid var(--card-border); border-radius: 12px; padding: 1.1rem 1.2rem; overflow-x:auto; font-family: var(--mono-font); font-size: 0.83rem; line-height: 1.6; }
+  code{ font-family: var(--mono-font); }
+  .cm{ color: var(--text-dimmer); font-style: italic;}
+  .kw{ color: var(--purple); }
+  .st{ color: var(--green); }
+  .fn{ color: var(--teal); }
+  .nb{ color: var(--gold); }
+
+  .flow{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin: 1.5rem 0; }
+  .flow .step{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem; text-align:center; min-width: 100px; }
+  .flow .arrow{ color: var(--teal); font-size: 1.3rem; }
+  @media (max-width: 700px){ .flow{ flex-direction: column; } .flow .arrow{ transform: rotate(90deg); } }
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap: 0.55rem; margin-top: 0.8rem; }
+  .pill{ font-family: var(--mono-font); font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 8px; background: rgba(232,184,75,0.1); color: var(--gold); border: 1px solid rgba(232,184,75,0.25); }
+
+  .trap{ border: 1px solid rgba(240,112,138,0.25); background: rgba(240,112,138,0.05); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.9rem; }
+  .trap .t-head{ display:flex; gap:0.6rem; align-items:center; font-weight:600; color: var(--red); margin-bottom:0.3rem; }
+
+  .timeline{ position:relative; padding-left: 2.2rem; margin: 1.6rem 0; }
+  .timeline::before{ content:""; position:absolute; left: 0.85rem; top:0.4rem; bottom:0.4rem; width:2px; background: linear-gradient(180deg, var(--teal), var(--purple)); }
+  .tstep{ position:relative; margin-bottom: 1.4rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem 1.2rem; }
+  .tstep::before{ content: attr(data-n); position:absolute; left: -2.2rem; top: 1rem; width: 1.7rem; height:1.7rem; border-radius:50%; background: var(--teal); color:#0b0e17; font-family: var(--mono-font); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .tstep h4{ margin:0 0 0.5rem; font-family: var(--serif-math-font); font-size: 1rem; color: var(--text); }
+  .tstep .expr{ font-family: var(--serif-math-font); font-size: 1.02rem; text-align:center; padding: 0.6rem 0; }
+  .tstep p.why{ margin: 0.4rem 0 0; color: var(--text-dim); font-size: 0.87rem; }
+
+  .brain{ background: linear-gradient(160deg, rgba(184,146,240,0.08), rgba(63,214,196,0.05)); border: 1px solid var(--panel-border); border-radius: 20px; padding: 1.8rem; }
+  .brain-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px){ .brain-grid{ grid-template-columns: 1fr; } }
+  .brain h4{ font-family: var(--mono-font); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin: 0 0 0.5rem; }
+  .brain ul{ margin: 0; padding-left: 1.1rem; font-size: 0.9rem; color: var(--text-dim); }
+  .brain li{ margin-bottom: 0.3rem; }
+
+  footer.foot{ text-align:center; color: var(--text-dimmer); font-size: 0.82rem; margin-top: 3rem; }
+  .toc{ display:flex; flex-wrap:wrap; gap: 0.5rem; justify-content:center; margin: 1.6rem 0 0; }
+  .toc a{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dim); text-decoration:none; border: 1px solid var(--panel-border); border-radius: 999px; padding: 0.3rem 0.7rem; }
+  .toc a:hover{ color: var(--teal); border-color: var(--teal); }
+
+  .svg-wrap{ display:flex; justify-content:center; margin: 1.4rem 0; }
+  .svg-wrap svg{ max-width: 100%; height:auto; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">IIT Madras · Machine Learning Techniques</div>
+  <h1>Lecture 34 — Gradient Descent &amp; SGD</h1>
+  <p class="sub">What to do when the exact answer exists on paper but is too expensive to compute — trade the closed form for iteration.</p>
+  <div class="badge-row">
+    <span class="badge geo">Cognitive Pattern: Optimization</span>
+    <span class="badge pat">Cognitive Pattern: Iterative Algorithms</span>
+    <span class="badge dec">Cognitive Pattern: Computational Complexity</span>
+  </div>
+  <div class="toc">
+    <a href="#problem">0 · Why the Closed Form Fails at Scale</a>
+    <a href="#gd">2 · Gradient Descent</a>
+    <a href="#diagram">Visual: Descending a Bowl</a>
+    <a href="#convergence">6 · Why It's Guaranteed to Converge</a>
+    <a href="#sgd">3 · Stochastic Gradient Descent</a>
+    <a href="#edge">9 · Edge Cases</a>
+    <a href="#triggers">10 · Triggers</a>
+    <a href="#traps">18 · Exam Traps</a>
+    <a href="#industry">20 · Code</a>
+    <a href="#brain">22 · One-Page Brain</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1, 0, 1, 2 -->
+<section class="block" id="problem">
+  <div class="stage-tag">Stage -1 → 2 · Cognitive Pattern, Problem, Engineering Thinking</div>
+  <h2 class="section-title"><span class="num">0</span>The Closed Form Has a Scaling Problem</h2>
+  <div class="card">
+    <h3>An exact answer that becomes unusable</h3>
+    <p>Lectures 29–30 gave us an exact, closed-form answer: <span style="font-family:var(--serif-math-font);">W* = (XXᵀ)⁻¹XY</span>. That's the correct solution — but "correct" and "computable" are different things once the problem gets big.</p>
+    <table class="data-table">
+      <tr><th>Bottleneck</th><th>Why it breaks down</th></tr>
+      <tr><td>Matrix inversion, ~O(D³)</td><td>D = number of features. Millions of features (common in text, genomics, ad-tech data) make cubing D computationally impossible</td></tr>
+      <tr><td>Forming XXᵀ itself</td><td>N = number of data points. Even before inverting anything, just building this matrix requires touching every one of N (possibly billions) data points</td></tr>
+    </table>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">The reframe this lecture makes</span>
+    Give up on landing exactly at w* in one shot. Instead, accept an <strong>iterative</strong> process that gets closer and closer to w* using only cheap, local information — the gradient — at each step.
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS / Cubedekho lens</span>
+    If Cubedekho ever tracked customer behavior across millions of product-page interactions (D huge) or logged every visitor event across years (N huge), the closed-form Normal Equation stops being a option — not because the math is wrong, but because no machine can invert that matrix in a reasonable time.
+  </div>
+</section>
+
+<!-- STAGE 2-5, 7: GRADIENT DESCENT -->
+<section class="block" id="gd">
+  <div class="stage-tag">Stage 2 → 7 · Engineering Thinking, Formula Construction, Algorithm</div>
+  <h2 class="section-title"><span class="num">2</span>Gradient Descent — Walking Downhill</h2>
+  <div class="card">
+    <h3>The idea in one sentence</h3>
+    <p>At your current guess, the gradient points in the direction of <em>steepest increase</em>. So step in the exact opposite direction, by some small amount, and you're guaranteed to be a little lower than before — repeat until you stop improving.</p>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">The update rule</div>
+    <div class="eq-main">
+      <span class="sym-param">W</span><sub>t+1</sub> <span class="sym-op">=</span> <span class="sym-param">W</span><sub>t</sub> <span class="sym-op">−</span> <span class="sym-var">η</span><sub>t</sub> <span class="sym-op">∇</span><span class="sym-fn">f</span>(<span class="sym-param">W</span><sub>t</sub>)
+    </div>
+    <div class="eq-number">Eq. 34.1</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-param">W</span><sub>t</sub> — the weight vector at iteration t</div>
+    <div><span class="sym sym-var">η</span><sub>t</sub> — the step size / learning rate at iteration t</div>
+    <div><span class="sym sym-op">∇</span><span class="sym-fn">f</span>(<span class="sym-param">W</span><sub>t</sub>) — the gradient of the objective, evaluated at the current W</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tstep" data-n="1"><h4>Initialize</h4><div class="expr">Start with an initial guess W₀ (often all zeros, or random)</div></div>
+    <div class="tstep" data-n="2"><h4>Compute the gradient</h4><div class="expr">Evaluate ∇f(Wₜ) — for sum-of-squared-errors, this is 2XXᵀWₜ − 2XY</div></div>
+    <div class="tstep" data-n="3"><h4>Step downhill</h4><div class="expr">Wₜ₊₁ = Wₜ − ηₜ∇f(Wₜ)</div></div>
+    <div class="tstep" data-n="4"><h4>Repeat</h4><div class="expr">Until the gradient is ≈ 0, or a fixed number of iterations passes</div></div>
+  </div>
+</section>
+
+<!-- VISUAL DIAGRAM -->
+<section class="block" id="diagram">
+  <h2 class="section-title"><span class="num">🖼</span>Descending a Convex Bowl</h2>
+  <div class="svg-wrap">
+    <svg viewBox="0 0 460 320" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="230" cy="160" rx="200" ry="130" fill="none" stroke="#5fa8f5" stroke-opacity="0.18" stroke-width="1.4"/>
+      <ellipse cx="230" cy="160" rx="150" ry="97" fill="none" stroke="#5fa8f5" stroke-opacity="0.28" stroke-width="1.4"/>
+      <ellipse cx="230" cy="160" rx="100" ry="65" fill="none" stroke="#5fa8f5" stroke-opacity="0.4" stroke-width="1.4"/>
+      <ellipse cx="230" cy="160" rx="55" ry="35" fill="none" stroke="#5fa8f5" stroke-opacity="0.55" stroke-width="1.4"/>
+      <circle cx="230" cy="160" r="4" fill="#6fd08a"/>
+      <text x="240" y="150" fill="#6fd08a" font-size="11" font-family="Fraunces">W* (global min)</text>
+
+      <!-- descent path -->
+      <polyline points="60,60 130,95 175,70 200,120 220,105 232,140 228,152 230,158"
+        fill="none" stroke="#e8b84b" stroke-width="2" stroke-dasharray="0"/>
+      <circle cx="60" cy="60" r="4" fill="#e8b84b"/>
+      <text x="30" y="45" fill="#e8b84b" font-size="11" font-family="Fraunces">W₀</text>
+      <circle cx="130" cy="95" r="3.4" fill="#e8b84b"/>
+      <circle cx="175" cy="70" r="3.4" fill="#e8b84b"/>
+      <circle cx="200" cy="120" r="3.4" fill="#e8b84b"/>
+      <circle cx="220" cy="105" r="3.4" fill="#e8b84b"/>
+      <circle cx="232" cy="140" r="3.4" fill="#e8b84b"/>
+      <circle cx="228" cy="152" r="3.4" fill="#e8b84b"/>
+
+      <text x="20" y="300" fill="#6b7288" font-size="10" font-family="Inter">Each ellipse is a level set of the same error value — the objective is convex, so every downhill step gets closer to the single global minimum.</text>
+    </svg>
+  </div>
+  <div class="callout">
+    <span class="co-label">Reading the diagram</span>
+    The rings are level sets of the objective — every point on one ring has the same error value. Because the sum-of-squared-errors surface is <strong>convex</strong> (a single smooth bowl, no other dips or bumps), a step "downhill" always moves toward the one and only minimum. There's no risk of getting trapped in a false valley.
+  </div>
+</section>
+
+<!-- STAGE 6: CONVERGENCE -->
+<section class="block" id="convergence">
+  <div class="stage-tag">Stage 6 · Why the Convergence Guarantee Holds</div>
+  <h2 class="section-title"><span class="num">6</span>Convexity Is Doing All the Work</h2>
+  <div class="card">
+    <h3>The key property, stated precisely</h3>
+    <p>The sum-of-squared-errors objective for linear regression is a <strong>quadratic, convex</strong> function of W. Convexity means: any local minimum is automatically the global minimum — there is no other valley to get stuck in.</p>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">The one condition attached to the guarantee</span>
+    "Gradient descent converges to the global minimum" comes with a fine-print condition stated directly in the lecture: <strong>the step size ηₜ must be chosen correctly</strong>. Too large a step can overshoot the minimum and diverge; too small a step converges, just very slowly.
+  </div>
+  <div class="callout warn">
+    <span class="co-label">Beyond what's stated — the technical reason, for context</span>
+    The precise condition (not spelled out in this lecture, but the standard theory behind the claim) is that ηₜ needs to be smaller than 2 divided by the largest eigenvalue of the Hessian (2XXᵀ). This is why learning rate is usually tuned rather than fixed arbitrarily.
+  </div>
+</section>
+
+<!-- STAGE 3-5, 7: SGD -->
+<section class="block" id="sgd">
+  <div class="stage-tag">Stage 2 → 7 · Engineering Thinking, Algorithm</div>
+  <h2 class="section-title"><span class="num">3</span>Stochastic Gradient Descent — Estimate, Don't Compute Exactly</h2>
+  <div class="card">
+    <h3>The core trade-off</h3>
+    <p>Full-batch gradient descent still requires touching all N data points at <em>every single step</em> — that's the N-scaling problem from the very start of this lecture, unsolved. SGD's answer: don't use all N points per step. Use a small random sample instead, and accept that each step's gradient is <strong>noisy</strong> rather than exact.</p>
+  </div>
+  <table class="data-table">
+    <tr><th>Step</th><th>What happens</th></tr>
+    <tr><td>1. Sample</td><td>Draw K points uniformly at random to form X̃ and Ỹ (K = batch size)</td></tr>
+    <tr><td>2. Pretend</td><td>Treat this small sample as if it were the entire dataset</td></tr>
+    <tr><td>3. Update</td><td>Compute the gradient using only these K points, and take a normal GD step</td></tr>
+  </table>
+  <div class="eq-panel">
+    <div class="eq-label">SGD update rule — same shape as Eq. 34.1, different gradient source</div>
+    <div class="eq-main">
+      <span class="sym-param">W</span><sub>t+1</sub> <span class="sym-op">=</span> <span class="sym-param">W</span><sub>t</sub> <span class="sym-op">−</span> <span class="sym-var">η</span><sub>t</sub> <span class="sym-op">∇</span><span class="sym-fn">f</span><sub class="sym-const">K</sub>(<span class="sym-param">W</span><sub>t</sub>)
+    </div>
+    <div class="eq-number">Eq. 34.2</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-op">∇</span><span class="sym-fn">f</span><sub class="sym-const">K</sub> — gradient computed from only the K sampled points, a noisy stand-in for the true full-dataset gradient</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="co-label">Handling the noise: averaging</span>
+    Because each step's gradient is noisy, the final Wₜ after T iterations can bounce around near the optimum rather than settling exactly on it. The fix stated in the lecture: instead of reporting the last Wₜ, report the <strong>average of every W encountered during training</strong> — this smooths out the sampling noise.
+  </div>
+
+  <div class="card">
+    <h3>Why this actually solves the scaling problem</h3>
+    <table class="data-table">
+      <tr><th>Property</th><th>Benefit</th></tr>
+      <tr><td>Decoupled from D</td><td>No D×D matrix inversion anywhere in the loop</td></tr>
+      <tr><td>Decoupled from N</td><td>Each step only touches K points, not all N — K is fixed and chosen by you, independent of dataset size</td></tr>
+      <tr><td>Many cheap steps</td><td>Faster overall progress than one enormous, exact-but-expensive computation</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 9: EDGE CASES -->
+<section class="block" id="edge">
+  <div class="stage-tag">Stage 9 · Edge Cases</div>
+  <h2 class="section-title"><span class="num">9</span>Where GD/SGD Can Misbehave</h2>
+  <div class="card-grid two">
+    <div class="card">
+      <h3 style="color:var(--red);">Step size too large</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">Overshoots the minimum on every step — the "path" bounces between the walls of the bowl and can diverge outward instead of converging.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold);">Step size too small</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">Converges eventually, but each step makes almost no progress — you trade divergence risk for painfully slow training.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--purple);">K = 1 (pure SGD)</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">The noisiest possible gradient estimate — cheapest per step, but needs the most steps and benefits the most from weight-averaging.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--blue);">K = N (full-batch GD)</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">SGD collapses back into ordinary gradient descent — no noise, but back to touching every point per step.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 10, 11: TRIGGERS -->
+<section class="block" id="triggers">
+  <div class="stage-tag">Stage 10 → 11 · Hidden Trigger Recognition, Pattern Recognition</div>
+  <h2 class="section-title"><span class="num">10</span>Words That Should Instantly Trigger This Topic</h2>
+  <div class="pill-row">
+    <span class="pill">"closed form too expensive"</span>
+    <span class="pill">"iterative optimization"</span>
+    <span class="pill">"learning rate / step size"</span>
+    <span class="pill">"convex ⟹ global minimum"</span>
+    <span class="pill">"mini-batch / batch size K"</span>
+    <span class="pill">"noisy gradient"</span>
+    <span class="pill">"average the weights"</span>
+  </div>
+</section>
+
+<!-- STAGE 18: TRAPS -->
+<section class="block" id="traps">
+  <div class="stage-tag">Stage 18 · Examiner Trap Library</div>
+  <h2 class="section-title"><span class="num">18</span>Common Exam Traps</h2>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 1 — "convex" alone isn't the whole convergence guarantee</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">Convexity guarantees no bad local minima exist — it does NOT by itself guarantee convergence regardless of step size. A question that says "the function is convex, so any step size works" is testing whether you remember the step-size condition is separate and required.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 2 — treating SGD's per-step gradient as exact</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">∇f_K(Wₜ) is an estimate of the true gradient, built from K randomly sampled points — not the true gradient itself. Any claim that a single SGD step moves in "the" gradient direction is imprecise; it moves in a noisy estimate of it.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 3 — forgetting why averaging W helps</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">The final Wₜ after SGD is not necessarily the best estimate — because of per-step noise, it may be off in some random direction on that particular iteration. Averaging over all iterations cancels out that noise; using only Wₜ ignores this correction.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="block" id="industry">
+  <div class="stage-tag">Stage 20 · Industry Implementation</div>
+  <h2 class="section-title"><span class="num">20</span>GD and SGD in Practice</h2>
+  <pre><code><span class="cm"># Plain gradient descent for linear regression (small-scale, illustrative)</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+W = np.zeros(D)
+eta = <span class="nb">0.01</span>
+<span class="kw">for</span> t <span class="kw">in</span> range(<span class="nb">1000</span>):
+    grad = <span class="nb">2</span> * X @ X.T @ W - <span class="nb">2</span> * X @ Y   <span class="cm"># full-dataset gradient, O(N) per step</span>
+    W = W - eta * grad
+
+<span class="cm"># SGD: sample K points per step instead</span>
+W = np.zeros(D)
+W_history = []
+<span class="kw">for</span> t <span class="kw">in</span> range(<span class="nb">1000</span>):
+    idx = np.random.choice(N, size=K, replace=<span class="kw">False</span>)
+    X_tilde, Y_tilde = X[:, idx], Y[idx]
+    grad = <span class="nb">2</span> * X_tilde @ X_tilde.T @ W - <span class="nb">2</span> * X_tilde @ Y_tilde
+    W = W - eta * grad
+    W_history.append(W.copy())
+
+W_avg = np.mean(W_history, axis=<span class="nb">0</span>)   <span class="cm"># the averaged, noise-smoothed estimate</span>
+
+<span class="cm"># In practice: sklearn.linear_model.SGDRegressor implements this directly,</span>
+<span class="cm"># with batch size, learning-rate schedules, and averaging options built in.</span></code></pre>
+</section>
+
+<!-- STAGE 21: CONNECTIONS -->
+<section class="block">
+  <div class="stage-tag">Stage 21 · Connections — stated explicitly in this lecture</div>
+  <h2 class="section-title"><span class="num">21</span>Where the Course Goes From Here</h2>
+  <div class="callout">
+    <span class="co-label">Transition to Kernel Regression</span>
+    Linear regression assumes the true relationship between features and target is linear — a real restriction. The course's next step, <strong>Kernel Regression</strong>, lifts this by mapping data into higher-dimensional (possibly nonlinear) spaces before applying the same regression machinery — the same idea behind Kernel PCA on the unsupervised side.
+  </div>
+  <div class="flow">
+    <div class="step" style="opacity:0.6;">Lectures 28-30<br><small style="color:var(--text-dimmer)">Closed-form linear regression</small></div>
+    <div class="arrow">→</div>
+    <div class="step" style="border-color:var(--teal); box-shadow:0 0 0 1px var(--teal);">You Are Here<br><small style="color:var(--text-dimmer)">Lecture 34: GD / SGD</small></div>
+    <div class="arrow">→</div>
+    <div class="step">Kernel Regression<br><small style="color:var(--text-dimmer)">non-linear extension</small></div>
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="block" id="brain">
+  <div class="stage-tag">Stage 22 · One-Page Brain</div>
+  <h2 class="section-title"><span class="num">22</span>Everything on One Page</h2>
+  <div class="brain">
+    <div class="brain-grid">
+      <div>
+        <h4>Core Intuition</h4>
+        <ul>
+          <li>Closed-form W* is exact but O(D³) to invert, O(N·) to even build XXᵀ</li>
+          <li>GD trades exactness for cheap iterative steps downhill</li>
+          <li>Convexity of squared error ⟹ no bad local minima</li>
+          <li>SGD replaces the full-dataset gradient with a noisy K-sample estimate</li>
+        </ul>
+        <h4 style="margin-top:1rem;">Key Formulas</h4>
+        <ul>
+          <li>GD: Wₜ₊₁ = Wₜ − ηₜ∇f(Wₜ)</li>
+          <li>SGD: Wₜ₊₁ = Wₜ − ηₜ∇f_K(Wₜ), K-point sample</li>
+          <li>Final estimate: average of all Wₜ, not just W_T</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5 Triggers</h4>
+        <ul>
+          <li>"closed form too expensive"</li>
+          <li>"iterative optimization" / "step size"</li>
+          <li>"convex ⟹ global minimum" (with a step-size caveat)</li>
+          <li>"batch size K" / "mini-batch"</li>
+          <li>"noisy gradient" / "average the weights"</li>
+        </ul>
+        <h4 style="margin-top:1rem;">5 Traps</h4>
+        <ul>
+          <li>Convexity ≠ automatic convergence — step size still matters</li>
+          <li>SGD's gradient is an estimate, not the true gradient</li>
+          <li>Final Wₜ can be noisy; averaging is the fix, not optional</li>
+          <li>K=1 → pure SGD; K=N → collapses back to full GD</li>
+          <li>SGD fixes the N-scaling problem; it doesn't touch the D³ inversion problem, which GD avoids differently (never forming/inverting XXᵀ at all)</li>
+        </ul>
+      </div>
+    </div>
+    <h4 style="margin-top:1.4rem;">Dependencies</h4>
+    <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">Builds on: the closed-form Normal Equation (Lectures 29–30) as the exact answer this lecture works around. Feeds into: Kernel Regression, which extends the same optimization machinery to non-linear relationships, mirroring Kernel PCA on the unsupervised side.</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="foot">Lecture 34 · Gradient Descent &amp; Stochastic Gradient Descent — study notes</footer>
+
+</body>
+</html>

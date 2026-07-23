@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 29 — Optimizing the Error Function</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0e17;
+    --panel-bg: #12141c;
+    --panel-border: rgba(255,255,255,0.08);
+    --card-bg: #141826;
+    --card-border: rgba(255,255,255,0.07);
+    --text: #e7e9f0;
+    --text-dim: #9aa1b5;
+    --text-dimmer: #6b7288;
+
+    --gold: #e8b84b;
+    --teal: #3fd6c4;
+    --purple: #b892f0;
+    --blue: #5fa8f5;
+    --green: #6fd08a;
+    --red: #f0708a;
+
+    --serif-math-font: "Fraunces", "STIX Two Math", serif;
+    --body-font: "Inter", sans-serif;
+    --mono-font: "JetBrains Mono", monospace;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,146,240,0.07), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(63,214,196,0.06), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    line-height: 1.65;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; padding: 0 1.25rem; }
+
+  .hero{ padding: 3.5rem 1.25rem 2.5rem; text-align:center; border-bottom: 1px solid var(--panel-border); margin-bottom: 2.5rem; background: linear-gradient(180deg, rgba(184,146,240,0.05), transparent 70%); }
+  .hero .eyebrow{ font-family: var(--mono-font); font-size: 0.8rem; letter-spacing: 0.15em; color: var(--teal); text-transform: uppercase; }
+  .hero h1{ font-family: var(--serif-math-font); font-weight: 600; font-size: clamp(1.5rem, 4.4vw, 2.5rem); margin: 0.6rem 0 0.8rem; background: linear-gradient(90deg, var(--gold), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub{ color: var(--text-dim); max-width: 640px; margin: 0 auto; font-size: 1.02rem; }
+  .badge-row{ display:flex; gap: 0.6rem; justify-content:center; flex-wrap:wrap; margin-top: 1.4rem; }
+  .badge{ font-family: var(--mono-font); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim); background: rgba(255,255,255,0.02); }
+  .badge.geo{ color: var(--blue); border-color: rgba(95,168,245,0.3); }
+  .badge.pat{ color: var(--purple); border-color: rgba(184,146,240,0.3); }
+  .badge.dec{ color: var(--gold); border-color: rgba(232,184,75,0.3); }
+
+  .stage-tag{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+  h2.section-title{ font-family: var(--serif-math-font); font-size: clamp(1.2rem, 2.9vw, 1.6rem); font-weight: 600; margin: 0 0 1rem 0; display:flex; align-items:center; gap:0.6rem; }
+  h2.section-title .num{ font-family: var(--mono-font); font-size: 0.85rem; color: var(--bg); background: var(--teal); border-radius: 8px; width: 2rem; height:2rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  section.block{ margin-bottom: 3rem; }
+
+  .card{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.6rem 1.7rem; margin-bottom: 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .card h3{ margin-top:0; font-family: var(--serif-math-font); font-weight:600; font-size: 1.1rem; }
+  .card-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  @media (max-width: 800px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .callout{ border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.3rem 0; border-left: 4px solid var(--teal); background: rgba(63,214,196,0.06); font-size: 0.95rem; }
+  .callout.warn{ border-left-color: var(--red); background: rgba(240,112,138,0.07); }
+  .callout.tip{ border-left-color: var(--gold); background: rgba(232,184,75,0.07); }
+  .callout.biz{ border-left-color: var(--purple); background: rgba(184,146,240,0.07); }
+  .callout .co-label{ font-family: var(--mono-font); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; display:block; margin-bottom: 0.4rem; opacity: 0.85; }
+
+  .eq-panel{ background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.2rem 1.6rem 1.8rem; margin: 1.6rem 0; box-shadow: 0 8px 30px rgba(0,0,0,0.25); text-align: center; position: relative; }
+  .eq-panel .eq-number{ position: absolute; bottom: 0.7rem; right: 1.15rem; font-size: 0.75rem; opacity: 0.45; font-family: var(--mono-font); }
+  .eq-panel .eq-label{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .eq-main{ font-family: var(--serif-math-font); font-size: clamp(1rem, 2.6vw, 1.55rem); line-height: 2.2; }
+  .sym-var{ color: var(--blue); font-style: italic; }
+  .sym-param{ color: var(--gold); font-style: italic; }
+  .sym-const{ color: var(--green); }
+  .sym-fn{ color: var(--purple); }
+  .sym-op{ color: var(--red); font-size: 1.2em; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap: 0.8rem 1.6rem; justify-content:center; margin-top: 1.2rem; font-size: 0.85rem; padding: 0.9rem 0; border-top: 1px dashed var(--panel-border); }
+  .legend div{ color: var(--text-dim); }
+  .legend span.sym{ font-family: var(--serif-math-font); font-weight:600; margin-right:0.3rem; }
+
+  table.data-table{ width:100%; border-collapse: collapse; font-size: 0.92rem; background: var(--card-bg); border-radius: 12px; overflow:hidden; }
+  table.data-table th{ background: rgba(255,255,255,0.04); color: var(--teal); text-align:left; padding: 0.7rem 0.9rem; font-family: var(--mono-font); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  table.data-table td{ padding: 0.7rem 0.9rem; border-top: 1px solid var(--card-border); color: var(--text-dim); }
+  table.data-table tr:hover td{ background: rgba(255,255,255,0.02); }
+  .scroll-x{ overflow-x:auto; border-radius:12px; }
+
+  pre{ background: #0a0c13; border:1px solid var(--card-border); border-radius: 12px; padding: 1.1rem 1.2rem; overflow-x:auto; font-family: var(--mono-font); font-size: 0.83rem; line-height: 1.6; }
+  code{ font-family: var(--mono-font); }
+  .cm{ color: var(--text-dimmer); font-style: italic;}
+  .kw{ color: var(--purple); }
+  .st{ color: var(--green); }
+  .fn{ color: var(--teal); }
+  .nb{ color: var(--gold); }
+
+  .flow{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin: 1.5rem 0; }
+  .flow .step{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem; text-align:center; min-width: 100px; }
+  .flow .arrow{ color: var(--teal); font-size: 1.3rem; }
+  @media (max-width: 700px){ .flow{ flex-direction: column; } .flow .arrow{ transform: rotate(90deg); } }
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap: 0.55rem; margin-top: 0.8rem; }
+  .pill{ font-family: var(--mono-font); font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 8px; background: rgba(232,184,75,0.1); color: var(--gold); border: 1px solid rgba(232,184,75,0.25); }
+
+  .trap{ border: 1px solid rgba(240,112,138,0.25); background: rgba(240,112,138,0.05); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.9rem; }
+  .trap .t-head{ display:flex; gap:0.6rem; align-items:center; font-weight:600; color: var(--red); margin-bottom:0.3rem; }
+
+  .timeline{ position:relative; padding-left: 2.2rem; margin: 1.6rem 0; }
+  .timeline::before{ content:""; position:absolute; left: 0.85rem; top:0.4rem; bottom:0.4rem; width:2px; background: linear-gradient(180deg, var(--teal), var(--purple)); }
+  .tstep{ position:relative; margin-bottom: 1.4rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem 1.2rem; }
+  .tstep::before{ content: attr(data-n); position:absolute; left: -2.2rem; top: 1rem; width: 1.7rem; height:1.7rem; border-radius:50%; background: var(--teal); color:#0b0e17; font-family: var(--mono-font); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .tstep h4{ margin:0 0 0.5rem; font-family: var(--serif-math-font); font-size: 1rem; color: var(--text); }
+  .tstep .expr{ font-family: var(--serif-math-font); font-size: 1.05rem; text-align:center; padding: 0.6rem 0; }
+  .tstep p.why{ margin: 0.4rem 0 0; color: var(--text-dim); font-size: 0.87rem; }
+
+  .brain{ background: linear-gradient(160deg, rgba(184,146,240,0.08), rgba(63,214,196,0.05)); border: 1px solid var(--panel-border); border-radius: 20px; padding: 1.8rem; }
+  .brain-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px){ .brain-grid{ grid-template-columns: 1fr; } }
+  .brain h4{ font-family: var(--mono-font); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin: 0 0 0.5rem; }
+  .brain ul{ margin: 0; padding-left: 1.1rem; font-size: 0.9rem; color: var(--text-dim); }
+  .brain li{ margin-bottom: 0.3rem; }
+
+  footer.foot{ text-align:center; color: var(--text-dimmer); font-size: 0.82rem; margin-top: 3rem; }
+  .toc{ display:flex; flex-wrap:wrap; gap: 0.5rem; justify-content:center; margin: 1.6rem 0 0; }
+  .toc a{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dim); text-decoration:none; border: 1px solid var(--panel-border); border-radius: 999px; padding: 0.3rem 0.7rem; }
+  .toc a:hover{ color: var(--teal); border-color: var(--teal); }
+
+  /* MATRIX VISUAL */
+  .matrix-row{ display:flex; align-items:center; justify-content:center; gap: 0.6rem; flex-wrap:wrap; margin: 1.6rem 0; }
+  .matrix-block{ display:flex; flex-direction:column; align-items:center; }
+  .matrix-bracket{ display:flex; align-items:center; }
+  .bracket-side{ font-family: var(--serif-math-font); font-size: 2.6rem; color: var(--text-dimmer); font-weight:300; line-height:1; }
+  .matrix-grid{ display:grid; gap: 0.35rem 0.7rem; padding: 0.3rem 0.4rem; font-family: var(--mono-font); font-size: 0.82rem; }
+  .matrix-grid .mcell{ text-align:center; min-width: 1.6rem; color: var(--text-dim); }
+  .matrix-grid .mcell.hl{ color: var(--blue); }
+  .matrix-label{ font-family: var(--mono-font); font-size: 0.78rem; color: var(--text-dimmer); margin-top: 0.5rem; text-align:center; }
+  .matrix-dim{ font-family: var(--mono-font); font-size: 0.7rem; color: var(--teal); margin-top: 0.2rem; }
+  .op-symbol{ font-family: var(--serif-math-font); font-size: 1.6rem; color: var(--red); align-self:center; }
+
+  .conv-flag{
+    display:inline-block; font-family: var(--mono-font); font-size: 0.7rem;
+    background: rgba(240,112,138,0.12); color: var(--red); border: 1px solid rgba(240,112,138,0.3);
+    border-radius: 999px; padding: 0.15rem 0.6rem; margin-left: 0.5rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">IIT Madras · Machine Learning Techniques</div>
+  <h1>Lecture 29 — Optimizing the Error Function</h1>
+  <p class="sub">Turning "minimize the sum of squared errors" into pure matrix algebra — the Normal Equation, and what to do when it can't be inverted.</p>
+  <div class="badge-row">
+    <span class="badge geo">Cognitive Pattern: Linear Algebra</span>
+    <span class="badge pat">Cognitive Pattern: Optimization</span>
+    <span class="badge dec">Cognitive Pattern: Geometry</span>
+  </div>
+  <div class="toc">
+    <a href="#problem">0 · Why Matrix Form</a>
+    <a href="#setup">3 · Matrix Setup</a>
+    <a href="#derivation">6 · Derivation</a>
+    <a href="#invert">9 · Invertibility</a>
+    <a href="#pca">PCA Connection</a>
+    <a href="#triggers">10 · Triggers</a>
+    <a href="#traps">18 · Exam Traps</a>
+    <a href="#industry">20 · Code</a>
+    <a href="#brain">22 · One-Page Brain</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1, 0, 1, 2 -->
+<section class="block" id="problem">
+  <div class="stage-tag">Stage -1 → 2 · Cognitive Pattern, Problem, Engineering Thinking</div>
+  <h2 class="section-title"><span class="num">0</span>Why Bother With Matrix Notation?</h2>
+  <div class="card">
+    <h3>The per-example sum is correct but clumsy</h3>
+    <p>Lecture 28 left us minimizing <span style="font-family:var(--serif-math-font);">∑ᵢ (wᵀxᵢ − yᵢ)²</span> — a sum over n individual training examples. That's correct, but it hides the structure of the problem. Every example contributes an identical-shaped term, which is exactly the signal that the whole sum should collapse into <strong>one matrix expression</strong> instead of n separate ones.</p>
+    <p>The payoff: matrix form turns an n-term sum into a single algebraic object we can differentiate <em>once</em>, and — if a certain matrix is invertible — solve <strong>exactly</strong>, with no iteration required.</p>
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS lens</span>
+    This is the difference between writing 500 separate spreadsheet formulas (one per lead) and writing one matrix formula that processes all 500 at once. Same math, but only one of these actually scales.
+  </div>
+</section>
+
+<!-- STAGE 3-5: MATRIX SETUP -->
+<section class="block" id="setup">
+  <div class="stage-tag">Stage 3 → 5 · Mathematical Translation, Anatomy</div>
+  <h2 class="section-title"><span class="num">3</span>Stacking Everything Into Matrices</h2>
+
+  <div class="callout warn">
+    <span class="co-label">Convention check — read this before anything else</span>
+    This lecture stacks data points as <strong>columns</strong> of X, so X itself is <span style="font-family:var(--serif-math-font);"><span class="sym-const">d</span> × <span class="sym-const">n</span></span> and <span style="font-family:var(--serif-math-font);"><span class="sym-fn">X</span><sup class="sym-const">T</sup></span> is <span style="font-family:var(--serif-math-font);"><span class="sym-const">n</span> × <span class="sym-const">d</span></span> (rows = data points). Many libraries, including scikit-learn and numpy, do the <em>opposite</em> by default — rows of X are data points. Keep this lecture's convention in your head as you read the equations below; it's the single easiest place to get tripped up.
+  </div>
+
+  <div class="matrix-row">
+    <div class="matrix-block">
+      <div class="matrix-bracket">
+        <span class="bracket-side">[</span>
+        <div class="matrix-grid" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="mcell hl">x₁₁</div><div class="mcell">x₂₁</div><div class="mcell">⋯</div>
+          <div class="mcell hl">x₁₂</div><div class="mcell">x₂₂</div><div class="mcell">⋯</div>
+          <div class="mcell hl">⋮</div><div class="mcell">⋮</div><div class="mcell">⋱</div>
+        </div>
+        <span class="bracket-side">]</span>
+      </div>
+      <div class="matrix-label">X — data matrix</div>
+      <div class="matrix-dim">d × n (columns are data points)</div>
+    </div>
+    <div class="matrix-block">
+      <div class="matrix-bracket">
+        <span class="bracket-side">[</span>
+        <div class="matrix-grid" style="grid-template-columns: 1fr;">
+          <div class="mcell">y₁</div><div class="mcell">y₂</div><div class="mcell">⋮</div><div class="mcell">yₙ</div>
+        </div>
+        <span class="bracket-side">]</span>
+      </div>
+      <div class="matrix-label">y — label vector</div>
+      <div class="matrix-dim">n × 1</div>
+    </div>
+    <div class="matrix-block">
+      <div class="matrix-bracket">
+        <span class="bracket-side">[</span>
+        <div class="matrix-grid" style="grid-template-columns: 1fr;">
+          <div class="mcell hl">w₁</div><div class="mcell hl">w₂</div><div class="mcell hl">⋮</div><div class="mcell hl">w_d</div>
+        </div>
+        <span class="bracket-side">]</span>
+      </div>
+      <div class="matrix-label">w — weight vector</div>
+      <div class="matrix-dim">d × 1</div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div><span class="sym sym-fn">X</span> — data matrix, d × n, one training point per column</div>
+    <div><span class="sym sym-var">y</span> — label vector, n × 1</div>
+    <div><span class="sym sym-param">w</span> — weight vector we're solving for, d × 1</div>
+    <div><span class="sym sym-const">n</span> — number of training examples</div>
+    <div><span class="sym sym-const">d</span> — number of features per example</div>
+  </div>
+
+  <p>With this stacking, one matrix-vector product <span style="font-family:var(--serif-math-font);"><span class="sym-fn">X</span><sup class="sym-const">T</sup><span class="sym-param">w</span></span> computes <em>every</em> prediction <span style="font-family:var(--serif-math-font);"><span class="sym-param">w</span><sup class="sym-const">T</sup><span class="sym-var">x</span>ᵢ</span> at once, stacked into an n × 1 vector — replacing n separate dot products with a single (n × d)·(d × 1) multiplication.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">The objective, in matrix form</div>
+    <div class="eq-main">
+      <span class="sym-op" style="font-size:0.9em;">min</span><sub style="font-size:0.6em;"><span class="sym-param">w</span> ∈ ℝᵈ</sub> &nbsp;
+      ‖<span class="sym-fn">X</span><sup class="sym-const">T</sup><span class="sym-param">w</span> <span class="sym-op">−</span> <span class="sym-var">y</span>‖<sup class="sym-const">2</sup>
+    </div>
+    <div class="eq-number">Eq. 29.1</div>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">Reading the notation</span>
+    ‖·‖² here is the squared <strong>L2 norm</strong> of a vector — sum of the squares of its entries. ‖Xᵀw − y‖² is exactly the same quantity as Lecture 28's ∑ᵢ(wᵀxᵢ − yᵢ)², just written as one vector's squared length instead of a sum of scalars. This is an <strong>unconstrained quadratic optimization problem</strong> — quadratic in w, with no constraints on what w is allowed to be.
+  </div>
+</section>
+
+<!-- STAGE 6: DERIVATION -->
+<section class="block" id="derivation">
+  <div class="stage-tag">Stage 6 · Derivation</div>
+  <h2 class="section-title"><span class="num">6</span>From the Objective to the Normal Equation</h2>
+
+  <div class="timeline">
+    <div class="tstep" data-n="1">
+      <h4>Expand the squared norm into a quadratic form</h4>
+      <div class="expr">‖Xᵀw − y‖² = (Xᵀw − y)ᵀ(Xᵀw − y) = wᵀXXᵀw − 2wᵀXy + yᵀy</div>
+      <p class="why">Expanding the product term by term: (Xᵀw)ᵀ(Xᵀw) = wᵀXXᵀw, the cross term −2(Xᵀw)ᵀy = −2wᵀXy, and yᵀy doesn't involve w at all.</p>
+    </div>
+    <div class="tstep" data-n="2">
+      <h4>Differentiate with respect to w</h4>
+      <div class="expr">∇<sub>w</sub> [wᵀXXᵀw − 2wᵀXy + yᵀy] = 2XXᵀw − 2Xy</div>
+      <p class="why">Two matrix-calculus identities do all the work: ∇<sub>w</sub>(wᵀAw) = 2Aw when A is symmetric (XXᵀ always is), and ∇<sub>w</sub>(wᵀb) = b for any constant vector b. The yᵀy term vanishes since it's constant in w.</p>
+    </div>
+    <div class="tstep" data-n="3">
+      <h4>Set the gradient to zero — the Normal Equation</h4>
+      <div class="expr">2XXᵀw − 2Xy = 0 &nbsp;⟹&nbsp; <strong>XXᵀw = Xy</strong></div>
+      <p class="why">Because ‖Xᵀw − y‖² is convex in w (it's a sum of squares), any point with zero gradient is a global minimum — no need to check further.</p>
+    </div>
+    <div class="tstep" data-n="4">
+      <h4>Solve for w*</h4>
+      <div class="expr">w* = (XXᵀ)<sup>−1</sup> Xy &nbsp;&nbsp;<span style="color:var(--text-dimmer); font-size:0.75em;">(only if XXᵀ is invertible)</span></div>
+      <p class="why">This closed-form solution requires XXᵀ (a d × d matrix) to actually have an inverse — the question the next section answers.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 9: INVERTIBILITY / EDGE CASES -->
+<section class="block" id="invert">
+  <div class="stage-tag">Stage 9 · Edge Cases — when the clean formula breaks</div>
+  <h2 class="section-title"><span class="num">9</span>What If XXᵀ Isn't Invertible?</h2>
+  <div class="card">
+    <h3>When invertibility fails</h3>
+    <p>XXᵀ is a d × d matrix, and it fails to be invertible exactly when it doesn't have <strong>full rank</strong> — equivalently, when it has a non-trivial null space (some nonzero vector v with XXᵀv = 0). In practice this happens when:</p>
+    <table class="data-table">
+      <tr><th>Situation</th><th>Why it breaks invertibility</th></tr>
+      <tr><td>More features than examples (d &gt; n)</td><td>X itself can't have rank higher than n, so XXᵀ (d × d) can't reach full rank d</td></tr>
+      <tr><td>Redundant / linearly dependent features</td><td>Two perfectly correlated features carry the same information — XXᵀ can't distinguish their individual contributions</td></tr>
+    </table>
+  </div>
+  <div class="eq-panel">
+    <div class="eq-label">The fix — Moore–Penrose pseudo-inverse</div>
+    <div class="eq-main">w* = (<span class="sym-fn">XX</span><sup class="sym-const">T</sup>)<sup class="sym-op">+</sup><span class="sym-fn">Xy</span></div>
+    <div class="eq-number">Eq. 29.2</div>
+  </div>
+  <div class="callout">
+    <span class="co-label">What the pseudo-inverse actually buys you</span>
+    When XXᵀ is singular, the Normal Equation has either <strong>no exact solution</strong> or <strong>infinitely many</strong>. The pseudo-inverse (XXᵀ)⁺ is defined for every matrix, singular or not, and specifically returns the <strong>least-norm solution</strong> — among all w that satisfy the Normal Equation equally well, it picks the one with the smallest ‖w‖². It's a mathematically principled tie-breaker, not a numerical hack.
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS lens</span>
+    d &gt; n shows up whenever you track more features than you have historical examples — e.g. 40 tracked ad-campaign attributes but only 25 past RMS batches to learn from. The Normal Equation alone can't pick a unique w in that regime; the pseudo-inverse is what makes the problem solvable at all.
+  </div>
+</section>
+
+<!-- PCA CONNECTION -->
+<section class="block" id="pca">
+  <div class="stage-tag">Stage 21 · Connections — tying back to unsupervised learning</div>
+  <h2 class="section-title"><span class="num">🔗</span>Why XXᵀ Looks Familiar</h2>
+  <div class="card">
+    <h3>XXᵀ is a scaled covariance matrix</h3>
+    <p>If you've built PCA before in this course, XXᵀ should look familiar — it behaves like a <strong>scaled covariance matrix</strong> of the features (assuming X is mean-centered). PCA eigendecomposes exactly this kind of matrix to find directions of maximum variance.</p>
+    <table class="data-table">
+      <tr><th></th><th>PCA</th><th>Linear Regression (this lecture)</th></tr>
+      <tr><td>Uses XXᵀ?</td><td>Yes — eigendecomposes it directly</td><td>Yes — inverts (or pseudo-inverts) it</td></tr>
+      <tr><td>Uses labels y?</td><td>No — entirely unsupervised</td><td>Yes — Xy steers the solution toward predicting y</td></tr>
+      <tr><td>What it finds</td><td>Directions of maximum variance in X alone</td><td>The weight vector that best predicts y from X</td></tr>
+    </table>
+    <p style="margin-top:0.8rem;">Same core matrix, two very different jobs — one purely describes the structure of the inputs, the other uses that structure to predict an outcome.</p>
+  </div>
+</section>
+
+<!-- STAGE 10, 11: TRIGGERS -->
+<section class="block" id="triggers">
+  <div class="stage-tag">Stage 10 → 11 · Hidden Trigger Recognition, Pattern Recognition</div>
+  <h2 class="section-title"><span class="num">10</span>Words That Should Instantly Trigger This Topic</h2>
+  <div class="pill-row">
+    <span class="pill">"Normal Equation"</span>
+    <span class="pill">"closed-form solution"</span>
+    <span class="pill">"XXᵀ not invertible"</span>
+    <span class="pill">"pseudo-inverse"</span>
+    <span class="pill">"least-norm solution"</span>
+    <span class="pill">"unconstrained quadratic optimization"</span>
+    <span class="pill">"more features than examples"</span>
+  </div>
+</section>
+
+<!-- STAGE 18: TRAPS -->
+<section class="block" id="traps">
+  <div class="stage-tag">Stage 18 · Examiner Trap Library</div>
+  <h2 class="section-title"><span class="num">18</span>Common Exam Traps</h2>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 1 — XXᵀ vs XᵀX confusion</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">Under this lecture's convention (X is d × n), XXᵀ is d × d — the matrix that must be inverted. XᵀX would be n × n, a completely different object. Swapping them is one of the most common silent errors, especially since many textbooks use the opposite convention where X is n × d and it's XᵀX that gets inverted.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 2 — assuming a unique solution always exists</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">"Solve the Normal Equation" only yields one clean w* when XXᵀ is invertible. A question that sets up d &gt; n and still asks for "the" solution via direct inversion is testing whether you catch that the inverse doesn't exist there.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 3 — treating the pseudo-inverse as "an approximation"</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">The pseudo-inverse isn't a fuzzy or approximate stand-in for the true inverse — it's an exact, well-defined operation (Moore–Penrose) that coincides exactly with the regular inverse whenever one exists, and gives a specific, well-defined least-norm solution when it doesn't.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="block" id="industry">
+  <div class="stage-tag">Stage 20 · Industry Implementation</div>
+  <h2 class="section-title"><span class="num">20</span>Solving This in Practice</h2>
+  <pre><code><span class="cm"># NOTE: numpy/sklearn convention is rows-as-examples (opposite of this lecture's X)</span>
+<span class="cm"># So here, X_np.shape = (n, d) -- the transpose of this lecture's X</span>
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cm"># Direct Normal Equation (only safe if XXᵀ / XᵀX is invertible)</span>
+w = np.linalg.inv(X_np.T @ X_np) @ X_np.T @ y
+
+<span class="cm"># Robust version: uses the pseudo-inverse automatically,</span>
+<span class="cm"># works even when the direct inverse doesn't exist</span>
+w_robust, *_ = np.linalg.lstsq(X_np, y, rcond=<span class="kw">None</span>)
+
+<span class="cm"># sklearn's LinearRegression uses an SVD-based least-squares solver</span>
+<span class="cm"># under the hood -- effectively the pseudo-inverse approach, not a raw np.linalg.inv</span></code></pre>
+  <div class="callout warn">
+    <span class="co-label">Practical note</span>
+    Real implementations almost never call <code>np.linalg.inv</code> directly on XXᵀ — it's numerically unstable when the matrix is close to singular. <code>lstsq</code> / SVD-based solvers are preferred precisely because they degrade gracefully into the pseudo-inverse behavior instead of blowing up.
+  </div>
+</section>
+
+<!-- STAGE 21: FUTURE DIRECTIONS -->
+<section class="block">
+  <div class="stage-tag">Stage 21 · Connections — stated explicitly in this lecture</div>
+  <h2 class="section-title"><span class="num">21</span>Where the Course Goes From Here</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 style="color:var(--blue);">Geometric Interpretation</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">The spatial meaning of w* — what projection is actually happening when we solve the Normal Equation.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--purple);">Computational Considerations</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">How efficiently this system can actually be solved as n and d grow large.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--green);">Non-linear Relationships</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">Extending beyond H<sub>linear</sub> to capture curved relationships between features and labels.</p>
+    </div>
+  </div>
+  <div class="card" style="margin-top:1rem;">
+    <h3 style="color:var(--gold);">Probabilistic Perspective</h3>
+    <p style="font-size:0.9rem; color:var(--text-dim);">Interpreting the error term and noise through a statistical lens — connecting least squares back to maximum likelihood estimation under a Gaussian noise assumption.</p>
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="block" id="brain">
+  <div class="stage-tag">Stage 22 · One-Page Brain</div>
+  <h2 class="section-title"><span class="num">22</span>Everything on One Page</h2>
+  <div class="brain">
+    <div class="brain-grid">
+      <div>
+        <h4>Core Intuition</h4>
+        <ul>
+          <li>Stack all n examples into matrices → one clean objective, not n terms</li>
+          <li>Differentiate once, set to zero → Normal Equation</li>
+          <li>Invertible → exact closed form; not invertible → pseudo-inverse</li>
+        </ul>
+        <h4 style="margin-top:1rem;">Key Formulas</h4>
+        <ul>
+          <li>min_w ‖Xᵀw − y‖² &nbsp;(X is d×n here)</li>
+          <li>Gradient: 2XXᵀw − 2Xy</li>
+          <li>Normal Equation: XXᵀw = Xy</li>
+          <li>w* = (XXᵀ)⁻¹Xy, or (XXᵀ)⁺Xy if singular</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5 Triggers</h4>
+        <ul>
+          <li>"Normal Equation" / "closed-form"</li>
+          <li>"XXᵀ not invertible" / "not full rank"</li>
+          <li>"pseudo-inverse" / "least-norm solution"</li>
+          <li>"unconstrained quadratic optimization"</li>
+          <li>"more features than examples"</li>
+        </ul>
+        <h4 style="margin-top:1rem;">5 Traps</h4>
+        <ul>
+          <li>XXᵀ (d×d) vs XᵀX (n×n) — convention-dependent, don't mix up</li>
+          <li>Direct inverse doesn't always exist</li>
+          <li>Pseudo-inverse is exact, not approximate</li>
+          <li>d &gt; n or correlated features → singular XXᵀ</li>
+          <li>This lecture's X convention is transposed vs numpy/sklearn</li>
+        </ul>
+      </div>
+    </div>
+    <h4 style="margin-top:1.4rem;">Dependencies</h4>
+    <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">Builds on: Lecture 28's per-example error sum and H<sub>linear</sub>. Connects to: PCA's use of XXᵀ (unsupervised vs supervised use of the same matrix). Feeds into: geometric interpretation, computational efficiency, non-linear extensions, and the probabilistic (MLE) view of least squares.</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="foot">Lecture 29 · Optimizing the Error Function — study notes</footer>
+
+</body>
+</html>

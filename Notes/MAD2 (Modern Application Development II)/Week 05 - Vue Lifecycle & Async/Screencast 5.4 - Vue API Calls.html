@@ -3,468 +3,726 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vue API Calls — Study Notes</title>
+<title>5.4 — Vue.js + Fetch API | MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
-:root{
-  --bg:#0A0D14; --panel:#12161F; --panel-2:#161B26; --line:#232A38;
-  --text:#E7EAF2; --muted:#8A93A8; --green:#4ADE94; --green-dim:#234436;
-  --amber:#F0B450; --amber-dim:#3E3320; --violet:#8B93FF; --violet-dim:#26264A;
-  --cyan:#7DD3FC; --cyan-dim:#1A3A4A; --red:#F05050; --red-dim:#3A1A1A;
-  --code-bg:#0D1118; --radius:14px;
-}
-*{box-sizing:border-box;}
-body{
-  margin:0;
-  background:radial-gradient(circle at 15% 0%, rgba(74,222,148,0.08), transparent 40%),radial-gradient(circle at 85% 20%, rgba(125,211,252,0.06), transparent 40%),var(--bg);
-  color:var(--text); font-family:'Sora',sans-serif; padding:36px 20px 80px; line-height:1.5;
-}
-.wrap{max-width:900px;margin:0 auto;}
-.hero{
-  border:1px solid var(--line); border-radius:var(--radius); padding:30px 32px;
-  background:linear-gradient(160deg, var(--panel-2), var(--panel)); margin-bottom:30px; position:relative; overflow:hidden;
-}
-.hero::after{
-  content:""; position:absolute; top:-40%; right:-10%;
-  width:280px;height:280px;border-radius:50%;
-  background:radial-gradient(circle, rgba(74,222,148,0.12), transparent 70%);
-}
-.eyebrow{
-  font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--green); margin-bottom:10px; display:flex; align-items:center; gap:8px;
-}
-.eyebrow::before{content:"\25CF"; font-size:10px;}
-h1{font-size:28px; font-weight:800; margin:0 0 10px; letter-spacing:-.01em;}
-.hero p{color:var(--muted); font-size:15px; max-width:640px; margin:0;}
-.hero p b{color:var(--green);}
-.section-tag{
-  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--muted);
-  margin:38px 0 10px; display:flex; align-items:center; gap:10px;
-}
-.section-tag .n{
-  width:22px;height:22px;border-radius:6px;background:var(--panel-2);
-  border:1px solid var(--line); display:flex; align-items:center; justify-content:center;
-  color:var(--green); font-weight:700; font-size:11px;
-}
-.card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px 26px; margin-bottom:18px;
-}
-.card h2{font-size:19px; margin:0 0 12px; font-weight:700;}
-.card h3{font-size:16px; margin:16px 0 8px; font-weight:600; color:var(--cyan);}
-.card .def{color:var(--text); font-size:14.5px; margin:0 0 16px;}
-.emoji-h{
-  display:flex; align-items:center; gap:8px; font-size:16px; font-weight:600; margin:16px 0 8px;
-}
-.emoji-h .e{font-size:20px;}
-.analogy-box{
-  background:var(--amber-dim); border:1px solid rgba(240,180,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.analogy-box .a-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--amber); font-weight:600; margin-bottom:4px;}
-.analogy-box .a-text{font-size:13.5px; color:#E9D9B8;}
-.industry-box{
-  background:var(--violet-dim); border:1px solid rgba(139,147,255,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.industry-box .i-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--violet); font-weight:600; margin-bottom:4px;}
-.industry-box .i-text{font-size:13.5px; color:#D5D8FF;}
-.mistake-box{
-  background:var(--red-dim); border:1px solid rgba(240,80,80,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.mistake-box .m-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--red); font-weight:600; margin-bottom:4px;}
-.mistake-box .m-text{font-size:13.5px; color:#F0B0B0;}
-.tip-box{
-  background:var(--cyan-dim); border:1px solid rgba(125,211,252,0.25);
-  border-radius:10px; padding:14px 16px; margin:12px 0;
-}
-.tip-box .t-label{font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--cyan); font-weight:600; margin-bottom:4px;}
-.tip-box .t-text{font-size:13.5px; color:#C9E8F8;}
-.impact-card{
-  border:1px solid var(--line); border-radius:var(--radius);
-  background:var(--panel); padding:24px; margin:20px 0;
-}
-.impact-label{
-  font-size:11px; text-transform:uppercase; letter-spacing:.06em;
-  color:#4ADE94; font-weight:700; margin-bottom:16px;
-  display:flex; align-items:center; gap:10px;
-}
-.impact-label::before{
-  content:""; width:4px; height:18px;
-  background:#4ADE94; border-radius:3px; flex-shrink:0;
-}
-.impact-grid{
-  display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-  gap:14px;
-}
-.impact-item{
-  background:#161B26; border:1px solid #232A38;
-  border-radius:10px; padding:16px;
-}
-.impact-item .company{
-  font-size:13px; font-weight:700; color:#4ADE94;
-  margin-bottom:6px; display:flex; align-items:center; gap:6px;
-}
-.impact-item .company::before{
-  content:">"; font-family:'JetBrains Mono',monospace;
-  color:#4ADE94; font-size:11px; opacity:0.5;
-}
-.impact-item .impact-text{
-  font-size:13px; color:#8A93A8; line-height:1.6; margin:0;
-}
-.impact-item .impact-text strong{color:#F0B450;}
-.impact-item .impact-text b{color:#E7EAF2;}
-pre{
-  background:var(--code-bg); border:1px solid var(--line); border-radius:10px;
-  padding:16px 18px; overflow-x:auto; margin:12px 0;
-  font-family:'JetBrains Mono',monospace; font-size:12.5px; line-height:1.7;
-}
-code{font-family:inherit;} .cmt{color:#6B7688;} .kw{color:#8B93FF;}
-.fn{color:#4ADE94;} .str{color:#F0B450;} .prop{color:#7DD3FC;}
-.comparison{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0;}
-@media (max-width:640px){.comparison{grid-template-columns:1fr;}}
-.comp-card{background:var(--panel-2); border:1px solid var(--line); border-radius:10px; padding:16px;}
-.comp-card .c-title{font-weight:700; font-size:13px; margin-bottom:6px;}
-.comp-card .c-desc{font-size:12px; color:var(--muted);}
-.comp-card.old .c-title{color:var(--red);}
-.comp-card.new .c-title{color:var(--green);}
-.qa-box{border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:10px 0; background:var(--panel-2);}
-.qa-box .q{color:var(--amber); font-weight:600; font-size:13.5px;}
-.qa-box .a{color:var(--text); font-size:13.5px; margin-top:4px;}
-.rev-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:12px 0;}
-@media (max-width:640px){.rev-grid{grid-template-columns:1fr;}}
-.rev-item{background:var(--panel-2); border:1px solid var(--line); border-radius:8px; padding:10px 12px; font-size:12.5px;}
-.rev-item b{color:var(--green);}
-ul, ol{margin:8px 0; padding-left:20px; font-size:14px;}
-li{margin:4px 0; color:var(--text);}
-.footer-note{margin-top:30px; text-align:center; font-size:12px; color:var(--muted); font-family:'JetBrains Mono',monospace;}
+  :root{
+    --bg:#0a0e17;
+    --bg-grid: rgba(148,163,184,0.05);
+    --panel:#121826;
+    --panel-2:#161f30;
+    --border: rgba(148,163,184,0.14);
+    --gold:#d4af37;
+    --teal:#2dd4bf;
+    --purple:#a78bfa;
+    --red:#f87171;
+    --green:#4ade80;
+    --amber:#fbbf24;
+    --text:#e5e9f0;
+    --muted:#8b96ab;
+    --serif: 'Fraunces', serif;
+    --sans: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px) 0 0/40px 40px,
+      radial-gradient(circle at 20% 0%, rgba(167,139,250,0.07), transparent 45%),
+      radial-gradient(circle at 90% 30%, rgba(45,212,191,0.06), transparent 40%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.65;
+    padding-bottom:6rem;
+  }
+  .wrap{max-width:920px; margin:0 auto; padding: 0 1.25rem;}
+  ::selection{background:rgba(212,175,55,0.35);}
+
+  /* ---------- Header / Hero ---------- */
+  .hero{
+    padding:3.5rem 0 2rem;
+    text-align:center;
+    position:relative;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    letter-spacing:0.25em;
+    text-transform:uppercase;
+    color:var(--teal);
+    font-size:0.72rem;
+    margin-bottom:0.9rem;
+  }
+  .hero h1{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size:clamp(1.9rem, 5vw, 3.1rem);
+    margin:0 0 0.6rem;
+    background:linear-gradient(100deg, var(--gold), #f3e5ab 40%, var(--teal));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero p.sub{color:var(--muted); font-size:1.02rem; max-width:640px; margin:0 auto;}
+
+  /* ---------- Topic Card ---------- */
+  .topic-card{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:0;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    overflow:hidden;
+    margin:2rem 0;
+    box-shadow:0 12px 40px rgba(0,0,0,0.35);
+  }
+  .topic-card .cell{
+    padding:1.1rem 1.3rem;
+    border-right:1px solid var(--border);
+  }
+  .topic-card .cell:last-child{border-right:none;}
+  .topic-card .label{font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.35rem;}
+  .topic-card .value{font-weight:600; font-size:0.98rem;}
+  .stars{color:var(--gold); letter-spacing:0.08em;}
+
+  /* ---------- Section chrome ---------- */
+  .module{
+    margin:3.2rem 0;
+    scroll-margin-top:1.5rem;
+  }
+  .module-head{
+    display:flex;
+    align-items:baseline;
+    gap:0.7rem;
+    margin-bottom:1.1rem;
+  }
+  .module-num{
+    font-family:var(--mono);
+    color:var(--purple);
+    font-size:0.85rem;
+    border:1px solid var(--purple);
+    border-radius:6px;
+    padding:0.1rem 0.5rem;
+    opacity:0.85;
+    flex-shrink:0;
+  }
+  .module-head h2{
+    font-family:var(--serif);
+    font-size:clamp(1.25rem,3vw,1.6rem);
+    margin:0;
+    font-weight:600;
+  }
+
+  /* ---------- Box card / callouts ---------- */
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:1.4rem 1.6rem;
+    margin:1rem 0;
+    box-shadow:0 6px 24px rgba(0,0,0,0.22);
+  }
+  .card h3{font-family:var(--serif); font-size:1.05rem; margin-top:0; color:var(--teal); font-weight:600;}
+  .callout{
+    border-radius:12px;
+    padding:1rem 1.3rem;
+    margin:1.1rem 0;
+    border:1px solid var(--border);
+    position:relative;
+    font-size:0.95rem;
+  }
+  .callout.intuition{background:rgba(167,139,250,0.08); border-color:rgba(167,139,250,0.35);}
+  .callout.intuition::before{content:"☕ CORE INTUITION"; display:block; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; color:var(--purple); margin-bottom:0.5rem;}
+  .callout.warn{background:rgba(248,113,113,0.08); border-color:rgba(248,113,113,0.35);}
+  .callout.warn::before{content:"⚠ TRAP"; display:block; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; color:var(--red); margin-bottom:0.5rem;}
+  .callout.tip{background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.35);}
+  .callout.tip::before{content:"✓ SHORTCUT"; display:block; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; color:var(--green); margin-bottom:0.5rem;}
+  .callout.gold{background:rgba(212,175,55,0.08); border-color:rgba(212,175,55,0.4);}
+  .callout.gold::before{content:"★ REMEMBER"; display:block; font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; color:var(--gold); margin-bottom:0.5rem;}
+
+  /* ---------- Diagram flow ---------- */
+  .flow{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:0.4rem;
+    padding:1.5rem 0.5rem;
+  }
+  .flow .step{
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0.6rem 1rem;
+    font-family:var(--mono);
+    font-size:0.82rem;
+    text-align:center;
+    min-width:100px;
+  }
+  .flow .step.active{border-color:var(--teal); color:var(--teal); box-shadow:0 0 16px rgba(45,212,191,0.25);}
+  .flow .step.gold-b{border-color:var(--gold); color:var(--gold);}
+  .flow .step.purple-b{border-color:var(--purple); color:var(--purple);}
+  .flow .arrow{color:var(--muted); font-size:1.2rem;}
+  .flow.vertical{flex-direction:column;}
+  .flow.vertical .arrow{transform:rotate(90deg);}
+
+  /* ---------- Code blocks ---------- */
+  pre.code{
+    background:#0d1220;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:1.1rem 1.3rem;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:0.85rem;
+    line-height:1.7;
+    margin:0.8rem 0;
+  }
+  pre.code .c-key{color:var(--purple);}
+  pre.code .c-str{color:var(--green);}
+  pre.code .c-fn{color:var(--teal);}
+  pre.code .c-com{color:var(--muted); font-style:italic;}
+  pre.code .c-tag{color:var(--gold);}
+  .anno-list{list-style:none; padding:0; margin:0.8rem 0;}
+  .anno-list li{
+    display:flex;
+    gap:0.7rem;
+    padding:0.5rem 0;
+    border-bottom:1px dashed var(--border);
+    font-size:0.92rem;
+  }
+  .anno-list li:last-child{border-bottom:none;}
+  .anno-list .tok{
+    font-family:var(--mono);
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:0.1rem 0.5rem;
+    color:var(--gold);
+    flex-shrink:0;
+    height:fit-content;
+    white-space:nowrap;
+  }
+
+  /* ---------- Tables ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:1rem 0;
+    font-size:0.9rem;
+  }
+  th,td{
+    border:1px solid var(--border);
+    padding:0.6rem 0.8rem;
+    text-align:left;
+  }
+  th{
+    background:var(--panel-2);
+    font-family:var(--mono);
+    font-size:0.72rem;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:var(--teal);
+  }
+  td.yes{color:var(--green); font-weight:600;}
+  td.no{color:var(--red); font-weight:600;}
+
+  /* ---------- Mistakes ---------- */
+  .mistake{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:0.5rem;
+    margin:1rem 0;
+  }
+  .mistake .wrong, .mistake .right{
+    border-radius:10px;
+    padding:0.7rem 1rem;
+    font-size:0.9rem;
+    font-family:var(--mono);
+  }
+  .mistake .wrong{background:rgba(248,113,113,0.08); border:1px solid rgba(248,113,113,0.3); color:#fca5a5;}
+  .mistake .right{background:rgba(74,222,128,0.08); border:1px solid rgba(74,222,128,0.3); color:#86efac;}
+
+  /* ---------- Interview tiers ---------- */
+  .tiers{display:grid; grid-template-columns:1fr; gap:0.8rem;}
+  .tier{border-radius:12px; padding:1rem 1.2rem; border:1px solid var(--border);}
+  .tier.easy{background:rgba(74,222,128,0.06);}
+  .tier.medium{background:rgba(251,191,36,0.06);}
+  .tier.advanced{background:rgba(248,113,113,0.06);}
+  .tier .tier-label{font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:0.5rem; display:block;}
+  .tier.easy .tier-label{color:var(--green);}
+  .tier.medium .tier-label{color:var(--amber);}
+  .tier.advanced .tier-label{color:var(--red);}
+  .tier ul{margin:0; padding-left:1.2rem;}
+  .tier li{margin-bottom:0.35rem; font-size:0.92rem;}
+
+  /* ---------- Practice ladder ---------- */
+  .ladder{display:flex; flex-direction:column; gap:0.5rem;}
+  .rung{
+    display:flex;
+    align-items:center;
+    gap:0.9rem;
+    background:var(--panel-2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:0.65rem 1rem;
+  }
+  .rung .lvl{
+    font-family:var(--mono);
+    background:var(--bg);
+    border:1px solid var(--gold);
+    color:var(--gold);
+    border-radius:50%;
+    width:28px; height:28px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.78rem;
+    flex-shrink:0;
+  }
+
+  /* ---------- Status icon demo (visual feedback) ---------- */
+  .icon-demo{
+    display:flex;
+    justify-content:center;
+    gap:1.5rem;
+    flex-wrap:wrap;
+    padding:1.4rem 0;
+  }
+  .icon-demo .badge{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:0.4rem;
+    font-family:var(--mono);
+    font-size:0.78rem;
+    color:var(--muted);
+  }
+  .icon-circle{
+    width:46px; height:46px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem;
+    border:2px solid;
+  }
+  .icon-circle.warn{border-color:var(--amber); color:var(--amber); background:rgba(251,191,36,0.08);}
+  .icon-circle.ok{border-color:var(--green); color:var(--green); background:rgba(74,222,128,0.08);}
+  .icon-circle.err{border-color:var(--red); color:var(--red); background:rgba(248,113,113,0.08);}
+
+  /* ---------- Nav dots (progress) ---------- */
+  .toc{
+    display:flex;
+    flex-wrap:wrap;
+    gap:0.4rem;
+    justify-content:center;
+    margin:1.5rem 0 0.5rem;
+  }
+  .toc a{
+    font-family:var(--mono);
+    font-size:0.68rem;
+    color:var(--muted);
+    text-decoration:none;
+    border:1px solid var(--border);
+    border-radius:20px;
+    padding:0.25rem 0.7rem;
+    transition:all 0.15s;
+  }
+  .toc a:hover{color:var(--teal); border-color:var(--teal);}
+
+  hr.div{border:none; border-top:1px dashed var(--border); margin:2.5rem 0;}
+
+  .footer-note{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.82rem;
+    font-family:var(--mono);
+    margin-top:3rem;
+  }
+
+  @media(max-width:640px){
+    .topic-card{grid-template-columns:1fr 1fr;}
+    .topic-card .cell{border-bottom:1px solid var(--border);}
+    .flow{flex-direction:column;}
+    .flow .arrow{transform:rotate(90deg);}
+    pre.code{font-size:0.76rem;}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-<div class="hero">
-  <div class="eyebrow">Week 05 · Screencast 5.4</div>
-  <h1>Vue API Calls</h1>
-  <p>Combining Vue's lifecycle with async data fetching — the <b>standard pattern</b> for loading, error, and success states, watching reactive sources for re-fetching, and organizing API logic into a <b>service layer</b>.</p>
-</div>
-
-<div class="section-tag"><span class="n">1</span> THE STANDARD PATTERN</div>
-<div class="card">
-  <h2>fetch in mounted()</h2>
-  <p class="def">The canonical approach: call an async function inside <b>mounted</b>, store the result in reactive data, and let Vue's reactivity update the UI automatically.</p>
-  <pre>&lt;template&gt;
-  &lt;div v-if="loading"&gt;Loading...&lt;/div&gt;
-  &lt;div v-else-if="error"&gt;{{ error }}&lt;/div&gt;
-  &lt;div v-else&gt;
-    &lt;div v-for="item in items" :key="item.id"&gt;
-      {{ item.name }}
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/template&gt;
-
-&lt;script&gt;
-export default {
-  data() {
-    return {
-      items: [],
-      loading: false,
-      error: null
-    }
-  },
-  async mounted() {
-    this.loading = true
-    try {
-      const res = await fetch('/api/items')
-      if (!res.ok) throw new Error('HTTP ' + res.status)
-      this.items = await res.json()
-    } catch (err) {
-      this.error = err.message
-    } finally {
-      this.loading = false
-    }
-  }
-}
-&lt;/script&gt;</pre>
-  <div class="analogy-box">
-    <div class="a-label">Real-World Analogy</div>
-    <div class="a-text">The standard pattern is like ordering at a restaurant: when you sit down (mounted), you place an order (fetch). While the kitchen is cooking, the waiter brings you bread (loading). If the chef burnt the steak (error), they tell you. When food arrives (data loaded), you eat (render UI).</div>
-  </div>
-  <div class="comparison">
-    <div class="comp-card old">
-      <div class="c-title">fetch in created()</div>
-      <div class="c-desc">No DOM access. Fine for SSR-universal data fetching, but can't use  after load.</div>
-    </div>
-    <div class="comp-card new">
-      <div class="c-title">fetch in mounted()</div>
-      <div class="c-desc">DOM is ready. Can integrate with DOM libs, scroll, measure layout. Best for client-side SPAs.</div>
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Vue Fundamentals · Screencast 5.4</div>
+    <h1>Vue.js + Fetch API</h1>
+    <p class="sub">How a Vue component talks to a backend — sending orders, fetching the menu, and lighting up the right status icon at the right moment.</p>
+    <div class="toc">
+      <a href="#m2">Intuition</a><a href="#m3">Mental Model</a><a href="#m4">Patterns</a>
+      <a href="#m7">Syntax</a><a href="#m8">Code</a><a href="#m11">Mistakes</a>
+      <a href="#m13">Exam</a><a href="#m14">Interview</a><a href="#m15">Brain</a><a href="#m17">Practice</a>
     </div>
   </div>
-</div>
 
-<div class="section-tag"><span class="n">2</span> LOADING &amp; ERROR STATES</div>
-<div class="card">
-  <h2>Reactive State Flags</h2>
-  <p class="def">Manage UI states with reactive booleans — <b>loading</b>, <b>error</b>, and data itself. Conditional rendering (<b>v-if/v-else</b>) shows the right UI for each state.</p>
-  <pre>&lt;template&gt;
-  &lt;div class="user-profile"&gt;
-    &lt;div v-if="loading" class="spinner"&gt;
-      Loading profile...
-    &lt;/div&gt;
-    &lt;div v-else-if="error" class="error-banner"&gt;
-      &lt;p&gt;{{ error }}&lt;/p&gt;
-      &lt;button @click="fetchUser"&gt;Retry&lt;/button&gt;
-    &lt;/div&gt;
-    &lt;div v-else class="user-data"&gt;
-      &lt;h2&gt;{{ user.name }}&lt;/h2&gt;
-      &lt;p&gt;{{ user.email }}&lt;/p&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-&lt;/template&gt;
+  <!-- MODULE 1: TOPIC CARD -->
+  <div class="topic-card">
+    <div class="cell"><div class="label">Topic</div><div class="value">Vue + Fetch API</div></div>
+    <div class="cell"><div class="label">Category</div><div class="value">Vue Fundamentals</div></div>
+    <div class="cell"><div class="label">Difficulty</div><div class="value stars">⭐⭐⭐☆☆</div></div>
+    <div class="cell"><div class="label">Prereqs</div><div class="value">Components, data(), methods</div></div>
+    <div class="cell"><div class="label">Importance</div><div class="value stars">★★★★★</div></div>
+  </div>
 
-&lt;script&gt;
-export default {
-  data() {
-    return { user: null, loading: false, error: null }
+  <!-- MODULE 2 -->
+  <div class="module" id="m2">
+    <div class="module-head"><span class="module-num">M2</span><h2>Core Intuition</h2></div>
+    <div class="callout intuition">
+      Think of your Vue component as a single counter at a coffee shop franchise. The customer (user) never walks into the kitchen (backend) directly — they place an order at the counter, the counter calls the kitchen over an intercom (<code>fetch</code>), and while the kitchen is preparing it, the counter shows a status light so the customer isn't left guessing. <code>fetch</code> is that intercom line; it's asynchronous because the kitchen takes time to respond, and the counter (the UI) stays responsive while it waits.
+    </div>
+  </div>
+
+  <!-- MODULE 3 -->
+  <div class="module" id="m3">
+    <div class="module-head"><span class="module-num">M3</span><h2>Visual Mental Model</h2></div>
+    <div class="card">
+      <h3>The Counter ↔ Kitchen Line</h3>
+      <div class="flow">
+        <div class="step active">Shop Opens<br>(mounted)</div>
+        <div class="arrow">→</div>
+        <div class="step">Check Menu Board<br>(GET /messages)</div>
+        <div class="arrow">→</div>
+        <div class="step gold-b">Display Menu<br>(this.messages = data)</div>
+      </div>
+      <div class="flow">
+        <div class="step">Customer Orders<br>(sayHi)</div>
+        <div class="arrow">→</div>
+        <div class="step purple-b">Intercom Rings<br>(POST fetch)</div>
+        <div class="arrow">→</div>
+        <div class="step">Status Light Flips<br>(v-bind:class)</div>
+      </div>
+      <p style="color:var(--muted); font-size:0.88rem; margin-bottom:0;">Two independent loops: one runs once automatically when the shop opens (initial fetch), the other runs every time a customer acts (repeated fetch).</p>
+    </div>
+  </div>
+
+  <!-- MODULE 4 -->
+  <div class="module" id="m4">
+    <div class="module-head"><span class="module-num">M4</span><h2>Pattern Recognition</h2></div>
+    <div class="card">
+      <h3>Trigger words → instant action</h3>
+      <table>
+        <tr><th>Trigger word in question</th><th>What it's really asking</th></tr>
+        <tr><td><code>fetch</code>, HTTP request, backend call</td><td>Async operation — expect <code>.then()</code> or <code>async/await</code></td></tr>
+        <tr><td>"as soon as loaded", "on page load"</td><td><code>mounted()</code> hook</td></tr>
+        <tr><td>green / red / yellow indicator</td><td>Class binding: <code>v-bind:class</code> with a data flag</td></tr>
+        <tr><td>"automatically re-fetch when X changes"</td><td>A <b>watcher</b> on X, not a method call</td></tr>
+        <tr><td>network failure, catch error</td><td><code>try...catch</code> around <code>await fetch</code></td></tr>
+      </table>
+    </div>
+    <div class="callout tip">GET → read/display · POST → send/create · mounted → runs once · watcher → runs on every change</div>
+  </div>
+
+  <!-- MODULE 5 -->
+  <div class="module" id="m5">
+    <div class="module-head"><span class="module-num">M5</span><h2>Deep Fundamentals</h2></div>
+    <div class="card">
+      <h3>1. Why was Fetch created?</h3>
+      <p>Before <code>fetch</code>, browsers used <code>XMLHttpRequest</code> — verbose, callback-heavy, and awkward to chain. <code>fetch</code> is a modern, Promise-based replacement built into the browser: no library needed to talk to a server.</p>
+      <h3>2. What problem does it solve in a Vue app?</h3>
+      <p>A Vue component's <code>data()</code> only knows what you put in it. Real apps need data that lives on a server (a database of messages, users, orders). Fetch is the bridge that pulls that server data into Vue's reactive data, or pushes local data out to be saved.</p>
+      <h3>3. What happens internally?</h3>
+      <p>Calling <code>fetch(url)</code> immediately returns a <b>Promise</b> — a placeholder for "a response, eventually." The browser opens a network connection in the background while your JavaScript keeps running. When the server replies, the Promise resolves with a <code>Response</code> object, which you then convert to usable data via <code>.json()</code> (itself another Promise, since parsing the body also takes a tick).</p>
+      <h3>4. How does Vue execute it?</h3>
+      <p>Vue doesn't do anything special to <code>fetch</code> — it's plain JavaScript. Vue's job starts <i>after</i> the data arrives: the moment you assign the result to <code>this.messages</code>, Vue's reactivity system detects the change and re-renders any part of the template that reads <code>messages</code>.</p>
+    </div>
+  </div>
+
+  <!-- MODULE 6 -->
+  <div class="module" id="m6">
+    <div class="module-head"><span class="module-num">M6</span><h2>Execution Flow</h2></div>
+    <div class="card">
+      <div class="flow vertical">
+        <div class="step">Component Created</div>
+        <div class="arrow">↓</div>
+        <div class="step active">mounted() runs</div>
+        <div class="arrow">↓</div>
+        <div class="step">await fetch(GET url)</div>
+        <div class="arrow">↓</div>
+        <div class="step">await response.json()</div>
+        <div class="arrow">↓</div>
+        <div class="step gold-b">this.messages = data</div>
+        <div class="arrow">↓</div>
+        <div class="step">Vue detects change → re-render</div>
+        <div class="arrow">↓</div>
+        <div class="step">User sees the list on screen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 7 -->
+  <div class="module" id="m7">
+    <div class="module-head"><span class="module-num">M7</span><h2>Syntax Anatomy</h2></div>
+    <div class="card">
+      <h3>Breaking down <code>async mounted() { try { ... } catch (e) { ... } }</code></h3>
+      <ul class="anno-list">
+        <li><span class="tok">async</span> Marks this function as one that can use <code>await</code> inside it. Without it, <code>await</code> is a syntax error.</li>
+        <li><span class="tok">mounted()</span> The lifecycle hook name Vue looks for — no parameters, called automatically once the component's template is attached to the real DOM.</li>
+        <li><span class="tok">try { }</span> Wraps the risky async code — anything that might throw if the network fails or the server errors out.</li>
+        <li><span class="tok">await fetch(url)</span> Pauses this function (not the whole app) until the network request settles, then unwraps the Promise into a plain <code>Response</code> object.</li>
+        <li><span class="tok">catch (e)</span> Catches a rejected Promise or thrown error from anywhere in the <code>try</code> block — this is where you'd flip a status icon to red.</li>
+        <li><span class="tok">this</span> Inside <code>mounted()</code> (a regular method, not an arrow function), <code>this</code> is bound to the component instance — required to reach <code>this.messages</code>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- MODULE 8 -->
+  <div class="module" id="m8">
+    <div class="module-head"><span class="module-num">M8</span><h2>Code Walkthrough</h2></div>
+    <div class="card">
+      <h3>Call sequence</h3>
+      <div class="flow">
+        <div class="step">data()</div><div class="arrow">→</div>
+        <div class="step active">mounted()</div><div class="arrow">→</div>
+        <div class="step">fetch()</div><div class="arrow">→</div>
+        <div class="step">render()</div><div class="arrow">→</div>
+        <div class="step">updated()</div>
+      </div>
+      <h3>Annotated component</h3>
+      <pre class="code"><span class="c-key">export default</span> {
+  <span class="c-fn">data</span>() {
+    <span class="c-key">return</span> {
+      name: <span class="c-str">''</span>,          <span class="c-com">// bound to an &lt;input&gt;</span>
+      messages: [],       <span class="c-com">// filled by the GET request</span>
+      statusIcon: <span class="c-str">'text-warning'</span> <span class="c-com">// starts yellow: "idle"</span>
+    }
   },
-  async mounted() {
-    await this.fetchUser()
+  <span class="c-fn">async mounted</span>() {
+    <span class="c-com">// runs ONCE, right when the shop opens</span>
+    <span class="c-key">try</span> {
+      <span class="c-key">const</span> res = <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/messages'</span>);
+      <span class="c-key">const</span> data = <span class="c-key">await</span> res.<span class="c-fn">json</span>();
+      <span class="c-key">this</span>.messages = data;   <span class="c-com">// Vue re-renders automatically</span>
+    } <span class="c-key">catch</span> (e) {
+      <span class="c-key">this</span>.statusIcon = <span class="c-str">'text-danger'</span>; <span class="c-com">// red: fetch failed</span>
+    }
   },
   methods: {
-    async fetchUser() {
-      this.loading = true
-      this.error = null
-      try {
-        const res = await fetch('/api/user')
-        if (!res.ok) throw new Error('Failed to load user')
-        this.user = await res.json()
-      } catch (err) {
-        this.error = err.message
-      } finally {
-        this.loading = false
+    <span class="c-fn">async sayHi</span>() {
+      <span class="c-com">// runs every time the customer places an order</span>
+      <span class="c-key">this</span>.statusIcon = <span class="c-str">'text-warning'</span>; <span class="c-com">// yellow: sending</span>
+      <span class="c-key">try</span> {
+        <span class="c-key">await</span> <span class="c-fn">fetch</span>(<span class="c-str">'/messages'</span>, {
+          method: <span class="c-str">'POST'</span>,
+          headers: { <span class="c-str">'Content-Type'</span>: <span class="c-str">'application/json'</span> },
+          body: <span class="c-fn">JSON.stringify</span>({ name: <span class="c-key">this</span>.name })
+        });
+        <span class="c-key">this</span>.statusIcon = <span class="c-str">'text-success'</span>; <span class="c-com">// green: kitchen confirmed</span>
+      } <span class="c-key">catch</span> (e) {
+        <span class="c-key">this</span>.statusIcon = <span class="c-str">'text-danger'</span>;   <span class="c-com">// red: kitchen unreachable</span>
       }
     }
   }
-}
-&lt;/script&gt;</pre>
-  <div class="tip-box">
-    <div class="t-label">Pattern Note</div>
-    <div class="t-text">Reset <b>error</b> to null at the start of a retry — otherwise the old error persists alongside loading. The <b>finally</b> block guarantees loading becomes false even on errors.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">3</span> WATCHERS FOR REACTIVE FETCHING</div>
-<div class="card">
-  <h2>Fetch When Data Changes</h2>
-  <p class="def">Use <b>watchers</b> to trigger API calls when reactive data changes — e.g., re-fetching search results when the query changes.</p>
-  <pre>&lt;template&gt;
-  &lt;input v-model="searchQuery" placeholder="Search..." /&gt;
-  &lt;div v-if="searching"&gt;Searching...&lt;/div&gt;
-  &lt;ul v-else&gt;
-    &lt;li v-for="r in results" :key="r.id"&gt;{{ r.title }}&lt;/li&gt;
-  &lt;/ul&gt;
-&lt;/template&gt;
-
-&lt;script&gt;
-export default {
-  data() {
-    return {
-      searchQuery: '',
-      results: [],
-      searching: false,
-      debounceTimer: null
-    }
-  },
-  watch: {
-    searchQuery(newVal) {
-      clearTimeout(this.debounceTimer)
-      this.debounceTimer = setTimeout(() => {
-        this.performSearch(newVal)
-      }, 300)
-    }
-  },
-  methods: {
-    async performSearch(query) {
-      if (!query.trim()) { this.results = []; return }
-      this.searching = true
-      try {
-        const res = await fetch('/api/search?q=' + encodeURIComponent(query))
-        this.results = await res.json()
-      } catch (err) {
-        console.error('Search failed:', err)
-      } finally {
-        this.searching = false
-      }
-    }
-  }
-}
-&lt;/script&gt;</pre>
-  <div class="industry-box">
-    <div class="i-label">Industry Context</div>
-    <div class="i-text">Production apps use <b>debounced watchers</b> with a 300-500ms delay to avoid overwhelming the API. Vue 3's @vueuse/core provides <code>useDebounceFn</code>. Always cancel previous in-flight requests to prevent race conditions.</div>
-  </div>
-  <div class="mistake-box">
-    <div class="m-label">Common Mistake</div>
-    <div class="m-text"><b>Race conditions in watchers</b> — if the user types "Jav", "Java", "JavaS" quickly, three requests fire. "JavaS" might resolve before "Jav", leaving wrong results. Use AbortController or a sequence counter to ensure only the latest response is applied.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">4</span> SERVICE LAYER SEPARATION</div>
-<div class="card">
-  <h2>Clean Architecture</h2>
-  <p class="def">Extract all fetch logic into a separate <b>service layer</b>. This keeps components clean, makes API logic reusable, and simplifies testing.</p>
-  <pre>// services/api.js — centralized API client
-const BASE_URL = 'https://api.example.com'
-
-async function request(endpoint, options = {}) {
-  const config = {
-    headers: { 'Content-Type': 'application/json' },
-    ...options
-  }
-  const res = await fetch(BASE_URL + endpoint, config)
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.message || res.statusText)
-  }
-  return res.json()
-}
-
-export const api = {
-  get: (url) => request(url),
-  post: (url, data) => request(url, { method: 'POST', body: JSON.stringify(data) }),
-  put: (url, data) => request(url, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (url) => request(url, { method: 'DELETE' })
 }</pre>
-  <pre>// services/users.js — user-specific API functions
-import { api } from './api'
-
-export const userService = {
-  getAll: () => api.get('/users'),
-  getById: (id) => api.get('/users/' + id),
-  create: (user) => api.post('/users', user),
-  update: (id, user) => api.put('/users/' + id, user),
-  delete: (id) => api.delete('/users/' + id)
-}</pre>
-  <pre>// UserList.vue — component stays clean
-import { userService } from '../services/users'
-
-export default {
-  data() {
-    return { users: [], loading: false, error: null }
-  },
-  async mounted() {
-    this.loading = true
-    try {
-      this.users = await userService.getAll()
-    } catch (err) {
-      this.error = err.message
-    } finally {
-      this.loading = false
-    }
-  }
-}</pre>
-  <div class="analogy-box">
-    <div class="a-label">Real-World Analogy</div>
-    <div class="a-text">The service layer is like a restaurant kitchen vs. the dining room. The component (dining room) tells the waiter "I'd like pasta" and the waiter calls the kitchen (service layer). The kitchen handles all the messy details. If menu changes, you only update the kitchen, not every table.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">5</span> COMPLETE EXAMPLE WITH ABORTCONTROLLER</div>
-<div class="card">
-  <h2>Robust Data Fetching</h2>
-  <p class="def">A production-ready pattern combining mounted fetch, loading/error states, AbortController for cancellation, and service layer organization.</p>
-  <pre>// services/api.js
-let controller = null
-
-export const api = {
-  async get(url) {
-    // Cancel previous request
-    if (controller) controller.abort()
-    controller = new AbortController()
-
-    const res = await fetch(url, { signal: controller.signal })
-    if (!res.ok) throw new Error('HTTP ' + res.status)
-    return res.json()
-  },
-  cancel() {
-    if (controller) controller.abort()
-  }
-}</pre>
-  <pre>// UserProfile.vue
-import { api } from '../services/api'
-
-export default {
-  data() {
-    return { user: null, loading: false, error: null }
-  },
-  async mounted() {
-    this.loading = true
-    try {
-      this.user = await api.get('/api/user')
-    } catch (err) {
-      if (err.name === 'AbortError') return
-      this.error = err.message
-    } finally {
-      this.loading = false
-    }
-  },
-  beforeDestroy() {
-    api.cancel() // Cancel on unmount
-  }
-}</pre>
-  <div class="tip-box">
-    <div class="t-label">Production Pattern</div>
-    <div class="t-text">Always combine <b>mounted</b> fetch, <b>loading/error</b> states, <b>AbortController</b> cleanup, and <b>service layer</b> separation. This pattern is used in production Vue apps at companies like GitLab, Upwork, and Alibaba.</div>
-  </div>
-</div>
-
-<div class="section-tag"><span class="n">6</span> PRODUCTION USE CASES</div>
-<div class="impact-card">
-  <div class="impact-label">Production Impact</div>
-  <div class="impact-grid">
-    <div class="impact-item">
-      <div class="company">SaaS CRM</div>
-      <p class="impact-text"><b>2,300 sales teams</b> — third-party API changed response format without notice, <code>v-for</code> iterated over <code>undefined</code>, crashing the dashboard for <b>15,000+ users</b> for 2 hours. Fix: runtime validation (zod/yup) catches format changes early.</p>
-    </div>
-    <div class="impact-item">
-      <div class="company">Media Streaming Platform</div>
-      <p class="impact-text">Never set <code>loading = false</code> in <code>finally</code> — indefinite spinner for <b>8.7% of sessions</b>. Fix: using <code>finally</code> <strong>improved LCP by 583%</strong> and <strong>reduced bounce rate from 22% to 9%</strong>.</p>
+      <h3>Status icon binding in the template</h3>
+      <pre class="code">&lt;<span class="c-tag">i</span> <span class="c-fn">class</span>=<span class="c-str">"bi bi-circle-fill"</span> <span class="c-fn">v-bind:class</span>=<span class="c-str">"statusIcon"</span>&gt;&lt;/<span class="c-tag">i</span>&gt;</pre>
+      <p style="color:var(--muted); font-size:0.88rem;"><code>v-bind:class</code> merges the base classes with whatever string <code>statusIcon</code> currently holds — Vue swaps the Bootstrap color class the instant the data changes, no manual DOM manipulation needed.</p>
+      <div class="icon-demo">
+        <div class="badge"><div class="icon-circle warn">●</div>text-warning<br>(sending)</div>
+        <div class="badge"><div class="icon-circle ok">●</div>text-success<br>(confirmed)</div>
+        <div class="badge"><div class="icon-circle err">●</div>text-danger<br>(failed)</div>
+      </div>
     </div>
   </div>
-</div>
 
-<div class="section-tag"><span class="n">7</span> INTERVIEW Q&amp;A</div>
-<div class="card">
-  <div class="qa-box">
-    <div class="q">Q: Why fetch in mounted() instead of created()?</div>
-    <div class="a">A: <b>mounted</b> guarantees the DOM is ready — important for third-party libraries, measuring elements, or scrolling. <b>created</b> is fine for SSR-universal data, but in client-side SPAs, <b>mounted</b> is the convention for API calls because it ensures a consistent DOM environment.</div>
+  <!-- MODULE 9 -->
+  <div class="module" id="m9">
+    <div class="module-head"><span class="module-num">M9</span><h2>Behind the Scenes</h2></div>
+    <div class="card">
+      <div class="flow">
+        <div class="step">this.messages = data</div><div class="arrow">→</div>
+        <div class="step">Dependency Tracking</div><div class="arrow">→</div>
+        <div class="step">Virtual DOM Diff</div><div class="arrow">→</div>
+        <div class="step active">Patch Real DOM</div>
+      </div>
+      <p>When you assign to a reactive data property, Vue doesn't repaint the whole page. It checks which parts of the template <i>read</i> that property (dependency tracking, set up when the component was created), rebuilds only the affected virtual DOM nodes, diffs them against what's currently rendered, and patches just the changed pixels. This is why swapping <code>statusIcon</code> from yellow to green only touches that one icon, not the entire component.</p>
+    </div>
   </div>
-  <div class="qa-box">
-    <div class="q">Q: How do you prevent race conditions in search-as-you-type?</div>
-    <div class="a">A: Use a debounced watcher (300ms) to reduce API calls, and an <b>AbortController</b> to cancel the previous in-flight request before starting a new one. Alternatively, use a request ID counter — only apply responses that match the latest request ID.</div>
-  </div>
-  <div class="qa-box">
-    <div class="q">Q: What's the benefit of a service layer?</div>
-    <div class="a">A: Centralized error handling, single base URL configuration, reusable API functions across components, easier testing (mock the service module), and cleaner components that focus on presentation rather than HTTP details.</div>
-  </div>
-</div>
 
-<div class="section-tag"><span class="n">8</span> QUICK REVISION</div>
-<div class="card">
-  <div class="rev-grid">
-    <div class="rev-item"><b>mounted</b> — the standard hook for API calls</div>
-    <div class="rev-item"><b>loading/error/data</b> — the three-state pattern</div>
-    <div class="rev-item"><b>v-if/v-else-if/v-else</b> — conditional rendering for states</div>
-    <div class="rev-item"><b>Watchers</b> — trigger fetch when reactive data changes</div>
-    <div class="rev-item"><b>Debounce</b> — 300ms delay before search API calls</div>
-    <div class="rev-item"><b>AbortController</b> — cancel requests on unmount</div>
-    <div class="rev-item"><b>Service layer</b> — separate api/ and service/ files</div>
-    <div class="rev-item"><b>Retry pattern</b> — reset error, set loading, catch, finally</div>
+  <!-- MODULE 10 -->
+  <div class="module" id="m10">
+    <div class="module-head"><span class="module-num">M10</span><h2>Real Project Usage</h2></div>
+    <div class="card">
+      <table>
+        <tr><th>Product</th><th>How this exact pattern shows up</th></tr>
+        <tr><td>Swiggy / Zomato</td><td><code>mounted()</code> fetches nearby restaurants the instant the home screen loads; a spinner icon (yellow → green/red) shows order-placement status after checkout.</td></tr>
+        <tr><td>Gmail</td><td>Inbox list is fetched on mount; sending an email flips a small status indicator from "sending" to "sent" or shows a failure banner on network error.</td></tr>
+        <tr><td>Amazon</td><td>Product page fetches price/stock on mount; "Add to Cart" is a POST whose button shows a loading → confirmed state exactly like the color-changing icon here.</td></tr>
+        <tr><td>Instagram</td><td>Feed loads via a GET on mount; liking a post is an optimistic POST with a heart icon that changes color based on request status.</td></tr>
+      </table>
+    </div>
   </div>
-</div>
 
-<div class="footer-note">MAD2 · Vue.js — study card</div>
+  <!-- MODULE 11 -->
+  <div class="module" id="m11">
+    <div class="module-head"><span class="module-num">M11</span><h2>Common Mistakes</h2></div>
+    <div class="card">
+      <div class="mistake">
+        <div class="wrong">❌ Fetching data inside <code>created()</code> when the template needs a DOM element (e.g. a chart library) that isn't attached yet</div>
+        <div class="right">✅ Fetch in <code>created()</code> is fine for plain data; use <code>mounted()</code> only when you also need the real DOM to exist</div>
+      </div>
+      <div class="mistake">
+        <div class="wrong">❌ Forgetting <code>await</code> before <code>res.json()</code> — you end up storing a Promise object instead of the actual data</div>
+        <div class="right">✅ <code>const data = await res.json();</code> — both the fetch <i>and</i> the body-parsing are async</div>
+      </div>
+      <div class="mistake">
+        <div class="wrong">❌ Using an arrow function for <code>mounted</code> in the Options API — <code>this</code> won't point to the component</div>
+        <div class="right">✅ Always declare lifecycle hooks and methods as regular functions in the Options API</div>
+      </div>
+      <div class="mistake">
+        <div class="wrong">❌ No <code>try/catch</code> around <code>await fetch</code> — a dropped network connection crashes the async function silently</div>
+        <div class="right">✅ Wrap every awaited fetch in <code>try/catch</code> and use the catch branch to flip the status icon red</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 12 -->
+  <div class="module" id="m12">
+    <div class="module-head"><span class="module-num">M12</span><h2>Debugging Mindset</h2></div>
+    <div class="card">
+      <div class="flow">
+        <div class="step">Problem: icon stuck yellow</div><div class="arrow">→</div>
+        <div class="step">Observe: check Network tab</div><div class="arrow">→</div>
+        <div class="step">Find stage: request pending / failed / CORS error?</div><div class="arrow">→</div>
+        <div class="step active">Fix: add catch, check URL/headers</div>
+      </div>
+      <table>
+        <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+        <tr><td>"undefined is not a function" on <code>.json()</code></td><td>Forgot <code>await</code> on <code>fetch()</code> itself, so you called <code>.json()</code> on a Promise</td><td>Add <code>await</code> before <code>fetch(...)</code></td></tr>
+        <tr><td>CORS error in console</td><td>Backend doesn't allow requests from your frontend's origin</td><td>Enable CORS headers server-side, or use a dev proxy</td></tr>
+        <tr><td>Icon never turns red on failure</td><td>No <code>catch</code> block, or catching but not updating <code>statusIcon</code></td><td>Set the data flag explicitly inside <code>catch</code></td></tr>
+        <tr><td>List doesn't update after fetch</td><td>Assigned to a local variable instead of <code>this.messages</code></td><td>Always assign to the component's reactive data property</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODULE 13 -->
+  <div class="module" id="m13">
+    <div class="module-head"><span class="module-num">M13</span><h2>IITM Exam Pattern</h2></div>
+    <div class="card">
+      <h3>Trigger words</h3>
+      <p>"on page load", "as soon as the component appears", "automatically fetch", "status indicator", "changes color", "watch a variable"</p>
+      <h3>Trap words</h3>
+      <p><code>created()</code> vs <code>mounted()</code> swapped in options; <code>.then()</code> chain mixed incorrectly with <code>async/await</code> in the same snippet; missing <code>await</code> shown as a "trick" answer that looks plausible.</p>
+      <h3>MCQ tricks</h3>
+      <p>Watch for options where <code>this</code> is used inside an arrow function passed as a method — a classic wrong-answer distractor. Also watch for a POST request missing <code>method: 'POST'</code> (defaults silently to GET).</p>
+      <h3>PYQ pattern</h3>
+      <p>"Which lifecycle hook should be used to fetch initial data?" → <code>mounted()</code> (sometimes <code>created()</code> accepted if no DOM dependency is implied). "What does <code>v-bind:class</code> with a data variable achieve?" → dynamic class toggling based on state.</p>
+      <h3>Elimination technique</h3>
+      <p>Cross out any option using <code>beforeCreate</code>/<code>beforeMount</code> for data fetching (data/DOM not ready). Cross out any option calling <code>.json()</code> without an <code>await</code> or <code>.then()</code> before it.</p>
+    </div>
+    <div class="callout warn">Trap: an option may show <code>mounted: () =&gt; { this.messages = ... }</code> — the arrow function breaks <code>this</code> binding. This is wrong even though the fetch logic "looks" correct.</div>
+  </div>
+
+  <!-- MODULE 14 -->
+  <div class="module" id="m14">
+    <div class="module-head"><span class="module-num">M14</span><h2>Interview Questions</h2></div>
+    <div class="tiers">
+      <div class="tier easy">
+        <span class="tier-label">Easy</span>
+        <ul>
+          <li>What does the Fetch API return, and why is it asynchronous?</li>
+          <li>Which lifecycle hook is best for an initial data fetch, and why?</li>
+        </ul>
+      </div>
+      <div class="tier medium">
+        <span class="tier-label">Medium</span>
+        <ul>
+          <li>Why must lifecycle hooks avoid arrow functions in the Options API?</li>
+          <li>How does <code>v-bind:class</code> with a string data property differ from a static class attribute?</li>
+          <li>Walk through what happens if a <code>fetch</code> call fails without a <code>try/catch</code>.</li>
+        </ul>
+      </div>
+      <div class="tier advanced">
+        <span class="tier-label">Advanced</span>
+        <ul>
+          <li>Explain how Vue's reactivity system knows to re-render only the parts of the template that depend on <code>messages</code>.</li>
+          <li>Compare a <b>watcher</b>-driven fetch vs a <b>method</b>-driven fetch — when would you choose one over the other?</li>
+          <li>How would you prevent duplicate in-flight requests if a watcher fires rapidly (e.g. on every keystroke)?</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 15 -->
+  <div class="module" id="m15">
+    <div class="module-head"><span class="module-num">M15</span><h2>One-Page Brain</h2></div>
+    <div class="callout gold">
+      <div class="flow vertical" style="padding-top:0;">
+        <div class="step active">mounted → GET → this.data = result</div>
+        <div class="arrow">↓</div>
+        <div class="step">method → POST → status icon updates</div>
+        <div class="arrow">↓</div>
+        <div class="step">watcher → data changes → auto re-fetch</div>
+      </div>
+      <p style="margin-bottom:0;"><b>Remember chain:</b><br>
+      <code>mounted</code> → runs once, initial load<br>
+      <code>fetch</code> → always returns a Promise<br>
+      <code>await</code> → pause until settled<br>
+      <code>try/catch</code> → always wrap it<br>
+      <code>v-bind:class</code> → status light follows data<br>
+      <code>watcher</code> → reacts to change, not to a click</p>
+    </div>
+  </div>
+
+  <!-- MODULE 16 -->
+  <div class="module" id="m16">
+    <div class="module-head"><span class="module-num">M16</span><h2>Quick Revision Table</h2></div>
+    <table>
+      <tr><th>Concept</th><th>Runs when</th><th>Typical use</th></tr>
+      <tr><td><code>mounted()</code></td><td>Once, after DOM attach</td><td>Initial GET request</td></tr>
+      <tr><td>Method (e.g. <code>sayHi</code>)</td><td>On user action (click, submit)</td><td>POST request</td></tr>
+      <tr><td>Watcher</td><td>Every time a watched value changes</td><td>Dependent re-fetch (e.g. search-as-you-type)</td></tr>
+      <tr><td><code>v-bind:class</code></td><td>Whenever bound data changes</td><td>Status icon color (success/warning/danger)</td></tr>
+      <tr><td><code>try/catch</code> + <code>async/await</code></td><td>Wraps the whole async block</td><td>Graceful network-failure handling</td></tr>
+    </table>
+  </div>
+
+  <!-- MODULE 17 -->
+  <div class="module" id="m17">
+    <div class="module-head"><span class="module-num">M17</span><h2>Practice Ladder</h2></div>
+    <div class="card">
+      <div class="ladder">
+        <div class="rung"><span class="lvl">1</span>Explain in your own words why <code>fetch</code> needs <code>await</code> twice (once for the request, once for <code>.json()</code>).</div>
+        <div class="rung"><span class="lvl">2</span>Predict output: what does <code>console.log(fetch(url))</code> print, and why isn't it the data itself?</div>
+        <div class="rung"><span class="lvl">3</span>Find the bug: a snippet where <code>mounted</code> is written as an arrow function — spot why <code>this.messages</code> fails silently.</div>
+        <div class="rung"><span class="lvl">4</span>MCQ: pick the correct hook + syntax combo for "fetch a user list as soon as the page loads."</div>
+        <div class="rung"><span class="lvl">5</span>Coding: write a <code>sayHi()</code> method that POSTs a name and updates a status icon on success/failure.</div>
+        <div class="rung"><span class="lvl">6</span>Mini project: build a component that fetches messages on mount and lets a user post a new one, with three-color status feedback.</div>
+        <div class="rung"><span class="lvl">7</span>Interview: defend your choice of watcher vs method for a live search box that re-queries the backend as the user types.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 18 -->
+  <div class="module" id="m18">
+    <div class="module-head"><span class="module-num">M18</span><h2>Memory Palace</h2></div>
+    <div class="card">
+      <h3>Rule</h3>
+      <p>Data before the customer sees it, status before the customer wonders.</p>
+      <h3>Mnemonic</h3>
+      <p><b>M-F-A-C</b> — <b>M</b>ount, <b>F</b>etch, <b>A</b>wait, <b>C</b>atch.</p>
+      <h3>Visual</h3>
+      <div class="flow">
+        <div class="step active">Mount</div><div class="arrow">→</div>
+        <div class="step">Fetch</div><div class="arrow">→</div>
+        <div class="step">Await</div><div class="arrow">→</div>
+        <div class="step gold-b">Catch</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="div">
+  <div class="footer-note">MAD2 Learning OS · Screencast 5.4 · Vue.js API Calls &amp; Fetch Integration</div>
 </div>
 </body>
 </html>

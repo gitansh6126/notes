@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 32 — Kernel Regression</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0b0e17;
+    --panel-bg: #12141c;
+    --panel-border: rgba(255,255,255,0.08);
+    --card-bg: #141826;
+    --card-border: rgba(255,255,255,0.07);
+    --text: #e7e9f0;
+    --text-dim: #9aa1b5;
+    --text-dimmer: #6b7288;
+
+    --gold: #e8b84b;
+    --teal: #3fd6c4;
+    --purple: #b892f0;
+    --blue: #5fa8f5;
+    --green: #6fd08a;
+    --red: #f0708a;
+
+    --serif-math-font: "Fraunces", "STIX Two Math", serif;
+    --body-font: "Inter", sans-serif;
+    --mono-font: "JetBrains Mono", monospace;
+    --radius: 16px;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(184,146,240,0.07), transparent 45%),
+      radial-gradient(circle at 85% 10%, rgba(63,214,196,0.06), transparent 40%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--body-font);
+    line-height: 1.65;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; padding: 0 1.25rem; }
+
+  .hero{ padding: 3.5rem 1.25rem 2.5rem; text-align:center; border-bottom: 1px solid var(--panel-border); margin-bottom: 2.5rem; background: linear-gradient(180deg, rgba(184,146,240,0.05), transparent 70%); }
+  .hero .eyebrow{ font-family: var(--mono-font); font-size: 0.8rem; letter-spacing: 0.15em; color: var(--teal); text-transform: uppercase; }
+  .hero h1{ font-family: var(--serif-math-font); font-weight: 600; font-size: clamp(1.5rem, 4.3vw, 2.5rem); margin: 0.6rem 0 0.8rem; background: linear-gradient(90deg, var(--gold), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub{ color: var(--text-dim); max-width: 640px; margin: 0 auto; font-size: 1.02rem; }
+  .badge-row{ display:flex; gap: 0.6rem; justify-content:center; flex-wrap:wrap; margin-top: 1.4rem; }
+  .badge{ font-family: var(--mono-font); font-size: 0.75rem; padding: 0.35rem 0.75rem; border-radius: 999px; border: 1px solid var(--panel-border); color: var(--text-dim); background: rgba(255,255,255,0.02); }
+  .badge.geo{ color: var(--blue); border-color: rgba(95,168,245,0.3); }
+  .badge.pat{ color: var(--purple); border-color: rgba(184,146,240,0.3); }
+  .badge.dec{ color: var(--gold); border-color: rgba(232,184,75,0.3); }
+
+  .stage-tag{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.35rem; }
+  h2.section-title{ font-family: var(--serif-math-font); font-size: clamp(1.15rem, 2.8vw, 1.55rem); font-weight: 600; margin: 0 0 1rem 0; display:flex; align-items:center; gap:0.6rem; }
+  h2.section-title .num{ font-family: var(--mono-font); font-size: 0.85rem; color: var(--bg); background: var(--teal); border-radius: 8px; width: 2rem; height:2rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  section.block{ margin-bottom: 3rem; }
+
+  .card{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 1.6rem 1.7rem; margin-bottom: 1.2rem; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .card h3{ margin-top:0; font-family: var(--serif-math-font); font-weight:600; font-size: 1.1rem; }
+  .card-grid{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .card-grid.two{ grid-template-columns: repeat(2,1fr); }
+  @media (max-width: 800px){ .card-grid{ grid-template-columns: 1fr; } }
+
+  .callout{ border-radius: 12px; padding: 1.1rem 1.3rem; margin: 1.3rem 0; border-left: 4px solid var(--teal); background: rgba(63,214,196,0.06); font-size: 0.95rem; }
+  .callout.warn{ border-left-color: var(--red); background: rgba(240,112,138,0.07); }
+  .callout.tip{ border-left-color: var(--gold); background: rgba(232,184,75,0.07); }
+  .callout.biz{ border-left-color: var(--purple); background: rgba(184,146,240,0.07); }
+  .callout .co-label{ font-family: var(--mono-font); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; display:block; margin-bottom: 0.4rem; opacity: 0.85; }
+
+  .eq-panel{ background: var(--panel-bg); border: 1px solid var(--panel-border); border-radius: 16px; padding: 2.2rem 1.6rem 1.8rem; margin: 1.6rem 0; box-shadow: 0 8px 30px rgba(0,0,0,0.25); text-align: center; position: relative; }
+  .eq-panel .eq-number{ position: absolute; bottom: 0.7rem; right: 1.15rem; font-size: 0.75rem; opacity: 0.45; font-family: var(--mono-font); }
+  .eq-panel .eq-label{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .eq-main{ font-family: var(--serif-math-font); font-size: clamp(1rem, 2.6vw, 1.5rem); line-height: 2.2; }
+  .sym-var{ color: var(--blue); font-style: italic; }
+  .sym-param{ color: var(--gold); font-style: italic; }
+  .sym-const{ color: var(--green); }
+  .sym-fn{ color: var(--purple); }
+  .sym-op{ color: var(--red); font-size: 1.2em; }
+
+  .legend{ display:flex; flex-wrap:wrap; gap: 0.8rem 1.6rem; justify-content:center; margin-top: 1.2rem; font-size: 0.85rem; padding: 0.9rem 0; border-top: 1px dashed var(--panel-border); }
+  .legend div{ color: var(--text-dim); }
+  .legend span.sym{ font-family: var(--serif-math-font); font-weight:600; margin-right:0.3rem; }
+
+  table.data-table{ width:100%; border-collapse: collapse; font-size: 0.92rem; background: var(--card-bg); border-radius: 12px; overflow:hidden; }
+  table.data-table th{ background: rgba(255,255,255,0.04); color: var(--teal); text-align:left; padding: 0.7rem 0.9rem; font-family: var(--mono-font); font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  table.data-table td{ padding: 0.7rem 0.9rem; border-top: 1px solid var(--card-border); color: var(--text-dim); }
+  table.data-table tr:hover td{ background: rgba(255,255,255,0.02); }
+  .scroll-x{ overflow-x:auto; border-radius:12px; }
+
+  pre{ background: #0a0c13; border:1px solid var(--card-border); border-radius: 12px; padding: 1.1rem 1.2rem; overflow-x:auto; font-family: var(--mono-font); font-size: 0.83rem; line-height: 1.6; }
+  code{ font-family: var(--mono-font); }
+  .cm{ color: var(--text-dimmer); font-style: italic;}
+  .kw{ color: var(--purple); }
+  .st{ color: var(--green); }
+  .fn{ color: var(--teal); }
+  .nb{ color: var(--gold); }
+
+  .flow{ display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin: 1.5rem 0; }
+  .flow .step{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.85rem; text-align:center; min-width: 100px; }
+  .flow .arrow{ color: var(--teal); font-size: 1.3rem; }
+  @media (max-width: 700px){ .flow{ flex-direction: column; } .flow .arrow{ transform: rotate(90deg); } }
+
+  .pill-row{ display:flex; flex-wrap:wrap; gap: 0.55rem; margin-top: 0.8rem; }
+  .pill{ font-family: var(--mono-font); font-size: 0.8rem; padding: 0.35rem 0.7rem; border-radius: 8px; background: rgba(232,184,75,0.1); color: var(--gold); border: 1px solid rgba(232,184,75,0.25); }
+
+  .trap{ border: 1px solid rgba(240,112,138,0.25); background: rgba(240,112,138,0.05); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.9rem; }
+  .trap .t-head{ display:flex; gap:0.6rem; align-items:center; font-weight:600; color: var(--red); margin-bottom:0.3rem; }
+
+  .timeline{ position:relative; padding-left: 2.2rem; margin: 1.6rem 0; }
+  .timeline::before{ content:""; position:absolute; left: 0.85rem; top:0.4rem; bottom:0.4rem; width:2px; background: linear-gradient(180deg, var(--teal), var(--purple)); }
+  .tstep{ position:relative; margin-bottom: 1.4rem; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 1rem 1.2rem; }
+  .tstep::before{ content: attr(data-n); position:absolute; left: -2.2rem; top: 1rem; width: 1.7rem; height:1.7rem; border-radius:50%; background: var(--teal); color:#0b0e17; font-family: var(--mono-font); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .tstep h4{ margin:0 0 0.5rem; font-family: var(--serif-math-font); font-size: 1rem; color: var(--text); }
+  .tstep .expr{ font-family: var(--serif-math-font); font-size: 1.02rem; text-align:center; padding: 0.6rem 0; }
+  .tstep p.why{ margin: 0.4rem 0 0; color: var(--text-dim); font-size: 0.87rem; }
+
+  .brain{ background: linear-gradient(160deg, rgba(184,146,240,0.08), rgba(63,214,196,0.05)); border: 1px solid var(--panel-border); border-radius: 20px; padding: 1.8rem; }
+  .brain-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+  @media (max-width: 700px){ .brain-grid{ grid-template-columns: 1fr; } }
+  .brain h4{ font-family: var(--mono-font); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--teal); margin: 0 0 0.5rem; }
+  .brain ul{ margin: 0; padding-left: 1.1rem; font-size: 0.9rem; color: var(--text-dim); }
+  .brain li{ margin-bottom: 0.3rem; }
+
+  footer.foot{ text-align:center; color: var(--text-dimmer); font-size: 0.82rem; margin-top: 3rem; }
+  .toc{ display:flex; flex-wrap:wrap; gap: 0.5rem; justify-content:center; margin: 1.6rem 0 0; }
+  .toc a{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dim); text-decoration:none; border: 1px solid var(--panel-border); border-radius: 999px; padding: 0.3rem 0.7rem; }
+  .toc a:hover{ color: var(--teal); border-color: var(--teal); }
+
+  .svg-wrap{ display:flex; justify-content:center; margin: 1.4rem 0; }
+  .svg-wrap svg{ max-width: 100%; height:auto; }
+
+  .pillar-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap: 1.1rem; margin: 1.4rem 0; }
+  @media (max-width:800px){ .pillar-grid{ grid-template-columns: 1fr; } }
+  .pillar{ background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 1.3rem; text-align:center; }
+  .pillar .lecnum{ font-family: var(--mono-font); font-size: 0.72rem; color: var(--text-dimmer); }
+  .pillar h4{ font-family: var(--serif-math-font); margin: 0.4rem 0; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="eyebrow">IIT Madras · Machine Learning Techniques</div>
+  <h1>Lecture 32 — Kernel Regression</h1>
+  <p class="sub">Escaping the straight line — learning non-linear relationships without ever leaving the comfort of linear algebra.</p>
+  <div class="badge-row">
+    <span class="badge geo">Cognitive Pattern: Linear Algebra</span>
+    <span class="badge pat">Cognitive Pattern: Duality</span>
+    <span class="badge dec">Cognitive Pattern: Non-linear Modeling</span>
+  </div>
+  <div class="toc">
+    <a href="#problem">0 · The Limitation</a>
+    <a href="#dual">6 · Step 1: W* Lives in the Data's Span</a>
+    <a href="#kernel">6 · Step 2: The Kernel Matrix</a>
+    <a href="#trick">The Kernel Trick</a>
+    <a href="#predict">Prediction on New Points</a>
+    <a href="#edge">9 · Edge Cases</a>
+    <a href="#traps">18 · Exam Traps</a>
+    <a href="#industry">20 · Code</a>
+    <a href="#summary">Three Pillars of Regression</a>
+    <a href="#brain">22 · One-Page Brain</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1, 0, 1, 2 -->
+<section class="block" id="problem">
+  <div class="stage-tag">Stage -1 → 2 · Cognitive Pattern, Problem, Engineering Thinking</div>
+  <h2 class="section-title"><span class="num">0</span>Where a Straight Line Runs Out of Road</h2>
+  <div class="card">
+    <h3>The assumption baked into every earlier lecture</h3>
+    <p>Every regression model since Lecture 28 has assumed <span style="font-family:var(--serif-math-font);"><span class="sym-var">y</span> = <span class="sym-param">W</span><sup class="sym-const">T</sup><span class="sym-var">X</span></span> — a straight-line (or flat-hyperplane) relationship. If the true relationship is curved — quadratic, or involves a cross-term like height × weight — no choice of W can capture it. The model will show high error on <em>both</em> the training set and new data, no matter how it's tuned.</p>
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS lens</span>
+    If RMS batch revenue depends on enrollment <em>and</em> price in a way that isn't additive — say, revenue peaks at a moderate price and drops off at both extremes — a straight line through that data can't represent a peak at all. You need curvature, not just a better-fitted line.
+  </div>
+  <div class="card">
+    <h3>The obvious fix, and why it's expensive</h3>
+    <p>The direct fix is to manually engineer non-linear features — add x², or x₁·x₂ as new columns — then run ordinary linear regression on the expanded set. This works, but the expanded feature space can explode: a modest polynomial expansion over d original features already produces many new columns, and richer mappings (infinite-dimensional ones, as we'll see) make this approach impossible to compute directly.</p>
+  </div>
+  <div class="callout tip">
+    <span class="co-label">The reframe this lecture makes</span>
+    What if we never had to build the expanded features explicitly at all — and instead worked only with <strong>dot products</strong> between data points, computed directly in the original space? That's the kernel trick.
+  </div>
+</section>
+
+<!-- STAGE 6 STEP 1: DUAL REPRESENTATION -->
+<section class="block" id="dual">
+  <div class="stage-tag">Stage 6 · Derivation, Step 1</div>
+  <h2 class="section-title"><span class="num">1</span>W* Doesn't Need the Whole of ℝᴰ</h2>
+  <div class="card">
+    <h3>The key observation</h3>
+    <p>Split any candidate W into two parts: a component inside span{x₁,…,x_n} (the data), and a component perpendicular to that span. The perpendicular component contributes <strong>nothing</strong> to any prediction — because predictions are dot products <span style="font-family:var(--serif-math-font);"><span class="sym-param">W</span><sup class="sym-const">T</sup><span class="sym-var">x</span>ᵢ</span>, and a vector perpendicular to every xᵢ dots to zero with all of them.</p>
+    <p>So without losing any predictive power, we can restrict the search to W vectors that live <em>entirely</em> within the span of the training data.</p>
+  </div>
+  <div class="eq-panel">
+    <div class="eq-label">The dual representation of W*</div>
+    <div class="eq-main"><span class="sym-param">W</span><sup class="sym-const">*</sup> <span class="sym-op">=</span> <span class="sym-fn">X</span><span class="sym-param">Α</span><sup class="sym-const">*</sup></div>
+    <div class="eq-number">Eq. 32.1</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-fn">X</span> — the d × n data matrix, columns are training points (same convention as Lectures 29–30)</div>
+    <div><span class="sym sym-param">Α</span><sup class="sym-const">*</sup> — an n × 1 coefficient vector; one coefficient per training point, replacing the d weights</div>
+  </div>
+  <div class="callout">
+    <span class="co-label">Why this is the pivotal move</span>
+    We've swapped searching over W ∈ ℝᴰ for searching over Α ∈ ℝᴺ. That doesn't sound like progress on its own — but it means every appearance of the data from here on happens only through <strong>dot products between data points</strong>, never through the raw features directly. That's exactly the opening the kernel trick needs.
+  </div>
+</section>
+
+<!-- STAGE 6 STEP 2: KERNEL MATRIX -->
+<section class="block" id="kernel">
+  <div class="stage-tag">Stage 6 · Derivation, Step 2</div>
+  <h2 class="section-title"><span class="num">2</span>Substituting In: the Kernel Matrix Appears</h2>
+  <div class="timeline">
+    <div class="tstep" data-n="1">
+      <h4>Start from the Normal Equation (Lecture 29)</h4>
+      <div class="expr">XXᵀW* = Xy</div>
+      <p class="why">The same equation derived by calculus in Lecture 29 and by orthogonal projection in Lecture 30.</p>
+    </div>
+    <div class="tstep" data-n="2">
+      <h4>Substitute W* = XΑ*</h4>
+      <div class="expr">XXᵀ(XΑ*) = Xy &nbsp;⟹&nbsp; X(XᵀXΑ*) = Xy</div>
+      <p class="why">Just regrouping the parentheses around XᵀX — nothing new yet, but the shape XᵀX is about to matter a lot.</p>
+    </div>
+    <div class="tstep" data-n="3">
+      <h4>Take the sufficient condition inside the parentheses</h4>
+      <div class="expr">XᵀXΑ* = y</div>
+      <p class="why">If the term inside the parentheses equals y, the outer equation automatically holds. This sidesteps needing X to be invertible or square — a solution to this smaller equation is enough.</p>
+    </div>
+    <div class="tstep" data-n="4">
+      <h4>Name XᵀX the Kernel Matrix</h4>
+      <div class="expr">K <span class="sym-op">=</span> XᵀX, &nbsp; K_ij <span class="sym-op">=</span> x_i · x_j <span class="sym-op">=</span> Γ(x_i, x_j)</div>
+      <p class="why">K is n × n — every entry is just a dot product (or, generalized, a similarity function Γ) between two training points. Note: this is XᵀX, not the XXᵀ from Lecture 29 — a different matrix, different shape.</p>
+    </div>
+    <div class="tstep" data-n="5">
+      <h4>Solve for Α*</h4>
+      <div class="expr">Α* <span class="sym-op">=</span> K<sup>−1</sup>y</div>
+      <p class="why">An n × n system instead of a d × d one — this is what makes non-linear feature spaces (even infinite-dimensional ones) tractable: K's size depends only on how much data you have, never on how rich the feature mapping is.</p>
+    </div>
+  </div>
+</section>
+
+<!-- THE KERNEL TRICK -->
+<section class="block" id="trick">
+  <div class="stage-tag">Stage 7 · The Algorithm's Core Trick</div>
+  <h2 class="section-title"><span class="num">✚</span>The Kernel Trick, Explained</h2>
+  <div class="card">
+    <h3>Why K_ij can be "Γ(x_i, x_j)" instead of a plain dot product</h3>
+    <p>Suppose you wanted to fit a quadratic relationship. The "honest" approach: map each xᵢ into an expanded feature vector φ(xᵢ) that includes x², cross-terms, etc., then run ordinary linear regression on the φ(xᵢ)'s. Every place K_ij appears, you'd compute φ(xᵢ)·φ(xⱼ).</p>
+    <p>The trick: for many useful mappings φ, the dot product φ(xᵢ)·φ(xⱼ) can be computed <strong>directly from xᵢ and xⱼ</strong>, without ever constructing φ(xᵢ) explicitly. This direct-computation shortcut is the kernel function Γ(xᵢ, xⱼ), and it's what "the kernel trick" refers to.</p>
+  </div>
+  <table class="data-table">
+    <tr><th>Kernel Γ(xᵢ, xⱼ)</th><th>Implicitly captures</th></tr>
+    <tr><td>(xᵢ · xⱼ)²</td><td>Quadratic relationships, including cross-terms — without ever building the expanded quadratic feature vector</td></tr>
+    <tr><td>(xᵢ · xⱼ)³</td><td>Cubic relationships, same idea one degree higher</td></tr>
+    <tr><td>exp(−‖xᵢ − xⱼ‖² / 2σ²) &nbsp;<span style="color:var(--text-dimmer);">(Gaussian / RBF)</span></td><td>An implicitly <strong>infinite</strong>-dimensional feature space — impossible to construct explicitly, yet still just an n × n K matrix to invert</td></tr>
+  </table>
+  <div class="callout tip">
+    <span class="co-label">Why this is genuinely efficient, not just elegant</span>
+    Whatever the feature space's true dimensionality — even infinite, as with the Gaussian kernel — K stays exactly n × n. The kernel trick's entire value is decoupling the richness of the model from the cost of computing it.
+  </div>
+</section>
+
+<!-- PREDICTION -->
+<section class="block" id="predict">
+  <div class="stage-tag">Stage 4 → 5 · Formula Construction, Anatomy</div>
+  <h2 class="section-title"><span class="num">4</span>Predicting on a New Point</h2>
+  <div class="eq-panel">
+    <div class="eq-label">Prediction for x_test</div>
+    <div class="eq-main">
+      Prediction <span class="sym-op">=</span> <span class="sym-op" style="font-size:1.6em;">∑</span><sub style="font-size:0.6em;">i=1</sub><sup style="font-size:0.6em;">n</sup> <span class="sym-param">Α</span><sub>i</sub><sup class="sym-const">*</sup> <span class="sym-op">·</span> <span class="sym-fn">K</span>(<span class="sym-var">x</span><sub>i</sub>, <span class="sym-var">x</span><sub>test</sub>)
+    </div>
+    <div class="eq-number">Eq. 32.2</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-fn">K</span>(x_i, x_test) — similarity between the new point and the i-th training point</div>
+    <div><span class="sym sym-param">Α</span><sub>i</sub><sup class="sym-const">*</sup> — the learned importance/weight of training point i</div>
+  </div>
+  <div class="callout">
+    <span class="co-label">The intuition in plain language</span>
+    A new point's prediction is a <strong>weighted vote</strong> from every training point, where the vote strength is how similar the new point is to that training point (via K), and the weight Α_i* is how important that training point turned out to be during fitting. No explicit feature mapping ever needs to be computed, at training <em>or</em> prediction time.
+  </div>
+</section>
+
+<!-- STAGE 9: EDGE CASES -->
+<section class="block" id="edge">
+  <div class="stage-tag">Stage 9 · Edge Cases</div>
+  <h2 class="section-title"><span class="num">9</span>Where This Can Break</h2>
+  <div class="card-grid two">
+    <div class="card">
+      <h3 style="color:var(--red);">K not invertible</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">Same failure mode as XXᵀ in Lecture 29 — duplicate or near-identical training points make K singular. The fix mirrors that lecture too: use a pseudo-inverse, or add a small ridge term (K + λI) to guarantee invertibility.</p>
+    </div>
+    <div class="card">
+      <h3 style="color:var(--gold);">Kernel matrix scales with N, not D</h3>
+      <p style="font-size:0.9rem; color:var(--text-dim);">K is n × n — this method trades away exactly the D-scaling problem, but reintroduces an N-scaling one: huge datasets make K itself huge to invert. This is why kernel methods often pair with approximations for very large N.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 18: TRAPS -->
+<section class="block" id="traps">
+  <div class="stage-tag">Stage 18 · Examiner Trap Library</div>
+  <h2 class="section-title"><span class="num">18</span>Common Exam Traps</h2>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 1 — K = XᵀX vs XXᵀ, again</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">This is the same d×d vs n×n confusion from Lecture 29, now with new names attached. XXᵀ (d×d) is the primal Normal Equation's matrix; K = XᵀX (n×n) is the kernel matrix used once W is expressed dually as XΑ*. Mixing them up breaks both the dimensions and the entire point of the kernel trick.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 2 — thinking the kernel function must literally be a dot product</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">K_ij = xᵢ · xⱼ is the special case where no mapping is applied (the identity, i.e., ordinary linear regression). Γ(xᵢ, xⱼ) generalizes this to any valid kernel function — it only needs to correspond to <em>some</em> dot product φ(xᵢ)·φ(xⱼ) in a possibly different (even infinite-dimensional) space.</p>
+  </div>
+  <div class="trap">
+    <div class="t-head">⚠ Trap 3 — believing kernel regression avoids computing similarities to all N training points</div>
+    <p style="margin:0; color:var(--text-dim); font-size:0.9rem;">The kernel trick avoids computing the expanded <em>feature mapping</em> — it does NOT avoid needing all N training points at prediction time. Every prediction still sums over all N terms K(xᵢ, x_test); this is a real cost that scales with N, unlike the plain W*ᵀx_test that ordinary linear regression uses at test time.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="block" id="industry">
+  <div class="stage-tag">Stage 20 · Industry Implementation</div>
+  <h2 class="section-title"><span class="num">20</span>Kernel Regression in Practice</h2>
+  <pre><code><span class="cm"># X_np.shape = (n, d) -- numpy/sklearn convention, rows are examples</span>
+<span class="kw">from</span> sklearn.kernel_ridge <span class="kw">import</span> <span class="fn">KernelRidge</span>
+
+<span class="cm"># Gaussian / RBF kernel -- implicitly infinite-dimensional feature space</span>
+model = <span class="fn">KernelRidge</span>(kernel=<span class="st">'rbf'</span>, gamma=<span class="nb">0.5</span>, alpha=<span class="nb">1.0</span>)  <span class="cm"># alpha adds the ridge term for invertibility</span>
+model.fit(X_train, y_train)     <span class="cm"># internally solves (K + alpha*I) Alpha = y</span>
+prediction = model.predict(X_test)   <span class="cm"># sums Alpha_i * K(x_i, x_test) under the hood</span>
+
+<span class="cm"># Polynomial kernel -- explicit finite-degree non-linearity</span>
+model_poly = <span class="fn">KernelRidge</span>(kernel=<span class="st">'poly'</span>, degree=<span class="nb">2</span>)</code></pre>
+  <div class="callout warn">
+    <span class="co-label">Practical note</span>
+    Notice <code>KernelRidge</code>, not plain <code>KernelRegression</code> — nearly every real implementation adds a small ridge (λI) term by default, precisely to sidestep the K-invertibility edge case above.
+  </div>
+</section>
+
+<!-- SUMMARY: THREE PILLARS -->
+<section class="block" id="summary">
+  <div class="stage-tag">Stage 21 · Connections — stated explicitly in this lecture</div>
+  <h2 class="section-title"><span class="num">21</span>Three Ways to Understand Regression, Now Complete</h2>
+  <p>This lecture explicitly closes a loop the course opened three lectures ago — regression can be fully understood through three different lenses, each answering a different question:</p>
+  <div class="pillar-grid">
+    <div class="pillar" style="border-top:3px solid var(--blue);">
+      <div class="lecnum">Lecture 30</div>
+      <h4>Geometric</h4>
+      <p style="font-size:0.87rem; color:var(--text-dim);">W* is the orthogonal projection of y onto the subspace spanned by the features.</p>
+    </div>
+    <div class="pillar" style="border-top:3px solid var(--gold);">
+      <div class="lecnum">Lecture 34</div>
+      <h4>Computational</h4>
+      <p style="font-size:0.87rem; color:var(--text-dim);">SGD reaches W* iteratively when the exact closed form is too expensive to compute directly.</p>
+    </div>
+    <div class="pillar" style="border-top:3px solid var(--purple);">
+      <div class="lecnum">Lecture 32</div>
+      <h4>Non-linear</h4>
+      <p style="font-size:0.87rem; color:var(--text-dim);">Kernel regression captures complex, curved feature relationships without ever leaving linear algebra.</p>
+    </div>
+  </div>
+  <div class="callout biz">
+    <span class="co-label">RMS lens</span>
+    Same underlying question every time — "what's the best predictor of this outcome?" — answered by projection when you want intuition, by SGD when you want it to actually run on real data volume, and by kernels when a straight line simply isn't the right shape for the relationship.
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="block" id="brain">
+  <div class="stage-tag">Stage 22 · One-Page Brain</div>
+  <h2 class="section-title"><span class="num">22</span>Everything on One Page</h2>
+  <div class="brain">
+    <div class="brain-grid">
+      <div>
+        <h4>Core Intuition</h4>
+        <ul>
+          <li>W* only needs to live in span(training data) — the rest of W contributes nothing</li>
+          <li>So write W* = XΑ*, and solve for Α ∈ ℝⁿ instead of W ∈ ℝᴰ</li>
+          <li>Every step now touches data only via dot products → swap in any kernel Γ</li>
+          <li>Kernel trick: compute φ(xᵢ)·φ(xⱼ) directly, without ever building φ(x)</li>
+        </ul>
+        <h4 style="margin-top:1rem;">Key Formulas</h4>
+        <ul>
+          <li>W* = XΑ*</li>
+          <li>K = XᵀX, K_ij = Γ(x_i, x_j)</li>
+          <li>Α* = K⁻¹y</li>
+          <li>Prediction(x_test) = ∑ᵢ Α_i* K(x_i, x_test)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5 Triggers</h4>
+        <ul>
+          <li>"non-linear relationship" / "cross-terms"</li>
+          <li>"kernel trick" / "avoid explicit mapping"</li>
+          <li>"kernel matrix" / "similarity between points"</li>
+          <li>"dual representation" / "coefficients Α"</li>
+          <li>"Gaussian / RBF / polynomial kernel"</li>
+        </ul>
+        <h4 style="margin-top:1rem;">5 Traps</h4>
+        <ul>
+          <li>K = XᵀX (n×n) ≠ XXᵀ (d×d) from Lecture 29</li>
+          <li>Kernel ≠ always a plain dot product — Γ generalizes it</li>
+          <li>Prediction still needs all N training points, not free at test time</li>
+          <li>K can be singular — same fix as before (pseudo-inverse / ridge term)</li>
+          <li>Kernel trick removes the D problem, not the N problem</li>
+        </ul>
+      </div>
+    </div>
+    <h4 style="margin-top:1.4rem;">Dependencies</h4>
+    <p style="color:var(--text-dim); font-size:0.9rem; margin:0;">Builds on: the Normal Equation (Lecture 29) and its geometric reading (Lecture 30) — substituting the dual form W*=XΑ* directly into XXᵀW*=Xy. Mirrors: Kernel PCA's non-linear extension of PCA on the unsupervised side. Completes: the three-pillar view of regression (geometric, computational via SGD, non-linear via kernels).</p>
+  </div>
+</section>
+
+</div>
+
+<footer class="foot">Lecture 32 · Kernel Regression — study notes</footer>
+
+</body>
+</html>
