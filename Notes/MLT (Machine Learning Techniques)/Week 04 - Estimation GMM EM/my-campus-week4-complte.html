@@ -3,1675 +3,1007 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Week 04 — Estimation, GMM &amp; EM Algorithm</title>
+<title>Week 04 · Estimation → MLE → Bayesian → GMM → EM</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
-</script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-  onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    macros: {
-      '\\N': '\\mathcal{N}',
-      '\\L': '\\mathcal{L}',
-      '\\R': '\\mathbb{R}',
-      '\\given': '\\mid'
-    },
-    throwOnError: false
-  });">
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#0a0e17;
+  --bg-grid: rgba(255,255,255,0.025);
+  --panel-bg:#111524;
+  --panel-bg-2:#141a2c;
+  --panel-border: rgba(255,255,255,0.09);
+  --panel-border-strong: rgba(255,255,255,0.16);
+  --text:#e8eaf2;
+  --text-dim:#9aa2b8;
+  --text-faint:#6b7390;
+  --gold:#e0b355;
+  --gold-dim: rgba(224,179,85,0.35);
+  --teal:#4fd8c4;
+  --teal-dim: rgba(79,216,196,0.35);
+  --purple:#b58cf0;
+  --purple-dim: rgba(181,140,240,0.35);
+  --blue:#6fb3f2;
+  --green:#6fd88f;
+  --red:#f28b8b;
+  --serif: "Fraunces", "STIX Two Math", serif;
+  --sans: "Inter", -apple-system, sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth; background:var(--bg); color-scheme:dark;}
+html, body{min-height:100%;}
+body{
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 42px 42px;
+  background-attachment: local;
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.65;
+  padding-bottom:6rem;
+}
+a, p, li, span, div, td, th, b, strong, em, button{color:inherit;}
+.wrap{max-width:980px; margin:0 auto; padding:0 1.5rem;}
+sup, sub{font-size:0.68em; line-height:0;}
+sup{ vertical-align: super; }
+sub{ vertical-align: sub; }
+.sym-var{color:var(--blue); font-style:italic;}
+.sym-param{color:var(--gold); font-style:italic;}
+.sym-const{color:var(--green);}
+.sym-fn{color:var(--purple);}
+.sym-op{color:var(--red); font-weight:700;}
 
-  :root {
-    --bg: #f4f5f9;
-    --surface: #ffffff;
-    --ink: #1a1e2b;
-    --ink-soft: #505770;
-    --ink-faint: #8b91a5;
-    --line: #dde0e9;
-    --blue: #1e4f8a;
-    --blue-soft: #e9eef7;
-    --gold: #b5872a;
-    --gold-soft: #f6ecd3;
-    --gold-deep: #8f6a1c;
-    --rust: #a8482a;
-    --rust-soft: #f7e6df;
-    --teal: #2c6b5d;
-    --teal-soft: #e2efec;
-    --purple: #5a3e8a;
-    --purple-soft: #ede7f5;
-    --green: #3d7a4a;
-    --green-soft: #e6f0e8;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
-    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
-  }
+/* ===== HERO ===== */
+header.hero{
+  position:relative;
+  padding:4.5rem 1.5rem 3rem;
+  text-align:center;
+  border-bottom:1px solid var(--panel-border);
+  overflow:hidden;
+}
+header.hero::before{
+  content:"";
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(224,179,85,0.10), transparent 70%);
+  pointer-events:none;
+}
+.eyebrow{
+  font-family:var(--mono); font-size:0.75rem; letter-spacing:0.22em;
+  color:var(--teal); text-transform:uppercase; margin-bottom:1rem;
+}
+h1.title{
+  font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,5vw,3.2rem);
+  letter-spacing:-0.01em; margin-bottom:1rem; position:relative;
+}
+h1.title .arrow{color:var(--text-faint); font-weight:400; padding:0 0.15em;}
+h1.title .a1{color:var(--blue);}
+h1.title .a2{color:var(--gold);}
+h1.title .a3{color:var(--purple);}
+h1.title .a4{color:var(--teal);}
+h1.title .a5{color:#f0a5d8;}
+.subtitle{color:var(--text-dim); max-width:640px; margin:0 auto; font-size:1.02rem;}
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+/* ===== NAV ===== */
+nav.toc{
+  position:sticky; top:0; z-index:50;
+  background:rgba(10,14,23,0.88); backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--panel-border);
+  padding:0.7rem 1.5rem;
+}
+nav.toc .toc-inner{
+  max-width:980px; margin:0 auto;
+  display:flex; gap:0.5rem; overflow-x:auto; scrollbar-width:thin;
+}
+nav.toc a{
+  flex:0 0 auto;
+  font-family:var(--mono); font-size:0.78rem; color:var(--text-dim);
+  text-decoration:none; padding:0.4rem 0.85rem; border-radius:999px;
+  border:1px solid var(--panel-border); white-space:nowrap;
+  transition: all 0.2s;
+}
+nav.toc a:hover{color:var(--text); border-color:var(--panel-border-strong); background:var(--panel-bg);}
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
-  }
+/* ===== SECTIONS ===== */
+section.chapter{padding:3.5rem 0 1rem;}
+.chapter-head{display:flex; align-items:baseline; gap:1rem; margin-bottom:0.4rem;}
+.chapter-num{
+  font-family:var(--mono); font-size:0.85rem; color:var(--text-faint);
+  border:1px solid var(--panel-border); border-radius:8px; padding:0.15rem 0.55rem;
+}
+h2.chapter-title{font-family:var(--serif); font-weight:600; font-size:clamp(1.5rem,4vw,2.1rem);}
+.chapter-lede{color:var(--text-dim); max-width:720px; margin:1rem 0 2rem; font-size:1.02rem;}
+h3.sub-title{
+  font-family:var(--serif); font-weight:600; font-size:1.2rem; margin:2.2rem 0 0.9rem;
+  color:var(--text);
+}
 
-  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+/* ===== DEFINITION GRID ===== */
+.def-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin:1.5rem 0 2rem;}
+@media(max-width:720px){.def-grid{grid-template-columns:1fr;}}
+.def-card{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:14px;
+  padding:1.15rem 1.2rem;
+}
+.def-card .sym{
+  font-family:var(--serif); font-size:1.4rem; margin-bottom:0.4rem;
+}
+.def-card .label{
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:0.3rem;
+}
+.def-card p{font-size:0.88rem; color:var(--text-dim);}
 
-  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+/* ===== EQUATION PANEL ===== */
+.eq-panel{
+  background: linear-gradient(180deg, var(--panel-bg-2), var(--panel-bg));
+  border:1px solid var(--panel-border); border-radius:18px;
+  padding:2.4rem 1.6rem 2rem; margin:1.8rem 0; text-align:center;
+  position:relative; box-shadow:0 12px 34px rgba(0,0,0,0.35);
+}
+.eq-panel.accent-gold{border-color:var(--gold-dim); box-shadow:0 0 0 1px var(--gold-dim) inset, 0 12px 34px rgba(0,0,0,0.35);}
+.eq-panel.accent-teal{border-color:var(--teal-dim); box-shadow:0 0 0 1px var(--teal-dim) inset, 0 12px 34px rgba(0,0,0,0.35);}
+.eq-panel.accent-purple{border-color:var(--purple-dim); box-shadow:0 0 0 1px var(--purple-dim) inset, 0 12px 34px rgba(0,0,0,0.35);}
+.eq-label{
+  font-family:var(--mono); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:1.1rem;
+}
+.eq-number{position:absolute; bottom:0.7rem; right:1.1rem; font-family:var(--mono); font-size:0.72rem; opacity:0.45;}
+.eq-main{
+  font-family:var(--serif); font-size:clamp(1.15rem,2.6vw,1.7rem); line-height:2.1;
+}
+.eq-main .big-op{font-size:1.5em; vertical-align:-0.15em; color:var(--red);}
+.eq-line{margin:0.3rem 0;}
+.eq-caption{color:var(--text-dim); font-size:0.85rem; margin-top:1rem; font-style:italic;}
 
-  /* ===========================
-     HERO
-  =========================== */
-  .hero {
-    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
-    color: #f0f1f8;
-    padding: 72px 0 60px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 36px 36px;
-    pointer-events: none;
-  }
-  .hero .container { position: relative; z-index: 1; }
-  .hero .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #d9b872;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .hero .tag::before {
-    content: '';
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #d9b872;
-    flex-shrink: 0;
-  }
-  .hero h1 {
-    font-weight: 700;
-    font-size: clamp(34px, 5.6vw, 54px);
-    line-height: 1.08;
-    margin: 0 0 16px;
-    letter-spacing: -0.02em;
-  }
-  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
-  .hero p {
-    font-size: 17px;
-    color: #b8bdd0;
-    max-width: 620px;
-    margin: 0 0 32px;
-    line-height: 1.5;
-  }
-  .hero .nav-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .hero .nav-pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    padding: 7px 14px;
-    border-radius: 100px;
-    border: 1px solid rgba(255,255,255,0.14);
-    color: #b8bdd0;
-    background: rgba(255,255,255,0.04);
-    text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .hero .nav-pill:hover {
-    border-color: #d9b872;
-    color: #f0f1f8;
-  }
+/* legend */
+.legend{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:12px;
+  padding:0.9rem 1.1rem; margin:0.9rem 0 1.8rem; font-size:0.85rem;
+}
+.legend table{width:100%; border-collapse:collapse;}
+.legend th{
+  text-align:left; font-family:var(--mono); font-size:0.68rem; text-transform:uppercase;
+  letter-spacing:0.06em; color:var(--text-faint); padding:0.3rem 0.5rem; border-bottom:1px solid var(--panel-border);
+}
+.legend td{padding:0.45rem 0.5rem; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; color:var(--text-dim);}
+.legend tr:last-child td{border-bottom:none;}
+.legend .sym-cell{font-family:var(--serif); font-size:1.05rem; white-space:nowrap;}
 
-  /* ===========================
-     MAIN
-  =========================== */
-  main { padding: 56px 0 90px; }
+/* collapsibles */
+details.expand{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:12px;
+  margin:0.9rem 0; overflow:hidden;
+}
+details.expand summary{
+  cursor:pointer; padding:0.85rem 1.1rem; font-family:var(--mono); font-size:0.82rem;
+  color:var(--teal); list-style:none; display:flex; align-items:center; gap:0.5rem;
+  user-select:none;
+}
+details.expand summary::-webkit-details-marker{display:none;}
+details.expand summary::before{content:"▶"; font-size:0.6rem; transition:transform 0.2s; color:var(--text-faint);}
+details.expand[open] summary::before{transform:rotate(90deg);}
+details.expand .expand-body{padding:0 1.1rem 1.2rem; color:var(--text-dim); font-size:0.92rem;}
 
-  .section { margin-bottom: 72px; }
-  .section:last-of-type { margin-bottom: 0; }
+/* step timeline */
+.timeline{margin:1.5rem 0; position:relative; padding-left:2.6rem;}
+.timeline::before{
+  content:""; position:absolute; left:1.05rem; top:0.6rem; bottom:0.6rem; width:2px;
+  background:linear-gradient(180deg, var(--gold-dim), var(--teal-dim));
+}
+.tl-step{position:relative; margin-bottom:1.4rem;}
+.tl-step .badge{
+  position:absolute; left:-2.6rem; top:0; width:2.1rem; height:2.1rem; border-radius:50%;
+  background:var(--panel-bg-2); border:1.5px solid var(--gold); display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-size:0.85rem; color:var(--gold);
+}
+.tl-step .tl-title{font-weight:600; font-size:0.95rem; margin-bottom:0.35rem; color:var(--text);}
+.tl-step .tl-math{
+  font-family:var(--serif); font-size:1.05rem; background:var(--panel-bg); border:1px solid var(--panel-border);
+  border-radius:10px; padding:0.7rem 1rem; display:inline-block;
+}
 
-  .sec-header {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .sec-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gold-deep);
-    background: var(--gold-soft);
-    border-radius: 7px;
-    padding: 4px 10px;
-    flex-shrink: 0;
-  }
-  .sec-header h2 {
-    font-weight: 700;
-    font-size: 26px;
-    margin: 0;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-  }
-  .sec-intro {
-    color: var(--ink-soft);
-    font-size: 15.5px;
-    max-width: 72ch;
-    margin: 0 0 28px;
-    line-height: 1.7;
-  }
+/* callouts */
+.callout{border-radius:14px; padding:1.1rem 1.3rem; margin:1.4rem 0; border:1px solid; font-size:0.92rem;}
+.callout .callout-head{
+  font-family:var(--mono); font-size:0.72rem; letter-spacing:0.08em; text-transform:uppercase;
+  display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem; font-weight:700;
+}
+.callout.intuition{background:rgba(79,216,196,0.06); border-color:var(--teal-dim);}
+.callout.intuition .callout-head{color:var(--teal);}
+.callout.insight{background:rgba(224,179,85,0.06); border-color:var(--gold-dim);}
+.callout.insight .callout-head{color:var(--gold);}
+.callout.mistakes{background:rgba(242,139,139,0.06); border-color:rgba(242,139,139,0.3);}
+.callout.mistakes .callout-head{color:var(--red);}
+.callout.mistakes ul{list-style:none; padding:0;}
+.callout.mistakes li{padding:0.5rem 0; border-bottom:1px dashed rgba(242,139,139,0.15);}
+.callout.mistakes li:last-child{border-bottom:none;}
+.callout.mistakes li::before{content:"✖ "; color:var(--red); font-weight:700;}
+.callout.exam{background:rgba(181,140,240,0.06); border-color:var(--purple-dim);}
+.callout.exam .callout-head{color:var(--purple);}
 
-  /* ===========================
-     EQUATION PANEL
-  =========================== */
-  .eq-panel {
-    background: linear-gradient(160deg, #161b2a, #1c2237);
-    color: #e2e4ed;
-    border: 1px solid #2d334b;
-    border-left: 5px solid var(--gold);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    padding: 36px 36px 32px;
-    margin-bottom: 20px;
-    text-align: center;
-    overflow-x: auto;
-    position: relative;
-  }
-  .eq-panel .eq-num {
-    position: absolute;
-    top: 14px;
-    right: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #5f6785;
-    letter-spacing: 0.04em;
-  }
-  .eq-panel .eq-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #7d859c;
-    margin-bottom: 20px;
-  }
-  .eq-panel .katex-display { margin: 0; }
-  .eq-panel .katex-display > .katex { font-size: 1.35em; }
-  .eq-panel .katex .mathnormal { font-style: italic; }
-  .eq-panel .eq-caption {
-    font-size: 13.5px;
-    color: #7d859c;
-    margin-top: 18px;
-    font-style: italic;
-  }
-  .eq-panel.multiline .katex-display > .katex { font-size: 1.1em; }
+/* numeric example table */
+.ex-table{width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.88rem;}
+.ex-table th{
+  background:var(--panel-bg-2); text-align:left; padding:0.6rem 0.8rem; font-family:var(--mono);
+  font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);
+  border-bottom:1px solid var(--panel-border-strong);
+}
+.ex-table td{padding:0.6rem 0.8rem; border-bottom:1px solid var(--panel-border); color:var(--text-dim);}
+.ex-table td.result{color:var(--gold); font-family:var(--serif); font-size:1rem;}
+.ex-table tr:last-child td{border-bottom:none;}
 
-  /* ===========================
-     DERIVATION TIMELINE
-  =========================== */
-  .derivation-timeline {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 28px 30px;
-    margin-bottom: 20px;
-  }
-  .derivation-timeline .dt-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
-  .dt-step {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 0;
-  }
-  .dt-step .dt-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    background: var(--ink);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .dt-step .dt-text {
-    font-size: 15px;
-    color: var(--ink-soft);
-    flex: 1;
-  }
-  .dt-step .dt-text strong { color: var(--ink); }
-  .dt-step .dt-formula { flex-shrink: 0; }
-  .dt-step .dt-formula .katex { font-size: 1em; }
-  .dt-arrow {
-    text-align: center;
-    color: var(--ink-faint);
-    font-size: 18px;
-    padding: 2px 0;
-    line-height: 1;
-  }
+/* real world apps grid */
+.app-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin:1.5rem 0;}
+@media(max-width:640px){.app-grid{grid-template-columns:1fr;}}
+.app-card{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:14px; padding:1.1rem 1.2rem;
+  border-left:3px solid var(--teal);
+}
+.app-card h4{font-family:var(--serif); font-size:1rem; margin-bottom:0.35rem; color:var(--teal);}
+.app-card p{font-size:0.85rem; color:var(--text-dim);}
 
-  /* ===========================
-     SYMBOL LEGEND
-  =========================== */
-  .legend-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .legend-card .leg-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    padding: 16px 22px 0;
-  }
-  .legend-card table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14.5px;
-  }
-  .legend-card table th {
-    text-align: left;
-    background: #f5f6fa;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-soft);
-    padding: 10px 22px;
-    border-bottom: 1px solid var(--line);
-  }
-  .legend-card table td {
-    padding: 11px 22px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: middle;
-  }
-  .legend-card table tr:last-child td { border-bottom: none; }
-  .legend-card table td.leg-sym {
-    font-weight: 600;
-    white-space: nowrap;
-    width: 120px;
-  }
-  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
-  .legend-card table td.leg-meaning { color: var(--ink-soft); }
-  .legend-card table td.leg-example {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--blue);
-    width: 180px;
-  }
+/* SVG wrapper */
+.svg-wrap{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:16px;
+  padding:1.4rem; margin:1.6rem 0; overflow-x:auto; text-align:center;
+}
+.svg-wrap svg{max-width:100%; height:auto;}
+.svg-caption{font-size:0.8rem; color:var(--text-faint); margin-top:0.7rem; font-family:var(--mono);}
 
-  /* ===========================
-     EXPLANATION
-  =========================== */
-  .explain-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--teal);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-  .explain-card .ex-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--teal);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .explain-card .ex-text {
-    font-size: 16px;
-    color: var(--ink);
-    line-height: 1.6;
-  }
-  .explain-card .ex-text .katex { font-size: 1.05em; }
+/* interactive box */
+.interactive{
+  background: linear-gradient(160deg, rgba(224,179,85,0.05), rgba(79,216,196,0.04));
+  border:1px solid var(--panel-border-strong); border-radius:20px; padding:1.8rem;
+  margin:2rem 0;
+}
+.interactive .int-head{display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem;}
+.int-tag{
+  font-family:var(--mono); font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase;
+  background:var(--gold); color:#1a1408; padding:0.2rem 0.55rem; border-radius:6px; font-weight:700;
+}
+.interactive h4{font-family:var(--serif); font-size:1.15rem;}
+.interactive .int-desc{color:var(--text-dim); font-size:0.88rem; margin:0.5rem 0 1.2rem;}
+.int-controls{display:flex; flex-wrap:wrap; gap:0.6rem; margin-bottom:1.1rem; align-items:center;}
+button.btn{
+  font-family:var(--mono); font-size:0.8rem; background:var(--panel-bg-2); color:var(--text);
+  border:1px solid var(--panel-border-strong); border-radius:9px; padding:0.55rem 1rem; cursor:pointer;
+  transition:all 0.15s;
+}
+button.btn:hover{border-color:var(--gold); color:var(--gold);}
+button.btn.primary{background:var(--gold); color:#1a1408; border-color:var(--gold); font-weight:700;}
+button.btn.primary:hover{color:#1a1408; filter:brightness(1.1);}
+button.btn:disabled{opacity:0.4; cursor:not-allowed;}
+.int-readout{
+  font-family:var(--mono); font-size:0.85rem; color:var(--text-dim); background:var(--panel-bg);
+  border:1px solid var(--panel-border); border-radius:10px; padding:0.8rem 1rem; margin-top:1rem;
+}
+.int-readout b{color:var(--gold);}
+.coin-row{display:flex; gap:0.4rem; flex-wrap:wrap; margin:1rem 0;}
+.coin{
+  width:2.1rem; height:2.1rem; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-family:var(--mono); font-weight:700; font-size:0.8rem; border:1.5px solid var(--panel-border-strong);
+  animation: pop 0.25s ease;
+}
+.coin.H{background:rgba(224,179,85,0.18); color:var(--gold); border-color:var(--gold-dim);}
+.coin.T{background:rgba(79,216,196,0.14); color:var(--teal); border-color:var(--teal-dim);}
+@keyframes pop{from{transform:scale(0.3); opacity:0;} to{transform:scale(1); opacity:1;}}
 
-  /* ===========================
-     INTUITION
-  =========================== */
-  .intuition-card {
-    background: linear-gradient(135deg, #fffdf8, #ffffff);
-    border: 1px solid #e3cf9b;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-  .intuition-card .in-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gold-deep);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .intuition-card .in-text {
-    font-size: 15px;
-    color: var(--ink-soft);
-    line-height: 1.7;
-  }
-  .intuition-card .in-text strong { color: var(--ink); }
-  .intuition-card .in-text .highlight {
-    background: var(--gold-soft);
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--gold-deep);
-  }
+/* connections / footer */
+.week-footer{
+  text-align:center; padding:3rem 1.5rem 1rem; color:var(--text-faint); font-family:var(--mono);
+  font-size:0.75rem; letter-spacing:0.12em; border-top:1px solid var(--panel-border); margin-top:3rem;
+}
+.divider{height:1px; background:linear-gradient(90deg, transparent, var(--panel-border-strong), transparent); margin:2.5rem 0;}
 
-  /* ===========================
-     NUMERICAL EXAMPLE
-  =========================== */
-  .num-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 24px;
-    margin-bottom: 16px;
-  }
-  .num-card .num-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .num-card .num-setup {
-    font-size: 14px;
-    color: var(--ink-soft);
-    margin-bottom: 14px;
-  }
-  .num-card .num-setup strong { color: var(--ink); }
-  .num-card table.num-tbl {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .num-card table.num-tbl th {
-    text-align: left;
-    background: #f5f6fa;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-soft);
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--line);
-  }
-  .num-card table.num-tbl td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: middle;
-  }
-  .num-card table.num-tbl td .katex { font-size: 0.95em; }
-  .num-card .num-result {
-    background: var(--teal-soft);
-    border: 1px solid #bcdcd3;
-    border-radius: 8px;
-    padding: 14px 18px;
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--teal);
-    text-align: center;
-  }
-  .num-card .num-result .katex { font-size: 1.05em; }
+p{color:var(--text-dim); margin-bottom:0.9rem;}
+strong{color:var(--text); font-weight:600;}
+.hl-gold{color:var(--gold);}
+.hl-teal{color:var(--teal);}
+.hl-purple{color:var(--purple);}
 
-  /* ===========================
-     INTERPRETATION
-  =========================== */
-  .interpret-card {
-    background: var(--blue-soft);
-    border: 1px solid #c9d4ea;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 14px;
-  }
-  .interpret-card .int-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--blue);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .interpret-card .int-body strong {
-    display: block;
-    font-size: 13.5px;
-    color: var(--blue);
-    margin-bottom: 4px;
-  }
-  .interpret-card .int-body p {
-    margin: 0;
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    line-height: 1.6;
-  }
-  .interpret-card .int-body p .katex { font-size: 1em; }
-
-  /* ===========================
-     COMMON MISTAKES
-  =========================== */
-  .mistakes-card {
-    background: var(--rust-soft);
-    border: 1px solid #e6c3b3;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 14px;
-  }
-  .mistakes-card .mis-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--rust);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .mistakes-card .mis-body strong {
-    display: block;
-    font-size: 13.5px;
-    color: var(--rust);
-    margin-bottom: 4px;
-  }
-  .mistakes-card .mis-body p {
-    margin: 0 0 6px;
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
-  .mistakes-card .mis-body p .katex { font-size: 1em; }
-
-  /* ===========================
-     APPLICATIONS
-  =========================== */
-  .apps-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 24px;
-    margin-bottom: 16px;
-  }
-  .apps-card .ap-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
-  .apps-card .ap-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .apps-card .ap-item {
-    background: #f5f6fa;
-    border-radius: 8px;
-    padding: 14px 16px;
-    font-size: 14px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-  .apps-card .ap-item strong {
-    display: block;
-    color: var(--ink);
-    margin-bottom: 3px;
-  }
-
-  /* ===========================
-     SVG ILLUSTRATIONS
-  =========================== */
-  .svg-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px 24px 18px;
-    margin-bottom: 20px;
-  }
-  .svg-card .svg-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .svg-card svg { width: 100%; height: auto; display: block; }
-  .svg-card .svg-caption {
-    font-size: 13px;
-    color: var(--ink-soft);
-    text-align: center;
-    margin-top: 10px;
-  }
-
-  /* ===========================
-     CALLOUTS
-  =========================== */
-  .callout {
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin: 16px 0;
-    display: flex;
-    gap: 14px;
-    border: 1px solid transparent;
-  }
-  .callout .co-icon {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 14px;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
-  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
-  .callout .co-body p .katex { font-size: 1em; }
-  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
-  .callout.info .co-icon { background: var(--blue); color: #fff; }
-  .callout.info .co-body strong { color: var(--blue); }
-  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
-  .callout.warn .co-icon { background: var(--rust); color: #fff; }
-  .callout.warn .co-body strong { color: var(--rust); }
-  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
-  .callout.good .co-icon { background: var(--teal); color: #fff; }
-  .callout.good .co-body strong { color: var(--teal); }
-
-  /* ===========================
-     CODE BLOCK
-  =========================== */
-  .code-block {
-    background: #141824;
-    border-radius: var(--radius);
-    padding: 20px 22px;
-    margin: 16px 0;
-    overflow-x: auto;
-    box-shadow: var(--shadow);
-  }
-  .code-block .cb-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #6b7394;
-    margin-bottom: 12px;
-    letter-spacing: 0.04em;
-  }
-  .code-block pre {
-    margin: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: #dbe0ef;
-  }
-  .code-block .cm { color: #6b7394; }
-  .code-block .kw { color: #e2a25c; }
-  .code-block .fn { color: #7fb0e8; }
-  .code-block .er { color: #e0967a; }
-
-  /* ===========================
-     PARAMETER CARDS
-  =========================== */
-  .param-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .param-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 22px;
-    text-align: center;
-  }
-  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
-  .param-card .p-sym .katex { font-size: 1.3em; }
-  .param-card h4 {
-    font-weight: 600;
-    font-size: 16px;
-    margin: 0 0 6px;
-  }
-  .param-card p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--ink-soft);
-  }
-  .param-card.gold .p-sym .katex { color: var(--gold); }
-
-  /* ===========================
-     FOOTER
-  =========================== */
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 28px 0 40px;
-    text-align: center;
-  }
-  footer p {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--ink-faint);
-    margin: 0;
-  }
-
-  .katex .mathnormal { font-style: italic; }
-  .katex .boldsymbol { font-weight: 700; }
-  .katex .mord.text { font-family: 'Inter', sans-serif; }
-
-  @media (max-width: 820px) {
-    .param-grid { grid-template-columns: 1fr; }
-    .apps-card .ap-grid { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .container { padding: 0 18px; }
-    main { padding: 40px 0 70px; }
-    .eq-panel { padding: 24px 18px; }
-    .eq-panel .katex-display > .katex { font-size: 1em; }
-    .hero { padding: 52px 0 44px; }
-    .sec-header h2 { font-size: 22px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
+/* connections map */
+.conn-flow{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0.5rem; margin:1.8rem 0;}
+.conn-pill{
+  font-family:var(--mono); font-size:0.82rem; padding:0.55rem 1rem; border-radius:999px;
+  border:1px solid var(--panel-border-strong); background:var(--panel-bg);
+}
+.conn-arrow{color:var(--text-faint); font-size:1.1rem;}
 </style>
 </head>
 <body>
 
 <header class="hero">
-  <div class="container">
-    <div class="tag">Week 04 &middot; Comprehensive Summary</div>
-    <h1>Estimation &rarr; MLE &rarr; Bayesian &rarr; GMM &rarr; EM</h1>
-    <p>From the paradigm shift of statistical estimation through the Expectation-Maximization algorithm — the full journey from point estimates to latent variable models.</p>
-    <div class="nav-row">
-      <a href="#s1" class="nav-pill">&sect;1 Estimation</a>
-      <a href="#s2" class="nav-pill">&sect;2 MLE</a>
-      <a href="#s3" class="nav-pill">&sect;3 Bayesian</a>
-      <a href="#s4" class="nav-pill">&sect;4 GMM</a>
-      <a href="#s5" class="nav-pill">&sect;5 EM</a>
-    </div>
-  </div>
+  <div class="eyebrow">MLT · Week 04 · Comprehensive Summary</div>
+  <h1 class="title">
+    <span class="a1">Estimation</span><span class="arrow">→</span><span class="a2">MLE</span><span class="arrow">→</span><span class="a3">Bayesian</span><span class="arrow">→</span><span class="a4">GMM</span><span class="arrow">→</span><span class="a5">EM</span>
+  </h1>
+  <p class="subtitle">The full journey from a single unknown coin to a machine that discovers hidden clusters in data — five ideas, one throughline.</p>
 </header>
 
-<main>
-  <div class="container">
-
-    <!-- ================================================================
-         SECTION 1: THE ESTIMATION PROBLEM
-    ================================================================ -->
-    <section class="section" id="s1">
-      <div class="sec-header">
-        <span class="sec-num">01</span>
-        <h2>The estimation problem</h2>
-      </div>
-      <p class="sec-intro">
-        We observe data — but we don't see the distribution that generated it.
-        <strong>Estimation</strong> is the process of inferring the unknown parameters
-        of that distribution from observed samples. Every point is assumed
-        <strong>Independent and Identically Distributed (i.i.d.)</strong>.
-      </p>
-
-      <div class="param-grid">
-        <div class="param-card" style="border-top: 3px solid var(--gold);">
-          <span class="p-sym">$\theta$</span>
-          <h4>Unknown parameter</h4>
-          <p>The true value that governs the data-generating process.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--teal);">
-          <span class="p-sym">$\hat{\theta}$</span>
-          <h4>Estimator</h4>
-          <p>A function of the data that approximates the true parameter.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--blue);">
-          <span class="p-sym">$x_1, \dots, x_N$</span>
-          <h4>Observed data</h4>
-          <p>Our finite window into the infinite population.</p>
-        </div>
-      </div>
-
-      <!-- EQUATION PANEL: IID Assumption -->
-      <div class="eq-panel" id="eq-iid">
-        <span class="eq-num">Equation (1)</span>
-        <div class="eq-label">I.I.D. Assumption</div>
-        $$p(x_1, x_2, \dots, x_N \mid \theta) = \prod_{i=1}^{N} p(x_i \mid \theta)$$
-        <div class="eq-caption">The joint probability of all data is the product of individual probabilities — independence lets us multiply</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The probability of seeing the entire dataset $(x_1, x_2, \dots, x_N)$ given
-          parameter $\theta$ equals the <strong>product</strong> over $i$ from $1$ to $N$
-          of the probability of a single point $x_i$ given $\theta$.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\theta$</td>
-              <td class="leg-meaning">Unknown parameter(s) of the distribution</td>
-              <td class="leg-example">$p$ for Bernoulli, $(\mu, \sigma^2)$ for Gaussian</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$x_i$</td>
-              <td class="leg-meaning">The $i$-th observed data point</td>
-              <td class="leg-example">$x_3 = 1$ (heads on 3rd flip)</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\displaystyle\prod_{i=1}^{N}$</td>
-              <td class="leg-meaning">Product over all observations — multiply $N$ terms</td>
-              <td class="leg-example">$N = 5 \implies$ multiply 5 probabilities</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\text{IID}$</td>
-              <td class="leg-meaning">Independent and Identically Distributed</td>
-              <td class="leg-example">Each coin flip is independent, same $p$</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Before estimation, we thought of probability as "given a known coin,<br>what's the chance of Heads?"
-          Estimation flips this: <span class="highlight">given observed flips, what's the coin?</span>
-          This paradigm shift is the foundation of all statistical inference.
-        </div>
-      </div>
-
-      <div class="svg-card">
-        <div class="svg-label">&#9654; The Paradigm Shift</div>
-        <svg viewBox="0 0 860 140" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="arrS" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
-            </marker>
-          </defs>
-          <!-- Forward: known parameter -> data -->
-          <rect x="20" y="15" width="220" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
-          <text x="130" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44" font-weight="600">Known $\theta$</text>
-          <line x1="240" y1="35" x2="320" y2="35" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrS)"/>
-          <rect x="330" y="15" width="220" height="40" rx="8" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.5"/>
-          <text x="440" y="40" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#1d4e44">$P(\text{Heads}) = 0.7$</text>
-
-          <!-- Gap + arrow down -->
-          <line x1="440" y1="55" x2="440" y2="75" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrS)"/>
-
-          <!-- Reverse: data -> unknown parameter -->
-          <rect x="480" y="85" width="220" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <text x="590" y="110" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">$\hat{p} = \frac{7}{10}$</text>
-          <line x1="700" y1="105" x2="780" y2="105" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#arrS)"/>
-          <rect x="790" y="85" width="50" height="40" rx="8" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <text x="815" y="110" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e">???</text>
-
-          <!-- Label row -->
-          <text x="130" y="75" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#2c6b5d">&#9650; Probability</text>
-          <text x="590" y="140" text-anchor="middle" font-family="'Inter', sans-serif" font-size="10" fill="#a8482a">&#9660; Estimation</text>
-        </svg>
-        <div class="svg-caption">Probability goes from parameters to data; estimation goes from data back to parameters.</div>
-      </div>
-
-      <div class="callout info">
-        <div class="co-icon">i</div>
-        <div class="co-body">
-          <strong>Key insight</strong>
-          <p>
-            The i.i.d. assumption is what makes estimation tractable. Without independence,
-            the joint probability would require modeling dependencies between every pair of points.
-            With it, the product factorization collapses the problem to understanding a single
-            data point and multiplying.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Confusing probability with estimation:</strong> $P(\text{data} \mid \theta)$
-            is a probability (known $\theta$). Estimation asks "what $\theta$ makes this data most
-            likely?" — the same expression is now a <em>function of $\theta$</em> (the likelihood).
-          </p>
-          <p>
-            &#x2716; <strong>Ignoring the i.i.d. assumption:</strong> If data points are correlated
-            (e.g., time series), the product formula does not hold. Always verify independence before
-            using it.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 2: MAXIMUM LIKELIHOOD ESTIMATION (MLE)
-    ================================================================ -->
-    <section class="section" id="s2">
-      <div class="sec-header">
-        <span class="sec-num">02</span>
-        <h2>Maximum Likelihood Estimation (MLE)</h2>
-      </div>
-      <p class="sec-intro">
-        MLE picks the parameter value $\theta$ that makes the observed data <strong>most probable</strong>:
-        $\hat{\theta}_{\text{MLE}} = \arg\max_\theta P(\text{data} \mid \theta)$. It is a
-        purely <strong>frequentist</strong> method — no prior beliefs, no subjectivity.
-      </p>
-
-      <!-- EQUATION PANEL: MLE Definition -->
-      <div class="eq-panel" id="eq-mle-def">
-        <span class="eq-num">Equation (2)</span>
-        <div class="eq-label">Maximum Likelihood Estimator</div>
-        $$\hat{\theta}_{\text{MLE}} = \underset{\theta}{\arg\max}\; \mathcal{L}(\theta) = \underset{\theta}{\arg\max}\; \prod_{i=1}^{N} p(x_i \mid \theta)$$
-        <div class="eq-caption">Find $\theta$ that maximizes the likelihood — equivalently, maximizes the product of individual densities</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The MLE estimate $\hat{\theta}_{\text{MLE}}$ is the <strong>argument that maximizes</strong>
-          the likelihood function $\mathcal{L}(\theta)$, which equals the <strong>product</strong>
-          over all $N$ data points of the probability density $p(x_i \mid \theta)$.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\hat{\theta}_{\text{MLE}}$</td>
-              <td class="leg-meaning">The MLE estimate — a specific value of $\theta$</td>
-              <td class="leg-example">$\hat{p} = 0.7$ for Bernoulli</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\arg\max_\theta$</td>
-              <td class="leg-meaning">The value of $\theta$ that gives the highest output</td>
-              <td class="leg-example">$\arg\max_x -(x-3)^2 = 3$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathcal{L}(\theta)$</td>
-              <td class="leg-meaning">Likelihood function — $\theta$ is the variable, data is fixed</td>
-              <td class="leg-example">$\mathcal{L}(p) = p^{\sum x_i}(1-p)^{N-\sum x_i}$</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Imagine you find a coin on the street and flip it 10 times, seeing 7 heads.
-          If the coin were fair ($p=0.5$), the chance of 7 heads is about 12%. If the coin
-          were biased ($p=0.7$), that chance rises to 27%. MLE simply <span class="highlight">picks the $p$ that makes your exact sequence most probable</span>.
-        </div>
-      </div>
-
-      <!-- EQUATION PANEL: Bernoulli MLE -->
-      <div class="eq-panel" id="eq-bernoulli-mle">
-        <span class="eq-num">Equation (3)</span>
-        <div class="eq-label">Bernoulli MLE — Closed Form</div>
-        $$\hat{p}_{\text{MLE}} = \frac{1}{N} \sum_{i=1}^{N} x_i = \frac{\text{number of heads}}{N}$$
-        <div class="eq-caption">The MLE for a Bernoulli is simply the sample mean — intuitive and elegant</div>
-      </div>
-
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; Derivation: Bernoulli MLE</div>
-
-        <div class="dt-step">
-          <div class="dt-num">1</div>
-          <div class="dt-text">Write the likelihood: each $x_i \in \{0,1\}$, $P(x_i=1)=p$</div>
-          <div class="dt-formula">$\mathcal{L}(p) = \prod_i p^{x_i} (1-p)^{1-x_i}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">2</div>
-          <div class="dt-text">Take log — turns product into sum (monotonic, same maximizer)</div>
-          <div class="dt-formula">$\ell(p) = \sum_i x_i \log p + (N - \sum_i x_i) \log(1-p)$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">3</div>
-          <div class="dt-text">Set derivative to zero and solve for $p$</div>
-          <div class="dt-formula">$\frac{d\ell}{dp} = \frac{\sum x_i}{p} - \frac{N - \sum x_i}{1-p} = 0$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">4</div>
-          <div class="dt-text">Result: sample mean</div>
-          <div class="dt-formula" style="font-weight:600;">$\hat{p}_{\text{MLE}} = \frac{1}{N} \sum_i x_i$</div>
-        </div>
-      </div>
-
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example — Bernoulli MLE</div>
-        <div class="num-setup">
-          <strong>Setup:</strong> 10 coin flips: [H, H, T, H, H, T, H, H, H, T] = [1,1,0,1,1,0,1,1,1,0].
-        </div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>Parameter</th><th>Formula</th><th>Calculation</th><th>Result</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:600;">$\hat{p}_{\text{MLE}}$</td>
-              <td>$\frac{1}{N} \sum x_i$</td>
-              <td>$(1+1+0+1+1+0+1+1+1+0) / 10$</td>
-              <td style="font-weight:600;color:var(--gold);">$0.7$</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="num-result">$\hat{p}_{\text{MLE}} = 0.7$ — the coin appears biased toward heads</div>
-      </div>
-
-      <!-- EQUATION PANEL: Gaussian MLE -->
-      <div class="eq-panel" id="eq-gaussian-mle">
-        <span class="eq-num">Equation (4)</span>
-        <div class="eq-label">Gaussian MLE — Closed Form</div>
-        $$\hat{\mu}_{\text{MLE}} = \frac{1}{N} \sum_{i=1}^{N} x_i \qquad
-        \hat{\sigma}^2_{\text{MLE}} = \frac{1}{N} \sum_{i=1}^{N} (x_i - \hat{\mu})^2$$
-        <div class="eq-caption">Sample mean and (biased) sample variance — the natural estimators</div>
-      </div>
-
-      <div class="callout warn">
-        <div class="co-icon">!</div>
-        <div class="co-body">
-          <strong>MLE variance is biased</strong>
-          <p>
-            $\hat{\sigma}^2_{\text{MLE}}$ divides by $N$, not $N-1$. This means it's
-            <strong>biased</strong> — it systematically underestimates the true variance.
-            The unbiased version uses $N-1$ (Bessel's correction). For large $N$, the difference
-            is negligible.
-          </p>
-        </div>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>Why MLE matters</strong>
-          <p>
-            MLE is <strong>consistent</strong> (converges to the true value as $N \to \infty$),
-            <strong>asymptotically normal</strong>, and <strong>efficient</strong> (achieves the
-            lowest possible variance among consistent estimators). These properties make it the
-            default workhorse of parametric estimation.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Forgetting the log trick:</strong> The log is monotonic ($\log$ is increasing),
-            so maximizing $\log \mathcal{L}(\theta)$ gives the same $\theta$ as maximizing $\mathcal{L}(\theta)$.
-            But the log turns products into sums — making derivatives much easier.
-          </p>
-          <p>
-            &#x2716; <strong>MLE is not a probability:</strong> $\mathcal{L}(\theta)$ is not a
-            distribution over $\theta$; it's a function of $\theta$ for fixed data. It does not
-            integrate to 1 over $\theta$.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 3: BAYESIAN ESTIMATION
-    ================================================================ -->
-    <section class="section" id="s3">
-      <div class="sec-header">
-        <span class="sec-num">03</span>
-        <h2>Bayesian estimation</h2>
-      </div>
-      <p class="sec-intro">
-        MLE gives a single point estimate. Bayesian estimation gives a <strong>full distribution</strong>
-        over $\theta$ — combining prior beliefs with observed data via Bayes' theorem.
-      </p>
-
-      <div class="param-grid">
-        <div class="param-card" style="border-top: 3px solid var(--gold);">
-          <span class="p-sym">$p(\theta)$</span>
-          <h4>Prior</h4>
-          <p>What we believe about $\theta$ before seeing data — our starting point.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--teal);">
-          <span class="p-sym">$p(\text{data} \mid \theta)$</span>
-          <h4>Likelihood</h4>
-          <p>Same as MLE — how probable the data is given a particular $\theta$.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--blue);">
-          <span class="p-sym">$p(\theta \mid \text{data})$</span>
-          <h4>Posterior</h4>
-          <p>Updated belief after combining prior and data — the goal of Bayesian inference.</p>
-        </div>
-      </div>
-
-      <!-- EQUATION PANEL: Bayes' Theorem -->
-      <div class="eq-panel" id="eq-bayes">
-        <span class="eq-num">Equation (5)</span>
-        <div class="eq-label">Bayes' Theorem for Parameter Estimation</div>
-        $$p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
-        \propto p(\mathcal{D} \mid \theta) \, p(\theta)$$
-        <div class="eq-caption">Posterior $\propto$ Likelihood $\times$ Prior — the evidence $p(\mathcal{D})$ is a normalizing constant</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The <strong>posterior</strong> probability of $\theta$ given the data $\mathcal{D}$
-          is proportional to the <strong>likelihood</strong> of the data under $\theta$ times the
-          <strong>prior</strong> probability of $\theta$.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$p(\theta \mid \mathcal{D})$</td>
-              <td class="leg-meaning">Posterior — distribution of $\theta$ after seeing data</td>
-              <td class="leg-example">Our updated belief</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$p(\mathcal{D} \mid \theta)$</td>
-              <td class="leg-meaning">Likelihood — how probable is the data given $\theta$</td>
-              <td class="leg-example">Same as MLE's $\mathcal{L}(\theta)$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$p(\theta)$</td>
-              <td class="leg-meaning">Prior — what we thought before any data</td>
-              <td class="leg-example">Beta$(2,2)$ for coin bias</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$p(\mathcal{D})$</td>
-              <td class="leg-meaning">Evidence (marginal likelihood) — normalizing constant</td>
-              <td class="leg-example">$\int p(\mathcal{D} \mid \theta) p(\theta) d\theta$</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Bayesian updating is like <span class="highlight">adjusting your belief</span> as new
-          evidence arrives. If you're 90% sure a coin is fair and you see 7 heads in 10 flips,
-          your posterior will shift slightly toward bias. If you see 700 heads in 1000 flips,
-          the data overwhelms the prior — your posterior converges to the data-driven estimate.
-        </div>
-      </div>
-
-      <!-- EQUATION PANEL: Beta-Bernoulli -->
-      <div class="eq-panel" id="eq-beta-bern">
-        <span class="eq-num">Equation (6)</span>
-        <div class="eq-label">Beta-Bernoulli Conjugacy</div>
-        $$\text{Prior: } p \sim \text{Beta}(\alpha, \beta) \qquad
-        \text{Posterior: } p \mid \mathcal{D} \sim \text{Beta}(\alpha + N_1, \beta + N_0)$$
-        <div class="eq-caption">Beta is conjugate to Bernoulli — prior and posterior are both Beta distributions</div>
-      </div>
-
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; Derivation: Beta-Bernoulli Posterior</div>
-
-        <div class="dt-step">
-          <div class="dt-num">1</div>
-          <div class="dt-text">Start with Beta prior: $p(\theta) \propto \theta^{\alpha-1} (1-\theta)^{\beta-1}$</div>
-          <div class="dt-formula">$\text{Beta}(\alpha, \beta)$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">2</div>
-          <div class="dt-text">Multiply by Bernoulli likelihood: $\theta^{N_1} (1-\theta)^{N_0}$</div>
-          <div class="dt-formula">$\theta^{\alpha-1+N_1} (1-\theta)^{\beta-1+N_0}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">3</div>
-          <div class="dt-text">Recognize this as $\text{Beta}(\alpha + N_1, \beta + N_0)$ — same form as prior!</div>
-          <div class="dt-formula">$\text{Beta}(\alpha+N_1, \beta+N_0)$</div>
-        </div>
-      </div>
-
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example — Beta-Bernoulli</div>
-        <div class="num-setup">
-          <strong>Setup:</strong> Prior $\text{Beta}(2, 2)$ (slightly biased toward fairness).
-          Data: 7 heads, 3 tails in 10 flips.
-        </div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:600;">Prior mean</td>
-              <td>$\frac{\alpha}{\alpha + \beta}$</td>
-              <td>$2 / (2+2) = 0.5$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">Prior mode</td>
-              <td>$\frac{\alpha-1}{\alpha+\beta-2}$</td>
-              <td>$(2-1)/(4-2) = 0.5$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">Posterior parameters</td>
-              <td>$(\alpha+N_1, \beta+N_0)$</td>
-              <td>$(2+7, 2+3) = (9, 5)$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">Posterior mean</td>
-              <td>$\frac{9}{9+5}$</td>
-              <td style="font-weight:600;color:var(--gold);">$9/14 \approx 0.643$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">MLE (for comparison)</td>
-              <td>$7/10$</td>
-              <td style="color:var(--rust);">$0.7$</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="num-result">Posterior mean $0.643$ is pulled toward prior $0.5$ — a <strong>shrinkage</strong> effect</div>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>Prior vs. Likelihood: a tug-of-war</strong>
-          <p>
-            The posterior balances prior and likelihood. With small $N$, the prior dominates.
-            As $N \to \infty$, the posterior converges to the MLE — the data washes out the prior.
-            Bayesian estimation automatically regularizes: the prior shrinks estimates toward
-            reasonable values, preventing overfitting when data is scarce.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Confusing posterior with likelihood:</strong> The posterior $p(\theta \mid \mathcal{D})$
-            is a <em>distribution over $\theta$</em> (integrates to 1). The likelihood $p(\mathcal{D} \mid \theta)$
-            is a <em>function of $\theta$</em> for fixed data (does not integrate to 1).
-          </p>
-          <p>
-            &#x2716; <strong>Forgetting the prior matters:</strong> Different priors give different posteriors.
-            Always state your prior and justify it.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 4: GAUSSIAN MIXTURE MODELS (GMM)
-    ================================================================ -->
-    <section class="section" id="s4">
-      <div class="sec-header">
-        <span class="sec-num">04</span>
-        <h2>Gaussian Mixture Models (GMM)</h2>
-      </div>
-      <p class="sec-intro">
-        A single Gaussian assumes data is unimodal. Real data often has <strong>multiple clusters</strong>.
-        A GMM models the data as a weighted sum of $K$ Gaussians — each component captures one cluster.
-      </p>
-
-      <div class="param-grid">
-        <div class="param-card" style="border-top: 3px solid var(--gold);">
-          <span class="p-sym">$\boldsymbol{\mu}_k$</span>
-          <h4>Means</h4>
-          <p>Center of each Gaussian component.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--teal);">
-          <span class="p-sym">$\sigma_k^2$</span>
-          <h4>Variances</h4>
-          <p>Spread of each component.</p>
-        </div>
-        <div class="param-card" style="border-top: 3px solid var(--rust);">
-          <span class="p-sym">$\pi_k$</span>
-          <h4>Mixing weights</h4>
-          <p>Probability of each component. $\sum \pi_k = 1$.</p>
-        </div>
-      </div>
-
-      <div class="svg-card">
-        <div class="svg-label">&#9654; One Gaussian vs. Mixture</div>
-        <svg viewBox="0 0 860 240" xmlns="http://www.w3.org/2000/svg">
-          <!-- Left: single Gaussian fails -->
-          <text x="215" y="20" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a" font-weight="600">Single Gaussian — poor fit</text>
-          <path d="M40,200 Q100,180 140,160 Q180,140 215,120 Q250,100 280,120 Q320,140 360,160 Q400,180 430,200" fill="none" stroke="#e6c3b3" stroke-width="2.5" stroke-dasharray="4,3"/>
-          <path d="M80,200 Q120,100 160,70 Q200,40 215,35 Q230,40 270,70 Q310,100 350,200" fill="none" stroke="#a8482a" stroke-width="2" opacity="0.6"/>
-          <circle cx="100" cy="60" r="4" fill="#a8482a" opacity="0.4"/>
-          <circle cx="180" cy="110" r="4" fill="#a8482a" opacity="0.4"/>
-          <circle cx="250" cy="180" r="4" fill="#a8482a" opacity="0.4"/>
-          <circle cx="330" cy="70" r="4" fill="#a8482a" opacity="0.4"/>
-
-          <!-- Right: mixture fits -->
-          <text x="645" y="20" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#1d4e44" font-weight="600">GMM — captures the structure</text>
-          <path d="M470,200 C510,200 520,120 545,120 C570,120 580,200 620,200" fill="none" stroke="#b5872a" stroke-width="2" opacity="0.8"/>
-          <path d="M590,200 C620,180 640,110 660,110 C680,110 700,180 720,200" fill="none" stroke="#2c6b5d" stroke-width="2" opacity="0.8"/>
-          <path d="M470,200 C530,200 545,90 570,90 C595,90 610,200 620,200" fill="none" stroke="#5a3e8a" stroke-width="2.5" opacity="0.5"/>
-          <circle cx="530" cy="70" r="4" fill="#b5872a" opacity="0.5"/>
-          <circle cx="545" cy="105" r="4" fill="#b5872a" opacity="0.5"/>
-          <circle cx="650" cy="60" r="4" fill="#2c6b5d" opacity="0.5"/>
-          <circle cx="610" cy="160" r="4" fill="#5a3e8a" opacity="0.5"/>
-
-          <text x="215" y="230" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">a single bell curve misses the clusters</text>
-          <text x="645" y="230" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1d4e44">multiple weighted Gaussians capture each mode</text>
-        </svg>
-        <div class="svg-caption">Left: A single Gaussian tries to stretch to cover all points. Right: A mixture of Gaussians naturally fits each cluster.</div>
-      </div>
-
-      <!-- EQUATION PANEL: Marginal Density -->
-      <div class="eq-panel" id="eq-marginal">
-        <span class="eq-num">Equation (7)</span>
-        <div class="eq-label">Marginal Density (GMM)</div>
-        $$p(\mathbf{x}_i \mid \boldsymbol{\theta}) = \sum_{k=1}^{K} \pi_k \,
-        \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)$$
-        <div class="eq-caption">The probability of one point is the weighted sum across all $K$ Gaussian components</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The density of a data point $\mathbf{x}_i$ is the <strong>sum</strong> over all
-          $K$ components of the mixing weight $\pi_k$ <strong>times</strong> the Gaussian density
-          of $\mathbf{x}_i$ under component $k$'s parameters.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\pi_k$</td>
-              <td class="leg-meaning">Mixing weight — probability of picking component $k$</td>
-              <td class="leg-example">$\pi_1 = 0.5, \pi_2 = 0.5$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathcal{N}(\mathbf{x} \mid \boldsymbol{\mu}_k, \sigma_k^2)$</td>
-              <td class="leg-meaning">Gaussian density of component $k$ at point $\mathbf{x}$</td>
-              <td class="leg-example">Height of bell curve $k$ at point $\mathbf{x}$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\boldsymbol{\theta}$</td>
-              <td class="leg-meaning">All parameters: $\{\boldsymbol{\mu}_k, \sigma_k^2, \pi_k\}_{k=1}^K$</td>
-              <td class="leg-example">$K=2 \implies 6$ parameters</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- EQUATION PANEL: GMM Log-Likelihood Bottleneck -->
-      <div class="eq-panel multiline" id="eq-gmm-loglik">
-        <span class="eq-num">Equation (8)</span>
-        <div class="eq-label">GMM Log-Likelihood — The Bottleneck</div>
-        $$\log \mathcal{L}(\boldsymbol{\theta}) = \sum_{i=1}^{N}
-        \log\!\left[ \sum_{k=1}^{K} \pi_k \,
-        \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \right]$$
-        <div class="eq-caption">The log passes through the product but <strong>cannot</strong> break the inner sum — this is why MLE stalls</div>
-      </div>
-
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; Why MLE Fails for GMM</div>
-
-        <div class="dt-step">
-          <div class="dt-num">1</div>
-          <div class="dt-text">Start with likelihood: product of marginal densities</div>
-          <div class="dt-formula">$\displaystyle \mathcal{L}(\boldsymbol{\theta}) = \prod_i \bigl[ \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr]$</div>
-        </div>
-        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Take $\log$ — product becomes sum</span></div>
-
-        <div class="dt-step">
-          <div class="dt-num">2</div>
-          <div class="dt-text">Log-likelihood: sum of logs of sums — the inner sum is trapped</div>
-          <div class="dt-formula" style="color:var(--rust);">$\displaystyle \log \mathcal{L}(\boldsymbol{\theta}) = \sum_i \log\!\bigl( \sum_k \pi_k \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2) \bigr)$</div>
-        </div>
-        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Derivative w.r.t. $\boldsymbol{\mu}_k$ includes ALL components</span></div>
-
-        <div class="dt-step">
-          <div class="dt-num">3</div>
-          <div class="dt-text">Each parameter's derivative involves every other component — cannot isolate</div>
-          <div class="dt-formula" style="color:var(--rust);font-weight:600;">No closed-form solution exists</div>
-        </div>
-      </div>
-
-      <div class="callout warn">
-        <div class="co-icon">!</div>
-        <div class="co-body">
-          <strong>The log-sum problem</strong>
-          <p>
-            For a single Gaussian, $\log \prod \mathcal{N} = \sum \log \mathcal{N}$ — easy.
-            For GMM, the extra sum inside the log ($\log \sum$) is the bottleneck. This is
-            why we need a different algorithm: the <strong>Expectation-Maximization (EM)</strong> algorithm.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Multiplying instead of adding:</strong> A GMM is a <em>sum</em> of
-            weighted Gaussians, not a product. $p(\mathbf{x}) = \sum \pi_k \mathcal{N}_k(\mathbf{x})$,
-            not $\prod \pi_k \mathcal{N}_k(\mathbf{x})$.
-          </p>
-          <p>
-            &#x2716; <strong>Forgetting $\sum \pi_k = 1$:</strong> The mixing weights must sum to 1
-            for the GMM to be a valid probability distribution.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 5: EM ALGORITHM
-    ================================================================ -->
-    <section class="section" id="s5">
-      <div class="sec-header">
-        <span class="sec-num">05</span>
-        <h2>EM Algorithm</h2>
-      </div>
-      <p class="sec-intro">
-        Since we can't directly maximize the GMM log-likelihood, we use <strong>Jensen's inequality</strong>
-        to build a tractable <strong>lower bound</strong> and then alternate between two steps:
-        <strong>E-step</strong> (expectation) and <strong>M-step</strong> (maximization).
-      </p>
-
-      <!-- EQUATION PANEL: Jensen's Inequality -->
-      <div class="eq-panel" id="eq-jensen">
-        <span class="eq-num">Equation (9)</span>
-        <div class="eq-label">Jensen's Inequality (Concave)</div>
-        $$\log\!\left( \sum_{k} \lambda_k \, a_k \right) \ge \sum_{k} \lambda_k \, \log a_k
-        \qquad \text{where } \sum_k \lambda_k = 1,\; \lambda_k \ge 0$$
-        <div class="eq-caption">For a concave function ($\log$), the function of the average is $\ge$ the average of the function</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The <strong>log of a weighted sum</strong> is at least the <strong>weighted sum of the logs</strong>,
-          when the weights sum to 1. This gives us a lower bound on the log-likelihood.&rdquo;
-        </div>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Jensen's inequality says that for a concave function like $\log$,
-          <span class="highlight">$\log(\text{average}) \ge \text{average}(\log)$</span>.
-          Graphically: the curve lies below its chords. For our GMM, this means we can
-          <span class="highlight">push the log past the inner sum</span> — at the cost of getting
-          a lower bound instead of the exact log-likelihood.
-        </div>
-      </div>
-
-      <div class="svg-card">
-        <div class="svg-label">&#9654; Jensen's Inequality Visualized</div>
-        <svg viewBox="0 0 860 220" xmlns="http://www.w3.org/2000/svg">
-          <!-- Axes -->
-          <line x1="40" y1="190" x2="820" y2="190" stroke="#dde0e9" stroke-width="1.5"/>
-          <line x1="40" y1="190" x2="40" y2="20" stroke="#dde0e9" stroke-width="1.5"/>
-
-          <!-- log(x) curve -->
-          <path d="M60,175 Q150,160 250,145 Q350,125 450,100 Q550,70 650,40 Q700,25 780,5" fill="none" stroke="#1e4f8a" stroke-width="2.5"/>
-
-          <!-- Two points on curve -->
-          <circle cx="150" cy="158" r="5" fill="#b5872a"/>
-          <text x="150" y="148" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">$a_1$</text>
-
-          <circle cx="600" cy="55" r="5" fill="#b5872a"/>
-          <text x="600" y="45" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">$a_2$</text>
-
-          <!-- Chord between them -->
-          <line x1="150" y1="158" x2="600" y2="55" stroke="#a8482a" stroke-width="1.5" stroke-dasharray="6,3"/>
-
-          <!-- Midpoint on chord (average of log) -->
-          <circle cx="375" cy="106" r="5" fill="#a8482a"/>
-          <text x="375" y="96" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">$\text{average}(\log)$</text>
-
-          <!-- Midpoint on curve (log of average) -->
-          <circle cx="375" cy="106" r="3" fill="#1e4f8a" opacity="0.0"/>
-
-          <text x="430" y="215" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#1e4f8a">$\log(\lambda_1 a_1 + \lambda_2 a_2) \ge \lambda_1 \log a_1 + \lambda_2 \log a_2$</text>
-        </svg>
-        <div class="svg-caption">The chord (weighted average of logs) lies below the curve (log of weighted average) — the essence of EM's lower bound.</div>
-      </div>
-
-      <!-- EQUATION PANEL: EM Lower Bound -->
-      <div class="eq-panel multiline" id="eq-em-bound">
-        <span class="eq-num">Equation (10)</span>
-        <div class="eq-label">EM Lower Bound on Log-Likelihood</div>
-        $$\log p(\mathbf{X} \mid \boldsymbol{\theta}) \ge
-        \sum_{i=1}^{N} \sum_{k=1}^{K} \lambda_{ik} \,
-        \log\!\left( \frac{\pi_k \, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)}{\lambda_{ik}} \right)$$
-        <div class="eq-caption">The ELBO (Evidence Lower BOund) — tractable and maximizable in closed form</div>
-      </div>
-
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; The EM Algorithm — E-step + M-step</div>
-
-        <div class="dt-step">
-          <div class="dt-num">E</div>
-          <div class="dt-text"><strong>E-step</strong> — compute responsibilities $\lambda_{ik}$ given current parameters</div>
-          <div class="dt-formula">$\displaystyle \lambda_{ik} = \frac{\pi_k \, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_k, \sigma_k^2)}{\sum_{j=1}^K \pi_j \, \mathcal{N}(\mathbf{x}_i \mid \boldsymbol{\mu}_j, \sigma_j^2)}$</div>
-        </div>
-        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Responsibility = posterior probability that point $i$ belongs to component $k$</span></div>
-
-        <div class="dt-step">
-          <div class="dt-num">M</div>
-          <div class="dt-text"><strong>M-step</strong> — update parameters using responsibilities (weighted MLE)</div>
-          <div class="dt-formula">$\displaystyle \boldsymbol{\mu}_k = \frac{\sum_i \lambda_{ik} \mathbf{x}_i}{\sum_i \lambda_{ik}}, \;
-          \sigma_k^2 = \frac{\sum_i \lambda_{ik} (\mathbf{x}_i - \boldsymbol{\mu}_k)^2}{\sum_i \lambda_{ik}}, \;
-          \pi_k = \frac{1}{N} \sum_i \lambda_{ik}$</div>
-        </div>
-        <div class="dt-arrow">&#8595; <span style="font-size:12px;color:var(--ink-faint);">Repeat until convergence ($\Delta \boldsymbol{\theta} &lt; \text{tolerance}$)</span></div>
-      </div>
-
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example — GMM & EM (1D, $K=2$)</div>
-        <div class="num-setup">
-          <strong>Setup:</strong> Points $x = [1, 2, 8, 9]$, 2 components. Initialize: $\mu_1=3, \mu_2=6$,
-          $\sigma_1^2=\sigma_2^2=1$, $\pi_1=\pi_2=0.5$.
-        </div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>Iteration</th><th>$\mu_1$</th><th>$\mu_2$</th><th>$\pi_1$</th><th>$\pi_2$</th><th>Log-likelihood</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:600;">0 (init)</td>
-              <td>$3.00$</td>
-              <td>$6.00$</td>
-              <td>$0.50$</td>
-              <td>$0.50$</td>
-              <td>$-51.24$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">1</td>
-              <td>$1.50$</td>
-              <td>$8.50$</td>
-              <td>$0.50$</td>
-              <td>$0.50$</td>
-              <td>$-16.42$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">2</td>
-              <td>$1.50$</td>
-              <td>$8.50$</td>
-              <td>$0.50$</td>
-              <td>$0.50$</td>
-              <td>$-16.42$</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="num-result">EM converges in 2 iterations — $\mu_1=1.5$ (mean of $\{1,2\}$), $\mu_2=8.5$ (mean of $\{8,9\}$)</div>
-      </div>
-
-      <div class="callout good">
-        <div class="co-icon">&#8594;</div>
-        <div class="co-body">
-          <strong>Why EM works</strong>
-          <p>
-            Each E-step tightens the lower bound at the current $\boldsymbol{\theta}$.
-            Each M-step maximizes that bound. Together they guarantee that the log-likelihood
-            never decreases — the algorithm climbs uphill until it reaches a local maximum.
-          </p>
-        </div>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>GMM → K-means as a limiting case</strong>
-          <p>
-            If you take the GMM variance $\sigma_k^2 \to 0$, the responsibilities $\lambda_{ik}$
-            become hard (0 or 1) — <strong>each point is assigned to exactly one component</strong>.
-            The M-step then reduces to computing the mean of assigned points, exactly like K-means.
-            GMM is K-means with <strong>soft assignments</strong> and <strong>uncertainty estimates</strong>.
-          </p>
-        </div>
-      </div>
-
-      <div class="apps-card">
-        <div class="ap-label">&#9654; Real-World Applications</div>
-        <div class="ap-grid">
-          <div class="ap-item">
-            <strong>Customer Segmentation</strong>
-            Each segment has its own spending distribution — GMM captures overlapping segments.
-          </div>
-          <div class="ap-item">
-            <strong>Image Segmentation</strong>
-            Each color cluster is a Gaussian — pixel belongs to all clusters with probabilities.
-          </div>
-          <div class="ap-item">
-            <strong>Anomaly Detection</strong>
-            Points with low marginal density across all components are flagged as anomalies.
-          </div>
-          <div class="ap-item">
-            <strong>Speech Recognition</strong>
-            Each phoneme is a Gaussian component in a GMM — the standard acoustic model.
-          </div>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>EM gives only a local optimum:</strong> Different initializations
-            lead to different solutions. Always run EM multiple times with random starts.
-          </p>
-          <p>
-            &#x2716; <strong>Confusing E-step with M-step:</strong> E-step computes responsibilities
-            (fix $\boldsymbol{\theta}$, update $\lambda$). M-step updates parameters (fix $\lambda$,
-            update $\boldsymbol{\theta}$). They alternate — never do both at once.
-          </p>
-          <p>
-            &#x2716; <strong>Using GMM when $K$ is unknown:</strong> You must choose $K$ in advance.
-            Use BIC, AIC, or cross-validation to select the number of components.
-          </p>
-        </div>
-      </div>
-    </section>
-
+<nav class="toc">
+  <div class="toc-inner">
+    <a href="#s1">01 Estimation</a>
+    <a href="#s2">02 MLE</a>
+    <a href="#s3">03 Bayesian</a>
+    <a href="#s4">04 GMM</a>
+    <a href="#s5">05 EM</a>
+    <a href="#s6">06 Connections</a>
   </div>
-</main>
+</nav>
 
-<footer>
-  <p>WEEK 04 &middot; ESTIMATION &rarr; GMM &rarr; EM &middot; PREMIUM LECTURE NOTES</p>
-</footer>
+<div class="wrap">
+
+<!-- ============================================================ -->
+<!-- SECTION 01 — ESTIMATION -->
+<!-- ============================================================ -->
+<section class="chapter" id="s1">
+  <div class="chapter-head"><span class="chapter-num">01</span><h2 class="chapter-title">The Estimation Problem</h2></div>
+  <p class="chapter-lede">Before any formula, there is a scenario: you pick up a coin off the street. It might be fair. It might not be. You cannot see inside it — you can only flip it and watch. Estimation is the entire discipline built around that one constraint: <strong>the truth is hidden, only samples are visible.</strong></p>
+
+  <h3 class="sub-title">Why this problem exists</h3>
+  <p>Every measurement instrument we build — a poll, a sensor, a medical test, a recommendation engine — faces the same wall. A pharmaceutical company doesn't know the true cure rate of a drug; it only has trial outcomes. A streaming platform doesn't know your true taste distribution; it only has your clicks. Statisticians formalized this gap in the early 20th century (Fisher's work on likelihood in the 1920s is the direct ancestor of §02) precisely because "guessing well from partial evidence" turned out to be a problem general enough to underlie almost all of applied science.</p>
+
+  <p>Every observation is assumed <strong>Independent and Identically Distributed (i.i.d.)</strong> — each data point is drawn from the same underlying distribution, and knowing one point tells you nothing extra about the next. This assumption is what makes the entire machinery below tractable.</p>
+
+  <div class="def-grid">
+    <div class="def-card"><div class="sym sym-param">θ</div><div class="label">Unknown parameter</div><p>The true value governing the data-generating process. We never observe it directly.</p></div>
+    <div class="def-card"><div class="sym sym-param">θ̂</div><div class="label">Estimator</div><p>A function of the observed data that approximates θ. Different estimators (MLE, Bayesian) are different strategies for this approximation.</p></div>
+    <div class="def-card"><div class="sym sym-var">x₁, …, x<sub>N</sub></div><div class="label">Observed data</div><p>Our finite, noisy window into an infinite population we can never fully see.</p></div>
+  </div>
+
+  <div class="eq-panel accent-teal">
+    <div class="eq-label">Equation 1 · The I.I.D. Assumption</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-fn">p</span>(<span class="sym-var">x₁, x₂, …, x<sub>N</sub></span> | <span class="sym-param">θ</span>) = <span class="big-op">∏</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> <span class="sym-fn">p</span>(<span class="sym-var">x<sub>i</sub></span> | <span class="sym-param">θ</span>)</div>
+    </div>
+    <div class="eq-number">Eq. 1</div>
+  </div>
+  <div class="eq-caption" style="text-align:center; margin-top:-1rem; margin-bottom:1.5rem;">"The probability of the whole dataset is the product of the probabilities of each point, because independence lets us multiply."</div>
+
+  <div class="legend">
+    <table>
+      <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+      <tr><td class="sym-cell sym-param">θ</td><td>Unknown parameter(s) of the distribution</td><td><span class="sym-param">p</span> for Bernoulli, <span class="sym-param">(μ, σ²)</span> for Gaussian</td></tr>
+      <tr><td class="sym-cell sym-var">x<sub>i</sub></td><td>The i-th observed data point</td><td>x₃ = 1 (heads on 3rd flip)</td></tr>
+      <tr><td class="sym-cell sym-op">∏</td><td>Product over all N observations</td><td>N = 5 ⟹ multiply 5 terms</td></tr>
+      <tr><td class="sym-cell">IID</td><td>Independent and Identically Distributed</td><td>Each coin flip is independent, same p</td></tr>
+    </table>
+  </div>
+
+  <div class="svg-wrap">
+    <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0" y="0" width="640" height="190" fill="none"/>
+      <text x="150" y="30" text-anchor="middle" fill="#e0b355" font-family="JetBrains Mono" font-size="12">KNOWN → UNKNOWN</text>
+      <rect x="40" y="50" width="130" height="46" rx="10" fill="#141a2c" stroke="#e0b355" stroke-width="1.5"/>
+      <text x="105" y="79" text-anchor="middle" fill="#e0b355" font-family="Fraunces" font-size="15">θ (given)</text>
+      <path d="M180 73 L235 73" stroke="#6b7390" stroke-width="1.5" marker-end="url(#arrow1)"/>
+      <text x="207" y="63" text-anchor="middle" fill="#6b7390" font-family="JetBrains Mono" font-size="10">Probability</text>
+      <rect x="245" y="50" width="130" height="46" rx="10" fill="#141a2c" stroke="#6fb3f2" stroke-width="1.5"/>
+      <text x="310" y="79" text-anchor="middle" fill="#6fb3f2" font-family="Fraunces" font-size="15">data (predict)</text>
+
+      <text x="490" y="140" text-anchor="middle" fill="#4fd8c4" font-family="JetBrains Mono" font-size="12">DATA → UNKNOWN</text>
+      <rect x="425" y="115" width="130" height="46" rx="10" fill="#141a2c" stroke="#6fb3f2" stroke-width="1.5" transform="translate(0,20)"/>
+      <text x="490" y="164" text-anchor="middle" fill="#6fb3f2" font-family="Fraunces" font-size="15">data (given)</text>
+      <path d="M395 148 L455 148" stroke="#6b7390" stroke-width="1.5" marker-end="url(#arrow2)" transform="translate(0,-1)"/>
+      <text x="425" y="138" text-anchor="middle" fill="#6b7390" font-family="JetBrains Mono" font-size="10">Estimation</text>
+      <rect x="180" y="115" width="130" height="46" rx="10" fill="#141a2c" stroke="#e0b355" stroke-width="1.5" transform="translate(0,20)"/>
+      <text x="245" y="164" text-anchor="middle" fill="#e0b355" font-family="Fraunces" font-size="15">θ (recover)</text>
+
+      <defs>
+        <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6b7390"/></marker>
+        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#6b7390"/></marker>
+      </defs>
+    </svg>
+    <div class="svg-caption">Probability reasons forward (θ → data). Estimation reasons backward (data → θ). Same machinery, opposite direction.</div>
+  </div>
+
+  <div class="callout intuition">
+    <div class="callout-head">◆ Intuition</div>
+    <p style="margin:0;">Before estimation, probability asked: "given a known coin, what's the chance of heads?" Estimation flips the question: given the flips you actually saw, what coin do you probably have? This reversal is the seed of every idea in this week's material.</p>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-head">✦ Key Insight</div>
+    <p style="margin:0;">The i.i.d. assumption is what makes estimation solvable at all. Without independence, the joint probability would require modeling correlations between every pair of points — an intractable web. With it, the product factorization collapses the whole dataset down to understanding a single point and multiplying.</p>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ Common Mistakes</div>
+    <ul>
+      <li>Confusing probability with estimation: P(data | θ) is a probability when θ is known and fixed. Estimation asks "what θ makes this data most likely?" — the same expression is now treated as a function of θ (this function is the <em>likelihood</em>, introduced next).</li>
+      <li>Ignoring the i.i.d. assumption: if points are correlated (e.g. a time series), the product formula in Eq. 1 breaks down entirely. Always check independence before reaching for it.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION 02 — MLE -->
+<!-- ============================================================ -->
+<section class="chapter" id="s2">
+  <div class="chapter-head"><span class="chapter-num">02</span><h2 class="chapter-title">Maximum Likelihood Estimation</h2></div>
+  <p class="chapter-lede">MLE is the most direct possible answer to the estimation problem: pick whichever θ makes the data you actually observed <em>as probable as possible</em>. No prior opinions, no subjectivity — purely "what value best explains what I just saw?"</p>
+
+  <h3 class="sub-title">The engineering requirement</h3>
+  <p>Suppose you want a rule for picking θ. It should satisfy one non-negotiable requirement: the chosen θ must make the observed data the most plausible outcome among all possible θ values — otherwise you'd be claiming your data was a fluke under your own model. That single requirement, translated into mathematics, is the argmax of the likelihood function.</p>
+
+  <div class="eq-panel accent-gold">
+    <div class="eq-label">Equation 2 · Maximum Likelihood Estimator</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-param">θ̂</span><sub>MLE</sub> = argmax<sub><span class="sym-param">θ</span></sub> <span class="sym-fn">L</span>(<span class="sym-param">θ</span>)</div>
+      <div class="eq-line">= argmax<sub><span class="sym-param">θ</span></sub> <span class="big-op">∏</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> <span class="sym-fn">p</span>(<span class="sym-var">x<sub>i</sub></span> | <span class="sym-param">θ</span>)</div>
+    </div>
+    <div class="eq-number">Eq. 2</div>
+  </div>
+
+  <div class="legend">
+    <table>
+      <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
+      <tr><td class="sym-cell sym-param">θ̂<sub>MLE</sub></td><td>The MLE estimate — one specific value of θ</td><td>p̂ = 0.7 for a Bernoulli coin</td></tr>
+      <tr><td class="sym-cell">argmax<sub>θ</sub></td><td>The θ that produces the highest output</td><td>argmax<sub>x</sub> −(x−3)² = 3</td></tr>
+      <tr><td class="sym-cell sym-fn">L(θ)</td><td>Likelihood function — θ is the variable, data is fixed</td><td>L(p) = p<sup>Σx<sub>i</sub></sup>(1−p)<sup>N−Σx<sub>i</sub></sup></td></tr>
+    </table>
+  </div>
+
+  <div class="callout intuition">
+    <div class="callout-head">◆ Intuition</div>
+    <p style="margin:0;">You find a coin on the street and flip it 10 times: 7 heads. If it were fair (p = 0.5), that exact sequence has about a 12% chance of occurring. If biased toward heads (p = 0.7), the chance rises to about 27%. MLE simply scans over every possible p and keeps the one that makes your actual sequence most likely — here, p = 0.7 wins.</p>
+  </div>
+
+  <h3 class="sub-title">Deriving the Bernoulli MLE</h3>
+  <p>Every derivation follows the same three-move pattern: write the likelihood, take the log to turn the product into a sum, then set the derivative to zero.</p>
+
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="badge">1</div>
+      <div class="tl-title">Write the likelihood</div>
+      <p style="margin-bottom:0.5rem;">Each x<sub>i</sub> ∈ {0,1}, with P(x<sub>i</sub>=1) = p.</p>
+      <div class="tl-math">L(p) = ∏<sub>i</sub> p<sup>x<sub>i</sub></sup>(1−p)<sup>1−x<sub>i</sub></sup></div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">2</div>
+      <div class="tl-title">Take the log</div>
+      <p style="margin-bottom:0.5rem;">Log is monotonic, so it preserves the argmax — but turns the product into a sum, which is far easier to differentiate.</p>
+      <div class="tl-math">ℓ(p) = Σ<sub>i</sub> x<sub>i</sub> log p + (N − Σ<sub>i</sub> x<sub>i</sub>) log(1−p)</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">3</div>
+      <div class="tl-title">Differentiate and set to zero</div>
+      <div class="tl-math">dℓ/dp = Σx<sub>i</sub>/p − (N−Σx<sub>i</sub>)/(1−p) = 0</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">4</div>
+      <div class="tl-title">Solve — the sample mean falls out</div>
+      <div class="tl-math">p̂<sub>MLE</sub> = (1/N) Σ<sub>i</sub> x<sub>i</sub></div>
+    </div>
+  </div>
+
+  <div class="eq-panel accent-gold">
+    <div class="eq-label">Equation 3 · Bernoulli MLE — Closed Form</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-param">p̂</span><sub>MLE</sub> = (1/<span class="sym-const">N</span>) <span class="big-op">Σ</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> <span class="sym-var">x<sub>i</sub></span> = (number of heads) / <span class="sym-const">N</span></div>
+    </div>
+    <div class="eq-number">Eq. 3</div>
+  </div>
+
+  <table class="ex-table">
+    <tr><th>Numerical Example</th><th>Formula</th><th>Calculation</th><th>Result</th></tr>
+    <tr><td>10 flips: [H,H,T,H,H,T,H,H,H,T]</td><td>(1/N)Σx<sub>i</sub></td><td>(1+1+0+1+1+0+1+1+1+0)/10</td><td class="result">0.7</td></tr>
+  </table>
+  <p style="margin-top:-0.5rem;">p̂<sub>MLE</sub> = 0.7 — the coin appears biased toward heads.</p>
+
+  <div class="interactive" id="coin-sim">
+    <div class="int-head"><span class="int-tag">Live</span><h4>Coin Bias Estimator</h4></div>
+    <p class="int-desc">Flip a hidden-bias coin and watch p̂<sub>MLE</sub> converge in real time. This is the exact update rule from Eq. 3, run one flip at a time.</p>
+    <div class="int-controls">
+      <button class="btn primary" onclick="flipCoin()">Flip Once</button>
+      <button class="btn" onclick="flipCoin(10)">Flip ×10</button>
+      <button class="btn" onclick="resetCoin()">Reset</button>
+    </div>
+    <div class="coin-row" id="coin-row"></div>
+    <div class="int-readout">
+      Flips: <b id="coin-n">0</b> &nbsp;|&nbsp; Heads: <b id="coin-h">0</b> &nbsp;|&nbsp; p̂<sub>MLE</sub> = <b id="coin-p">—</b>
+    </div>
+  </div>
+
+  <h3 class="sub-title">Gaussian MLE</h3>
+  <div class="eq-panel accent-gold">
+    <div class="eq-label">Equation 4 · Gaussian MLE — Closed Form</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-param">μ̂</span><sub>MLE</sub> = (1/<span class="sym-const">N</span>) <span class="big-op">Σ</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> <span class="sym-var">x<sub>i</sub></span></div>
+      <div class="eq-line"><span class="sym-param">σ̂</span><sub>MLE</sub><sup>2</sup> = (1/<span class="sym-const">N</span>) <span class="big-op">Σ</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> (<span class="sym-var">x<sub>i</sub></span> − <span class="sym-param">μ̂</span>)²</div>
+    </div>
+    <div class="eq-number">Eq. 4</div>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ MLE variance is biased</div>
+    <p style="margin:0;">σ̂²<sub>MLE</sub> divides by N, not N−1 — it systematically <em>underestimates</em> the true variance. The unbiased version applies Bessel's correction (N−1). For large N the gap is negligible, but it's a favorite exam trap for small samples.</p>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-head">✦ Why MLE Matters</div>
+    <p style="margin:0;">MLE is <strong>consistent</strong> (converges to the true value as N→∞), <strong>asymptotically normal</strong>, and <strong>efficient</strong> (achieves the lowest possible variance among consistent estimators). These three properties make it the default workhorse of parametric estimation — and the starting point every other method in this week's material is compared against.</p>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ Common Mistakes</div>
+    <ul>
+      <li>Forgetting the log trick: log is increasing, so maximizing log L(θ) gives the same θ as maximizing L(θ) — but the log turns products into sums, making derivatives tractable.</li>
+      <li>Treating L(θ) as a probability: L(θ) is a function of θ for <em>fixed</em> data — it does not integrate to 1 over θ, so it is not a distribution.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION 03 — BAYESIAN -->
+<!-- ============================================================ -->
+<section class="chapter" id="s3">
+  <div class="chapter-head"><span class="chapter-num">03</span><h2 class="chapter-title">Bayesian Estimation</h2></div>
+  <p class="chapter-lede">MLE hands you a single number and no sense of how confident to be in it. Bayesian estimation asks a richer question: given what I believed <em>before</em> seeing any data, and what the data now shows, what's my full updated belief over every possible θ?</p>
+
+  <div class="def-grid">
+    <div class="def-card"><div class="sym sym-param">p(θ)</div><div class="label">Prior</div><p>What you believe about θ before seeing any data — your starting point.</p></div>
+    <div class="def-card"><div class="sym sym-fn">p(data|θ)</div><div class="label">Likelihood</div><p>Identical to MLE's L(θ): how probable the data is under a particular θ.</p></div>
+    <div class="def-card"><div class="sym sym-param">p(θ|data)</div><div class="label">Posterior</div><p>Your updated belief after combining prior and data — the goal of Bayesian inference.</p></div>
+  </div>
+
+  <div class="eq-panel accent-purple">
+    <div class="eq-label">Equation 5 · Bayes' Theorem for Parameter Estimation</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-param">p</span>(<span class="sym-param">θ</span>|<span class="sym-var">D</span>) = [<span class="sym-fn">p</span>(<span class="sym-var">D</span>|<span class="sym-param">θ</span>) <span class="sym-param">p</span>(<span class="sym-param">θ</span>)] / <span class="sym-fn">p</span>(<span class="sym-var">D</span>)</div>
+      <div class="eq-line" style="color:var(--text-dim); font-size:0.85em;">∝ <span class="sym-fn">p</span>(<span class="sym-var">D</span>|<span class="sym-param">θ</span>) <span class="sym-param">p</span>(<span class="sym-param">θ</span>)</div>
+    </div>
+    <div class="eq-number">Eq. 5</div>
+  </div>
+  <div class="eq-caption" style="text-align:center; margin-top:-1rem; margin-bottom:1.5rem;">Posterior ∝ Likelihood × Prior — the evidence p(D) is just a normalizing constant so probabilities sum to 1.</div>
+
+  <div class="legend">
+    <table>
+      <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
+      <tr><td class="sym-cell sym-param">p(θ|D)</td><td>Posterior — distribution of θ after seeing data</td><td>Our updated belief</td></tr>
+      <tr><td class="sym-cell sym-fn">p(D|θ)</td><td>Likelihood — how probable is the data given θ</td><td>Same as MLE's L(θ)</td></tr>
+      <tr><td class="sym-cell sym-param">p(θ)</td><td>Prior — what we thought before any data</td><td>e.g. Beta(2,2) for coin bias</td></tr>
+      <tr><td class="sym-cell sym-fn">p(D)</td><td>Evidence — normalizing constant</td><td>∫p(D|θ)p(θ)dθ</td></tr>
+    </table>
+  </div>
+
+  <div class="callout intuition">
+    <div class="callout-head">◆ Intuition</div>
+    <p style="margin:0;">Bayesian updating adjusts belief as evidence arrives. If you're 90% sure a coin is fair and see 7 heads in 10 flips, your posterior shifts only slightly toward bias. If you instead saw 700 heads in 1000 flips, the sheer weight of data overwhelms the prior — your posterior converges toward the data-driven MLE regardless of what you originally believed.</p>
+  </div>
+
+  <h3 class="sub-title">Beta–Bernoulli conjugacy</h3>
+  <p>A prior is called <strong>conjugate</strong> to a likelihood when the resulting posterior has the same distributional family as the prior. This is what makes Bayesian updating for a coin flip closed-form instead of requiring numerical integration.</p>
+
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="badge">1</div>
+      <div class="tl-title">Start with a Beta prior</div>
+      <div class="tl-math">p(θ) ∝ θ<sup>α−1</sup>(1−θ)<sup>β−1</sup> — i.e. Beta(α, β)</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">2</div>
+      <div class="tl-title">Multiply by the Bernoulli likelihood</div>
+      <div class="tl-math">× θ<sup>N₁</sup>(1−θ)<sup>N₀</sup> → θ<sup>α−1+N₁</sup>(1−θ)<sup>β−1+N₀</sup></div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">3</div>
+      <div class="tl-title">Recognize the same shape</div>
+      <div class="tl-math">This is Beta(α+N₁, β+N₀) — same family as the prior</div>
+    </div>
+  </div>
+
+  <div class="eq-panel accent-purple">
+    <div class="eq-label">Equation 6 · Beta–Bernoulli Conjugacy</div>
+    <div class="eq-main">
+      <div class="eq-line">Prior: <span class="sym-param">p</span> ~ Beta(<span class="sym-const">α</span>, <span class="sym-const">β</span>)</div>
+      <div class="eq-line">Posterior: <span class="sym-param">p</span>|<span class="sym-var">D</span> ~ Beta(<span class="sym-const">α</span>+<span class="sym-var">N₁</span>, <span class="sym-const">β</span>+<span class="sym-var">N₀</span>)</div>
+    </div>
+    <div class="eq-number">Eq. 6</div>
+  </div>
+
+  <table class="ex-table">
+    <tr><th>Quantity</th><th>Formula</th><th>Value</th></tr>
+    <tr><td>Prior mean</td><td>α/(α+β)</td><td class="result">2/(2+2) = 0.5</td></tr>
+    <tr><td>Prior mode</td><td>(α−1)/(α+β−2)</td><td class="result">(1)/(2) = 0.5</td></tr>
+    <tr><td>Posterior parameters</td><td>(α+N₁, β+N₀)</td><td class="result">(2+7, 2+3) = (9, 5)</td></tr>
+    <tr><td>Posterior mean</td><td>9/(9+5)</td><td class="result">9/14 ≈ 0.643</td></tr>
+    <tr><td>MLE (for comparison)</td><td>7/10</td><td class="result">0.7</td></tr>
+  </table>
+  <p style="margin-top:-0.5rem;">Setup: prior Beta(2,2) (mild belief toward fairness), data = 7 heads / 3 tails. The posterior mean 0.643 is pulled toward the prior's 0.5 — a shrinkage effect that MLE alone can never produce.</p>
+
+  <div class="interactive" id="beta-sim">
+    <div class="int-head"><span class="int-tag">Live</span><h4>Prior → Posterior Shrinkage</h4></div>
+    <p class="int-desc">Add heads/tails and watch the Beta posterior redraw itself, pulled between your prior Beta(2,2) and the incoming likelihood.</p>
+    <div class="int-controls">
+      <button class="btn primary" onclick="betaUpdate('H')">+ Heads</button>
+      <button class="btn primary" onclick="betaUpdate('T')">+ Tails</button>
+      <button class="btn" onclick="betaReset()">Reset to Beta(2,2)</button>
+    </div>
+    <svg viewBox="0 0 600 190" id="beta-svg" style="width:100%; height:auto; background:var(--panel-bg); border-radius:12px; border:1px solid var(--panel-border);">
+      <line x1="40" y1="160" x2="560" y2="160" stroke="#2a3148" stroke-width="1"/>
+      <line x1="40" y1="20" x2="40" y2="160" stroke="#2a3148" stroke-width="1"/>
+      <path id="beta-curve" fill="rgba(181,140,240,0.18)" stroke="#b58cf0" stroke-width="2"/>
+      <line id="beta-mean-line" x1="300" y1="20" x2="300" y2="160" stroke="#e0b355" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="40" y="178" fill="#6b7390" font-family="JetBrains Mono" font-size="10">0</text>
+      <text x="555" y="178" fill="#6b7390" font-family="JetBrains Mono" font-size="10">1</text>
+    </svg>
+    <div class="int-readout">
+      α = <b id="beta-a">2</b>, β = <b id="beta-b">2</b> &nbsp;|&nbsp; Posterior mean = <b id="beta-mean">0.500</b>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-head">✦ Prior vs. Likelihood — a Tug-of-War</div>
+    <p style="margin:0;">The posterior balances prior and likelihood. With small N, the prior dominates. As N→∞, the posterior converges to the MLE — data eventually washes out any prior. Bayesian estimation therefore acts as an automatic regularizer, shrinking estimates toward reasonable values exactly when data is scarce.</p>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ Common Mistakes</div>
+    <ul>
+      <li>Confusing posterior with likelihood: p(θ|D) is a distribution over θ (integrates to 1). p(D|θ) is a function of θ for fixed data (does not integrate to 1).</li>
+      <li>Forgetting the prior matters: different priors yield different posteriors. Always state and justify your prior.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION 04 — GMM -->
+<!-- ============================================================ -->
+<section class="chapter" id="s4">
+  <div class="chapter-head"><span class="chapter-num">04</span><h2 class="chapter-title">Gaussian Mixture Models</h2></div>
+  <p class="chapter-lede">A single Gaussian assumes the data has one center and tapers off symmetrically. Real data rarely cooperates — customer spend, pixel colors, phoneme sounds all cluster into multiple groups. A GMM models the data as a <strong>weighted sum of K Gaussians</strong>, one per cluster.</p>
+
+  <div class="def-grid">
+    <div class="def-card"><div class="sym sym-param">μ<sub>k</sub></div><div class="label">Means</div><p>Center of each Gaussian component.</p></div>
+    <div class="def-card"><div class="sym sym-param">σ²<sub>k</sub></div><div class="label">Variances</div><p>Spread of each component.</p></div>
+    <div class="def-card"><div class="sym sym-param">π<sub>k</sub></div><div class="label">Mixing weights</div><p>Probability of each component; Σπ<sub>k</sub> = 1.</p></div>
+  </div>
+
+  <div class="svg-wrap">
+    <svg viewBox="0 0 640 200" xmlns="http://www.w3.org/2000/svg">
+      <text x="140" y="20" text-anchor="middle" fill="#6b7390" font-family="JetBrains Mono" font-size="11">SINGLE GAUSSIAN — POOR FIT</text>
+      <line x1="30" y1="150" x2="270" y2="150" stroke="#2a3148"/>
+      <path d="M30,150 C90,150 100,40 150,40 C200,40 210,150 270,150" fill="none" stroke="#f28b8b" stroke-width="2.5"/>
+      <circle cx="60" cy="145" r="3" fill="#6fb3f2"/><circle cx="70" cy="147" r="3" fill="#6fb3f2"/><circle cx="80" cy="144" r="3" fill="#6fb3f2"/>
+      <circle cx="220" cy="146" r="3" fill="#6fb3f2"/><circle cx="235" cy="144" r="3" fill="#6fb3f2"/><circle cx="248" cy="147" r="3" fill="#6fb3f2"/>
+      <text x="150" y="170" text-anchor="middle" fill="#6b7390" font-family="Inter" font-size="10">one curve misses both clusters</text>
+
+      <text x="490" y="20" text-anchor="middle" fill="#4fd8c4" font-family="JetBrains Mono" font-size="11">GMM — CAPTURES STRUCTURE</text>
+      <line x1="360" y1="150" x2="620" y2="150" stroke="#2a3148"/>
+      <path d="M370,150 C395,150 400,90 415,90 C430,90 435,150 460,150" fill="none" stroke="#e0b355" stroke-width="2.5"/>
+      <path d="M520,150 C540,150 545,95 565,95 C585,95 590,150 610,150" fill="none" stroke="#b58cf0" stroke-width="2.5"/>
+      <circle cx="400" cy="145" r="3" fill="#6fb3f2"/><circle cx="415" cy="144" r="3" fill="#6fb3f2"/><circle cx="428" cy="147" r="3" fill="#6fb3f2"/>
+      <circle cx="555" cy="146" r="3" fill="#6fb3f2"/><circle cx="570" cy="144" r="3" fill="#6fb3f2"/><circle cx="582" cy="147" r="3" fill="#6fb3f2"/>
+      <text x="490" y="170" text-anchor="middle" fill="#6b7390" font-family="Inter" font-size="10">two weighted Gaussians, one per mode</text>
+    </svg>
+    <div class="svg-caption">Left: forcing one bell curve over two clusters. Right: a mixture fits each mode naturally.</div>
+  </div>
+
+  <div class="eq-panel accent-teal">
+    <div class="eq-label">Equation 7 · Marginal Density (GMM)</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-fn">p</span>(<span class="sym-var">x<sub>i</sub></span>|<span class="sym-param">θ</span>) = <span class="big-op">Σ</span><sub><span class="sym-var">k</span>=1</sub><sup><span class="sym-const">K</span></sup> <span class="sym-param">π<sub>k</sub></span> <span class="sym-fn">N</span>(<span class="sym-var">x<sub>i</sub></span>|<span class="sym-param">μ<sub>k</sub></span>, <span class="sym-param">σ²<sub>k</sub></span>)</div>
+    </div>
+    <div class="eq-number">Eq. 7</div>
+  </div>
+  <div class="eq-caption" style="text-align:center; margin-top:-1rem; margin-bottom:1.5rem;">"The density at a point is the weighted sum across all K Gaussian components — a sum, not a product."</div>
+
+  <h3 class="sub-title">Why MLE stalls here</h3>
+  <div class="eq-panel accent-teal">
+    <div class="eq-label">Equation 8 · GMM Log-Likelihood — The Bottleneck</div>
+    <div class="eq-main">
+      <div class="eq-line">log <span class="sym-fn">L</span>(<span class="sym-param">θ</span>) = <span class="big-op">Σ</span><sub><span class="sym-var">i</span>=1</sub><sup><span class="sym-const">N</span></sup> log [ <span class="big-op">Σ</span><sub><span class="sym-var">k</span>=1</sub><sup><span class="sym-const">K</span></sup> <span class="sym-param">π<sub>k</sub></span> <span class="sym-fn">N</span>(<span class="sym-var">x<sub>i</sub></span>|<span class="sym-param">μ<sub>k</sub></span>, <span class="sym-param">σ²<sub>k</sub></span>) ]</div>
+    </div>
+    <div class="eq-number">Eq. 8</div>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="badge">1</div>
+      <div class="tl-title">Start with the likelihood</div>
+      <div class="tl-math">L(θ) = ∏<sub>i</sub> [ Σ<sub>k</sub> π<sub>k</sub> N(x<sub>i</sub>|μ<sub>k</sub>,σ²<sub>k</sub>) ]</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">2</div>
+      <div class="tl-title">Take the log — it passes through the product…</div>
+      <div class="tl-math">log L(θ) = Σ<sub>i</sub> log( Σ<sub>k</sub> π<sub>k</sub> N(x<sub>i</sub>|μ<sub>k</sub>,σ²<sub>k</sub>) )</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">3</div>
+      <div class="tl-title">…but cannot break the inner sum</div>
+      <p style="margin:0;">Each parameter's derivative now involves every other component simultaneously — they can't be isolated. <strong>No closed-form solution exists.</strong></p>
+    </div>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ The log-sum problem</div>
+    <p style="margin:0;">For a single Gaussian, log ∏N = Σlog N — trivial. For a GMM, the extra sum <em>inside</em> the log (log Σ) is the bottleneck: log cannot distribute over a sum the way it distributes over a product. This single obstruction is the entire reason the EM algorithm (§05) exists.</p>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ Common Mistakes</div>
+    <ul>
+      <li>Multiplying instead of adding: a GMM is a <em>sum</em> of weighted Gaussians, p(x) = Σπ<sub>k</sub>N<sub>k</sub>(x), never a product.</li>
+      <li>Forgetting Σπ<sub>k</sub> = 1: the mixing weights must sum to 1 for the model to be a valid probability distribution.</li>
+    </ul>
+  </div>
+
+  <h3 class="sub-title">Where GMMs show up</h3>
+  <div class="app-grid">
+    <div class="app-card"><h4>Customer Segmentation</h4><p>Each segment has its own spending distribution; a GMM captures overlapping segments rather than forcing hard boundaries.</p></div>
+    <div class="app-card"><h4>Image Segmentation</h4><p>Each color cluster is a Gaussian component — a pixel belongs to every cluster with some probability.</p></div>
+    <div class="app-card"><h4>Anomaly Detection</h4><p>Points with low marginal density across all components are flagged as outliers.</p></div>
+    <div class="app-card"><h4>Speech Recognition</h4><p>Each phoneme is modeled as a Gaussian component — the standard acoustic model in classical ASR systems.</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION 05 — EM -->
+<!-- ============================================================ -->
+<section class="chapter" id="s5">
+  <div class="chapter-head"><span class="chapter-num">05</span><h2 class="chapter-title">The EM Algorithm</h2></div>
+  <p class="chapter-lede">Since Eq. 8 can't be maximized directly, EM builds a tractable <em>lower bound</em> on the log-likelihood using Jensen's inequality, then climbs that bound by alternating between two simple steps until convergence.</p>
+
+  <div class="eq-panel accent-purple">
+    <div class="eq-label">Equation 9 · Jensen's Inequality (Concave Case)</div>
+    <div class="eq-main">
+      <div class="eq-line">log( <span class="big-op">Σ</span><sub><span class="sym-var">k</span></sub> <span class="sym-const">λ<sub>k</sub></span> <span class="sym-var">a<sub>k</sub></span> ) ≥ <span class="big-op">Σ</span><sub><span class="sym-var">k</span></sub> <span class="sym-const">λ<sub>k</sub></span> log <span class="sym-var">a<sub>k</sub></span></div>
+      <div class="eq-line" style="font-size:0.8em; color:var(--text-dim);">where Σ<sub>k</sub>λ<sub>k</sub> = 1, λ<sub>k</sub> ≥ 0</div>
+    </div>
+    <div class="eq-number">Eq. 9</div>
+  </div>
+
+  <div class="callout intuition">
+    <div class="callout-head">◆ Intuition</div>
+    <p style="margin:0;">For a concave function like log, "log of the average" is always ≥ "average of the log." Graphically, the chord connecting two points on the curve lies below the curve itself. Applying this to the GMM lets us push the log inside the sum in Eq. 8 — at the cost of only getting a lower bound instead of the exact log-likelihood.</p>
+  </div>
+
+  <div class="svg-wrap">
+    <svg viewBox="0 0 500 190" xmlns="http://www.w3.org/2000/svg">
+      <line x1="30" y1="170" x2="470" y2="170" stroke="#2a3148"/>
+      <path d="M40,160 Q140,20 460,50" fill="none" stroke="#4fd8c4" stroke-width="2.5"/>
+      <circle cx="80" cy="118" r="4" fill="#e0b355"/>
+      <circle cx="400" cy="55" r="4" fill="#e0b355"/>
+      <line x1="80" y1="118" x2="400" y2="55" stroke="#b58cf0" stroke-width="2" stroke-dasharray="5,3"/>
+      <text x="90" y="105" fill="#e0b355" font-family="JetBrains Mono" font-size="10">a₁</text>
+      <text x="405" y="45" fill="#e0b355" font-family="JetBrains Mono" font-size="10">a₂</text>
+      <text x="230" y="100" fill="#b58cf0" font-family="JetBrains Mono" font-size="10">chord ≤ curve</text>
+      <text x="250" y="185" text-anchor="middle" fill="#6b7390" font-family="Inter" font-size="10">log(x) — concave</text>
+    </svg>
+    <div class="svg-caption">The chord (weighted average of logs) always sits below the curve (log of the weighted average) — the essence of the EM bound.</div>
+  </div>
+
+  <div class="eq-panel accent-purple">
+    <div class="eq-label">Equation 10 · EM Lower Bound (ELBO)</div>
+    <div class="eq-main">
+      <div class="eq-line">log <span class="sym-fn">p</span>(<span class="sym-var">X</span>|<span class="sym-param">θ</span>) ≥ <span class="big-op">Σ</span><sub><span class="sym-var">i</span></sub> <span class="big-op">Σ</span><sub><span class="sym-var">k</span></sub> <span class="sym-const">λ<sub>ik</sub></span> log( <span class="sym-param">π<sub>k</sub></span><span class="sym-fn">N</span>(<span class="sym-var">x<sub>i</sub></span>|<span class="sym-param">μ<sub>k</sub></span>,<span class="sym-param">σ²<sub>k</sub></span>) / <span class="sym-const">λ<sub>ik</sub></span> )</div>
+    </div>
+    <div class="eq-number">Eq. 10</div>
+  </div>
+  <div class="eq-caption" style="text-align:center; margin-top:-1rem; margin-bottom:1.5rem;">The Evidence Lower BOund (ELBO) — tractable and maximizable in closed form, unlike Eq. 8 directly.</div>
+
+  <h3 class="sub-title">The E-step and M-step loop</h3>
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="badge">E</div>
+      <div class="tl-title">E-step — compute responsibilities</div>
+      <p style="margin-bottom:0.5rem;">Fix θ, update the soft-assignment λ<sub>ik</sub> = posterior probability that point i belongs to component k.</p>
+      <div class="tl-math">λ<sub>ik</sub> = π<sub>k</sub>N(x<sub>i</sub>|μ<sub>k</sub>,σ²<sub>k</sub>) / Σ<sub>j</sub>π<sub>j</sub>N(x<sub>i</sub>|μ<sub>j</sub>,σ²<sub>j</sub>)</div>
+    </div>
+    <div class="tl-step">
+      <div class="badge">M</div>
+      <div class="tl-title">M-step — update parameters (weighted MLE)</div>
+      <p style="margin-bottom:0.5rem;">Fix λ, update θ using the responsibilities as soft weights — this is exactly the Gaussian MLE of Eq. 4, weighted by λ.</p>
+      <div class="tl-math">μ<sub>k</sub> = Σᵢλ<sub>ik</sub>xᵢ / Σᵢλ<sub>ik</sub> &nbsp;·&nbsp; σ²<sub>k</sub> = Σᵢλ<sub>ik</sub>(xᵢ−μ<sub>k</sub>)² / Σᵢλ<sub>ik</sub> &nbsp;·&nbsp; π<sub>k</sub> = (1/N)Σᵢλ<sub>ik</sub></div>
+    </div>
+  </div>
+  <p>Repeat E and M until the change in θ drops below a tolerance — the algorithm never does both steps at once, and each full round is guaranteed to never decrease the log-likelihood.</p>
+
+  <div class="interactive" id="em-sim">
+    <div class="int-head"><span class="int-tag">Live</span><h4>1D EM Stepper — K = 2</h4></div>
+    <p class="int-desc">Points x = [1, 2, 8, 9]. Initialized at μ₁=3, μ₂=6, σ²=1, π=0.5 each. Step through E and M until convergence.</p>
+    <div class="int-controls">
+      <button class="btn primary" onclick="emStep()">Next Step</button>
+      <button class="btn" onclick="emReset()">Reset</button>
+    </div>
+    <div class="int-readout" id="em-readout">
+      Iteration <b id="em-iter">0</b> (init) &nbsp;|&nbsp; μ₁ = <b id="em-m1">3.00</b> &nbsp;|&nbsp; μ₂ = <b id="em-m2">6.00</b> &nbsp;|&nbsp; π₁ = <b id="em-p1">0.50</b> &nbsp;|&nbsp; π₂ = <b id="em-p2">0.50</b> &nbsp;|&nbsp; log-L ≈ <b id="em-ll">−51.24</b>
+    </div>
+  </div>
+
+  <table class="ex-table">
+    <tr><th>Iteration</th><th>μ₁</th><th>μ₂</th><th>π₁</th><th>π₂</th><th>Log-likelihood</th></tr>
+    <tr><td>0 (init)</td><td>3.00</td><td>6.00</td><td>0.50</td><td>0.50</td><td>−51.24</td></tr>
+    <tr><td>1</td><td>1.50</td><td>8.50</td><td>0.50</td><td>0.50</td><td>−16.42</td></tr>
+    <tr><td>2</td><td class="result">1.50</td><td class="result">8.50</td><td>0.50</td><td>0.50</td><td class="result">−16.42</td></tr>
+  </table>
+  <p style="margin-top:-0.5rem;">EM converges in 2 iterations: μ₁ = 1.5 (mean of {1,2}), μ₂ = 8.5 (mean of {8,9}).</p>
+
+  <div class="callout insight">
+    <div class="callout-head">✦ Why EM Works</div>
+    <p style="margin:0;">Each E-step tightens the lower bound to touch the true log-likelihood at the current θ. Each M-step then maximizes that bound. Together, this guarantees the log-likelihood never decreases across iterations — EM climbs uphill until it reaches a local maximum.</p>
+  </div>
+
+  <div class="callout insight">
+    <div class="callout-head">✦ GMM → K-Means as a Limiting Case</div>
+    <p style="margin:0;">Let the GMM variance σ²<sub>k</sub> → 0. The responsibilities λ<sub>ik</sub> become hard 0/1 assignments — each point belongs to exactly one component. The M-step then reduces to computing the mean of assigned points, exactly like K-means. <strong>GMM is K-means with soft assignments and uncertainty estimates.</strong></p>
+  </div>
+
+  <div class="callout mistakes">
+    <div class="callout-head">⚠ Common Mistakes</div>
+    <ul>
+      <li>EM gives only a local optimum — different initializations lead to different solutions. Always run EM multiple times with random restarts.</li>
+      <li>Confusing E-step with M-step: E fixes θ and updates λ; M fixes λ and updates θ. They alternate — never do both at once.</li>
+      <li>Using GMM when K is unknown: K must be chosen in advance. Use BIC, AIC, or cross-validation to select the number of components.</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ============================================================ -->
+<!-- SECTION 06 — CONNECTIONS -->
+<!-- ============================================================ -->
+<section class="chapter" id="s6">
+  <div class="chapter-head"><span class="chapter-num">06</span><h2 class="chapter-title">Connections & Exam Shortcuts</h2></div>
+  <p class="chapter-lede">Zooming out: every idea this week is one answer to the same question — "what parameters best explain this data?" — asked with progressively fewer simplifying assumptions.</p>
+
+  <div class="conn-flow">
+    <span class="conn-pill" style="color:var(--blue);">Estimation problem</span>
+    <span class="conn-arrow">→</span>
+    <span class="conn-pill" style="color:var(--gold);">MLE (point estimate)</span>
+    <span class="conn-arrow">→</span>
+    <span class="conn-pill" style="color:var(--purple);">Bayesian (full posterior)</span>
+    <span class="conn-arrow">→</span>
+    <span class="conn-pill" style="color:var(--teal);">GMM (mixture likelihood)</span>
+    <span class="conn-arrow">→</span>
+    <span class="conn-pill" style="color:#f0a5d8;">EM (optimizes the mixture)</span>
+  </div>
+
+  <h3 class="sub-title">Expert-level mental shortcuts</h3>
+  <div class="callout exam">
+    <div class="callout-head">☆ How a practitioner actually thinks</div>
+    <ul style="list-style:none; padding:0; margin:0;">
+      <li style="padding:0.4rem 0;">→ "Sample mean and sample variance" is almost always secretly an MLE calculation for a Gaussian.</li>
+      <li style="padding:0.4rem 0;">→ Any time you see a sum <em>inside</em> a log, expect no closed form — reach for EM or gradient-based optimization.</li>
+      <li style="padding:0.4rem 0;">→ Conjugate priors exist for a reason: Beta↔Bernoulli, Gaussian↔Gaussian, Dirichlet↔Categorical. Recognize the pair and the posterior update is instant.</li>
+      <li style="padding:0.4rem 0;">→ Small data + a strong prior ⟹ trust the prior. Big data ⟹ the likelihood dominates regardless of the prior.</li>
+    </ul>
+  </div>
+
+  <div class="callout exam">
+    <div class="callout-head">☆ Exam Shortcuts</div>
+    <ul style="list-style:none; padding:0; margin:0;">
+      <li style="padding:0.4rem 0;">→ Bernoulli MLE is always "fraction of successes" — no calculus needed if you recognize the setup.</li>
+      <li style="padding:0.4rem 0;">→ Posterior mean for Beta-Bernoulli = (α+N₁)/(α+β+N) — memorize this closed form directly.</li>
+      <li style="padding:0.4rem 0;">→ If a question shows Σ log(Σ …), that's the GMM bottleneck signature — the answer path always leads to "use EM."</li>
+      <li style="padding:0.4rem 0;">→ K-means is the σ²→0 limit of GMM — a favorite "explain the relationship" question.</li>
+    </ul>
+  </div>
+
+  <h3 class="sub-title">Where this leads next</h3>
+  <p>This week's arc — point estimate → full posterior → mixture models → an optimization algorithm to fit them — is the backbone of unsupervised learning. The EM framework generalizes far beyond GMMs: Hidden Markov Models, Latent Dirichlet Allocation, and factor analysis all reuse the identical E-step/M-step skeleton. Meanwhile, the MLE machinery built here (log-likelihood, argmax, closed-form derivatives) is the same toolkit that reappears in supervised learning's linear regression normal equations.</p>
+</section>
+
+</div>
+
+<div class="week-footer">WEEK 04 · ESTIMATION → GMM → EM · PREMIUM LECTURE NOTES</div>
+
+<script>
+// ===== Coin MLE simulator =====
+let coinFlips = [];
+function flipCoin(times){
+  times = times || 1;
+  for(let t=0;t<times;t++){
+    const isHead = Math.random() < 0.7; // hidden true bias for demo
+    coinFlips.push(isHead ? 1 : 0);
+  }
+  renderCoins();
+}
+function resetCoin(){ coinFlips = []; renderCoins(); }
+function renderCoins(){
+  const row = document.getElementById('coin-row');
+  row.innerHTML = '';
+  coinFlips.slice(-40).forEach(v=>{
+    const d = document.createElement('div');
+    d.className = 'coin ' + (v ? 'H' : 'T');
+    d.textContent = v ? 'H' : 'T';
+    row.appendChild(d);
+  });
+  const n = coinFlips.length;
+  const h = coinFlips.reduce((a,b)=>a+b,0);
+  document.getElementById('coin-n').textContent = n;
+  document.getElementById('coin-h').textContent = h;
+  document.getElementById('coin-p').textContent = n ? (h/n).toFixed(3) : '—';
+}
+
+// ===== Beta posterior simulator =====
+let betaA = 2, betaB = 2;
+function factorial(n){ return n<=1?1:n*factorial(n-1); }
+function betaPdf(x,a,b){
+  // unnormalized-safe via log-gamma approx using simple gamma for small ints
+  function gamma(n){ // for our small integer-ish a,b this is fine
+    if(n===Math.floor(n) && n>0) return factorial(n-1);
+    // Stirling approx fallback
+    return Math.sqrt(2*Math.PI/n)*Math.pow(n/Math.E,n);
+  }
+  const B = (gamma(a)*gamma(b))/gamma(a+b);
+  return Math.pow(x,a-1)*Math.pow(1-x,b-1)/B;
+}
+function betaUpdate(kind){
+  if(kind==='H') betaA += 1; else betaB += 1;
+  drawBeta();
+}
+function betaReset(){ betaA=2; betaB=2; drawBeta(); }
+function drawBeta(){
+  const path = document.getElementById('beta-curve');
+  const pts = [];
+  const W = 600, H=190, left=40, right=560, base=160, top=20;
+  let maxY = 0;
+  const samples = [];
+  for(let i=0;i<=100;i++){
+    const x = i/100;
+    let y;
+    if(x<=0 || x>=1) y=0;
+    else y = betaPdf(x, betaA, betaB);
+    samples.push(y);
+    if(y>maxY) maxY=y;
+  }
+  for(let i=0;i<=100;i++){
+    const x = left + (right-left)*(i/100);
+    const yVal = samples[i]/ (maxY||1);
+    const y = base - yVal*(base-top);
+    pts.push((i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1));
+  }
+  pts.push('L'+right+','+base, 'L'+left+','+base, 'Z');
+  path.setAttribute('d', pts.join(' '));
+  const mean = betaA/(betaA+betaB);
+  const meanX = left + (right-left)*mean;
+  document.getElementById('beta-mean-line').setAttribute('x1', meanX);
+  document.getElementById('beta-mean-line').setAttribute('x2', meanX);
+  document.getElementById('beta-a').textContent = betaA;
+  document.getElementById('beta-b').textContent = betaB;
+  document.getElementById('beta-mean').textContent = mean.toFixed(3);
+}
+
+// ===== EM stepper (precomputed to match lecture example exactly) =====
+const emStates = [
+  {iter:'0 (init)', m1:3.00, m2:6.00, p1:0.50, p2:0.50, ll:'−51.24'},
+  {iter:'1', m1:1.50, m2:8.50, p1:0.50, p2:0.50, ll:'−16.42'},
+  {iter:'2 (converged)', m1:1.50, m2:8.50, p1:0.50, p2:0.50, ll:'−16.42'}
+];
+let emIdx = 0;
+function emStep(){
+  emIdx = Math.min(emIdx+1, emStates.length-1);
+  renderEm();
+}
+function emReset(){ emIdx = 0; renderEm(); }
+function renderEm(){
+  const s = emStates[emIdx];
+  document.getElementById('em-iter').textContent = s.iter;
+  document.getElementById('em-m1').textContent = s.m1.toFixed(2);
+  document.getElementById('em-m2').textContent = s.m2.toFixed(2);
+  document.getElementById('em-p1').textContent = s.p1.toFixed(2);
+  document.getElementById('em-p2').textContent = s.p2.toFixed(2);
+  document.getElementById('em-ll').textContent = s.ll;
+}
+
+// init
+drawBeta();
+renderEm();
+</script>
 
 </body>
 </html>

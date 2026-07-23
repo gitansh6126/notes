@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MAD2 Keyword Dictionary</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --bg-grid: rgba(255,255,255,0.025);
+  --panel-bg:#111524;
+  --panel-bg-2:#141a2c;
+  --panel-border: rgba(255,255,255,0.09);
+  --panel-border-strong: rgba(255,255,255,0.16);
+  --text:#e8eaf2;
+  --text-dim:#9aa2b8;
+  --text-faint:#6b7390;
+  --gold:#e0b355;
+  --gold-dim: rgba(224,179,85,0.35);
+  --teal:#4fd8c4;
+  --teal-dim: rgba(79,216,196,0.35);
+  --purple:#b58cf0;
+  --purple-dim: rgba(181,140,240,0.35);
+  --blue:#6fb3f2;
+  --green:#6fd88f;
+  --red:#f28b8b;
+  --pink:#f0a5d8;
+  --orange:#f2b06f;
+  --serif: "Fraunces", "STIX Two Math", serif;
+  --sans: "Inter", -apple-system, sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth; background:var(--bg); color-scheme:dark;}
+html, body{min-height:100%;}
+body{
+  background-color:var(--bg);
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size:42px 42px;
+  background-attachment:local;
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.6;
+  padding-bottom:5rem;
+}
+a,p,li,span,div,td,th,b,strong,em,button,input{color:inherit;}
+.wrap{max-width:1080px; margin:0 auto; padding:0 1.25rem;}
+
+/* HERO */
+header.hero{
+  position:relative; padding:3.4rem 1.25rem 2rem; text-align:center;
+  border-bottom:1px solid var(--panel-border); overflow:hidden;
+}
+header.hero::before{
+  content:""; position:absolute; inset:0;
+  background:radial-gradient(ellipse 60% 50% at 50% 0%, rgba(224,179,85,0.10), transparent 70%);
+  pointer-events:none;
+}
+.eyebrow{
+  font-family:var(--mono); font-size:0.72rem; letter-spacing:0.22em; color:var(--teal);
+  text-transform:uppercase; margin-bottom:0.9rem;
+}
+h1.title{
+  font-family:var(--serif); font-weight:600; font-size:clamp(1.7rem,4.6vw,2.7rem);
+  letter-spacing:-0.01em; margin-bottom:0.7rem;
+}
+.subtitle{color:var(--text-dim); max-width:600px; margin:0 auto; font-size:0.98rem;}
+
+/* SEARCH BAR */
+.search-zone{
+  position:sticky; top:0; z-index:60;
+  background:rgba(10,14,23,0.92); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--panel-border);
+  padding:0.85rem 1.25rem;
+}
+.search-inner{max-width:1080px; margin:0 auto;}
+.search-box{
+  display:flex; align-items:center; gap:0.6rem;
+  background:var(--panel-bg); border:1.5px solid var(--panel-border-strong); border-radius:12px;
+  padding:0.65rem 1rem; margin-bottom:0.7rem;
+}
+.search-box svg{flex:0 0 auto; opacity:0.5;}
+#search-input{
+  flex:1; background:transparent; border:none; outline:none; color:var(--text);
+  font-family:var(--sans); font-size:0.95rem;
+}
+#search-input::placeholder{color:var(--text-faint);}
+#result-count{font-family:var(--mono); font-size:0.72rem; color:var(--text-faint); white-space:nowrap;}
+.filter-row{display:flex; gap:0.45rem; flex-wrap:wrap; overflow-x:auto; padding-bottom:0.2rem;}
+.filter-pill{
+  flex:0 0 auto; font-family:var(--mono); font-size:0.72rem; padding:0.35rem 0.75rem;
+  border-radius:999px; border:1px solid var(--panel-border-strong); background:var(--panel-bg);
+  cursor:pointer; white-space:nowrap; color:var(--text-dim); transition:all 0.15s; user-select:none;
+}
+.filter-pill:hover{border-color:var(--gold-dim); color:var(--text);}
+.filter-pill.active{background:var(--gold); color:#1a1408; border-color:var(--gold); font-weight:700;}
+
+/* SECTIONS */
+section.cat-section{padding:2.4rem 0 0.5rem;}
+.cat-head{display:flex; align-items:center; gap:0.7rem; margin-bottom:1rem;}
+.cat-dot{width:0.7rem; height:0.7rem; border-radius:50%; flex:0 0 auto;}
+.cat-head h2{font-family:var(--serif); font-weight:600; font-size:1.35rem;}
+.cat-count{font-family:var(--mono); font-size:0.7rem; color:var(--text-faint); border:1px solid var(--panel-border); border-radius:999px; padding:0.1rem 0.55rem;}
+
+.term-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:0.85rem; margin-bottom:0.5rem;}
+.term-card{
+  background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:13px;
+  padding:0.95rem 1.05rem; border-left:3px solid var(--cat-color, var(--teal));
+  transition:border-color 0.15s, transform 0.15s;
+}
+.term-card:hover{border-color:var(--panel-border-strong); transform:translateY(-1px);}
+.term-card .kw{
+  font-family:var(--mono); font-weight:700; font-size:0.92rem; color:var(--cat-color, var(--teal));
+  margin-bottom:0.35rem; word-break:break-word;
+}
+.term-card .meaning{font-size:0.85rem; color:var(--text-dim); margin-bottom:0.4rem;}
+.term-card .remember{
+  font-family:var(--mono); font-size:0.68rem; color:var(--text-faint);
+  display:inline-flex; align-items:center; gap:0.3rem;
+}
+.term-card .remember::before{content:"↳"; opacity:0.6;}
+.term-card .returns{
+  font-family:var(--mono); font-size:0.68rem; color:var(--gold); margin-top:0.3rem;
+}
+
+.no-results{
+  text-align:center; padding:3rem 1rem; color:var(--text-faint); font-family:var(--mono); font-size:0.85rem;
+  display:none;
+}
+
+/* EXAM PATTERN TABLE */
+.pyq-table{width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.85rem;}
+.pyq-table th{
+  background:var(--panel-bg-2); text-align:left; padding:0.65rem 0.85rem; font-family:var(--mono);
+  font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);
+  border-bottom:1px solid var(--panel-border-strong);
+}
+.pyq-table td{padding:0.65rem 0.85rem; border-bottom:1px solid var(--panel-border); color:var(--text-dim); vertical-align:top;}
+.pyq-table tr:last-child td{border-bottom:none;}
+.pyq-table td.kw-cell{font-family:var(--mono); color:var(--gold); font-weight:700; white-space:nowrap;}
+.pyq-table td.trap-cell{color:var(--red);}
+
+.callout{border-radius:14px; padding:1.05rem 1.25rem; margin:1.3rem 0; border:1px solid; font-size:0.9rem;}
+.callout .callout-head{
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:0.08em; text-transform:uppercase;
+  margin-bottom:0.5rem; font-weight:700;
+}
+.callout.insight{background:rgba(224,179,85,0.06); border-color:var(--gold-dim);}
+.callout.insight .callout-head{color:var(--gold);}
+.callout.trap{background:rgba(242,139,139,0.06); border-color:rgba(242,139,139,0.3);}
+.callout.trap .callout-head{color:var(--red);}
+
+.chapter-lede{color:var(--text-dim); max-width:720px; margin:0.9rem 0 1.6rem; font-size:0.95rem;}
+h3.sub-title{font-family:var(--serif); font-weight:600; font-size:1.15rem; margin:2rem 0 0.8rem;}
+.divider{height:1px; background:linear-gradient(90deg, transparent, var(--panel-border-strong), transparent); margin:2.2rem 0;}
+.week-footer{
+  text-align:center; padding:3rem 1.25rem 1rem; color:var(--text-faint); font-family:var(--mono);
+  font-size:0.72rem; letter-spacing:0.12em; border-top:1px solid var(--panel-border); margin-top:2.5rem;
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="eyebrow">MAD2 · Modern Application Development 2</div>
+  <h1 class="title">🚀 Keyword Dictionary</h1>
+  <p class="subtitle">Every MAD2 term in one searchable reference — JavaScript, Vue, Flask, Celery, Security, and the exam-output patterns that turn up in PYQs.</p>
+</header>
+
+<div class="search-zone">
+  <div class="search-inner">
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-input" placeholder="Search a keyword… e.g. reduce, watch, JWT, CORS">
+      <span id="result-count"></span>
+    </div>
+    <div class="filter-row" id="filter-row"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="cat-container"></div>
+  <div class="no-results" id="no-results">No keywords match "<span id="no-results-term"></span>"</div>
+
+  <div class="divider"></div>
+
+  <section id="exam-section">
+    <div class="cat-head"><span class="cat-dot" style="background:var(--green);"></span><h2 style="font-family:var(--serif); font-weight:600; font-size:1.35rem;">Exam Output Keywords — If you see… think…</h2></div>
+    <p class="chapter-lede">The fastest pre-exam pass: scan the left column, and if the right column doesn't come to mind instantly, that keyword needs another look above.</p>
+    <table class="pyq-table" id="exam-table"></table>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="upgrade-section">
+    <div class="cat-head"><span class="cat-dot" style="background:var(--purple);"></span><h2 style="font-family:var(--serif); font-weight:600; font-size:1.35rem;">Keyword → Concept → PYQ Pattern → Common Trap</h2></div>
+    <p class="chapter-lede">A plain glossary tells you what a word means. This table tells you what the exam actually <em>does</em> with it, and where students lose marks.</p>
+    <table class="pyq-table">
+      <tr><th>Keyword</th><th>Means</th><th>PYQ Asks</th><th>Common Trap</th></tr>
+      <tr><td class="kw-cell">reduce()</td><td>Reduce array to one value</td><td>Predict output</td><td class="trap-cell">Forgetting initial accumulator</td></tr>
+      <tr><td class="kw-cell">this</td><td>Calling object</td><td>Output prediction</td><td class="trap-cell">Arrow functions don't have their own <span style="font-family:var(--mono);">this</span></td></tr>
+      <tr><td class="kw-cell">watch</td><td>React to data changes</td><td>Vue behavior</td><td class="trap-cell">Confusing it with <span style="font-family:var(--mono);">computed</span></td></tr>
+      <tr><td class="kw-cell">mutation</td><td>Sync state update</td><td>Vuex</td><td class="trap-cell">Using async code inside a mutation</td></tr>
+      <tr><td class="kw-cell">await</td><td>Pause async function</td><td>Output order</td><td class="trap-cell">Confusing microtasks with setTimeout</td></tr>
+      <tr><td class="kw-cell">cache.cached()</td><td>Cache route response</td><td>Flask performance</td><td class="trap-cell">Thinking it caches the database</td></tr>
+    </table>
+    <div class="callout insight">
+      <div class="callout-head">✦ How to use this table</div>
+      <p style="margin:0;">For every keyword above, don't stop at "Means" — mentally rehearse the PYQ Pattern and say the Common Trap out loud. That's the difference between recognizing a word and surviving the output-prediction question built around it.</p>
+    </div>
+  </section>
+</div>
+
+<div class="week-footer">MAD2 · KEYWORD DICTIONARY · JS · VUE · FLASK · CELERY · SECURITY</div>
+
+<script>
+const DATA = [
+  {cat:"A. JavaScript Basics", color:"--gold", terms:[
+    ["var","Function scoped variable","Old JS"],
+    ["let","Block scoped variable","Mutable"],
+    ["const","Block scoped constant","Cannot reassign"],
+    ["scope","Where variable is accessible","Visibility"],
+    ["hoisting","Variables/functions moved to top","Memory allocation"],
+    ["TDZ","Temporal Dead Zone","let/const before declaration"],
+    ["closure","Inner function remembers outer variables","Private memory"],
+    ["lexical scope","Scope decided where function is written","Parent lookup"],
+    ["this","Current execution object","Caller decides"],
+    ["bind()","Permanently fixes this","Permanent"],
+    ["call()","Calls immediately with custom this","Instant"],
+    ["apply()","Like call but arguments array","Array version"],
+    ["arrow function","Doesn't create own this","Uses parent this"],
+    ["prototype","Shared methods between objects","Memory efficient"],
+    ["inheritance","Child gets parent properties","Prototype chain"],
+    ["class","Syntax sugar over prototype","Cleaner syntax"],
+  ]},
+  {cat:"B. Objects & Arrays", color:"--orange", terms:[
+    ["object","Key-value collection",""],
+    ["array","Ordered collection",""],
+    ["destructuring","Extract values easily",""],
+    ["spread (...)","Expand values",""],
+    ["rest (...)","Collect remaining values",""],
+    ["shallow copy","Copies first level only",""],
+    ["deep copy","Copies nested objects too",""],
+    ["JSON.stringify()","Object → String",""],
+    ["JSON.parse()","String → Object",""],
+  ]},
+  {cat:"C. Array Functions", color:"--blue", terms:[
+    ["forEach","Loop only","→ undefined"],
+    ["map","Transform","→ New array"],
+    ["filter","Keep matching","→ New array"],
+    ["reduce","Combine values","→ Single value"],
+    ["find","First matching item","→ Object/value"],
+    ["some","At least one true","→ Boolean"],
+    ["every","All true","→ Boolean"],
+    ["includes","Exists?","→ Boolean"],
+    ["sort","Arrange","→ Array"],
+    ["slice","Copy portion","→ New array"],
+    ["splice","Add/remove","→ Modified array"],
+  ]},
+  {cat:"D. Async JavaScript", color:"--purple", terms:[
+    ["synchronous","One after another",""],
+    ["asynchronous","Doesn't wait",""],
+    ["callback","Function passed into another",""],
+    ["Promise","Future value",""],
+    ["pending","Waiting",""],
+    ["fulfilled","Success",""],
+    ["rejected","Failed",""],
+    ["then()","Success handler",""],
+    ["catch()","Error handler",""],
+    ["finally()","Always runs",""],
+    ["async","Function returns Promise",""],
+    ["await","Wait for Promise",""],
+    ["event loop","Executes async tasks",""],
+    ["call stack","Running functions",""],
+    ["Web APIs","Browser async services",""],
+    ["microtask queue","Promise queue",""],
+    ["macrotask queue","setTimeout queue",""],
+  ]},
+  {cat:"E. Browser Storage", color:"--green", terms:[
+    ["localStorage","Permanent storage",""],
+    ["sessionStorage","Until tab closes",""],
+    ["cookie","Small data sent to server",""],
+    ["cache","Save result to reuse",""],
+    ["Cache-Control","Browser caching rules",""],
+    ["ETag","Cache validation",""],
+  ]},
+  {cat:"F. Vue Basics", color:"--red", terms:[
+    ["Vue Instance","Root app",""],
+    ["component","Reusable UI block",""],
+    ["template","HTML",""],
+    ["data","Reactive variables",""],
+    ["methods","Functions",""],
+    ["computed","Cached calculation",""],
+    ["watch","Observe changes",""],
+    ["props","Parent → Child",""],
+    ["emit","Child → Parent",""],
+    ["slot","Parent inserts content",""],
+    ["scoped slot","Child passes data to parent slot",""],
+    ["lifecycle","Component stages",""],
+    ["mounted","Component ready",""],
+    ["beforeUnmount","Before removal",""],
+    ["reactive","UI auto updates",""],
+  ]},
+  {cat:"G. Vue Directives", color:"--orange", terms:[
+    ["v-bind","Bind attribute",""],
+    [":","Shortcut of v-bind",""],
+    ["v-model","Two-way binding",""],
+    ["v-if","Remove/add DOM",""],
+    ["v-show","Hide/show via CSS",""],
+    ["v-else","Else block",""],
+    ["v-for","Loop",""],
+    ["v-on","Event listener",""],
+    ["@","Shortcut for v-on",""],
+    ["v-html","Raw HTML",""],
+    ["v-text","Text only",""],
+    [":class","Dynamic class",""],
+    [":style","Dynamic style",""],
+  ]},
+  {cat:"H. Vue Router", color:"--blue", terms:[
+    ["router","Navigation",""],
+    ["route","Current page",""],
+    ["router-link","Link",""],
+    ["router-view","Render component",""],
+    ["params","URL variable",""],
+    ["query","URL ?key=value",""],
+    ["redirect","Redirect route",""],
+    ["wildcard","Catch all routes",""],
+  ]},
+  {cat:"I. Vuex", color:"--purple", terms:[
+    ["state","Global data",""],
+    ["mutation","Synchronous state change",""],
+    ["action","Async logic",""],
+    ["getter","Computed state",""],
+    ["commit","Call mutation",""],
+    ["dispatch","Call action",""],
+    ["module","Split store",""],
+  ]},
+  {cat:"J. Flask", color:"--green", terms:[
+    ["route","URL endpoint",""],
+    ["request","Incoming data",""],
+    ["response","Outgoing data",""],
+    ["jsonify","JSON response",""],
+    ["REST API","Client-server communication",""],
+    ["CORS","Cross-origin permission",""],
+    ["middleware","Runs before request",""],
+    ["cache","Store response",""],
+    ["memoize","Cache function result",""],
+    ["decorator","Modify function behavior",""],
+  ]},
+  {cat:"K. Authentication", color:"--red", terms:[
+    ["JWT","Token authentication",""],
+    ["session","Server-side login",""],
+    ["cookie","Browser authentication data",""],
+    ["access token","Short-lived token",""],
+    ["refresh token","Generate new access token",""],
+    ["authorization","Permission",""],
+    ["authentication","Identity verification",""],
+  ]},
+  {cat:"L. Performance", color:"--gold", terms:[
+    ["Lighthouse","Website audit",""],
+    ["FCP","First paint",""],
+    ["LCP","Largest content",""],
+    ["CLS","Layout shift",""],
+    ["TBT","Blocking time",""],
+    ["TTI","Interactive time",""],
+  ]},
+  {cat:"M. Networking", color:"--blue", terms:[
+    ["webhook","Server pushes event",""],
+    ["polling","Client repeatedly asks",""],
+    ["long polling","Wait then respond",""],
+    ["SSE","Server → Client stream",""],
+    ["WebSocket","Two-way communication",""],
+    ["fetch","HTTP request",""],
+    ["HTTP","Communication protocol",""],
+    ["GET","Read",""],
+    ["POST","Create",""],
+    ["PUT","Replace",""],
+    ["PATCH","Update",""],
+    ["DELETE","Remove",""],
+  ]},
+  {cat:"N. Celery / RabbitMQ", color:"--purple", terms:[
+    ["queue","Waiting tasks",""],
+    ["producer","Sends tasks",""],
+    ["consumer","Executes tasks",""],
+    ["broker","Middleman",""],
+    ["RabbitMQ","Message broker",""],
+    ["Redis","Cache/Broker",""],
+    ["Celery","Background worker",""],
+    ["async task","Runs later",""],
+    ["worker","Executes jobs",""],
+    ["beat","Scheduler",""],
+  ]},
+  {cat:"O. Security", color:"--red", terms:[
+    ["CORS","Cross-origin control",""],
+    ["CSP","Allowed resource policy",""],
+    ["CSRF","Fake request attack",""],
+    ["XSS","Inject JavaScript",""],
+    ["SQL Injection","Inject SQL",""],
+    ["HTTPS","Secure HTTP",""],
+    ["SameSite","Cookie protection",""],
+    ["secure cookie","HTTPS only",""],
+  ]},
+];
+
+const EXAM_ROWS = [
+  ["await","Promise → Microtask"],["setTimeout","Macrotask"],[".then()","Microtask Queue"],
+  ["this","Caller"],["=>","Parent this"],["bind()","Fixed this"],["call()","Temporary this"],
+  ["apply()","Array arguments"],["reduce()","Single value"],["map()","Transform"],
+  ["filter()","Keep matching"],["forEach()","No return"],["v-model","Two-way binding"],
+  ["props","Parent → Child"],["$emit","Child → Parent"],["<slot>","Parent content"],
+  ["watch","React to changes"],["computed","Cached calculation"],["mutation","Sync update"],
+  ["action","Async update"],["dispatch","Action"],["commit","Mutation"],["fetch()","HTTP request"],
+  ["cache.cached()","Skip repeated execution"],["localStorage","Persistent"],["sessionStorage","Per tab"],
+  ["CORS","Cross-origin access"],["JWT","Stateless authentication"],["Webhook","Event-driven push"],
+  ["SSE","Server → Client"],["WebSocket","Two-way live connection"],
+];
+
+const catContainer = document.getElementById('cat-container');
+const filterRow = document.getElementById('filter-row');
+const searchInput = document.getElementById('search-input');
+const resultCount = document.getElementById('result-count');
+const noResults = document.getElementById('no-results');
+const noResultsTerm = document.getElementById('no-results-term');
+
+let activeFilter = 'all';
+
+function buildFilters(){
+  const allPill = document.createElement('div');
+  allPill.className = 'filter-pill active';
+  allPill.textContent = 'All';
+  allPill.dataset.cat = 'all';
+  filterRow.appendChild(allPill);
+  DATA.forEach(section=>{
+    const pill = document.createElement('div');
+    pill.className = 'filter-pill';
+    pill.textContent = section.cat.replace(/^[A-Z]\.\s*/, '');
+    pill.dataset.cat = section.cat;
+    filterRow.appendChild(pill);
+  });
+  filterRow.addEventListener('click', e=>{
+    const pill = e.target.closest('.filter-pill');
+    if(!pill) return;
+    document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    activeFilter = pill.dataset.cat;
+    render();
+  });
+}
+
+function buildSections(){
+  catContainer.innerHTML = '';
+  DATA.forEach(section=>{
+    const sec = document.createElement('section');
+    sec.className = 'cat-section';
+    sec.dataset.cat = section.cat;
+    const head = document.createElement('div');
+    head.className = 'cat-head';
+    head.innerHTML = `<span class="cat-dot" style="background:var(${section.color});"></span>
+      <h2>${section.cat}</h2>
+      <span class="cat-count">${section.terms.length} terms</span>`;
+    sec.appendChild(head);
+    const grid = document.createElement('div');
+    grid.className = 'term-grid';
+    section.terms.forEach(([kw, meaning, remember])=>{
+      const card = document.createElement('div');
+      card.className = 'term-card';
+      card.style.setProperty('--cat-color', `var(${section.color})`);
+      card.dataset.kw = kw.toLowerCase();
+      card.dataset.meaning = meaning.toLowerCase();
+      const remLine = remember ? (remember.startsWith('→') ? `<div class="returns">${remember}</div>` : `<div class="remember">${remember}</div>`) : '';
+      card.innerHTML = `<div class="kw">${kw}</div><div class="meaning">${meaning}</div>${remLine}`;
+      grid.appendChild(card);
+    });
+    sec.appendChild(grid);
+    catContainer.appendChild(sec);
+  });
+}
+
+function buildExamTable(){
+  const table = document.getElementById('exam-table');
+  let html = '<tr><th>If you see…</th><th>Think…</th></tr>';
+  EXAM_ROWS.forEach(([a,b])=>{
+    html += `<tr><td class="kw-cell">${a}</td><td>${b}</td></tr>`;
+  });
+  table.innerHTML = html;
+}
+
+function render(){
+  const q = searchInput.value.trim().toLowerCase();
+  let visibleCount = 0;
+  document.querySelectorAll('.cat-section').forEach(sec=>{
+    const catMatch = activeFilter === 'all' || sec.dataset.cat === activeFilter;
+    let sectionHasVisible = false;
+    sec.querySelectorAll('.term-card').forEach(card=>{
+      const matchesQuery = !q || card.dataset.kw.includes(q) || card.dataset.meaning.includes(q);
+      const show = catMatch && matchesQuery;
+      card.style.display = show ? '' : 'none';
+      if(show){ sectionHasVisible = true; visibleCount++; }
+    });
+    sec.style.display = sectionHasVisible ? '' : 'none';
+  });
+  resultCount.textContent = q ? `${visibleCount} match${visibleCount===1?'':'es'}` : '';
+  noResults.style.display = (visibleCount === 0 && q) ? 'block' : 'none';
+  noResultsTerm.textContent = searchInput.value;
+  document.getElementById('exam-section').style.display = (activeFilter === 'all') ? '' : 'none';
+  document.getElementById('upgrade-section').style.display = (activeFilter === 'all') ? '' : 'none';
+}
+
+searchInput.addEventListener('input', render);
+buildFilters();
+buildSections();
+buildExamTable();
+render();
+</script>
+
+</body>
+</html>

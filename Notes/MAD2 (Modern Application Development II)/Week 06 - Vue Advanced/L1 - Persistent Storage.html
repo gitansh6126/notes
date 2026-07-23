@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Persistent Storage in Vue.js — MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1120;
+    --bg-alt:#0F1729;
+    --surface:#141B2E;
+    --surface-2:#1C2540;
+    --border:#26314D;
+    --text:#E7ECF5;
+    --muted:#8B96AD;
+    --cookie:#F5A623;
+    --session:#9B6BFF;
+    --local:#2DD4BF;
+    --idb:#4C8DFF;
+    --danger:#FF6B6B;
+    --good:#4ADE80;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(76,141,255,0.12), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 100% 10%, rgba(45,212,191,0.10), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+  a{color:inherit;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- NAV ---------- */
+  .jumpnav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(11,17,32,0.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .jumpnav-inner{
+    max-width:1080px;margin:0 auto;padding:10px 24px;
+    display:flex; gap:8px; overflow-x:auto; scrollbar-width:none;
+  }
+  .jumpnav-inner::-webkit-scrollbar{display:none;}
+  .jumpnav a{
+    flex:0 0 auto;
+    font-family:var(--mono);
+    font-size:11.5px;
+    color:var(--muted);
+    text-decoration:none;
+    padding:6px 12px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    white-space:nowrap;
+    transition:all .15s ease;
+  }
+  .jumpnav a:hover{color:var(--text);border-color:var(--local);background:var(--surface);}
+
+  /* ---------- HERO ---------- */
+  .hero{padding:56px 0 40px; text-align:center;}
+  .eyebrow{
+    font-family:var(--mono); font-size:12px; letter-spacing:.15em;
+    color:var(--local); text-transform:uppercase; margin-bottom:14px;
+  }
+  h1.title{
+    font-family:var(--mono); font-weight:700; font-size:clamp(28px,5vw,46px);
+    margin:0 0 14px; line-height:1.15;
+  }
+  h1.title span{color:var(--idb);}
+  .subtitle{color:var(--muted); max-width:620px; margin:0 auto; font-size:15.5px;}
+
+  /* ---------- CABINET SIGNATURE VISUAL ---------- */
+  .cabinet-wrap{display:flex; justify-content:center; margin:40px 0 10px;}
+  .cabinet{
+    width:min(560px,90vw);
+    background:linear-gradient(180deg,#1A2338,#121A2C);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:16px;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+  .drawer{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-left:4px solid var(--drawer-color);
+    border-radius:8px;
+    padding:12px 16px;
+    margin-bottom:8px;
+    position:relative;
+  }
+  .drawer:last-child{margin-bottom:0;}
+  .drawer-handle{
+    width:34px; height:34px; border-radius:8px;
+    background:rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center;
+    font-size:16px; flex:0 0 auto;
+    border:1px solid var(--border);
+  }
+  .drawer-text{flex:1; min-width:0;}
+  .drawer-name{font-family:var(--mono); font-weight:600; font-size:13.5px;}
+  .drawer-desc{font-size:12px; color:var(--muted); margin-top:2px;}
+  .drawer-tag{
+    font-family:var(--mono); font-size:10px; padding:3px 8px; border-radius:20px;
+    background:rgba(255,255,255,0.06); color:var(--drawer-color); flex:0 0 auto;
+    border:1px solid var(--drawer-color);
+  }
+  .cookie{--drawer-color:var(--cookie);}
+  .session{--drawer-color:var(--session);}
+  .local{--drawer-color:var(--local);}
+  .idb{--drawer-color:var(--idb);}
+  .cabinet-caption{
+    text-align:center; font-size:12px; color:var(--muted); margin-top:14px; font-family:var(--mono);
+  }
+
+  /* ---------- SECTIONS / CARDS ---------- */
+  section{padding:52px 0; border-top:1px solid var(--border);}
+  section:first-of-type{border-top:none;}
+  .modtag{
+    font-family:var(--mono); font-size:11.5px; color:var(--muted);
+    letter-spacing:.1em; text-transform:uppercase; margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .modtag .num{
+    width:22px;height:22px;border-radius:6px;background:var(--surface-2);
+    display:inline-flex;align-items:center;justify-content:center;
+    color:var(--local); font-size:11px; border:1px solid var(--border);
+  }
+  h2.modh{
+    font-family:var(--mono); font-size:clamp(20px,3vw,27px); margin:0 0 22px; font-weight:700;
+  }
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:22px 24px;
+    margin-bottom:16px;
+  }
+  .card-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
+  .card-grid.three{grid-template-columns:repeat(3,1fr);}
+  @media(max-width:720px){.card-grid,.card-grid.three{grid-template-columns:1fr;}}
+
+  .card h3{font-family:var(--mono); font-size:14.5px; margin:0 0 10px; color:var(--text);}
+  .card p{margin:0; font-size:14.5px; color:var(--muted);}
+
+  /* colored border variants for storage types */
+  .b-cookie{border-left:3px solid var(--cookie);}
+  .b-session{border-left:3px solid var(--session);}
+  .b-local{border-left:3px solid var(--local);}
+  .b-idb{border-left:3px solid var(--idb);}
+
+  /* ---------- TOPIC CARD (module 1) ---------- */
+  .topic-card{
+    background:linear-gradient(135deg, rgba(45,212,191,0.07), rgba(76,141,255,0.05));
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:26px 28px;
+  }
+  .tc-row{display:flex; flex-wrap:wrap; gap:24px; margin-top:14px;}
+  .tc-item{flex:1 1 200px;}
+  .tc-label{font-family:var(--mono); font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em;}
+  .tc-value{font-size:15px; margin-top:4px; font-weight:600;}
+  .stars{color:var(--cookie); letter-spacing:1px;}
+  .stars.dim{color:#3A4560;}
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius:10px; padding:16px 18px; margin:16px 0;
+    display:flex; gap:12px; font-size:14.5px;
+    border:1px solid var(--border);
+  }
+  .callout .ico{font-size:18px; flex:0 0 auto;}
+  .callout.info{background:rgba(76,141,255,0.08); border-color:rgba(76,141,255,0.3);}
+  .callout.warn{background:rgba(255,107,107,0.08); border-color:rgba(255,107,107,0.3);}
+  .callout.analogy{background:rgba(45,212,191,0.08); border-color:rgba(45,212,191,0.3);}
+  .callout.good{background:rgba(74,222,128,0.08); border-color:rgba(74,222,128,0.3);}
+
+  /* ---------- MISTAKES ---------- */
+  .mistake-pair{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;}
+  @media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
+  .m-wrong,.m-right{
+    border-radius:10px; padding:14px 16px; font-size:14px; border:1px solid var(--border);
+  }
+  .m-wrong{background:rgba(255,107,107,0.07); border-color:rgba(255,107,107,0.25);}
+  .m-right{background:rgba(74,222,128,0.07); border-color:rgba(74,222,128,0.25);}
+  .m-wrong b, .m-right b{font-family:var(--mono); font-size:12px; display:block; margin-bottom:4px;}
+  .m-wrong b{color:var(--danger);}
+  .m-right b{color:var(--good);}
+
+  /* ---------- CODE ---------- */
+  pre.code{
+    background:#0A0F1D;
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:18px 20px;
+    overflow-x:auto;
+    font-family:var(--mono);
+    font-size:13px;
+    line-height:1.7;
+    margin:14px 0;
+  }
+  .tok-key{color:#4C8DFF;}
+  .tok-str{color:#2DD4BF;}
+  .tok-fn{color:#F5A623;}
+  .tok-com{color:#5A6A8C; font-style:italic;}
+  .tok-prop{color:#E7ECF5;}
+  .tok-punc{color:#8B96AD;}
+  .code-annot{
+    display:flex; gap:10px; align-items:flex-start; margin:8px 0; font-size:13.5px;
+  }
+  .code-annot .badge{
+    font-family:var(--mono); font-size:11px; background:var(--surface-2); color:var(--local);
+    border:1px solid var(--border); border-radius:6px; padding:2px 8px; flex:0 0 auto;
+  }
+
+  /* ---------- FLOW / DIAGRAM ---------- */
+  .flow{
+    display:flex; align-items:center; flex-wrap:wrap; gap:0; margin:18px 0;
+  }
+  .flow-step{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px;
+    padding:12px 16px; font-family:var(--mono); font-size:13px; text-align:center;
+    flex:1 1 auto; min-width:120px;
+  }
+  .flow-arrow{
+    color:var(--muted); font-size:18px; padding:0 10px; flex:0 0 auto;
+  }
+  .flow.vertical{flex-direction:column; align-items:stretch;}
+  .flow.vertical .flow-arrow{align-self:center; padding:4px 0;}
+  @media(max-width:640px){
+    .flow{flex-direction:column; align-items:stretch;}
+    .flow .flow-arrow{align-self:center; transform:rotate(90deg); padding:4px 0;}
+  }
+
+  /* ---------- TABLE ---------- */
+  .table-wrap{overflow-x:auto; border-radius:12px; border:1px solid var(--border);}
+  table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px;}
+  th{
+    background:var(--surface-2); font-family:var(--mono); font-weight:600; font-size:12px;
+    text-align:left; padding:12px 14px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;
+    border-bottom:1px solid var(--border);
+  }
+  td{padding:12px 14px; border-bottom:1px solid var(--border); background:var(--surface);}
+  tr:last-child td{border-bottom:none;}
+  td.hl-cookie{color:var(--cookie);}
+  td.hl-session{color:var(--session);}
+  td.hl-local{color:var(--local);}
+  td.hl-idb{color:var(--idb);}
+
+  /* ---------- LADDER ---------- */
+  .ladder{display:flex; flex-direction:column; gap:10px;}
+  .rung{
+    display:flex; align-items:center; gap:14px;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:12px 16px;
+  }
+  .rung-num{
+    font-family:var(--mono); font-weight:700; font-size:13px; color:var(--bg);
+    background:linear-gradient(135deg,var(--local),var(--idb));
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    flex:0 0 auto;
+  }
+  .rung-body b{font-size:14px;}
+  .rung-body div{font-size:13px; color:var(--muted); margin-top:2px;}
+
+  /* ---------- INTERVIEW TIERS ---------- */
+  .tier{margin-bottom:18px;}
+  .tier-label{
+    font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+    padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:10px;
+  }
+  .tier.easy .tier-label{background:rgba(74,222,128,0.12); color:var(--good);}
+  .tier.medium .tier-label{background:rgba(245,166,35,0.12); color:var(--cookie);}
+  .tier.advanced .tier-label{background:rgba(255,107,107,0.12); color:var(--danger);}
+  .qa{background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:8px; font-size:14px;}
+  .qa .q{font-weight:600; margin-bottom:6px;}
+  .qa .a{color:var(--muted); font-size:13.5px;}
+
+  /* ---------- ONE PAGE BRAIN ---------- */
+  .brain-flow{
+    font-family:var(--mono); text-align:center; font-size:15px; color:var(--local);
+    background:var(--surface-2); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:16px;
+    letter-spacing:.02em;
+  }
+  .remember-chain{display:flex; flex-direction:column; gap:6px;}
+  .remember-row{
+    display:flex; gap:14px; align-items:center; font-family:var(--mono); font-size:13.5px;
+    background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:10px 14px;
+  }
+  .remember-row .k{width:150px; flex:0 0 auto; font-weight:600;}
+  .remember-row .arrow{color:var(--muted);}
+
+  /* ---------- MEMORY PALACE ---------- */
+  .palace-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  @media(max-width:800px){.palace-grid{grid-template-columns:1fr;}}
+  .palace-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px;
+    text-align:center;
+  }
+  .palace-card .ico{font-size:26px; margin-bottom:8px;}
+  .palace-card h4{font-family:var(--mono); font-size:13px; color:var(--local); margin:0 0 8px; text-transform:uppercase; letter-spacing:.08em;}
+  .palace-card p{font-size:14px; margin:0;}
+
+  /* ---------- LEGEND ---------- */
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:16px;}
+  .legend-item{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); font-family:var(--mono);}
+  .legend-dot{width:10px; height:10px; border-radius:3px; flex:0 0 auto;}
+
+  footer{text-align:center; padding:40px 0 10px; color:var(--muted); font-size:12.5px; font-family:var(--mono);}
+</style>
+</head>
+<body>
+
+<nav class="jumpnav">
+  <div class="jumpnav-inner">
+    <a href="#m1">01 Topic Card</a>
+    <a href="#m2">02 Intuition</a>
+    <a href="#m3">03 Mental Model</a>
+    <a href="#m4">04 Patterns</a>
+    <a href="#m5">05 Fundamentals</a>
+    <a href="#m6">06 Execution</a>
+    <a href="#m7">07 Syntax</a>
+    <a href="#m8">08 Walkthrough</a>
+    <a href="#m9">09 Behind Scenes</a>
+    <a href="#m10">10 Real Usage</a>
+    <a href="#m11">11 Mistakes</a>
+    <a href="#m12">12 Debugging</a>
+    <a href="#m13">13 IITM Pattern</a>
+    <a href="#m14">14 Interview</a>
+    <a href="#m15">15 One-Page Brain</a>
+    <a href="#m16">16 Revision Table</a>
+    <a href="#m17">17 Practice Ladder</a>
+    <a href="#m18">18 Memory Palace</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="eyebrow">MAD2 Learning OS · Module W6_L1</div>
+    <h1 class="title">Persistent Storage <span>in Vue.js</span></h1>
+    <p class="subtitle">Your Vue app's memory gets wiped on every reload. This is the story of the four places browsers let you hide data so it survives — and exactly when to use each one.</p>
+  </div>
+
+  <div class="cabinet-wrap">
+    <div class="cabinet">
+      <div class="drawer cookie">
+        <div class="drawer-handle">🍪</div>
+        <div class="drawer-text">
+          <div class="drawer-name">Cookies</div>
+          <div class="drawer-desc">Tiny notes, also readable by the server</div>
+        </div>
+        <div class="drawer-tag">~1–4 KB</div>
+      </div>
+      <div class="drawer session">
+        <div class="drawer-handle">⏱️</div>
+        <div class="drawer-text">
+          <div class="drawer-name">sessionStorage</div>
+          <div class="drawer-desc">Wiped the moment the tab closes</div>
+        </div>
+        <div class="drawer-tag">per tab</div>
+      </div>
+      <div class="drawer local">
+        <div class="drawer-handle">🗄️</div>
+        <div class="drawer-text">
+          <div class="drawer-name">localStorage</div>
+          <div class="drawer-desc">Survives closing the browser, even a restart</div>
+        </div>
+        <div class="drawer-tag">~5–10 MB</div>
+      </div>
+      <div class="drawer idb">
+        <div class="drawer-handle">🗃️</div>
+        <div class="drawer-text">
+          <div class="drawer-name">IndexedDB</div>
+          <div class="drawer-desc">A real transactional database, for structured data</div>
+        </div>
+        <div class="drawer-tag">large / async</div>
+      </div>
+    </div>
+    <div class="cabinet-caption">The Storage Cabinet — same origin, four drawers, four lifespans</div>
+  </div>
+
+  <!-- MODULE 1 -->
+  <section id="m1">
+    <div class="modtag"><span class="num">1</span>Topic Card · 30 Seconds</div>
+    <h2 class="modh">Where this fits</h2>
+    <div class="topic-card">
+      <div class="tc-value" style="font-size:18px;">Persistent Storage in Vue.js</div>
+      <div class="tc-row">
+        <div class="tc-item">
+          <div class="tc-label">Category</div>
+          <div class="tc-value">Vue Fundamentals · Browser APIs</div>
+        </div>
+        <div class="tc-item">
+          <div class="tc-label">Difficulty</div>
+          <div class="tc-value stars">★★<span class="dim">★★★</span></div>
+        </div>
+        <div class="tc-item">
+          <div class="tc-label">Importance</div>
+          <div class="tc-value stars">★★★★<span class="dim">★</span></div>
+        </div>
+        <div class="tc-item">
+          <div class="tc-label">Prerequisites</div>
+          <div class="tc-value" style="font-weight:400; font-size:14px;">Vue reactive data, lifecycle hooks (<code>mounted</code>), watchers, JS objects &amp; JSON</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 2 -->
+  <section id="m2">
+    <div class="modtag"><span class="num">2</span>Core Intuition · WHY</div>
+    <h2 class="modh">Why this exists</h2>
+    <div class="callout analogy">
+      <div class="ico">💡</div>
+      <div>A Vue app's data is like writing on a whiteboard. The moment you refresh the page, someone wipes the whiteboard clean and hands you a fresh one — Vue re-initializes from scratch. Persistent storage is simply a filing cabinet next to the whiteboard: before the board gets wiped, you copy what matters onto paper and file it away, so next time you can pull it back out instead of starting over.</div>
+    </div>
+    <div class="card">
+      <p>Browsers give you four different "cabinets" for this — cookies, sessionStorage, localStorage, and IndexedDB — each with a different lifespan, size limit, and level of structure. Choosing the right one is the whole skill.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 3 -->
+  <section id="m3">
+    <div class="modtag"><span class="num">3</span>Visual Mental Model</div>
+    <h2 class="modh">One picture, one idea</h2>
+    <div class="flow">
+      <div class="flow-step">Page Reload</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--danger); color:var(--danger);">Vue memory wiped</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--local); color:var(--local);">Storage cabinet untouched</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Read it back in <code>mounted()</code></div>
+    </div>
+    <div class="callout info">
+      <div class="ico">🧠</div>
+      <div>Think of it as: <b>RAM vs. Filing Cabinet.</b> Vue's reactive <code>data</code> lives in RAM — fast but temporary. The four storage APIs live on disk — slower, but they outlive the page.</div>
+    </div>
+  </section>
+
+  <!-- MODULE 4 -->
+  <section id="m4">
+    <div class="modtag"><span class="num">4</span>Pattern Recognition</div>
+    <h2 class="modh">Spot the question instantly</h2>
+    <div class="card">
+      <h3>Trigger words</h3>
+      <p><code>reload</code>, <code>persist</code>, <code>offline</code>, <code>localStorage</code>, <code>sessionStorage</code>, <code>IndexedDB</code>, <code>cookie</code>, <code>JSON.stringify</code>, <code>key-value</code>, "remember user preferences"</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>If the question says…</th><th>Reach for</th></tr></thead>
+        <tbody>
+          <tr><td>"survive closing the whole browser"</td><td class="hl-local">localStorage</td></tr>
+          <tr><td>"only while this tab is open"</td><td class="hl-session">sessionStorage</td></tr>
+          <tr><td>"server needs to read it too"</td><td class="hl-cookie">Cookie</td></tr>
+          <tr><td>"large amount of structured / relational data"</td><td class="hl-idb">IndexedDB</td></tr>
+          <tr><td>"store an object / array"</td><td>JSON.stringify() first</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 5 -->
+  <section id="m5">
+    <div class="modtag"><span class="num">5</span>Deep Fundamentals</div>
+    <h2 class="modh">The four questions</h2>
+    <div class="card b-idb">
+      <h3>1. Why was this feature created?</h3>
+      <p>HTTP is stateless — a server forgets you the instant a response is sent. Cookies (1994) were invented so a server could stamp an ID on your browser and recognize you next request. Later, as apps became more client-heavy (SPAs, offline apps), browsers added Web Storage (2009) for pure client-side key-value data, and IndexedDB for anything that outgrew a simple key-value pair.</p>
+    </div>
+    <div class="card b-idb">
+      <h3>2. What problem does it solve?</h3>
+      <p>Without it, every reload = total amnesia. A Vue app re-runs its <code>data()</code> function from scratch on every load, so anything not saved outside the JS runtime disappears — preferences, cart contents, draft text, game progress, all gone.</p>
+    </div>
+    <div class="card b-idb">
+      <h3>3. What happens internally?</h3>
+      <p>The browser maintains a storage area partitioned by <b>origin</b> (protocol + domain + port). Each origin gets its own isolated cookie jar, sessionStorage, localStorage, and IndexedDB database — your site can never read another site's storage.</p>
+    </div>
+    <div class="card b-idb">
+      <h3>4. How does Vue/JavaScript execute it?</h3>
+      <p>Web Storage (local/session) is <b>synchronous</b> — a plain string-only key-value dictionary you read/write directly. IndexedDB is <b>asynchronous</b> and transactional — you open a connection, start a transaction, and get results via events or promises.</p>
+    </div>
+  </section>
+
+  <!-- MODULE 6 -->
+  <section id="m6">
+    <div class="modtag"><span class="num">6</span>Execution Flow</div>
+    <h2 class="modh">The internal sequence</h2>
+    <div class="flow vertical">
+      <div class="flow-step">Component created — <code>data()</code> returns default state</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--local);">mounted() hook fires</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">localStorage.getItem('key')</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">JSON.parse() → assign to reactive state</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step">User interacts, state changes</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--idb);">watcher fires → JSON.stringify() → setItem()</div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step" style="border-color:var(--good); color:var(--good);">Reload page → cycle repeats, nothing lost</div>
+    </div>
+  </section>
+
+  <!-- MODULE 7 -->
+  <section id="m7">
+    <div class="modtag"><span class="num">7</span>Syntax Anatomy</div>
+    <h2 class="modh">Every keyword, explained</h2>
+    <pre class="code"><span class="tok-fn">localStorage</span><span class="tok-punc">.</span><span class="tok-fn">setItem</span><span class="tok-punc">(</span><span class="tok-str">'cities'</span><span class="tok-punc">,</span> <span class="tok-fn">JSON</span><span class="tok-punc">.</span><span class="tok-fn">stringify</span><span class="tok-punc">(</span><span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">cities</span><span class="tok-punc">))</span></pre>
+    <div class="code-annot"><span class="badge">localStorage</span> the browser's global persistent key-value store for this origin</div>
+    <div class="code-annot"><span class="badge">.setItem()</span> writes a value under a key — always takes two strings</div>
+    <div class="code-annot"><span class="badge">'cities'</span> the key you'll use later to retrieve this exact value</div>
+    <div class="code-annot"><span class="badge">JSON.stringify()</span> converts the array/object into a string, because storage only accepts strings</div>
+    <div class="code-annot"><span class="badge">this.cities</span> the reactive Vue data property being saved</div>
+
+    <pre class="code"><span class="tok-fn">mounted</span><span class="tok-punc">() {</span>
+  <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">cities</span> <span class="tok-punc">=</span> <span class="tok-fn">JSON</span><span class="tok-punc">.</span><span class="tok-fn">parse</span><span class="tok-punc">(</span><span class="tok-fn">localStorage</span><span class="tok-punc">.</span><span class="tok-fn">getItem</span><span class="tok-punc">(</span><span class="tok-str">'cities'</span><span class="tok-punc">)) ||</span> <span class="tok-punc">[]</span>
+<span class="tok-punc">}</span></pre>
+    <div class="code-annot"><span class="badge">mounted</span> the lifecycle hook Vue calls once the component is on the real DOM — safe place to read storage</div>
+    <div class="code-annot"><span class="badge">JSON.parse</span> turns the saved string back into a real array/object</div>
+    <div class="code-annot"><span class="badge">|| []</span> fallback for the very first visit, when nothing has been saved yet</div>
+  </section>
+
+  <!-- MODULE 8 -->
+  <section id="m8">
+    <div class="modtag"><span class="num">8</span>Code Walkthrough</div>
+    <h2 class="modh">A tiny persisted city list</h2>
+    <div class="flow">
+      <div class="flow-step">data()</div><div class="flow-arrow">→</div>
+      <div class="flow-step">mounted()</div><div class="flow-arrow">→</div>
+      <div class="flow-step">load from storage</div><div class="flow-arrow">→</div>
+      <div class="flow-step">watch()</div><div class="flow-arrow">→</div>
+      <div class="flow-step">save to storage</div>
+    </div>
+    <pre class="code"><span class="tok-key">export default</span> <span class="tok-punc">{</span>
+  <span class="tok-fn">data</span><span class="tok-punc">() {</span>
+    <span class="tok-key">return</span> <span class="tok-punc">{</span>
+      <span class="tok-prop">cities</span><span class="tok-punc">: []</span>       <span class="tok-com">// starts empty every time the app boots</span>
+    <span class="tok-punc">}</span>
+  <span class="tok-punc">},</span>
+  <span class="tok-fn">mounted</span><span class="tok-punc">() {</span>
+    <span class="tok-com">// 1. pull any previously saved cities back in</span>
+    <span class="tok-prop">this</span><span class="tok-punc">.</span><span class="tok-prop">cities</span> <span class="tok-punc">=</span> <span class="tok-fn">JSON</span><span class="tok-punc">.</span><span class="tok-fn">parse</span><span class="tok-punc">(</span><span class="tok-fn">localStorage</span><span class="tok-punc">.</span><span class="tok-fn">getItem</span><span class="tok-punc">(</span><span class="tok-str">'cities'</span><span class="tok-punc">)) ||</span> <span class="tok-punc">[]</span>
+  <span class="tok-punc">},</span>
+  <span class="tok-prop">watch</span><span class="tok-punc">: {</span>
+    <span class="tok-fn">cities</span><span class="tok-punc">(</span><span class="tok-prop">newVal</span><span class="tok-punc">) {</span>
+      <span class="tok-com">// 2. any time the list changes, re-save it automatically</span>
+      <span class="tok-fn">localStorage</span><span class="tok-punc">.</span><span class="tok-fn">setItem</span><span class="tok-punc">(</span><span class="tok-str">'cities'</span><span class="tok-punc">,</span> <span class="tok-fn">JSON</span><span class="tok-punc">.</span><span class="tok-fn">stringify</span><span class="tok-punc">(</span><span class="tok-prop">newVal</span><span class="tok-punc">))</span>
+    <span class="tok-punc">},</span>
+    <span class="tok-prop">deep</span><span class="tok-punc">:</span> <span class="tok-key">true</span>
+  <span class="tok-punc">}</span>
+<span class="tok-punc">}</span></pre>
+    <div class="callout good">
+      <div class="ico">✅</div>
+      <div>Add a city, refresh the page, and it's still there — the watcher wrote it to <code>localStorage</code> before the reload wiped Vue's memory.</div>
+    </div>
+  </section>
+
+  <!-- MODULE 9 -->
+  <section id="m9">
+    <div class="modtag"><span class="num">9</span>Behind the Scenes</div>
+    <h2 class="modh">What the browser is really doing</h2>
+    <div class="flow">
+      <div class="flow-step">setItem() called</div><div class="flow-arrow">→</div>
+      <div class="flow-step">browser writes to an on-disk store, per origin</div><div class="flow-arrow">→</div>
+      <div class="flow-step">main thread blocks briefly (sync API)</div><div class="flow-arrow">→</div>
+      <div class="flow-step">data available to any tab on the same origin</div>
+    </div>
+    <div class="card-grid">
+      <div class="card b-local">
+        <h3>localStorage / sessionStorage</h3>
+        <p>Synchronous, string-only, capped around 5–10 MB per origin. Because it's synchronous, large reads/writes can briefly freeze the UI — one reason to keep what you store small.</p>
+      </div>
+      <div class="card b-idb">
+        <h3>IndexedDB</h3>
+        <p>Asynchronous and transactional, built like a lightweight NoSQL database with "object stores" and indexes. Much larger capacity, doesn't block the main thread — the trade-off is a more verbose API.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- MODULE 10 -->
+  <section id="m10">
+    <div class="modtag"><span class="num">10</span>Real Project Usage</div>
+    <h2 class="modh">Where you've already used this</h2>
+    <div class="card-grid">
+      <div class="card b-idb">
+        <h3>Gmail — offline mode</h3>
+        <p>Recent emails are cached in IndexedDB so you can open and read messages on a flight with no signal, syncing back up once you reconnect.</p>
+      </div>
+      <div class="card b-local">
+        <h3>Spotify Web Player</h3>
+        <p>Volume level, last queue, and UI preferences are saved to localStorage so the player looks and sounds the same every time you come back.</p>
+      </div>
+      <div class="card b-cookie">
+        <h3>Amazon guest cart</h3>
+        <p>A cookie identifies your session so the server can match your cart to you across page loads, even before you log in.</p>
+      </div>
+      <div class="card b-session">
+        <h3>Multi-step checkout forms</h3>
+        <p>Form progress is often kept in sessionStorage — meant to last only for this checkout attempt, cleared once the tab closes.</p>
+      </div>
+    </div>
+    <div class="callout analogy">
+      <div class="ico">🌦️</div>
+      <div>A weather app remembering your three saved cities, or a browser game remembering your level progress — both textbook cases of "small amount of state, doesn't need a server round-trip, just needs to survive a refresh."</div>
+    </div>
+  </section>
+
+  <!-- MODULE 11 -->
+  <section id="m11">
+    <div class="modtag"><span class="num">11</span>Common Mistakes</div>
+    <h2 class="modh">Wrong vs. Right</h2>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>localStorage.setItem('cities', this.cities) — stores the literal text "[object Object]"</div>
+      <div class="m-right"><b>✅ Correct</b>localStorage.setItem('cities', JSON.stringify(this.cities))</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Assuming localStorage syncs your data to your phone or another browser</div>
+      <div class="m-right"><b>✅ Correct</b>It's local to one browser on one machine — nothing syncs across devices automatically</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Storing auth tokens or sensitive personal data in localStorage</div>
+      <div class="m-right"><b>✅ Correct</b>Keep sensitive data server-side / in secure cookies — anything in localStorage is readable by any script on the page</div>
+    </div>
+    <div class="mistake-pair">
+      <div class="m-wrong"><b>❌ Wrong</b>Treating local storage as the "real" copy of important data</div>
+      <div class="m-right"><b>✅ Correct</b>The server remains the master copy; local storage only supplements performance and UX</div>
+    </div>
+  </section>
+
+  <!-- MODULE 12 -->
+  <section id="m12">
+    <div class="modtag"><span class="num">12</span>Debugging Mindset</div>
+    <h2 class="modh">Hunting the bug</h2>
+    <div class="flow">
+      <div class="flow-step">Problem: data gone after refresh</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Observe: check DevTools → Application → Storage</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">Find stage: did mounted() run? did stringify happen?</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step" style="border-color:var(--good); color:var(--good);">Fix</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr><td>"Unexpected token o in JSON"</td><td>Forgot JSON.stringify before saving</td><td>Always stringify objects/arrays before setItem</td></tr>
+          <tr><td>QuotaExceededError</td><td>Storage limit (~5–10MB) exceeded</td><td>Store less, or move to IndexedDB</td></tr>
+          <tr><td>SecurityError on setItem</td><td>Private/incognito mode with storage disabled</td><td>Wrap in try/catch, degrade gracefully</td></tr>
+          <tr><td>Data missing right after saving</td><td>Reading before mounted() has run</td><td>Move the read into the mounted() hook</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- MODULE 13 -->
+  <section id="m13">
+    <div class="modtag"><span class="num">13</span>IITM Exam Pattern</div>
+    <h2 class="modh">How this shows up on the paper</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Trigger words</h3>
+        <p>"survives browser restart", "cleared on tab close", "server can read it", "large structured dataset"</p>
+      </div>
+      <div class="card">
+        <h3>Trap words</h3>
+        <p>Questions deliberately swap <b>session</b> and <b>local</b> in the answer options — read carefully which one is being described.</p>
+      </div>
+      <div class="card">
+        <h3>MCQ tricks</h3>
+        <p>Watch for "syncs across devices" (false for all four) and "stores objects directly" (false — always needs stringify).</p>
+      </div>
+      <div class="card">
+        <h3>PYQ pattern</h3>
+        <p>Frequently asked as "which mechanism would you use for X scenario" — map the scenario to the revision table below.</p>
+      </div>
+    </div>
+    <div class="callout info">
+      <div class="ico">🎯</div>
+      <div><b>Elimination technique:</b> if the scenario says "closes tab" → eliminate localStorage. If it says "large/structured" → eliminate cookies and Web Storage, answer IndexedDB.</div>
+    </div>
+  </section>
+
+  <!-- MODULE 14 -->
+  <section id="m14">
+    <div class="modtag"><span class="num">14</span>Interview Questions</div>
+    <h2 class="modh">Three tiers</h2>
+    <div class="tier easy">
+      <div class="tier-label">Easy</div>
+      <div class="qa"><div class="q">What's the difference between localStorage and sessionStorage?</div><div class="a">localStorage persists indefinitely per origin; sessionStorage is cleared as soon as the tab/window closes.</div></div>
+    </div>
+    <div class="tier medium">
+      <div class="tier-label">Medium</div>
+      <div class="qa"><div class="q">Why do you need JSON.stringify/parse with localStorage?</div><div class="a">Web Storage only accepts and returns strings, so any object or array must be serialized to a string to store it and deserialized to use it again.</div></div>
+    </div>
+    <div class="tier advanced">
+      <div class="tier-label">Advanced</div>
+      <div class="qa"><div class="q">When would you choose IndexedDB over localStorage, and what does that cost you?</div><div class="a">When data is large, structured, or needs querying/indexing — IndexedDB scales far beyond Web Storage's ~5–10MB. The cost is a more complex, asynchronous, transaction-based API instead of simple get/set calls.</div></div>
+    </div>
+  </section>
+
+  <!-- MODULE 15 -->
+  <section id="m15">
+    <div class="modtag"><span class="num">15</span>One-Page Brain</div>
+    <h2 class="modh">The whole topic, compressed</h2>
+    <div class="brain-flow">Reload → Vue memory wiped → Storage cabinet survives → mounted() reads it back</div>
+    <div class="remember-chain">
+      <div class="remember-row"><span class="k">Cookie</span><span class="arrow">→</span> tiny, server can read it</div>
+      <div class="remember-row"><span class="k">sessionStorage</span><span class="arrow">→</span> dies with the tab</div>
+      <div class="remember-row"><span class="k">localStorage</span><span class="arrow">→</span> survives everything, strings only</div>
+      <div class="remember-row"><span class="k">IndexedDB</span><span class="arrow">→</span> big, structured, async</div>
+      <div class="remember-row"><span class="k">Always</span><span class="arrow">→</span> stringify in, parse out</div>
+    </div>
+  </section>
+
+  <!-- MODULE 16 -->
+  <section id="m16">
+    <div class="modtag"><span class="num">16</span>Quick Revision Table</div>
+    <h2 class="modh">Scan this before the exam</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th></th><th>Cookie</th><th>sessionStorage</th><th>localStorage</th><th>IndexedDB</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Survives tab close?</td><td class="hl-cookie">✅</td><td>❌</td><td class="hl-local">✅</td><td class="hl-idb">✅</td></tr>
+          <tr><td>Survives browser restart?</td><td class="hl-cookie">✅ (until expiry)</td><td>❌</td><td class="hl-local">✅</td><td class="hl-idb">✅</td></tr>
+          <tr><td>Size limit</td><td class="hl-cookie">~4 KB</td><td>~5 MB</td><td class="hl-local">~5–10 MB</td><td class="hl-idb">100s of MB+</td></tr>
+          <tr><td>Sent to server?</td><td class="hl-cookie">✅ every request</td><td>❌</td><td class="hl-local">❌</td><td class="hl-idb">❌</td></tr>
+          <tr><td>Data type</td><td>String</td><td>String</td><td class="hl-local">String</td><td class="hl-idb">Structured objects</td></tr>
+          <tr><td>Sync / Async</td><td>Sync</td><td>Sync</td><td class="hl-local">Sync</td><td class="hl-idb">Async</td></tr>
+          <tr><td>Best for</td><td>Auth/session IDs</td><td>Single-session state</td><td class="hl-local">Preferences, small app state</td><td class="hl-idb">Offline data, large datasets</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--cookie);"></span>Cookie</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--session);"></span>sessionStorage</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--local);"></span>localStorage</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--idb);"></span>IndexedDB</div>
+    </div>
+  </section>
+
+  <!-- MODULE 17 -->
+  <section id="m17">
+    <div class="modtag"><span class="num">17</span>Practice Ladder</div>
+    <h2 class="modh">Climb one level at a time</h2>
+    <div class="ladder">
+      <div class="rung"><div class="rung-num">1</div><div class="rung-body"><b>Concept</b><div>Explain in your own words why Vue data disappears on reload.</div></div></div>
+      <div class="rung"><div class="rung-num">2</div><div class="rung-body"><b>Predict Output</b><div>Given a snippet using setItem without stringify, predict what getItem returns.</div></div></div>
+      <div class="rung"><div class="rung-num">3</div><div class="rung-body"><b>Find the Bug</b><div>Spot why a component's watcher never saves — a missing `deep: true`, perhaps.</div></div></div>
+      <div class="rung"><div class="rung-num">4</div><div class="rung-body"><b>MCQ</b><div>Choose the correct storage type for five different mini-scenarios.</div></div></div>
+      <div class="rung"><div class="rung-num">5</div><div class="rung-body"><b>Coding</b><div>Write mounted() + watch() to persist a single reactive counter.</div></div></div>
+      <div class="rung"><div class="rung-num">6</div><div class="rung-body"><b>Mini Project</b><div>Build a to-do list that survives refresh using localStorage.</div></div></div>
+      <div class="rung"><div class="rung-num">7</div><div class="rung-body"><b>Interview</b><div>Answer the tier-3 advanced question out loud, unaided, in under 90 seconds.</div></div></div>
+    </div>
+  </section>
+
+  <!-- MODULE 18 -->
+  <section id="m18">
+    <div class="modtag"><span class="num">18</span>Memory Palace</div>
+    <h2 class="modh">Three anchors, forever</h2>
+    <div class="palace-grid">
+      <div class="palace-card">
+        <div class="ico">📏</div>
+        <h4>Rule</h4>
+        <p>The server is the master copy; the browser's storage is just a convenient photocopy.</p>
+      </div>
+      <div class="palace-card">
+        <div class="ico">🔤</div>
+        <h4>Mnemonic</h4>
+        <p><b>C-S-L-I:</b> Cookie tells the Server, Session leaves with the tab, Local stays forever, Indexed holds it all.</p>
+      </div>
+      <div class="palace-card">
+        <div class="ico">🗺️</div>
+        <h4>Visual</h4>
+        <p>Cookie 🍪 → Session ⏱️ → Local 🗄️ → IndexedDB 🗃️ — the cabinet, top drawer to bottom, smallest lifespan to largest.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<footer>MAD2 Learning OS — Persistent Storage in Vue.js — W6_L1</footer>
+
+</body>
+</html>

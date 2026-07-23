@@ -3,2147 +3,755 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cross Validation & Regularization — Premium Lecture Notes</title>
+<title>Lecture 35 — Cross-Validation for Minimizing MSE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js">
-</script>
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
-  onload="renderMathInElement(document.body, {
-    delimiters: [
-      {left: '$$', right: '$$', display: true},
-      {left: '$', right: '$', display: false}
-    ],
-    macros: {
-      '\\N': '\\mathcal{N}',
-      '\\L': '\\mathcal{L}',
-      '\\R': '\\mathbb{R}',
-      '\\given': '\\mid',
-      '\\tr': '\\operatorname{tr}',
-      '\\Var': '\\operatorname{Var}',
-      '\\Bias': '\\operatorname{Bias}'
-    },
-    throwOnError: false
-  });">
-</script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
+:root{
+  --bg:#080a12;
+  --bg-alt:#0d1019;
+  --panel-bg:#12141f;
+  --panel-bg-2:#151827;
+  --panel-border:rgba(255,255,255,0.08);
+  --panel-border-strong:rgba(255,255,255,0.14);
+  --text:#e7e9f2;
+  --text-dim:#9aa0b4;
+  --text-faint:#666b80;
 
-  :root {
-    --bg: #f4f5f9;
-    --surface: #ffffff;
-    --ink: #1a1e2b;
-    --ink-soft: #505770;
-    --ink-faint: #8b91a5;
-    --line: #dde0e9;
-    --blue: #1e4f8a;
-    --blue-soft: #e9eef7;
-    --gold: #b5872a;
-    --gold-soft: #f6ecd3;
-    --gold-deep: #8f6a1c;
-    --rust: #a8482a;
-    --rust-soft: #f7e6df;
-    --teal: #2c6b5d;
-    --teal-soft: #e2efec;
-    --purple: #5a3e8a;
-    --purple-soft: #ede7f5;
-    --green: #3d7a4a;
-    --green-soft: #e6f0e8;
-    --radius: 12px;
-    --shadow: 0 1px 3px rgba(26,30,43,0.06), 0 8px 28px -12px rgba(26,30,43,0.16);
-    --shadow-lg: 0 4px 32px -8px rgba(26,30,43,0.18);
-  }
+  --gold:#d4af37;
+  --gold-soft:rgba(212,175,55,0.12);
+  --blue:#5b9dff;
+  --blue-soft:rgba(91,157,255,0.12);
+  --green:#4ade80;
+  --green-soft:rgba(74,222,128,0.12);
+  --purple:#b18cfa;
+  --purple-soft:rgba(177,140,250,0.12);
+  --red:#f87171;
+  --red-soft:rgba(248,113,113,0.12);
+  --teal:#2dd4bf;
+  --teal-soft:rgba(45,212,191,0.12);
 
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --body-font:"Inter",system-ui,sans-serif;
+  --mono-font:"JetBrains Mono",monospace;
+}
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: 'Inter', -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
-  }
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(91,157,255,0.08), transparent),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(212,175,55,0.06), transparent),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--body-font);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
 
-  ::selection { background: var(--gold-soft); color: var(--gold-deep); }
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 100px;}
 
-  .container { max-width: 960px; margin: 0 auto; padding: 0 28px; }
+/* ---------- NAV ---------- */
+nav.topnav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(8,10,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--panel-border);
+  overflow-x:auto;
+  white-space:nowrap;
+  scrollbar-width:thin;
+}
+nav.topnav::-webkit-scrollbar{height:4px;}
+nav.topnav::-webkit-scrollbar-thumb{background:var(--panel-border-strong);border-radius:4px;}
+nav.topnav .navinner{display:inline-flex;gap:6px;padding:10px 16px;}
+nav.topnav a{
+  color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  padding:6px 12px;border-radius:20px;border:1px solid transparent;
+  letter-spacing:0.02em;
+  transition:all .15s ease;
+}
+nav.topnav a:hover{color:var(--gold);border-color:var(--panel-border-strong);background:var(--panel-bg);}
 
-  /* ===========================
-     HERO
-  =========================== */
-  .hero {
-    background: linear-gradient(165deg, #141824 0%, #1e2438 100%);
-    color: #f0f1f8;
-    padding: 72px 0 60px;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-    background-size: 36px 36px;
-    pointer-events: none;
-  }
-  .hero .container { position: relative; z-index: 1; }
-  .hero .tag {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #d9b872;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .hero .tag::before {
-    content: '';
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: #d9b872;
-    flex-shrink: 0;
-  }
-  .hero h1 {
-    font-weight: 700;
-    font-size: clamp(34px, 5.6vw, 54px);
-    line-height: 1.08;
-    margin: 0 0 16px;
-    letter-spacing: -0.02em;
-  }
-  .hero h1 em { font-style: italic; color: #d9b872; font-weight: 500; }
-  .hero p {
-    font-size: 17px;
-    color: #b8bdd0;
-    max-width: 620px;
-    margin: 0 0 32px;
-    line-height: 1.5;
-  }
-  .hero .nav-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .hero .nav-pill {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    padding: 7px 14px;
-    border-radius: 100px;
-    border: 1px solid rgba(255,255,255,0.14);
-    color: #b8bdd0;
-    background: rgba(255,255,255,0.04);
-    text-decoration: none;
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .hero .nav-pill:hover {
-    border-color: #d9b872;
-    color: #f0f1f8;
-  }
+/* ---------- HERO ---------- */
+.hero{padding:52px 0 30px;}
+.hero .kicker{
+  font-family:var(--mono-font);color:var(--teal);font-size:0.78rem;
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:14px;font-weight:600;
+}
+.hero h1{
+  font-family:var(--serif-math-font);font-weight:600;font-size:clamp(1.8rem,5vw,2.7rem);
+  margin:0 0 14px;line-height:1.15;
+  background:linear-gradient(135deg,#fff, #b9c2dd 60%, var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.sub{color:var(--text-dim);font-size:1.02rem;max-width:640px;margin:0 0 20px;}
+.hero .chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  font-family:var(--mono-font);font-size:0.72rem;padding:5px 11px;border-radius:20px;
+  border:1px solid var(--panel-border-strong);color:var(--text-dim);background:var(--panel-bg);
+}
 
-  /* ===========================
-     MAIN
-  =========================== */
-  main { padding: 56px 0 90px; }
+/* ---------- SECTION / CARD SYSTEM ---------- */
+section.stage{margin:44px 0;scroll-margin-top:70px;}
+.stage-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.stage-num{
+  font-family:var(--mono-font);font-size:0.85rem;color:var(--bg);
+  background:var(--gold);width:34px;height:34px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;
+}
+.stage-head h2{
+  font-family:var(--serif-math-font);font-weight:600;font-size:1.5rem;margin:0;color:var(--text);
+}
+.stage-head .tag{
+  font-family:var(--mono-font);font-size:0.68rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
 
-  .section { margin-bottom: 72px; }
-  .section:last-of-type { margin-bottom: 0; }
+.card{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:22px 24px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(0,0,0,0.22);
+}
+.card h3{margin-top:0;font-family:var(--body-font);font-size:1rem;font-weight:700;color:var(--text);}
+.card.accent-gold{border-left:3px solid var(--gold);}
+.card.accent-blue{border-left:3px solid var(--blue);}
+.card.accent-teal{border-left:3px solid var(--teal);}
+.card.accent-purple{border-left:3px solid var(--purple);}
+.card.accent-red{border-left:3px solid var(--red);}
+.card.accent-green{border-left:3px solid var(--green);}
 
-  .sec-header {
-    display: flex;
-    align-items: baseline;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .sec-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--gold-deep);
-    background: var(--gold-soft);
-    border-radius: 7px;
-    padding: 4px 10px;
-    flex-shrink: 0;
-  }
-  .sec-header h2 {
-    font-weight: 700;
-    font-size: 26px;
-    margin: 0;
-    letter-spacing: -0.01em;
-    color: var(--ink);
-  }
-  .sec-intro {
-    color: var(--ink-soft);
-    font-size: 15.5px;
-    max-width: 72ch;
-    margin: 0 0 28px;
-    line-height: 1.7;
-  }
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
 
-  /* ===========================
-     RULE 1: EQUATION PANEL
-  =========================== */
-  .eq-panel {
-    background: linear-gradient(160deg, #161b2a, #1c2237);
-    color: #e2e4ed;
-    border: 1px solid #2d334b;
-    border-left: 5px solid var(--gold);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    padding: 36px 36px 32px;
-    margin-bottom: 20px;
-    text-align: center;
-    overflow-x: auto;
-    position: relative;
-  }
-  .eq-panel .eq-num {
-    position: absolute;
-    top: 14px;
-    right: 20px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #5f6785;
-    letter-spacing: 0.04em;
-  }
-  .eq-panel .eq-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #7d859c;
-    margin-bottom: 20px;
-  }
-  .eq-panel .katex-display {
-    margin: 0;
-  }
-  .eq-panel .katex-display > .katex {
-    font-size: 1.35em;
-  }
-  .eq-panel .katex .mathnormal { font-style: italic; }
-  .eq-panel .eq-caption {
-    font-size: 13.5px;
-    color: #7d859c;
-    margin-top: 18px;
-    font-style: italic;
-  }
+/* ---------- CALLOUTS ---------- */
+.callout{
+  border-radius:14px;padding:16px 18px;margin:16px 0;
+  display:flex;gap:12px;align-items:flex-start;
+  border:1px solid var(--panel-border);
+}
+.callout .icon{font-size:1.2rem;line-height:1;flex-shrink:0;margin-top:2px;}
+.callout.tip{background:var(--teal-soft);border-color:rgba(45,212,191,0.3);}
+.callout.warn{background:var(--red-soft);border-color:rgba(248,113,113,0.3);}
+.callout.trap{background:var(--purple-soft);border-color:rgba(177,140,250,0.3);}
+.callout.intuit{background:var(--blue-soft);border-color:rgba(91,157,255,0.3);}
+.callout.trigger{background:var(--gold-soft);border-color:rgba(212,175,55,0.35);}
+.callout b{color:var(--text);}
+.callout .body{color:var(--text-dim);font-size:0.93rem;}
+.callout .body b{color:var(--text);}
 
-  /* ===========================
-     RULE 2: MULTI-LINE EQUATIONS
-  =========================== */
-  .eq-panel.multiline .katex-display > .katex {
-    font-size: 1.1em;
-  }
+/* ---------- EQUATION PANEL ---------- */
+.eq-panel{
+  background:linear-gradient(180deg,var(--panel-bg-2),var(--panel-bg));
+  border:1px solid var(--panel-border-strong);
+  border-radius:18px;
+  padding:2.4rem 1.6rem 2rem;
+  margin:1.8rem 0;
+  box-shadow:0 10px 34px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.eq-panel::before{
+  content:"";position:absolute;top:-40%;left:50%;transform:translateX(-50%);
+  width:70%;height:140%;background:radial-gradient(ellipse at center, var(--eq-glow,rgba(212,175,55,0.08)), transparent 70%);
+  pointer-events:none;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.15rem,3.4vw,1.9rem);
+  color:var(--text);
+  line-height:2;
+  position:relative;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.9rem;right:1.3rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:var(--green);font-style:italic;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);font-weight:600;}
+.op-big{font-size:1.5em;vertical-align:middle;display:inline-block;}
+sub,sup{font-size:0.62em;}
+sup.T{font-style:normal;}
 
-  /* ===========================
-     RULE 3 & 8: DERIVATION TIMELINE
-  =========================== */
-  .derivation-timeline {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 28px 30px;
-    margin-bottom: 20px;
-  }
-  .derivation-timeline .dt-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 20px;
-  }
-  .dt-step {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 10px 0;
-  }
-  .dt-step .dt-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: #fff;
-    background: var(--ink);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .dt-step .dt-text {
-    font-size: 15px;
-    color: var(--ink-soft);
-    flex: 1;
-  }
-  .dt-step .dt-text strong { color: var(--ink); }
-  .dt-step .dt-formula {
-    flex-shrink: 0;
-  }
-  .dt-step .dt-formula .katex { font-size: 1em; }
-  .dt-arrow {
-    text-align: center;
-    color: var(--ink-faint);
-    font-size: 18px;
-    padding: 2px 0;
-    line-height: 1;
-  }
+/* legend */
+.legend{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:8px 18px;margin:10px 0 22px;padding:14px 18px;
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:12px;
+}
+.legend .row{display:flex;gap:8px;font-size:0.86rem;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-style:italic;min-width:34px;font-size:1.02rem;}
+.legend .desc{color:var(--text-dim);}
 
-  /* ===========================
-     RULE 5: SYMBOL LEGEND
-  =========================== */
-  .legend-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    overflow: hidden;
-    margin-bottom: 20px;
-  }
-  .legend-card .leg-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    padding: 16px 22px 0;
-  }
-  .legend-card table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14.5px;
-  }
-  .legend-card table th {
-    text-align: left;
-    background: #f5f6fa;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-soft);
-    padding: 10px 22px;
-    border-bottom: 1px solid var(--line);
-  }
-  .legend-card table td {
-    padding: 11px 22px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: middle;
-  }
-  .legend-card table tr:last-child td { border-bottom: none; }
-  .legend-card table td.leg-sym {
-    font-weight: 600;
-    white-space: nowrap;
-    width: 120px;
-  }
-  .legend-card table td.leg-sym .katex { font-size: 1.1em; }
-  .legend-card table td.leg-meaning { color: var(--ink-soft); }
-  .legend-card table td.leg-example {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: var(--blue);
-    width: 180px;
-  }
+/* ---------- MATRIX GRID ---------- */
+.matrix{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;}
+.matrix .bracket{font-size:2.2em;color:var(--text-dim);font-family:var(--serif-math-font);}
+.matrix table{border-collapse:collapse;}
+.matrix td{padding:4px 12px;font-family:var(--serif-math-font);font-size:1.05rem;text-align:center;}
 
-  /* ===========================
-     RULE 9: BELOW-EQUATION COMPONENTS
-  =========================== */
+/* ---------- STEP TIMELINE ---------- */
+.timeline{position:relative;margin:24px 0;padding-left:6px;}
+.tstep{
+  position:relative;padding:16px 18px 16px 52px;margin-bottom:4px;
+  background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;
+}
+.tstep:not(:last-child){margin-bottom:22px;}
+.tstep:not(:last-child)::after{
+  content:"";position:absolute;left:34px;top:100%;width:2px;height:22px;
+  background:linear-gradient(var(--gold),transparent);
+}
+.tstep .badge{
+  position:absolute;left:14px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);color:var(--bg);font-family:var(--mono-font);font-weight:700;font-size:0.8rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.tstep h4{margin:0 0 6px;font-size:0.95rem;color:var(--text);}
+.tstep .expr{font-family:var(--serif-math-font);font-size:1.05rem;color:var(--gold);margin-top:6px;}
+.tstep p{margin:4px 0 0;color:var(--text-dim);font-size:0.88rem;}
 
-  /* English Explanation */
-  .explain-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-left: 3px solid var(--teal);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-  .explain-card .ex-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--teal);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .explain-card .ex-text {
-    font-size: 16px;
-    color: var(--ink);
-    line-height: 1.6;
-  }
-  .explain-card .ex-text .katex { font-size: 1.05em; }
+/* ---------- TABLES ---------- */
+table.data{width:100%;border-collapse:collapse;margin:14px 0;font-size:0.9rem;}
+table.data th{
+  text-align:left;padding:10px 12px;background:var(--panel-bg-2);
+  color:var(--gold);font-family:var(--mono-font);font-size:0.72rem;
+  text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--panel-border-strong);
+}
+table.data td{padding:10px 12px;border-bottom:1px solid var(--panel-border);color:var(--text-dim);}
+table.data tr:last-child td{border-bottom:none;}
+table.data td.hi{color:var(--text);font-weight:600;}
+table.data code{color:var(--teal);}
 
-  /* Intuition */
-  .intuition-card {
-    background: linear-gradient(135deg, #fffdf8, #ffffff);
-    border: 1px solid #e3cf9b;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-  }
-  .intuition-card .in-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--gold-deep);
-    font-weight: 600;
-    margin-bottom: 6px;
-  }
-  .intuition-card .in-text {
-    font-size: 15px;
-    color: var(--ink-soft);
-    line-height: 1.7;
-  }
-  .intuition-card .in-text strong { color: var(--ink); }
-  .intuition-card .in-text .highlight {
-    background: var(--gold-soft);
-    padding: 1px 6px;
-    border-radius: 4px;
-    color: var(--gold-deep);
-  }
+/* ---------- CODE ---------- */
+pre.code{
+  background:#0a0c14;border:1px solid var(--panel-border);border-radius:12px;
+  padding:16px 18px;overflow-x:auto;font-family:var(--mono-font);font-size:0.82rem;
+  line-height:1.65;color:#c9d1e8;
+}
+pre.code .c{color:var(--text-faint);font-style:italic;}
+pre.code .kw{color:var(--purple);}
+pre.code .fn{color:var(--blue);}
+pre.code .num{color:var(--green);}
+pre.code .str{color:var(--gold);}
 
-  /* Numerical Example */
-  .num-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 24px;
-    margin-bottom: 16px;
-  }
-  .num-card .num-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 12px;
-  }
-  .num-card .num-setup {
-    font-size: 14px;
-    color: var(--ink-soft);
-    margin-bottom: 14px;
-  }
-  .num-card .num-setup strong { color: var(--ink); }
-  .num-card table.num-tbl {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14px;
-    margin-bottom: 12px;
-  }
-  .num-card table.num-tbl th {
-    text-align: left;
-    background: #f5f6fa;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--ink-soft);
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--line);
-  }
-  .num-card table.num-tbl td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--line);
-    vertical-align: middle;
-  }
-  .num-card table.num-tbl td .katex { font-size: 0.95em; }
-  .num-card .num-result {
-    background: var(--teal-soft);
-    border: 1px solid #bcdcd3;
-    border-radius: 8px;
-    padding: 14px 18px;
-    font-weight: 600;
-    font-size: 16px;
-    color: var(--teal);
-    text-align: center;
-  }
-  .num-card .num-result .katex { font-size: 1.05em; }
+/* ---------- DIAGRAM: pipeline ---------- */
+.pipeline{display:flex;align-items:center;flex-wrap:wrap;gap:0;justify-content:center;margin:20px 0;}
+.pnode{
+  background:var(--panel-bg-2);border:1px solid var(--panel-border-strong);
+  border-radius:12px;padding:12px 14px;font-size:0.78rem;text-align:center;
+  min-width:100px;color:var(--text);font-weight:600;
+}
+.pnode.blue{border-color:rgba(91,157,255,0.4);color:var(--blue);}
+.pnode.gold{border-color:rgba(212,175,55,0.4);color:var(--gold);}
+.pnode.teal{border-color:rgba(45,212,191,0.4);color:var(--teal);}
+.pnode.purple{border-color:rgba(177,140,250,0.4);color:var(--purple);}
+.parrow{color:var(--text-faint);font-size:1.3rem;padding:0 8px;}
+@media(max-width:680px){.parrow{transform:rotate(90deg);}}
 
-  /* Interpretation */
-  .interpret-card {
-    background: var(--blue-soft);
-    border: 1px solid #c9d4ea;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 14px;
-  }
-  .interpret-card .int-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--blue);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .interpret-card .int-body strong {
-    display: block;
-    font-size: 13.5px;
-    color: var(--blue);
-    margin-bottom: 4px;
-  }
-  .interpret-card .int-body p {
-    margin: 0;
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    line-height: 1.6;
-  }
-  .interpret-card .int-body p .katex { font-size: 1em; }
+/* ---------- KFOLD DIAGRAM ---------- */
+.kfold-wrap{margin:20px 0;}
+.kfold-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+.kfold-label{width:78px;font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);flex-shrink:0;}
+.kfold-cell{
+  flex:1;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.68rem;font-weight:600;
+  background:var(--blue-soft);color:var(--blue);border:1px solid rgba(91,157,255,0.3);
+}
+.kfold-cell.val{background:var(--red-soft);color:var(--red);border-color:rgba(248,113,113,0.4);}
 
-  /* Common Mistakes */
-  .mistakes-card {
-    background: var(--rust-soft);
-    border: 1px solid #e6c3b3;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 24px;
-    margin-bottom: 16px;
-    display: flex;
-    gap: 14px;
-  }
-  .mistakes-card .mis-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: var(--rust);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 13px;
-    flex-shrink: 0;
-  }
-  .mistakes-card .mis-body strong {
-    display: block;
-    font-size: 13.5px;
-    color: var(--rust);
-    margin-bottom: 4px;
-  }
-  .mistakes-card .mis-body p {
-    margin: 0 0 6px;
-    font-size: 14.5px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-  .mistakes-card .mis-body p:last-child { margin-bottom: 0; }
-  .mistakes-card .mis-body p .katex { font-size: 1em; }
+/* ---------- EIGEN DIAGRAM (SVG holder) ---------- */
+.svg-box{
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:14px;
+  padding:14px;margin:18px 0;display:flex;justify-content:center;
+}
+.svg-box svg{max-width:100%;height:auto;}
 
-  /* Applications */
-  .apps-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 22px 24px;
-    margin-bottom: 16px;
-  }
-  .apps-card .ap-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    margin-bottom: 14px;
-  }
-  .apps-card .ap-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  .apps-card .ap-item {
-    background: #f5f6fa;
-    border-radius: 8px;
-    padding: 14px 16px;
-    font-size: 14px;
-    color: var(--ink-soft);
-    line-height: 1.5;
-  }
-  .apps-card .ap-item strong {
-    display: block;
-    color: var(--ink);
-    margin-bottom: 3px;
-  }
+/* ---------- ONE PAGE BRAIN ---------- */
+.brain{
+  background:linear-gradient(160deg, rgba(212,175,55,0.06), rgba(91,157,255,0.04));
+  border:1px solid var(--panel-border-strong);border-radius:20px;padding:26px 26px 8px;
+}
+.brain h3{color:var(--gold);font-family:var(--serif-math-font);font-size:1.1rem;margin:0 0 10px;}
+.brain ul{margin:0 0 18px;padding-left:20px;color:var(--text-dim);font-size:0.88rem;}
+.brain ul li{margin-bottom:5px;}
+.brain ul li b{color:var(--text);}
 
-  /* ===========================
-     RULE 12: SVG ILLUSTRATIONS
-  =========================== */
-  .svg-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 24px 24px 18px;
-    margin-bottom: 20px;
-  }
-  .svg-card .svg-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--ink-faint);
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 16px;
-  }
-  .svg-card svg {
-    width: 100%;
-    height: auto;
-    display: block;
-  }
-  .svg-card .svg-caption {
-    font-size: 13px;
-    color: var(--ink-soft);
-    text-align: center;
-    margin-top: 10px;
-  }
+footer{text-align:center;padding:40px 0 10px;color:var(--text-faint);font-size:0.78rem;font-family:var(--mono-font);}
 
-  /* ===========================
-     CALLOUTS
-  =========================== */
-  .callout {
-    border-radius: var(--radius);
-    padding: 18px 20px;
-    margin: 16px 0;
-    display: flex;
-    gap: 14px;
-    border: 1px solid transparent;
-  }
-  .callout .co-icon {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 14px;
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .callout .co-body strong { display: block; font-size: 13.5px; margin-bottom: 3px; }
-  .callout .co-body p { margin: 0; font-size: 14.5px; color: var(--ink-soft); line-height: 1.6; }
-  .callout .co-body p .katex { font-size: 1em; }
-  .callout.info { background: var(--blue-soft); border-color: #c9d4ea; }
-  .callout.info .co-icon { background: var(--blue); color: #fff; }
-  .callout.info .co-body strong { color: var(--blue); }
-  .callout.warn { background: var(--rust-soft); border-color: #e6c3b3; }
-  .callout.warn .co-icon { background: var(--rust); color: #fff; }
-  .callout.warn .co-body strong { color: var(--rust); }
-  .callout.good { background: var(--teal-soft); border-color: #bcdcd3; }
-  .callout.good .co-icon { background: var(--teal); color: #fff; }
-  .callout.good .co-body strong { color: var(--teal); }
-
-  /* ===========================
-     CODE BLOCK
-  =========================== */
-  .code-block {
-    background: #141824;
-    border-radius: var(--radius);
-    padding: 20px 22px;
-    margin: 16px 0;
-    overflow-x: auto;
-    box-shadow: var(--shadow);
-  }
-  .code-block .cb-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #6b7394;
-    margin-bottom: 12px;
-    letter-spacing: 0.04em;
-  }
-  .code-block pre {
-    margin: 0;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13.5px;
-    line-height: 1.7;
-    color: #dbe0ef;
-  }
-  .code-block .cm { color: #6b7394; }
-  .code-block .kw { color: #e2a25c; }
-  .code-block .fn { color: #7fb0e8; }
-  .code-block .er { color: #e0967a; }
-
-  /* ===========================
-     PARAMETER CARDS
-  =========================== */
-  .param-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-  .param-card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 20px 22px;
-    text-align: center;
-  }
-  .param-card .p-sym { font-weight: 600; font-size: 20px; margin-bottom: 8px; display: block; }
-  .param-card .p-sym .katex { font-size: 1.3em; }
-  .param-card h4 {
-    font-weight: 600;
-    font-size: 16px;
-    margin: 0 0 6px;
-  }
-  .param-card p {
-    margin: 0;
-    font-size: 14px;
-    color: var(--ink-soft);
-  }
-  .param-card.gold .p-sym .katex { color: var(--gold); }
-
-  /* ===========================
-     K-FOLD VISUAL STRIP
-  =========================== */
-  .fold-strip {
-    display: flex;
-    gap: 4px;
-    margin: 18px 0;
-    flex-wrap: wrap;
-  }
-  .fold-block {
-    flex: 1;
-    min-width: 40px;
-    height: 34px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--ink-soft);
-    background: var(--surface);
-    border: 1px solid var(--line);
-  }
-  .fold-block.held {
-    background: var(--rust);
-    color: #fff;
-    border-color: var(--rust);
-    font-weight: 700;
-  }
-
-  /* ===========================
-     INTERACTIVE SIM
-  =========================== */
-  .sim-wrap {
-    background: linear-gradient(180deg, #161b2a, #10141f);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    padding: 32px 28px 28px;
-    margin-bottom: 20px;
-    position: relative;
-    overflow: hidden;
-  }
-  .sim-wrap .sim-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #7d859c;
-    text-align: center;
-    margin-bottom: 22px;
-  }
-  .sim-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .sim-top .sim-title {
-    font-weight: 700;
-    font-size: 19px;
-    color: #f0f1f8;
-  }
-  .sim-top .sim-sub {
-    font-size: 13px;
-    color: #7d859c;
-    margin-top: 3px;
-  }
-  .sim-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 100px;
-    background: rgba(217,184,114,0.12);
-    border: 1px solid rgba(217,184,114,0.32);
-    color: #d9b872;
-  }
-  .chart-wrap {
-    border: 1px solid #2d334b;
-    border-radius: 10px;
-    background: #0c111c;
-    padding: 16px;
-    overflow-x: auto;
-    margin-bottom: 16px;
-  }
-  .chart-wrap svg { display: block; margin: 0 auto; }
-  .chart-label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: #5f6785;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin: 18px 0 8px;
-  }
-  .sim-controls {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    align-items: center;
-  }
-  button.sim-btn {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 14px;
-    padding: 11px 18px;
-    border-radius: 9px;
-    cursor: pointer;
-    border: 1px solid rgba(217,184,114,0.32);
-    background: rgba(217,184,114,0.12);
-    color: #d9b872;
-    transition: all 0.15s ease;
-  }
-  button.sim-btn:hover:not(:disabled) {
-    background: #d9b872;
-    color: #0a0e17;
-  }
-  button.sim-btn.secondary {
-    background: transparent;
-    color: #7d859c;
-    border-color: #2d334b;
-  }
-  button.sim-btn.secondary:hover {
-    border-color: #7d859c;
-    color: #c2c6d6;
-  }
-  .slider-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 18px;
-    flex-wrap: wrap;
-  }
-  .slider-row label {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12.5px;
-    color: #5f6785;
-    white-space: nowrap;
-  }
-  .slider-row input[type="range"] {
-    flex: 1;
-    min-width: 160px;
-    accent-color: #d9b872;
-  }
-  .slider-row .slider-val {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: #d9b872;
-    min-width: 64px;
-    text-align: right;
-  }
-  .sim-legend {
-    display: flex;
-    gap: 18px;
-    margin-top: 14px;
-    flex-wrap: wrap;
-    font-size: 12.5px;
-    color: #5f6785;
-  }
-  .sim-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .swatch.ln {
-    width: 16px;
-    height: 2px;
-    border-radius: 0;
-  }
-  .sim-stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-top: 22px;
-  }
-  .stat {
-    background: #0c111c;
-    border: 1px solid #2d334b;
-    border-radius: 10px;
-    padding: 12px 14px;
-  }
-  .stat .k {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: #5f6785;
-  }
-  .stat .v {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
-    color: #dbe0ef;
-    margin-top: 4px;
-  }
-  .stat .v.gold-txt { color: #d9b872; }
-  .stat .v.blue-txt { color: #7fb0e8; }
-  .stat .v.green-txt { color: #8fb996; }
-  .stat .v.red-txt { color: #e0967a; }
-  .eig-bars {
-    display: flex;
-    align-items: flex-end;
-    gap: 10px;
-    height: 110px;
-    margin-top: 14px;
-    padding: 0 4px;
-  }
-  .eig-col {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    height: 100%;
-    gap: 4px;
-  }
-  .eig-bar-track {
-    flex: 1;
-    width: 100%;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    position: relative;
-  }
-  .eig-bar {
-    width: 60%;
-    background: #7fb0e8;
-    border-radius: 3px 3px 0 0;
-    transition: height 0.15s ease;
-  }
-  .eig-bar.lifted {
-    background: #d9b872;
-  }
-  .eig-col .lbl {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
-    color: #5f6785;
-  }
-
-  footer {
-    border-top: 1px solid var(--line);
-    padding: 28px 0 40px;
-    text-align: center;
-  }
-  footer p {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--ink-faint);
-    margin: 0;
-  }
-
-  .katex .mathnormal { font-style: italic; }
-  .katex .boldsymbol { font-weight: 700; }
-  .katex .mord.text { font-family: 'Inter', sans-serif; }
-
-  @media (max-width: 820px) {
-    .param-grid { grid-template-columns: 1fr; }
-    .apps-card .ap-grid { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .container { padding: 0 18px; }
-    main { padding: 40px 0 70px; }
-    .eq-panel { padding: 24px 18px; }
-    .eq-panel .katex-display > .katex { font-size: 1em; }
-    .hero { padding: 52px 0 44px; }
-    .sec-header h2 { font-size: 22px; }
-    .sim-wrap { padding: 22px 16px; }
-    .chart-wrap { padding: 10px; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--panel-border-strong),transparent);margin:50px 0;}
 </style>
 </head>
 <body>
+<nav class="topnav"><div class="navinner">
+<a href="#s-1">-1 Pattern</a>
+<a href="#s0">0 Problem</a>
+<a href="#s1">1 History</a>
+<a href="#s2">2 Engineering</a>
+<a href="#s3">3 Math</a>
+<a href="#s4">4 Formula</a>
+<a href="#s5">5 Anatomy</a>
+<a href="#s6">6 Derivation</a>
+<a href="#s7">7 Algorithm</a>
+<a href="#s8">8 Optimization</a>
+<a href="#s9">9 Edge Cases</a>
+<a href="#s10">10 Triggers</a>
+<a href="#s11">11 Recognition</a>
+<a href="#s12">12 Shape</a>
+<a href="#s13">13 Symbols</a>
+<a href="#s14">14 Flow</a>
+<a href="#s15">15 Families</a>
+<a href="#s16">16 Invariants</a>
+<a href="#s17">17 Expert</a>
+<a href="#s18">18 Traps</a>
+<a href="#s19">19 Shortcuts</a>
+<a href="#s20">20 Industry</a>
+<a href="#s21">21 Connections</a>
+<a href="#s22">22 One Page</a>
+</div></nav>
 
-<header class="hero">
-  <div class="container">
-    <div class="tag">Supervised Learning &middot; Lecture Notes</div>
-    <h1>Cross-Validation &amp; the<br>Bias–Variance <em>Tradeoff</em></h1>
-    <p>Lecture 34 showed that the expected error of $\hat{\mathbf{w}}_{\text{ML}}$ is $\sigma^2 \cdot \tr\bigl((\mathbf{X}\mathbf{X}^\top)^{-1}\bigr)$. When eigenvalues of $\mathbf{X}\mathbf{X}^\top$ are tiny, that trace explodes. Today: fix it with ridge regularization, and build cross-validation to choose $\lambda$ using only the data itself.</p>
-    <div class="nav-row">
-      <a href="#s1" class="nav-pill">&sect;1 Expected Error</a>
-      <a href="#s2" class="nav-pill">&sect;2 Ridge Regression</a>
-      <a href="#s3" class="nav-pill">&sect;3 Cross-Validation</a>
-      <a href="#s4" class="nav-pill">&sect;4 Bias–Variance</a>
-      <a href="#s5" class="nav-pill">&sect;5 Interactive Demo</a>
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Lecture 35 · Regression &amp; Model Selection</div>
+  <h1>Cross-Validation for Minimizing Mean Squared Error</h1>
+  <p class="sub">How the <b>trace</b> of a matrix, its <b>eigenvalues</b>, and a single scalar knob <span class="sym-param">λ</span> combine to fix a structural weakness of Maximum Likelihood regression — and how <b>K-fold cross-validation</b> tells you exactly which λ to pick.</p>
+  <div class="chips">
+    <span class="chip">Linear Algebra</span>
+    <span class="chip">Regularization</span>
+    <span class="chip">Ridge Regression</span>
+    <span class="chip">Bias–Variance</span>
+    <span class="chip">Model Selection</span>
+  </div>
+</div>
+<section class="stage" id="s-1">
+  <div class="stage-head"><div class="stage-num">−1</div><h2>Cognitive Pattern</h2><span class="tag">what kind of thinking is this?</span></div>
+  <div class="grid3">
+    <div class="card accent-blue"><h3>🔷 Linear Algebra</h3><p style="color:var(--text-dim);font-size:0.9rem;">Eigenvalues of <span class="sym-fn">XX</span><sup class="T">T</sup> control how "invertible" the problem is. Small eigenvalue → matrix is nearly singular in that direction.</p></div>
+    <div class="card accent-gold"><h3>⚙️ Optimization</h3><p style="color:var(--text-dim);font-size:0.9rem;">We are not deriving a new loss — we are tuning a hyperparameter <span class="sym-param">λ</span> to minimize an out-of-sample error surface.</p></div>
+    <div class="card accent-purple"><h3>🎲 Probabilistic Tradeoff</h3><p style="color:var(--text-dim);font-size:0.9rem;">Adding <span class="sym-param">λ</span> trades a little <b>bias</b> for a large reduction in <b>variance</b> — the central bias–variance tradeoff, seen through a linear-algebra lens.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s0">
+  <div class="stage-head"><div class="stage-num">0</div><h2>The Problem</h2></div>
+  <div class="card accent-red">
+    <h3>Why does this problem exist?</h3>
+    <p style="color:var(--text-dim);">The Maximum Likelihood estimator <span class="sym-param">W</span><sub>ML</sub> = (<span class="sym-fn">XX</span><sup class="T">T</sup>)<sup>-1</sup><span class="sym-fn">XY</span> is <i>unbiased</i> — on average, across infinitely many datasets, it gets the right answer. But unbiased does not mean <i>low error</i>. If the columns of your data matrix <span class="sym-var">X</span> are highly correlated, or you have limited data relative to features, <span class="sym-fn">XX</span><sup class="T">T</sup> becomes nearly singular. Inverting a nearly-singular matrix is numerically explosive: tiny noise in the data gets massively amplified into the estimated weights.</p>
+  </div>
+  <div class="callout warn">
+    <div class="icon">⚠️</div>
+    <div class="body"><b>What happens if we don't solve it?</b> The model still fits the training data perfectly (or near-perfectly) but the learned weights <span class="sym-param">W</span> swing wildly for small changes in the data — classic <b>overfitting</b> / high-variance behavior. Predictions on new data become unreliable even though training error looks great.</p></div>
+  </div>
+  <div class="callout intuit">
+    <div class="icon">🏗️</div>
+    <div class="body"><b>Real-life analogy.</b> Imagine balancing a table using measurements from two rulers that almost always agree (nearly the same measurement, i.e. nearly parallel data directions). A tiny disagreement between them forces you to make an enormous adjustment to keep the table level — because you're relying on the <i>difference</i> between two near-identical numbers, which is a very unstable quantity. That instability is exactly what a small eigenvalue does to <span class="sym-fn">XX</span><sup class="T">T</sup>.</div>
+  </div>
+</section>
+
+<section class="stage" id="s1">
+  <div class="stage-head"><div class="stage-num">1</div><h2>History</h2></div>
+  <div class="card">
+    <p style="color:var(--text-dim);">This exact fix — adding <span class="sym-param">λI</span> before inverting — is the classical <b>Tikhonov regularization</b> idea (1940s–60s, ill-posed inverse problems), which entered statistics as <b>Ridge Regression</b> (Hoerl &amp; Kennard, 1970). The motivating failure was always the same: ordinary least squares breaks down whenever the design matrix is close to singular (collinear features, more features than samples). Ridge simply stabilizes the inversion. What this lecture adds is the <i>mechanism</i> — trace and eigenvalues — for <b>why</b> it works, and the practical machinery — cross-validation — for choosing the knob.</p>
+  </div>
+</section>
+
+<section class="stage" id="s2">
+  <div class="stage-head"><div class="stage-num">2</div><h2>Engineering Thinking</h2><span class="tag">before any math</span></div>
+  <div class="grid2">
+    <div class="card accent-teal"><h3>Property we want</h3><p style="color:var(--text-dim);font-size:0.9rem;">A tiny eigenvalue in <span class="sym-fn">XX</span><sup class="T">T</sup> should <b>not</b> be allowed to blow up the inverse.</p></div>
+    <div class="card accent-teal"><h3>Constraint</h3><p style="color:var(--text-dim);font-size:0.9rem;">We can't change the data. Any fix must act on the <i>estimator</i>, not the dataset — and must reduce to the old estimator when the fix is "turned off."</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><div class="body"><b>Engineering instinct:</b> if the danger is "dividing by something close to zero," the cheapest fix is to stop it from ever getting that close to zero — <i>add</i> a small positive number to it before dividing.</div></div>
+</section>
+
+<section class="stage" id="s3">
+  <div class="stage-head"><div class="stage-num">3</div><h2>Mathematical Translation</h2></div>
+  <div class="card">
+    <table class="data">
+      <tr><th>Engineering statement</th><th>Math translation</th></tr>
+      <tr><td>"Small eigenvalue → unstable inverse"</td><td class="hi">eigenvalues of <span class="sym-fn">A</span><sup>-1</sup> are 1/<span class="sym-param">λ</span><sub>i</sub>, which explode as <span class="sym-param">λ</span><sub>i</sub> → 0</td></tr>
+      <tr><td>"Error grows with those exploding values"</td><td class="hi">MSE(<span class="sym-param">W</span><sub>ML</sub>) ∝ trace((<span class="sym-fn">XX</span><sup class="T">T</sup>)<sup>-1</sup>) = Σ 1/<span class="sym-param">λ</span><sub>i</sub></td></tr>
+      <tr><td>"Push every eigenvalue away from zero, uniformly"</td><td class="hi">add <span class="sym-param">λ</span><span class="sym-fn">I</span> to <span class="sym-fn">XX</span><sup class="T">T</sup> before inverting</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="stage" id="s4">
+  <div class="stage-head"><div class="stage-num">4</div><h2>Formula Construction</h2><span class="tag">built line by line</span></div>
+
+  <div class="callout intuit"><div class="icon">①</div><div class="body">Start from the familiar ML estimator for linear regression weights.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(91,157,255,0.10);">
+    <div class="eq-label">Step 1 — Maximum Likelihood Estimator</div>
+    <div class="eq-main"><span class="sym-param">W</span><sub>ML</sub> &nbsp;<span class="sym-op">=</span>&nbsp; (<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup>)<sup>-1</sup> <span class="sym-fn">X</span><span class="sym-var">Y</span></div>
+    <div class="eq-number">Eq. 35.1</div>
+  </div>
+
+  <div class="callout intuit"><div class="icon">②</div><div class="body">Its error is governed entirely by how "large" the inverse matrix (<span class="sym-fn">XX</span><sup class="T">T</sup>)<sup>-1</sup> is — measured by summing its eigenvalues, i.e. its trace.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(212,175,55,0.10);">
+    <div class="eq-label">Step 2 — MSE in terms of Trace</div>
+    <div class="eq-main">MSE(<span class="sym-param">W</span><sub>ML</sub>) &nbsp;<span class="sym-op">∝</span>&nbsp; <span class="sym-fn">trace</span>((<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup>)<sup>-1</sup>) &nbsp;<span class="sym-op">=</span>&nbsp; <span class="op-big sym-op">Σ</span><sub>i</sub> 1/<span class="sym-param">λ</span><sub>i</sub></div>
+    <div class="eq-number">Eq. 35.2</div>
+  </div>
+
+  <div class="callout warn"><div class="icon">③</div><div class="body">If any <span class="sym-param">λ</span><sub>i</sub> is small, 1/<span class="sym-param">λ</span><sub>i</sub> is huge — this single term can dominate the whole sum and inflate MSE.</div></div>
+
+  <div class="callout intuit"><div class="icon">④</div><div class="body">Fix: shift every eigenvalue up by a constant <span class="sym-param">λ</span> before inverting. This defines the new, regularized estimator.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(45,212,191,0.12);">
+    <div class="eq-label">Step 3 — Regularized ("Ridge") Estimator</div>
+    <div class="eq-main"><span class="sym-param">W</span><sub>new</sub> &nbsp;<span class="sym-op">=</span>&nbsp; (<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup> <span class="sym-op">+</span> <span class="sym-param">λ</span><span class="sym-fn">I</span>)<sup>-1</sup> <span class="sym-fn">X</span><span class="sym-var">Y</span></div>
+    <div class="eq-number">Eq. 35.3</div>
+  </div>
+
+  <div class="eq-panel" style="--eq-glow:rgba(177,140,250,0.10);">
+    <div class="eq-label">Step 4 — New eigenvalue behaviour</div>
+    <div class="eq-main">eig( (<span class="sym-fn">XX</span><sup class="T">T</sup><span class="sym-op">+</span><span class="sym-param">λ</span><span class="sym-fn">I</span>)<sup>-1</sup> ) &nbsp;<span class="sym-op">=</span>&nbsp; 1 / (<span class="sym-param">λ</span><sub>i</sub> <span class="sym-op">+</span> <span class="sym-param">λ</span>)</div>
+    <div class="eq-number">Eq. 35.4</div>
+  </div>
+</section>
+<section class="stage" id="s5">
+  <div class="stage-head"><div class="stage-num">5</div><h2>Formula Anatomy</h2></div>
+  <div class="legend">
+    <div class="row"><span class="sym sym-var">X</span><span class="desc">— data / feature matrix (each column a sample)</span></div>
+    <div class="row"><span class="sym sym-var">Y</span><span class="desc">— target / label vector</span></div>
+    <div class="row"><span class="sym sym-param">W</span><span class="desc">— weight vector we're solving for</span></div>
+    <div class="row"><span class="sym sym-param">λ</span><span class="desc">— regularization strength (hyperparameter, chosen by CV)</span></div>
+    <div class="row"><span class="sym sym-fn">I</span><span class="desc">— identity matrix, same size as XX<sup>T</sup></span></div>
+    <div class="row"><span class="sym sym-param">λᵢ</span><span class="desc">— i-th eigenvalue of XX<sup>T</sup></span></div>
+    <div class="row"><span class="sym sym-fn">trace(·)</span><span class="desc">— sum of diagonal entries = sum of eigenvalues</span></div>
+    <div class="row"><span class="sym sym-op">(·)<sup>-1</sup></span><span class="desc">— matrix inverse</span></div>
+  </div>
+
+  <div class="card accent-blue">
+    <h3>Trace = sum of diagonal = sum of eigenvalues</h3>
+    <p style="color:var(--text-dim);font-size:0.9rem;">For any square matrix <span class="sym-fn">A</span> with eigenvalues λ₁, …, λₙ:</p>
+    <div style="text-align:center;margin:14px 0;">
+      <span class="matrix">
+        <span class="bracket">[</span>
+        <table><tr><td>2</td><td>1</td></tr><tr><td>4</td><td>7</td></tr></table>
+        <span class="bracket">]</span>
+      </span>
+      <span style="font-family:var(--serif-math-font);font-size:1.1rem;margin:0 10px;">→ trace <span class="sym-op">=</span> 2 <span class="sym-op">+</span> 7 <span class="sym-op">=</span> 9 <span class="sym-op">=</span> λ₁<span class="sym-op">+</span>λ₂</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.85rem;">This identity is what lets us translate "the inverse matrix is dangerously large" (a linear-algebra statement) into "the sum of 1/λᵢ is large" (a statement we can reason about term by term).</p>
+  </div>
+</section>
+
+<section class="stage" id="s6">
+  <div class="stage-head"><div class="stage-num">6</div><h2>Derivation — Why Regularization Lowers MSE</h2></div>
+
+  <div class="svg-box">
+  <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .lab{font-family:'JetBrains Mono',monospace;font-size:11px;fill:#9aa0b4;}
+      .val{font-family:'Fraunces',serif;font-size:15px;}
+      .titletxt{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;fill:#e7e9f2;}
+    </style>
+    <!-- left: ML estimator -->
+    <text x="150" y="24" text-anchor="middle" class="titletxt">Without Regularization</text>
+    <rect x="40" y="40" width="220" height="46" rx="10" fill="rgba(248,113,113,0.10)" stroke="#f87171" stroke-width="1"/>
+    <text x="150" y="68" text-anchor="middle" class="val" fill="#f87171">λᵢ ≈ 0.01 (small)</text>
+    <line x1="150" y1="86" x2="150" y2="106" stroke="#666b80" stroke-width="1.5" marker-end="url(#arrow1)"/>
+    <rect x="40" y="106" width="220" height="46" rx="10" fill="rgba(248,113,113,0.16)" stroke="#f87171" stroke-width="1.4"/>
+    <text x="150" y="134" text-anchor="middle" class="val" fill="#f87171">1/λᵢ ≈ 100 (huge)</text>
+    <line x1="150" y1="152" x2="150" y2="172" stroke="#666b80" stroke-width="1.5" marker-end="url(#arrow1)"/>
+    <rect x="40" y="172" width="220" height="42" rx="10" fill="rgba(248,113,113,0.22)" stroke="#f87171" stroke-width="1.6"/>
+    <text x="150" y="198" text-anchor="middle" class="val" fill="#f87171" font-weight="700">MSE → very large</text>
+
+    <!-- right: ridge estimator -->
+    <text x="490" y="24" text-anchor="middle" class="titletxt">With Regularization (+λ)</text>
+    <rect x="380" y="40" width="220" height="46" rx="10" fill="rgba(45,212,191,0.10)" stroke="#2dd4bf" stroke-width="1"/>
+    <text x="490" y="68" text-anchor="middle" class="val" fill="#2dd4bf">λᵢ + λ ≈ 0.01 + 1</text>
+    <line x1="490" y1="86" x2="490" y2="106" stroke="#666b80" stroke-width="1.5" marker-end="url(#arrow1)"/>
+    <rect x="380" y="106" width="220" height="46" rx="10" fill="rgba(45,212,191,0.16)" stroke="#2dd4bf" stroke-width="1.4"/>
+    <text x="490" y="134" text-anchor="middle" class="val" fill="#2dd4bf">1/(λᵢ+λ) ≈ 0.99</text>
+    <line x1="490" y1="152" x2="490" y2="172" stroke="#666b80" stroke-width="1.5" marker-end="url(#arrow1)"/>
+    <rect x="380" y="172" width="220" height="42" rx="10" fill="rgba(45,212,191,0.22)" stroke="#2dd4bf" stroke-width="1.6"/>
+    <text x="490" y="198" text-anchor="middle" class="val" fill="#2dd4bf" font-weight="700">MSE → controlled</text>
+
+    <defs><marker id="arrow1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#666b80"/></marker></defs>
+  </svg>
+  </div>
+
+  <div class="timeline">
+    <div class="tstep">
+      <div class="badge">1</div>
+      <h4>Start from the trace identity</h4>
+      <div class="expr">MSE(W<sub>ML</sub>) ∝ Σᵢ 1/λᵢ</div>
+      <p>Every small eigenvalue contributes one dangerously large term to this sum.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">2</div>
+      <h4>Add λI before inverting</h4>
+      <div class="expr">(XXᵀ + λI)</div>
+      <p>Adding a scalar multiple of the identity shifts <i>every</i> eigenvalue up by exactly λ, without changing the eigenvectors.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">3</div>
+      <h4>New eigenvalues of the inverse</h4>
+      <div class="expr">1/(λᵢ + λ)</div>
+      <p>Since λᵢ + λ &gt; λᵢ for any λ &gt; 0, each reciprocal term is strictly smaller than before.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">4</div>
+      <h4>Sum shrinks → MSE shrinks</h4>
+      <div class="expr">Σᵢ 1/(λᵢ+λ) &lt; Σᵢ 1/λᵢ</div>
+      <p>Because every one of the n terms in the sum got strictly smaller, the total — and therefore the MSE bound — goes down. There exists a λ &gt; 0 for which W<sub>new</sub> beats W<sub>ML</sub>.</p>
     </div>
   </div>
-</header>
 
-<main>
-  <div class="container">
-
-    <!-- ================================================================
-         SECTION 1: EXPECTED ERROR OF ML ESTIMATOR
-    ================================================================ -->
-    <section class="section" id="s1">
-      <div class="sec-header">
-        <span class="sec-num">01</span>
-        <h2>The expected error of the ML estimator</h2>
-      </div>
-      <p class="sec-intro">
-        For a linear model $\mathbf{y} = \mathbf{X}^\top \mathbf{w} + \boldsymbol{\varepsilon}$ with
-        $\boldsymbol{\varepsilon} \sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})$, the
-        maximum-likelihood estimator is $\hat{\mathbf{w}}_{\text{ML}} = (\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X} \mathbf{y}$.
-        Its expected squared error has a clean decomposition.
-      </p>
-
-      <!-- EQUATION PANEL -->
-      <div class="eq-panel" id="eq-error-decomp">
-        <span class="eq-num">Equation (1)</span>
-        <div class="eq-label">Expected Squared Error of ML Estimator</div>
-        $$\mathbb{E}\bigl[\|\hat{\mathbf{w}}_{\text{ML}} - \mathbf{w}\|^2\bigr]
-        = \sigma^2 \cdot \tr\!\bigl((\mathbf{X}\mathbf{X}^\top)^{-1}\bigr)$$
-        <div class="eq-caption">Noise variance $\sigma^2$ times the trace of the inverse Gram matrix</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The expected squared distance between the estimated weights $\hat{\mathbf{w}}_{\text{ML}}$
-          and the true weights $\mathbf{w}$ equals the noise variance $\sigma^2$
-          <strong>multiplied by</strong> the trace (sum of diagonal entries) of the inverse of
-          $\mathbf{X}\mathbf{X}^\top$.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Example</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\hat{\mathbf{w}}_{\text{ML}}$</td>
-              <td class="leg-meaning">Maximum-likelihood weight estimate</td>
-              <td class="leg-example">$(\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X} \mathbf{y}$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathbf{w}$</td>
-              <td class="leg-meaning">True (unknown) weight vector</td>
-              <td class="leg-example">$\mathbf{w} \in \mathbb{R}^D$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\sigma^2$</td>
-              <td class="leg-meaning">Noise variance — irreducible error</td>
-              <td class="leg-example">$\sigma^2 = 0.25$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\tr((\mathbf{X}\mathbf{X}^\top)^{-1})$</td>
-              <td class="leg-meaning">Sum of eigenvalues of the inverse Gram matrix</td>
-              <td class="leg-example">$\sum_{i=1}^D 1/\lambda_i$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathbf{X}$</td>
-              <td class="leg-meaning">$D \times N$ feature matrix (features as rows)</td>
-              <td class="leg-example">$D = 7$ polynomial features, $N = 20$ pts</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          There are two sources of error here. The <span class="highlight">noise $\sigma^2$</span>
-          is baked into the data — even with infinite data you can't remove it. The
-          <span class="highlight">geometry term $\tr((\mathbf{X}\mathbf{X}^\top)^{-1})$</span>
-          depends only on the feature arrangement: if features are nearly redundant (small
-          eigenvalues), this term blows up, amplifying the noise into a huge estimation error.
-        </div>
-      </div>
-
-      <!-- Derivation Timeline -->
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; Derivation: From Bias–Variance to the Trace</div>
-
-        <div class="dt-step">
-          <div class="dt-num">1</div>
-          <div class="dt-text">Start with the estimator: $\hat{\mathbf{w}}_{\text{ML}} = (\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X} \mathbf{y}$</div>
-          <div class="dt-formula">$\hat{\mathbf{w}} = (\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X}(\mathbf{X}^\top \mathbf{w} + \boldsymbol{\varepsilon})$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">2</div>
-          <div class="dt-text">Simplify: $\hat{\mathbf{w}} = \mathbf{w} + (\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X} \boldsymbol{\varepsilon}$</div>
-          <div class="dt-formula">$\hat{\mathbf{w}} - \mathbf{w} = (\mathbf{X}\mathbf{X}^\top)^{-1} \mathbf{X} \boldsymbol{\varepsilon}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">3</div>
-          <div class="dt-text">Take squared norm and expectation; noise $\boldsymbol{\varepsilon}$ is isotropic</div>
-          <div class="dt-formula">$\mathbb{E}[\|\hat{\mathbf{w}} - \mathbf{w}\|^2] = \sigma^2 \cdot \tr\!\bigl((\mathbf{X}\mathbf{X}^\top)^{-1}\bigr)$</div>
-        </div>
-      </div>
-
-      <!-- SVG: Error decomposition -->
-      <div class="svg-card">
-        <div class="svg-label">&#9654; Visual: Two factors controlling error</div>
-        <svg viewBox="0 0 860 200" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <marker id="aG" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
-              <polygon points="0 0, 10 3.5, 0 7" fill="#8b91a5"/>
-            </marker>
-          </defs>
-
-          <rect x="40" y="30" width="220" height="60" rx="10" fill="#f6ecd3" stroke="#b5872a" stroke-width="1.5"/>
-          <text x="150" y="57" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#8f6a1c" font-weight="600">Noise $\sigma^2$</text>
-          <text x="150" y="75" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a">irreducible — always present</text>
-
-          <rect x="40" y="120" width="220" height="60" rx="10" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <text x="150" y="147" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#7a321e" font-weight="600">$\tr((\mathbf{X}\mathbf{X}^\top)^{-1})$</text>
-          <text x="150" y="165" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#a8482a">depends on eigenvalues</text>
-
-          <line x1="260" y1="60" x2="350" y2="60" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
-          <line x1="260" y1="150" x2="350" y2="150" stroke="#8b91a5" stroke-width="1.5" marker-end="url(#aG)"/>
-
-          <text x="330" y="110" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="18" fill="#8b91a5">&#x2715;</text>
-
-          <rect x="400" y="65" width="240" height="80" rx="12" fill="#161b2a" stroke="#b5872a" stroke-width="2"/>
-          <text x="520" y="100" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" fill="#d9b872">Expected Error</text>
-          <text x="520" y="125" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#7d859c">$\sigma^2 \cdot \tr((\mathbf{X}\mathbf{X}^\top)^{-1})$</text>
-
-          <text x="700" y="105" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#5f6785">&#x2192; goal: shrink</text>
-          <text x="700" y="122" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" fill="#5f6785">the trace term</text>
-        </svg>
-        <div class="svg-caption">The expected error factorizes into a noise term (uncontrollable) and a geometry term (controllable via regularization).</div>
-      </div>
-
-      <!-- Numerical Example -->
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example: Ill-Conditioned Features</div>
-        <div class="num-setup"><strong>Setup:</strong> Degree-6 polynomial features, $D = 7$, $N = 20$ data points. The Gram matrix $\mathbf{X}\mathbf{X}^\top$ has eigenvalues:</div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>$\lambda_1$</th><th>$\lambda_2$</th><th>$\lambda_3$</th><th>$\lambda_4$</th><th>$\lambda_5$</th><th>$\lambda_6$</th><th>$\lambda_7$</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="color:var(--gold);font-weight:600;">2.84</td>
-              <td style="color:var(--gold);font-weight:600;">0.92</td>
-              <td style="color:var(--gold);font-weight:600;">0.31</td>
-              <td style="color:var(--gold);font-weight:600;">0.08</td>
-              <td style="color:var(--rust);font-weight:600;">0.012</td>
-              <td style="color:var(--rust);font-weight:600;">0.003</td>
-              <td style="color:var(--rust);font-weight:600;">0.0004</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="num-result">$\displaystyle \tr((\mathbf{X}\mathbf{X}^\top)^{-1}) = \sum_{i=1}^{7} \frac{1}{\lambda_i} = 0.35 + 1.09 + 3.23 + 12.50 + 83.33 + 333.33 + 2500 \approx \mathbf{2934}$</div>
-        <p style="margin-top:12px;font-size:14px;color:var(--ink-soft);">
-          The <strong>smallest eigenvalue</strong> $\lambda_7 = 0.0004$ contributes $1/0.0004 = 2500$ to the trace —
-          over <strong>85%</strong> of the total. This is the wobbly table leg: one near-zero eigenvalue
-          dominates the whole error.
-        </p>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>What this means</strong>
-          <p>
-            With $\sigma^2 = 0.25$, the expected error is $0.25 \times 2934 \approx 733$. That means
-            $\|\hat{\mathbf{w}}_{\text{ML}} - \mathbf{w}\|^2$ is expected to be in the hundreds —
-            the estimate is essentially garbage in the direction of the smallest eigenvalue.
-            Regularization must lift those tiny eigenvalues to control the trace.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Ignoring the trace:</strong> Focusing only on $\sigma^2$ and ignoring
-            $\tr((\mathbf{X}\mathbf{X}^\top)^{-1})$ misses the main issue — feature geometry matters.
-          </p>
-          <p>
-            &#x2716; <strong>Thinking all eigenvalues matter equally:</strong> The trace is a sum
-            of <em>reciprocals</em>. A single tiny $\lambda$ can dominate even if all others are large.
-          </p>
-          <p>
-            &#x2716; <strong>Confusing $\mathbf{X}\mathbf{X}^\top$ with $\mathbf{X}^\top\mathbf{X}$:</strong>
-            The $D \times D$ Gram matrix $\mathbf{X}\mathbf{X}^\top$ has the same non-zero eigenvalues
-            as the $N \times N$ matrix $\mathbf{X}^\top\mathbf{X}$, but the trace formula applies to
-            the $D$-dimensional version.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 2: RIDGE REGRESSION
-    ================================================================ -->
-    <section class="section" id="s2">
-      <div class="sec-header">
-        <span class="sec-num">02</span>
-        <h2>Ridge regression: lifting eigenvalues on purpose</h2>
-      </div>
-      <p class="sec-intro">
-        If the problem is eigenvalues that are too small, the fix is direct: add a positive constant
-        $\lambda$ to every eigenvalue before inverting.
-      </p>
-
-      <!-- EQUATION PANEL (multiline) -->
-      <div class="eq-panel multiline" id="eq-ridge">
-        <span class="eq-num">Equation (2)</span>
-        <div class="eq-label">Ridge Regression — Objective &amp; Solution</div>
-        $$\hat{\mathbf{w}}_{\text{ridge}} = \arg\min_{\mathbf{w}}
-        \Bigl[ \underbrace{\|\mathbf{y} - \mathbf{X}^\top\mathbf{w}\|^2}_{\text{fit}}
-        + \lambda \underbrace{\|\mathbf{w}\|^2}_{\text{penalty}} \Bigr]$$
-        $$\Downarrow$$
-        $$\hat{\mathbf{w}}_{\text{ridge}} = (\mathbf{X}\mathbf{X}^\top + \lambda \mathbf{I})^{-1} \mathbf{X} \mathbf{y}$$
-        <div class="eq-caption">Closed-form: add $\lambda$ to the diagonal of $\mathbf{X}\mathbf{X}^\top$, then invert</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The ridge estimate $\hat{\mathbf{w}}_{\text{ridge}}$ is the vector $\mathbf{w}$ that
-          minimizes the sum of the <strong>squared prediction error</strong> plus $\lambda$ times the
-          <strong>squared length</strong> of $\mathbf{w}$. The solution replaces $\mathbf{X}\mathbf{X}^\top$
-          with $\mathbf{X}\mathbf{X}^\top + \lambda \mathbf{I}$ before inverting.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\lambda \ge 0$</td>
-              <td class="leg-meaning">Regularization strength (hyperparameter)</td>
-              <td class="leg-example">$\lambda = 0 \implies$ ML; $\lambda \to \infty \implies \hat{\mathbf{w}} \to \mathbf{0}$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\|\mathbf{y} - \mathbf{X}^\top\mathbf{w}\|^2$</td>
-              <td class="leg-meaning">Sum of squared residuals — measures fit to data</td>
-              <td class="leg-example">$\sum_{i=1}^N (y_i - \mathbf{w}^\top \mathbf{x}_i)^2$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\|\mathbf{w}\|^2$</td>
-              <td class="leg-meaning">$\ell_2$ penalty — shrinks weights toward zero</td>
-              <td class="leg-example">$\sum_{j=1}^D w_j^2$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathbf{X}\mathbf{X}^\top + \lambda \mathbf{I}$</td>
-              <td class="leg-meaning">Regularized Gram matrix (positive definite for $\lambda > 0$)</td>
-              <td class="leg-example">eigenvalues $\lambda_i + \lambda$</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Adding $\lambda \mathbf{I}$ shifts every eigenvalue of $\mathbf{X}\mathbf{X}^\top$ from
-          $\lambda_i$ to <span class="highlight">$\lambda_i + \lambda$</span>. The eigenvectors
-          (directions) don't change — only their <strong>stability</strong> improves.
-          <br><br>
-          A tiny eigenvalue $\lambda_i \approx 0$ gets lifted to $\lambda$, so its contribution
-          to the trace drops from $1/\lambda_i \approx \infty$ to
-          <span class="highlight">$1/(\lambda_i + \lambda) \approx 1/\lambda$</span> — bounded and
-          controllable. The small eigenvalues benefit <strong>enormously</strong>; the large ones
-          are barely affected.
-        </div>
-      </div>
-
-      <!-- Derivation Timeline -->
-      <div class="derivation-timeline">
-        <div class="dt-label">&#9654; Derivation: From Objective to Closed-Form Solution</div>
-
-        <div class="dt-step">
-          <div class="dt-num">1</div>
-          <div class="dt-text">Write the objective: $L(\mathbf{w}) = \|\mathbf{y} - \mathbf{X}^\top\mathbf{w}\|^2 + \lambda\|\mathbf{w}\|^2$</div>
-          <div class="dt-formula">$L(\mathbf{w}) = (\mathbf{y} - \mathbf{X}^\top\mathbf{w})^\top(\mathbf{y} - \mathbf{X}^\top\mathbf{w}) + \lambda \mathbf{w}^\top \mathbf{w}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">2</div>
-          <div class="dt-text">Expand and take the gradient w.r.t. $\mathbf{w}$</div>
-          <div class="dt-formula">$\nabla L(\mathbf{w}) = -2\mathbf{X}\mathbf{y} + 2(\mathbf{X}\mathbf{X}^\top + \lambda\mathbf{I})\mathbf{w}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">3</div>
-          <div class="dt-text">Set gradient to zero and solve</div>
-          <div class="dt-formula">$(\mathbf{X}\mathbf{X}^\top + \lambda\mathbf{I})\mathbf{w} = \mathbf{X}\mathbf{y}$</div>
-        </div>
-        <div class="dt-arrow">&#8595;</div>
-
-        <div class="dt-step">
-          <div class="dt-num">4</div>
-          <div class="dt-text">Invert the regularized Gram matrix</div>
-          <div class="dt-formula">$\hat{\mathbf{w}}_{\text{ridge}} = (\mathbf{X}\mathbf{X}^\top + \lambda\mathbf{I})^{-1} \mathbf{X} \mathbf{y}$</div>
-        </div>
-      </div>
-
-      <!-- Effect on eigenvalues -->
-      <div class="eq-panel multiline" id="eq-trace-ridge">
-        <span class="eq-num">Equation (3)</span>
-        <div class="eq-label">Expected Error with Ridge Regularization</div>
-        $$\mathbb{E}\bigl[\|\hat{\mathbf{w}}_{\text{ridge}} - \mathbf{w}\|^2\bigr]
-        = \sigma^2 \cdot \sum_{i=1}^{D} \frac{\lambda_i}{(\lambda_i + \lambda)^2}
-        + \lambda^2 \cdot \sum_{i=1}^{D} \frac{(\mathbf{q}_i^\top \mathbf{w})^2}{(\lambda_i + \lambda)^2}$$
-        <div class="eq-caption"><span style="color:var(--teal);">variance term</span> (shrinks as $\lambda \uparrow$) + <span style="color:var(--rust);">bias term</span> (grows as $\lambda \uparrow$)</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The expected squared error splits into two parts: a <strong style="color:var(--teal);">variance term</strong>
-          that decreases as $\lambda$ increases (because eigenvalues are lifted), and a
-          <strong style="color:var(--rust);">bias term</strong> that increases as $\lambda$ increases
-          (because weights are pulled toward zero). The optimal $\lambda$ balances the two.&rdquo;
-        </div>
-      </div>
-
-      <!-- Numerical Example -->
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example: Ridge vs. ML Trace</div>
-        <div class="num-setup"><strong>Setup:</strong> Using the same eigenvalues as before, compare the trace term with $\lambda = 0.1$.</div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>$i$</th><th>$\lambda_i$</th><th>$1/\lambda_i$ (ML)</th><th>$1/(\lambda_i + \lambda)$ with $\lambda = 0.1$</th></tr>
-          </thead>
-          <tbody>
-            <tr><td style="font-weight:600;">1</td><td>2.84</td><td>0.35</td><td>0.34</td></tr>
-            <tr><td style="font-weight:600;">2</td><td>0.92</td><td>1.09</td><td>0.98</td></tr>
-            <tr><td style="font-weight:600;">3</td><td>0.31</td><td>3.23</td><td>2.44</td></tr>
-            <tr><td style="font-weight:600;">4</td><td>0.08</td><td>12.50</td><td>5.56</td></tr>
-            <tr><td style="font-weight:600;color:var(--rust);">5</td><td style="color:var(--rust);">0.012</td><td>83.33</td><td style="color:var(--teal);font-weight:600;">8.93</td></tr>
-            <tr><td style="font-weight:600;color:var(--rust);">6</td><td style="color:var(--rust);">0.003</td><td>333.33</td><td style="color:var(--teal);font-weight:600;">9.71</td></tr>
-            <tr><td style="font-weight:600;color:var(--rust);">7</td><td style="color:var(--rust);">0.0004</td><td>2500.00</td><td style="color:var(--teal);font-weight:600;">9.96</td></tr>
-          </tbody>
-        </table>
-        <div class="num-result">$\displaystyle \tr_{\text{ML}} \approx 2934 \quad\longrightarrow\quad \tr_{\text{ridge}} \approx \mathbf{37.9}$</div>
-        <p style="margin-top:12px;font-size:14px;color:var(--ink-soft);">
-          The trace drops from <strong>2934</strong> to <strong>37.9</strong> — a <strong>98.7% reduction</strong>.
-          The three smallest eigenvalues, which previously dominated the sum, are now bounded by $1/\lambda = 10$.
-        </p>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>The existence theorem</strong>
-          <p>
-            It can be proved that <strong>some</strong> $\lambda > 0$ exists for which
-            $\hat{\mathbf{w}}_{\text{ridge}}$ has strictly lower expected squared error than
-            $\hat{\mathbf{w}}_{\text{ML}}$. Regularization isn't a heuristic — it provably helps.
-            But the theorem doesn't tell you <em>which</em> $\lambda$, only that one exists.
-            That's what cross-validation is for.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Setting $\lambda$ too large:</strong> Too much regularization
-            shrinks all weights near zero, creating large bias. The fit becomes a flat line.
-          </p>
-          <p>
-            &#x2716; <strong>Regularizing the intercept:</strong> Usually the bias term $w_0$
-            is <em>not</em> penalized. Only penalize the feature weights.
-          </p>
-          <p>
-            &#x2716; <strong>Using $\lambda$ as a fudge factor:</strong> $\lambda$ is a
-            hyperparameter with a precise statistical meaning — it corresponds to a prior
-            $\mathbf{w} \sim \mathcal{N}(\mathbf{0}, \sigma^2/\lambda \cdot \mathbf{I})$
-            in a Bayesian interpretation.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 3: CROSS-VALIDATION
-    ================================================================ -->
-    <section class="section" id="s3">
-      <div class="sec-header">
-        <span class="sec-num">03</span>
-        <h2>Choosing $\lambda$ empirically: Cross-Validation</h2>
-      </div>
-      <p class="sec-intro">
-        Since no formula hands us the optimal $\lambda$, we try many candidates and pick the one
-        that performs best on data the model hasn't seen during training.
-      </p>
-
-      <!-- Hold-Out Validation -->
-      <div class="eq-panel" id="eq-holdout">
-        <span class="eq-num">Equation (4)</span>
-        <div class="eq-label">Hold-Out Validation Error</div>
-        $$\text{CV}(\lambda) = \frac{1}{|\mathcal{D}_{\text{val}}|}
-        \sum_{i \in \mathcal{D}_{\text{val}}} \bigl(y_i - \hat{\mathbf{w}}_{\text{ridge}}^{(\mathcal{D}_{\text{train}}) \top} \mathbf{x}_i\bigr)^2$$
-        <div class="eq-caption">Train on $\mathcal{D}_{\text{train}}$, measure MSE on held-out $\mathcal{D}_{\text{val}}$</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The validation error for a given $\lambda$ is the average squared difference between
-          the true $y_i$ and the prediction made by the model trained <strong>without</strong>
-          that point's data.&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Symbol</th><th>Meaning</th><th>Role</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\mathcal{D}_{\text{train}}$</td>
-              <td class="leg-meaning">Training set (e.g., 80% of data)</td>
-              <td class="leg-example">Used to fit $\hat{\mathbf{w}}_{\text{ridge}}$</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\mathcal{D}_{\text{val}}$</td>
-              <td class="leg-meaning">Validation set (e.g., 20% of data)</td>
-              <td class="leg-example">Used to evaluate performance</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$|\mathcal{D}_{\text{val}}|$</td>
-              <td class="leg-meaning">Number of validation points</td>
-              <td class="leg-example">$N/5$ for an 80/20 split</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          A single split is simple but <span class="highlight">noisy</span> — a lucky validation
-          set might accidentally favor a $\lambda$ that doesn't generalize. K-fold cross-validation
-          <strong>averages</strong> over $K$ different train/val splits, giving a much more stable
-          estimate of $\lambda$'s true performance.
-        </div>
-      </div>
-
-      <!-- K-fold CV Equation -->
-      <div class="eq-panel multiline" id="eq-kfold">
-        <span class="eq-num">Equation (5)</span>
-        <div class="eq-label">K-Fold Cross-Validation Error</div>
-        $$\text{CV}_K(\lambda) = \frac{1}{K} \sum_{k=1}^{K}
-        \underbrace{\frac{1}{|\mathcal{D}_k|} \sum_{i \in \mathcal{D}_k}
-        \bigl(y_i - \hat{\mathbf{w}}_{\text{ridge}}^{(-k) \top} \mathbf{x}_i\bigr)^2}_{\text{MSE on fold } k}$$
-        $$\hat{\lambda}_{\text{CV}} = \arg\min_{\lambda} \text{CV}_K(\lambda)$$
-        <div class="eq-caption">Average the validation MSE across $K$ folds; pick the $\lambda$ that minimizes it</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;Partition the data into $K$ folds. For each fold $k$, train on the other $K-1$ folds
-          and compute the MSE on fold $k$. <strong>Average</strong> these $K$ MSE values to get the
-          cross-validated error for $\lambda$. Choose the $\lambda$ that makes this average smallest.&rdquo;
-        </div>
-      </div>
-
-      <!-- K-fold visual strip -->
-      <div class="svg-card">
-        <div class="svg-label">&#9654; 5-Fold Cross-Validation — Rotation Visual</div>
-        <svg viewBox="0 0 860 280" xmlns="http://www.w3.org/2000/svg">
-          <!-- Round 1 -->
-          <text x="10" y="30" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Round 1</text>
-          <rect x="60" y="14" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="190" y="14" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="320" y="14" width="130" height="24" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <rect x="450" y="14" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="580" y="14" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <text x="320" y="30" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#7a321e" font-weight="600">val</text>
-          <text x="760" y="30" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5f6785">MSE$_1$ = 0.34</text>
-
-          <!-- Round 2 -->
-          <text x="10" y="75" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Round 2</text>
-          <rect x="60" y="59" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="190" y="59" width="130" height="24" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <rect x="320" y="59" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="450" y="59" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="580" y="59" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <text x="190" y="75" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#7a321e" font-weight="600">val</text>
-          <text x="760" y="75" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5f6785">MSE$_2$ = 0.28</text>
-
-          <!-- Round 3 -->
-          <text x="10" y="120" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Round 3</text>
-          <rect x="60" y="104" width="130" height="24" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <rect x="190" y="104" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="320" y="104" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="450" y="104" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="580" y="104" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <text x="60" y="120" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#7a321e" font-weight="600">val</text>
-          <text x="760" y="120" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5f6785">MSE$_3$ = 0.31</text>
-
-          <!-- Round 4 -->
-          <text x="10" y="165" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Round 4</text>
-          <rect x="60" y="149" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="190" y="149" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="320" y="149" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="450" y="149" width="130" height="24" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <rect x="580" y="149" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <text x="450" y="165" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#7a321e" font-weight="600">val</text>
-          <text x="760" y="165" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5f6785">MSE$_4$ = 0.36</text>
-
-          <!-- Round 5 -->
-          <text x="10" y="210" font-family="'JetBrains Mono', monospace" font-size="10" fill="#8b91a5">Round 5</text>
-          <rect x="60" y="194" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="190" y="194" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="320" y="194" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="450" y="194" width="130" height="24" rx="5" fill="#e2efec" stroke="#2c6b5d" stroke-width="1.2"/>
-          <rect x="580" y="194" width="130" height="24" rx="5" fill="#f7e6df" stroke="#a8482a" stroke-width="1.5"/>
-          <text x="580" y="210" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#7a321e" font-weight="600">val</text>
-          <text x="760" y="210" font-family="'JetBrains Mono', monospace" font-size="9" fill="#5f6785">MSE$_5$ = 0.32</text>
-
-          <!-- Average result -->
-          <rect x="140" y="240" width="440" height="32" rx="8" fill="#161b2a" stroke="#b5872a" stroke-width="1.5"/>
-          <text x="360" y="261" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" fill="#d9b872" font-weight="600">
-            $\displaystyle \text{CV}_5(\lambda) = \frac{1}{5}(0.34+0.28+0.31+0.36+0.32) = \mathbf{0.322}$
-          </text>
-        </svg>
-        <div class="svg-caption">Each fold takes a turn as validation (rust). The average across all $K$ rounds is the cross-validated error for that $\lambda$.</div>
-      </div>
-
-      <!-- LOOCV -->
-      <div class="callout info">
-        <div class="co-icon">&#8594;</div>
-        <div class="co-body">
-          <strong>Leave-One-Out Cross-Validation (LOOCV)</strong>
-          <p>
-            Push $K = N$ (the number of data points). Each fold contains exactly one point.
-            LOOCV is nearly unbiased but requires fitting the model $N$ times per candidate $\lambda$ —
-            computationally expensive for large $N$.
-          </p>
-        </div>
-      </div>
-
-      <!-- Numerical Example -->
-      <div class="num-card">
-        <div class="num-label">&#9654; Numerical Example: 5-Fold CV for Ridge</div>
-        <div class="num-setup"><strong>Setup:</strong> Synthetic data with $N = 20$, degree-6 polynomial features. Tune $\lambda$ via 5-fold CV.</div>
-        <table class="num-tbl">
-          <thead>
-            <tr><th>$\lambda$</th><th>Train MSE</th><th>CV$_5$ MSE</th><th>$\tr((\mathbf{X}\mathbf{X}^\top + \lambda \mathbf{I})^{-1})$</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style="font-weight:600;">$0.001$</td>
-              <td>$0.008$</td>
-              <td>$0.85$</td>
-              <td>$48.2$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;color:var(--teal);">$0.10$</td>
-              <td style="color:var(--teal);">$0.12$</td>
-              <td style="color:var(--teal);font-weight:600;">$0.32$</td>
-              <td style="color:var(--teal);">$37.9$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">$1.00$</td>
-              <td>$0.28$</td>
-              <td>$0.41$</td>
-              <td>$8.2$</td>
-            </tr>
-            <tr>
-              <td style="font-weight:600;">$10.00$</td>
-              <td>$0.52$</td>
-              <td>$0.68$</td>
-              <td>$1.5$</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="num-result">$\hat{\lambda}_{\text{CV}} = \mathbf{0.10}$ minimizes the 5-fold CV error</div>
-      </div>
-
-      <div class="interpret-card">
-        <div class="int-icon">i</div>
-        <div class="int-body">
-          <strong>Why CV forms a U-shape</strong>
-          <p>
-            At <strong>small $\lambda$</strong>, the model overfits (low train error, high CV error).
-            At <strong>large $\lambda$</strong>, the model underfits (high train error, high CV error).
-            The optimal $\lambda$ sits at the bottom of the U — where bias and variance are balanced.
-          </p>
-        </div>
-      </div>
-
-      <div class="mistakes-card">
-        <div class="mis-icon">!</div>
-        <div class="mis-body">
-          <strong>Common Mistakes</strong>
-          <p>
-            &#x2716; <strong>Using test error to choose $\lambda$:</strong> Never use the test set
-            for model selection. If you pick $\lambda$ based on test error, your reported
-            performance is biased optimistic. Use CV for selection, test only for final evaluation.
-          </p>
-          <p>
-            &#x2716; <strong>Uneven folds:</strong> For $K$-fold CV, ensure folds are roughly
-            equal size and stratified if the target has discrete structure.
-          </p>
-          <p>
-            &#x2716; <strong>Not shuffling data before splitting:</strong> If the data has
-            temporal or systematic ordering, non-random folds can produce misleading CV scores.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 4: BIAS-VARIANCE TRADEOFF
-    ================================================================ -->
-    <section class="section" id="s4">
-      <div class="sec-header">
-        <span class="sec-num">04</span>
-        <h2>The bias–variance tradeoff visualized</h2>
-      </div>
-      <p class="sec-intro">
-        Ridge regularization introduces bias (shrinking weights) to reduce variance (stabilizing
-        the estimate). The optimal $\lambda$ balances these competing forces.
-      </p>
-
-      <!-- EQUATION PANEL -->
-      <div class="eq-panel" id="eq-bv">
-        <span class="eq-num">Equation (6)</span>
-        <div class="eq-label">Bias–Variance Decomposition</div>
-        $$\mathbb{E}\bigl[(\hat{y} - y)^2\bigr] = \underbrace{\sigma^2}_{\text{noise}}
-        + \underbrace{\bigl(\mathbb{E}[\hat{y}] - \mathbb{E}[y]\bigr)^2}_{\text{bias}^2}
-        + \underbrace{\mathbb{E}\bigl[(\hat{y} - \mathbb{E}[\hat{y}])^2\bigr]}_{\text{variance}}$$
-        <div class="eq-caption">Total expected prediction error = irreducible noise + bias² + variance</div>
-      </div>
-
-      <div class="explain-card">
-        <div class="ex-label">&#9654; Read the Equation in English</div>
-        <div class="ex-text">
-          &ldquo;The expected squared error of a prediction $\hat{y}$ for a target $y$ breaks into
-          three parts: the <strong>noise</strong> inherent in the data, the square of the
-          <strong>bias</strong> (how far the average prediction is from the truth), and the
-          <strong>variance</strong> (how much predictions fluctuate around their average).&rdquo;
-        </div>
-      </div>
-
-      <div class="legend-card">
-        <div class="leg-label">&#9654; Symbol Legend</div>
-        <table>
-          <thead>
-            <tr><th>Component</th><th>Color</th><th>Effect of increasing $\lambda$</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="leg-sym">$\sigma^2$ (noise)</td>
-              <td style="color:var(--ink-faint);">gray</td>
-              <td class="leg-example">Unchanged — irreducible</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\text{bias}^2$</td>
-              <td style="color:var(--rust);font-weight:600;">rust</td>
-              <td class="leg-example">Increases (weights pulled toward zero)</td>
-            </tr>
-            <tr>
-              <td class="leg-sym">$\text{variance}$</td>
-              <td style="color:var(--teal);font-weight:600;">teal</td>
-              <td class="leg-example">Decreases (eigenvalues lifted)</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="intuition-card">
-        <div class="in-label">&#9654; Intuition</div>
-        <div class="in-text">
-          Imagine shooting arrows at a target.
-          <span class="highlight">Low bias, high variance</span> means arrows cluster around the
-          bullseye on average, but spread widely (wild overfitting).
-          <span class="highlight">High bias, low variance</span> means arrows clump tightly together
-          but miss center consistently (underfitting).
-          <br><br>
-          Ridge regression trades a small, controlled bias for a large reduction in variance —
-          the arrows clump tighter, even if the center shifts slightly. Cross-validation finds the
-          $\lambda$ where the total spread (bias² + variance) is smallest.
-        </div>
-      </div>
-
-      <!-- SVG: Bias-Variance tradeoff -->
-      <div class="svg-card">
-        <div class="svg-label">&#9654; Bias-Variance-U Curves vs. $\lambda$</div>
-        <svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg">
-          <!-- Axes -->
-          <line x1="60" y1="270" x2="600" y2="270" stroke="#8b91a5" stroke-width="1.3"/>
-          <line x1="60" y1="30" x2="60" y2="270" stroke="#8b91a5" stroke-width="1.3"/>
-          <text x="60" y="290" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5f6785">$\small \log \lambda$</text>
-          <text x="30" y="150" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#5f6785" transform="rotate(-90,30,150)">Error</text>
-
-          <!-- Variance curve (teal, decreasing) -->
-          <path d="M80,50 C160,50 240,60 320,100 C400,150 480,200 560,230" fill="none" stroke="#2c6b5d" stroke-width="2.8" opacity="0.85"/>
-          <text x="520" y="220" font-family="'JetBrains Mono', monospace" font-size="11" fill="#2c6b5d">Variance</text>
-
-          <!-- Bias^2 curve (rust, increasing) -->
-          <path d="M80,240 C160,230 240,200 320,160 C400,120 480,90 560,70" fill="none" stroke="#a8482a" stroke-width="2.8" opacity="0.85"/>
-          <text x="520" y="62" font-family="'JetBrains Mono', monospace" font-size="11" fill="#a8482a">Bias²</text>
-
-          <!-- Total curve (gold, U-shaped) -->
-          <path d="M80,120 C160,108 240,100 320,105 C400,118 480,140 560,170" fill="none" stroke="#b5872a" stroke-width="3"/>
-          <text x="520" y="162" font-family="'JetBrains Mono', monospace" font-size="11" fill="#b5872a">Total</text>
-
-          <!-- Optimal point -->
-          <circle cx="280" cy="102" r="6" fill="#b5872a" stroke="#fff" stroke-width="2"/>
-          <line x1="280" y1="270" x2="280" y2="108" stroke="#b5872a" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.7"/>
-          <text x="280" y="288" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="10" fill="#b5872a" font-weight="600">$\hat{\lambda}_{\text{CV}}$</text>
-          <text x="280" y="90" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#d9b872">optimal balance</text>
-
-          <!-- Labels for regions -->
-          <text x="140" y="278" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#a8482a" opacity="0.7">overfitting</text>
-          <text x="480" y="278" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" fill="#2c6b5d" opacity="0.7">underfitting</text>
-        </svg>
-        <div class="svg-caption">As $\lambda$ increases, variance falls and bias rises. The total error is U-shaped; CV finds the minimum.</div>
-      </div>
-
-      <div class="callout good">
-        <div class="co-icon">&#8594;</div>
-        <div class="co-body">
-          <strong>Key Insight</strong>
-          <p>
-            The existence theorem guarantees $\hat{\lambda}_{\text{CV}}$ found by cross-validation
-            will (in expectation) outperform $\hat{\mathbf{w}}_{\text{ML}}$. The U-shape of the
-            CV curve is not an artifact — it's the mathematical signature of the bias–variance tradeoff.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================================================================
-         SECTION 5: INTERACTIVE SIMULATION
-    ================================================================ -->
-    <section class="section" id="s5">
-      <div class="sec-header">
-        <span class="sec-num">05</span>
-        <h2>Tune $\lambda$ yourself and watch cross-validation agree</h2>
-      </div>
-      <p class="sec-intro">
-        The red dots are noisy training data fit with a degree-6 polynomial — flexible enough that,
-        unregularized, the feature matrix is genuinely ill-conditioned. Drag $\lambda$ and watch the
-        fit, the eigenvalue spectrum, and the 5-fold CV curve all respond together.
-      </p>
-
-      <div class="sim-wrap">
-        <div class="sim-label">&#9654; Ridge Regression + 5-Fold CV, Live</div>
-        <div class="sim-top">
-          <div>
-            <div class="sim-title">In-Browser Ridge Regression</div>
-            <div class="sim-sub">All computed from the actual feature matrix</div>
-          </div>
-          <div class="sim-badge" id="cvBadge">$\lambda = 0.10$</div>
-        </div>
-
-        <div class="chart-label">Fit to training data</div>
-        <div class="chart-wrap">
-          <svg id="fitSvg" width="480" height="230" viewBox="0 0 480 230"></svg>
-        </div>
-
-        <div class="chart-label">5-fold cross-validation error vs. $\lambda$ (log scale)</div>
-        <div class="chart-wrap">
-          <svg id="cvSvg" width="480" height="180" viewBox="0 0 480 180"></svg>
-        </div>
-
-        <div class="sim-legend">
-          <span><span class="swatch" style="background:#e0967a;"></span> training data</span>
-          <span><span class="swatch ln" style="background:#d9b872;"></span> ridge fit at current $\lambda$</span>
-          <span><span class="swatch ln" style="background:#7fb0e8;"></span> avg. 5-fold CV error</span>
-          <span><span class="swatch" style="background:#8fb996;"></span> best $\lambda$ found by CV</span>
-        </div>
-
-        <div class="slider-row">
-          <label for="lambdaSlider">$\lambda$ (log scale)</label>
-          <input type="range" id="lambdaSlider" min="0" max="300" value="140">
-          <span class="slider-val" id="lambdaVal">0.10</span>
-        </div>
-
-        <div class="sim-controls">
-          <button class="sim-btn secondary" id="snapBestLambdaBtn">Snap to CV-optimal $\lambda$</button>
-          <button class="sim-btn secondary" id="resetLambdaBtn">&#x21BA; Reset to $\lambda \approx 0$</button>
-        </div>
-
-        <div class="sim-stats">
-          <div class="stat"><div class="k">Training MSE</div><div class="v gold-txt" id="statTrainMse">—</div></div>
-          <div class="stat"><div class="k">Avg. 5-fold CV MSE</div><div class="v blue-txt" id="statCvMse">—</div></div>
-          <div class="stat"><div class="k">$\tr((\mathbf{\Phi}^\top\mathbf{\Phi}+\lambda\mathbf{I})^{-1})$</div><div class="v green-txt" id="statTrace">—</div></div>
-          <div class="stat"><div class="k">Smallest eigenvalue</div><div class="v red-txt" id="statMinEig">—</div></div>
-        </div>
-
-        <div class="chart-label" style="margin-top:22px;">Eigenvalues of $\mathbf{\Phi}^\top\mathbf{\Phi}$, before and after $+\lambda$</div>
-        <div class="eig-bars" id="eigBars"></div>
-      </div>
-
-      <div class="callout info" style="margin-top:24px;">
-        <div class="co-icon">&#8594;</div>
-        <div class="co-body">
-          <strong>What to notice</strong>
-          <p>
-            Near $\lambda \approx 0$, the fit curve wiggles wildly between data points, training
-            error is deceptively tiny, and the smallest eigenvalue's bar barely registers. As
-            $\lambda$ rises, the fit smooths out, the smallest eigenvalue's effective bar lifts off
-            the floor, and the CV curve — which never sees the training data — traces out a clear
-            U-shape. The $\lambda$ you'd pick by eye and the $\lambda$ this curve minimizes should
-            land in the same neighborhood.
-          </p>
-        </div>
-      </div>
-    </section>
-
+  <div class="callout warn"><div class="icon">⚖️</div><div class="body"><b>The catch:</b> λ doesn't come for free. Too large a λ over-shrinks the weights toward zero, introducing <b>bias</b> — you trade variance for bias. The best λ is the one that minimizes <i>total</i> error, not just the variance term. That's exactly the job cross-validation does.</div></div>
+</section>
+
+<section class="stage" id="s7">
+  <div class="stage-head"><div class="stage-num">7</div><h2>Algorithm — Finding the Best λ</h2></div>
+
+  <div class="grid2">
+    <div class="card accent-blue">
+      <h3>Validation-Set Approach</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">Split data once: 80% train / 20% validate. For each candidate λ, fit on train, measure error on validation, keep the λ with lowest validation error.</p>
+    </div>
+    <div class="card accent-red">
+      <h3>Weakness</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">One random split can be lucky or unlucky — the chosen λ depends heavily on which 20% happened to land in the validation set.</p>
+    </div>
   </div>
-</main>
 
-<footer>
-  <p>CROSS-VALIDATION &amp; REGULARIZATION &middot; PREMIUM LECTURE NOTES</p>
-</footer>
+  <h3 style="margin-top:26px;">K-Fold Cross-Validation (K = 5 shown)</h3>
+  <p style="color:var(--text-dim);font-size:0.9rem;">Split data into K equal folds. Each fold takes a turn as the validation set while the rest train the model — then average the K errors.</p>
 
-<script>
-(function(){
-  // ---------- shared linear algebra helpers ----------
-  function invertMatrix(M){
-    const n = M.length;
-    const A = M.map((row,i)=> row.concat(Array.from({length:n},(_,j)=> i===j?1:0)));
-    for(let col=0; col<n; col++){
-      let pivot = col;
-      for(let r=col+1;r<n;r++){ if(Math.abs(A[r][col]) > Math.abs(A[pivot][col])) pivot = r; }
-      [A[col], A[pivot]] = [A[pivot], A[col]];
-      const pv = A[col][col] || 1e-9;
-      for(let c=0;c<2*n;c++){ A[col][c] /= pv; }
-      for(let r=0;r<n;r++){
-        if(r===col) continue;
-        const factor = A[r][col];
-        for(let c=0;c<2*n;c++){ A[r][c] -= factor * A[col][c]; }
-      }
-    }
-    return A.map(row=> row.slice(n));
-  }
-  function matMulVec(M, v){ return M.map(row=> row.reduce((s,val,i)=> s+val*v[i], 0)); }
-  function transpose(M){ return M[0].map((_,c)=> M.map(row=>row[c])); }
-  function matMul(A,B){
-    const r=A.length, k=A[0].length, c=B[0].length;
-    const out = Array.from({length:r},()=>Array(c).fill(0));
-    for(let i=0;i<r;i++) for(let j=0;j<c;j++){ let s=0; for(let t=0;t<k;t++) s+=A[i][t]*B[t][j]; out[i][j]=s; }
-    return out;
-  }
-  function jacobiEigenvalues(Ain){
-    const n = Ain.length;
-    let a = Ain.map(row=>row.slice());
-    for(let sweep=0; sweep<80; sweep++){
-      let off = 0;
-      for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) off += a[i][j]*a[i][j];
-      if(off < 1e-14) break;
-      for(let p=0;p<n;p++){
-        for(let q=p+1;q<n;q++){
-          if(Math.abs(a[p][q]) < 1e-15) continue;
-          const theta = (a[q][q]-a[p][p])/(2*a[p][q]);
-          const sign = theta>=0?1:-1;
-          const t = sign/(Math.abs(theta)+Math.sqrt(theta*theta+1));
-          const c = 1/Math.sqrt(t*t+1);
-          const s = t*c;
-          const app=a[p][p], aqq=a[q][q], apq=a[p][q];
-          a[p][p] = c*c*app - 2*s*c*apq + s*s*aqq;
-          a[q][q] = s*s*app + 2*s*c*apq + c*c*aqq;
-          a[p][q]=0; a[q][p]=0;
-          for(let i=0;i<n;i++){
-            if(i!==p && i!==q){
-              const aip=a[i][p], aiq=a[i][q];
-              a[i][p]=c*aip-s*aiq; a[p][i]=a[i][p];
-              a[i][q]=s*aip+c*aiq; a[q][i]=a[i][q];
-            }
-          }
-        }
-      }
-    }
-    const eigs=[]; for(let i=0;i<n;i++) eigs.push(a[i][i]);
-    return eigs.sort((x,y)=>x-y);
-  }
+  <div class="kfold-wrap">
+    <div class="kfold-row"><div class="kfold-label">Iteration 1</div>
+      <div class="kfold-cell val">Val</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div>
+    </div>
+    <div class="kfold-row"><div class="kfold-label">Iteration 2</div>
+      <div class="kfold-cell">Train</div><div class="kfold-cell val">Val</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div>
+    </div>
+    <div class="kfold-row"><div class="kfold-label">Iteration 3</div>
+      <div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell val">Val</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div>
+    </div>
+    <div class="kfold-row"><div class="kfold-label">Iteration 4</div>
+      <div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell val">Val</div><div class="kfold-cell">Train</div>
+    </div>
+    <div class="kfold-row"><div class="kfold-label">Iteration 5</div>
+      <div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell">Train</div><div class="kfold-cell val">Val</div>
+    </div>
+  </div>
 
-  // ---------- fixed synthetic dataset ----------
-  const N = 20, K = 5, DEG = 6; // degree-6 polynomial -> 7 features
-  const P = DEG+1;
-  const xs = Array.from({length:N}, (_,i)=> i*9/(N-1));
-  const noise = [0.10,-0.15,0.20,-0.05,0.12,-0.20,0.07,-0.10,0.15,-0.08,
-                 0.05,-0.12,0.18,-0.06,0.10,-0.15,0.08,-0.10,0.12,-0.07];
-  const ys = xs.map((x,i)=> Math.sin(x*1.3)*0.6 + 0.12*x - 0.5 + noise[i]);
+  <div class="callout intuit"><div class="icon">🍰</div><div class="body"><b>Analogy.</b> Think of K-fold like taste-testing a cake recipe with 5 different judges, where each judge in turn tastes a slice they didn't help bake, and everyone else's slices were used to bake it. Averaging 5 independent opinions is far more trustworthy than asking just one judge.</div></div>
 
-  function features(x){
-    const t = x/9;
-    const row = [];
-    for(let p=0;p<P;p++) row.push(Math.pow(t,p));
-    return row;
-  }
-  const Phi = xs.map(features);
+  <pre class="code"><span class="c"># pseudocode</span>
+<span class="kw">for</span> lambda <span class="kw">in</span> candidate_lambdas:
+    errors = []
+    <span class="kw">for</span> k <span class="kw">in</span> <span class="fn">range</span>(K):
+        train_folds = all_folds <span class="kw">except</span> fold[k]
+        W = <span class="fn">fit_ridge</span>(train_folds, lambda)
+        err = <span class="fn">validation_error</span>(W, fold[k])
+        errors.<span class="fn">append</span>(err)
+    avg_error[lambda] = <span class="fn">mean</span>(errors)
 
-  function ridgeFit(PhiSub, ySub, lambda){
-    const PhiT = transpose(PhiSub);
-    const G = matMul(PhiT, PhiSub);
-    for(let i=0;i<P;i++) G[i][i] += lambda;
-    const Ginv = invertMatrix(G);
-    const PhiTy = matMulVec(PhiT, ySub);
-    return matMulVec(Ginv, PhiTy);
-  }
+best_lambda = <span class="fn">argmin</span>(avg_error)</pre>
 
-  function predict(beta, x){
-    const f = features(x);
-    return f.reduce((s,v,i)=> s+v*beta[i], 0);
-  }
+  <div class="callout tip"><div class="icon">🔁</div><div class="body"><b>Leave-One-Out CV (LOOCV):</b> the extreme case K = n (one data point per fold). Uses almost all data for training each time (low bias in the error estimate) but requires n full model fits per λ — expensive when n is large.</div></div>
+</section>
+<section class="stage" id="s8">
+  <div class="stage-head"><div class="stage-num">8</div><h2>Optimization</h2></div>
+  <table class="data">
+    <tr><th>Method</th><th>Fits per λ</th><th>Bias of error estimate</th><th>Cost</th></tr>
+    <tr><td>Single validation split</td><td class="hi">1</td><td>Higher (depends on split)</td><td>Cheapest</td></tr>
+    <tr><td>K-fold (e.g. K=5,10)</td><td class="hi">K</td><td>Low, stable</td><td>Moderate</td></tr>
+    <tr><td>LOOCV (K=n)</td><td class="hi">n</td><td>Very low</td><td>Expensive (for large n)</td></tr>
+  </table>
+  <div class="callout tip"><div class="icon">⚡</div><div class="body">In practice, K = 5 or K = 10 is the standard sweet spot — enough folds to average out split-luck, without paying the full O(n) refits of LOOCV. For linear/ridge regression specifically, LOOCV error even has a closed-form shortcut (no refitting needed) — worth knowing exists, even if not derived here.</div></div>
+</section>
 
-  const PhiT_full = transpose(Phi);
-  const G_full = matMul(PhiT_full, Phi);
-  const eigsFull = jacobiEigenvalues(G_full);
+<section class="stage" id="s9">
+  <div class="stage-head"><div class="stage-num">9</div><h2>Edge Cases &amp; Limitations</h2></div>
+  <div class="grid2">
+    <div class="card accent-red"><h3>λ = 0</h3><p style="color:var(--text-dim);font-size:0.88rem;">W<sub>new</sub> collapses exactly to W<sub>ML</sub> — no regularization at all.</p></div>
+    <div class="card accent-red"><h3>λ → ∞</h3><p style="color:var(--text-dim);font-size:0.88rem;">W<sub>new</sub> → 0 — the model ignores the data entirely and predicts a constant. Massive bias.</p></div>
+    <div class="card accent-red"><h3>Very small K</h3><p style="color:var(--text-dim);font-size:0.88rem;">K=2 or 3 gives a noisy, high-bias estimate of error — each fold trains on very little data.</p></div>
+    <div class="card accent-red"><h3>K too close to n</h3><p style="color:var(--text-dim);font-size:0.88rem;">LOOCV error estimates across folds become highly correlated with each other, so the variance of the CV estimate itself can be high, despite each fit having low bias.</p></div>
+  </div>
+  <div class="callout warn"><div class="icon">🚫</div><div class="body"><b>Assumption check:</b> XXᵀ must actually be symmetric positive semi-definite for this eigenvalue argument to hold (true by construction for XXᵀ). Also — never let any information from the validation fold leak into training (e.g. don't standardize using statistics computed on the full dataset before splitting).</div></div>
+</section>
 
-  // ---------- CV grid (computed once) ----------
-  const lambdaGrid = [];
-  for(let i=0;i<=28;i++){
-    lambdaGrid.push(Math.pow(10, -3 + (i/28)*3.6));
-  }
-  function kfoldCvError(lambda){
-    let totalErr = 0, totalN = 0;
-    for(let k=0;k<K;k++){
-      const trainIdx = [], testIdx = [];
-      for(let i=0;i<N;i++){ if(i%K===k) testIdx.push(i); else trainIdx.push(i); }
-      const PhiTrain = trainIdx.map(i=>Phi[i]);
-      const yTrain = trainIdx.map(i=>ys[i]);
-      const beta = ridgeFit(PhiTrain, yTrain, lambda);
-      testIdx.forEach(i=>{
-        const pred = predict(beta, xs[i]);
-        const err = pred - ys[i];
-        totalErr += err*err;
-        totalN++;
-      });
-    }
-    return totalErr/totalN;
-  }
-  const cvErrors = lambdaGrid.map(kfoldCvError);
-  let bestIdx = 0;
-  for(let i=1;i<cvErrors.length;i++){ if(cvErrors[i] < cvErrors[bestIdx]) bestIdx = i; }
-  const bestLambda = lambdaGrid[bestIdx];
+<section class="stage" id="s10">
+  <div class="stage-head"><div class="stage-num">10</div><h2>Hidden Trigger Recognition ⭐</h2></div>
+  <div class="callout trigger"><div class="icon">🔔</div><div class="body">
+    <b>Words that should instantly bring this lecture to mind:</b>
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+      <span class="chip">"ill-conditioned"</span><span class="chip">"near-singular"</span><span class="chip">"trace of inverse"</span>
+      <span class="chip">"shrinkage"</span><span class="chip">"hyperparameter tuning"</span><span class="chip">"K folds"</span>
+      <span class="chip">"held-out"</span><span class="chip">"add λI"</span><span class="chip">"ridge"</span>
+      <span class="chip">"generalization error"</span>
+    </div>
+  </div></div>
+</section>
 
-  // ---------- lambda slider mapping ----------
-  const lambdaSlider = document.getElementById('lambdaSlider');
-  const lambdaVal = document.getElementById('lambdaVal');
-  const cvBadge = document.getElementById('cvBadge');
-  const statTrainMse = document.getElementById('statTrainMse');
-  const statCvMse = document.getElementById('statCvMse');
-  const statTrace = document.getElementById('statTrace');
-  const statMinEig = document.getElementById('statMinEig');
-  const eigBarsEl = document.getElementById('eigBars');
+<section class="stage" id="s11">
+  <div class="stage-head"><div class="stage-num">11</div><h2>Pattern Recognition</h2><span class="tag">when to reach for this</span></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>Features are highly correlated (multicollinearity) → XXᵀ close to singular.</li>
+      <li>More features than samples (p ≥ n) → XXᵀ is literally singular.</li>
+      <li>ML weights are wildly large or unstable across small data changes.</li>
+      <li>Need to choose <i>any</i> hyperparameter (λ, K in k-NN, depth in trees, C in SVM) → cross-validation is the general-purpose answer.</li>
+    </ul>
+  </div>
+</section>
 
-  function sliderToLambda(v){
-    const exp = -3.3 + (v/300)*3.9;
-    return Math.pow(10, exp);
-  }
-  function lambdaToSlider(lambda){
-    const exp = Math.log10(lambda);
-    return Math.round(((exp+3.3)/3.9)*300);
-  }
+<section class="stage" id="s12">
+  <div class="stage-head"><div class="stage-num">12</div><h2>Formula Shape Recognition</h2></div>
+  <p style="color:var(--text-dim);">This estimator appears under different notations across textbooks and courses — all are the same object:</p>
+  <table class="data">
+    <tr><th>Notation style</th><th>Formula</th></tr>
+    <tr><td>This lecture</td><td class="hi">(XXᵀ + λI)<sup>-1</sup> XY</td></tr>
+    <tr><td>Standard Ridge Regression</td><td class="hi">(XᵀX + λI)<sup>-1</sup> Xᵀy &nbsp;<span style="color:var(--text-faint);">(rows/cols convention flipped)</span></td></tr>
+    <tr><td>Bayesian view (MAP with Gaussian prior)</td><td class="hi">argmin<sub>W</sub> ‖Y − XW‖² + λ‖W‖²</td></tr>
+    <tr><td>Tikhonov regularization</td><td class="hi">argmin<sub>x</sub> ‖Ax − b‖² + ‖Γx‖², &nbsp;Γ=√λ·I</td></tr>
+  </table>
+  <div class="callout tip"><div class="icon">🔍</div><div class="body">All four are the <i>same optimization problem</i> viewed from different angles: linear algebra (stabilized inverse), regression (penalized loss), and statistics (a Gaussian prior pulling weights toward zero).</div></div>
+</section>
 
-  function fmtLambda(l){
-    if(l < 0.01) return '$' + l.toExponential(1) + '$';
-    return '$' + l.toFixed(2) + '$';
-  }
+<section class="stage" id="s13">
+  <div class="stage-head"><div class="stage-num">13</div><h2>Symbol Translation ⭐</h2></div>
+  <table class="data">
+    <tr><th>Notation</th><th>Plain meaning</th><th>In code</th></tr>
+    <tr><td><span class="sym-fn">trace(A)</span></td><td>sum of diagonal entries</td><td><code>np.trace(A)</code></td></tr>
+    <tr><td><span class="sym-param">λᵢ</span></td><td>i-th eigenvalue of XXᵀ</td><td><code>np.linalg.eigvals(X@X.T)</code></td></tr>
+    <tr><td><span class="sym-param">λ</span></td><td>regularization strength, a tuning dial</td><td><code>alpha</code> in sklearn's <code>Ridge</code></td></tr>
+    <tr><td><span class="sym-fn">(XXᵀ+λI)<sup>-1</sup></span></td><td>"stabilized" inverse</td><td><code>np.linalg.inv(X@X.T + lam*np.eye(d))</code></td></tr>
+    <tr><td>K-fold</td><td>rotate which chunk is held out</td><td><code>sklearn.model_selection.KFold</code></td></tr>
+  </table>
+</section>
 
-  function renderMath(el){
-    if (window.renderMathInElement) {
-      renderMathInElement(el, {delimiters: [{left: '$$', right: '$$', display: true},{left: '$', right: '$', display: false}], throwOnError: false});
-    }
-  }
+<section class="stage" id="s14">
+  <div class="stage-head"><div class="stage-num">14</div><h2>Computational Flow ⭐</h2></div>
+  <div class="pipeline">
+    <div class="pnode blue">Raw Data</div><div class="parrow">→</div>
+    <div class="pnode teal">Split into K Folds</div><div class="parrow">→</div>
+    <div class="pnode gold">Train on K−1, Validate on 1<br>(for each candidate λ)</div><div class="parrow">→</div>
+    <div class="pnode purple">Average Error per λ</div><div class="parrow">→</div>
+    <div class="pnode blue">Pick λ* = argmin</div><div class="parrow">→</div>
+    <div class="pnode teal">Refit W<sub>new</sub> on all data with λ*</div>
+  </div>
+</section>
+<section class="stage" id="s15">
+  <div class="stage-head"><div class="stage-num">15</div><h2>Problem Families</h2></div>
+  <div class="grid3">
+    <div class="card accent-gold"><h3>Ridge (L2)</h3><p style="color:var(--text-dim);font-size:0.87rem;">This lecture. Penalty = λ‖W‖². Shrinks weights smoothly, keeps all features.</p></div>
+    <div class="card accent-purple"><h3>Lasso (L1)</h3><p style="color:var(--text-dim);font-size:0.87rem;">Penalty = λ‖W‖₁. Shrinks some weights to exactly zero → feature selection.</p></div>
+    <div class="card accent-teal"><h3>Elastic Net</h3><p style="color:var(--text-dim);font-size:0.87rem;">Weighted mix of L1 + L2 — best of both, two hyperparameters to tune via CV.</p></div>
+  </div>
+</section>
 
-  // ---------- fold strip illustration ----------
-  const foldStripDemo = document.getElementById('foldStripDemo');
-  if (foldStripDemo) {
-    (function renderFoldDemo(){
-      let inner = '';
-      for(let k=0;k<K;k++){
-        inner += `<div class="fold-block ${k===1?'held':''}">Fold ${k+1}${k===1?' (val)':''}</div>`;
-      }
-      foldStripDemo.innerHTML = inner;
-    })();
-  }
+<section class="stage" id="s16">
+  <div class="stage-head"><div class="stage-num">16</div><h2>Invariant Library ⭐</h2></div>
+  <div class="grid3">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim);font-size:0.87rem;">trace(A) = Σ eigenvalues, for any square A. XXᵀ + λI is always invertible for λ&gt;0, even if XXᵀ is singular.</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim);font-size:0.87rem;">"Higher λ always improves test error" — only up to a point; too high and bias dominates.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim);font-size:0.87rem;">λ can never be negative (would push some eigenvalue toward 0 or flip sign, re-creating instability or destroying positive-definiteness).</p></div>
+  </div>
+</section>
 
-  // ---------- fit chart ----------
-  const fitSvg = document.getElementById('fitSvg');
-  const FPW=480, FPH=230;
-  const fm = { l:36, r:18, t:16, b:32 };
-  const fPW = FPW-fm.l-fm.r, fPH = FPH-fm.t-fm.b;
-  const xMin=0, xMax=9, yMin=-2.2, yMax=1.8;
-  function fx(x){ return fm.l + (x-xMin)/(xMax-xMin)*fPW; }
-  function fy(y){ return fm.t + (1-(y-yMin)/(yMax-yMin))*fPH; }
+<section class="stage" id="s17">
+  <div class="stage-head"><div class="stage-num">17</div><h2>Expert Thinking</h2></div>
+  <div class="callout intuit"><div class="icon">🧠</div><div class="body">An expert doesn't compute eigenvalues by hand to "see" instability — they glance at correlated features or p≥n and immediately think <i>"ill-conditioned, reach for ridge, tune λ by CV."</i> The trace/eigenvalue argument is the justification you derive once; after that it compresses into a one-line reflex.</div></div>
+</section>
 
-  // ---------- cv chart ----------
-  const cvSvg = document.getElementById('cvSvg');
-  const CPW=480, CPH=180;
-  const cm = { l:44, r:18, t:14, b:30 };
-  const cPW = CPW-cm.l-cm.r, cPH = CPH-cm.t-cm.b;
-  const logMin = Math.log10(lambdaGrid[0]), logMax = Math.log10(lambdaGrid[lambdaGrid.length-1]);
-  const errMin = Math.min(...cvErrors)*0.9, errMax = Math.max(...cvErrors)*1.05;
-  function cx(lambda){ return cm.l + (Math.log10(lambda)-logMin)/(logMax-logMin)*cPW; }
-  function cy(err){ return cm.t + (1-(err-errMin)/(errMax-errMin))*cPH; }
+<section class="stage" id="s18">
+  <div class="stage-head"><div class="stage-num">18</div><h2>Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 1:</b> "Larger λ always reduces MSE" — <b>false</b>. It reduces the variance term but increases bias; MSE is U-shaped in λ, not monotonic.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 2:</b> Confusing trace with determinant. trace = Σλᵢ (sum); determinant = Πλᵢ (product). Only the trace argument is used here.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 3:</b> Thinking K-fold trains K independent final models to deploy — it doesn't. K-fold is only for <i>selecting λ</i>; the final model is refit once on <b>all</b> the data using the chosen λ*.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 4:</b> Assuming LOOCV is "always best" because it uses the most training data per fold — its error estimate can have <i>higher variance</i> across different datasets than 5- or 10-fold CV, despite lower bias.</div></div>
+</section>
 
-  function renderFitChart(lambda){
-    const beta = ridgeFit(Phi, ys, lambda);
-    let inner = '';
-    inner += `<line x1="${fm.l}" y1="${fm.t}" x2="${fm.l}" y2="${FPH-fm.b}" stroke="#2d334b" stroke-width="1"/>`;
-    inner += `<line x1="${fm.l}" y1="${FPH-fm.b}" x2="${FPW-fm.r}" y2="${FPH-fm.b}" stroke="#2d334b" stroke-width="1"/>`;
+<section class="stage" id="s19">
+  <div class="stage-head"><div class="stage-num">19</div><h2>Exam Shortcuts</h2></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>Asked for "sum of eigenvalues" → it's the trace; no need to actually factor the matrix.</li>
+      <li>Asked to compare MSE of W<sub>ML</sub> vs W<sub>new</sub> → just compare Σ1/λᵢ vs Σ1/(λᵢ+λ) term-by-term; the second is always smaller for λ&gt;0.</li>
+      <li>K-fold total model fits (excluding final refit) for G values of λ = <b>G × K</b>.</li>
+      <li>LOOCV is just K-fold with K = n — don't treat it as a separate formula to memorize.</li>
+    </ul>
+  </div>
+</section>
 
-    let path = '';
-    const steps = 100;
-    for(let s=0;s<=steps;s++){
-      const x = xMin + (xMax-xMin)*s/steps;
-      const y = Math.max(yMin-1, Math.min(yMax+1, predict(beta,x)));
-      const px = fx(x), py = fy(Math.max(yMin,Math.min(yMax,y)));
-      path += (s===0?`M ${px} ${py}`:` L ${px} ${py}`);
-    }
-    inner += `<path d="${path}" fill="none" stroke="#d9b872" stroke-width="2.4"/>`;
+<section class="stage" id="s20">
+  <div class="stage-head"><div class="stage-num">20</div><h2>Industry Implementation</h2></div>
+  <pre class="code"><span class="c"># scikit-learn: ridge regression + K-fold CV to pick lambda (alpha)</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> Ridge
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> GridSearchCV, KFold
 
-    xs.forEach((x,i)=>{
-      inner += `<circle cx="${fx(x)}" cy="${fy(ys[i])}" r="4" fill="#e0967a" stroke="#161b2a" stroke-width="1"/>`;
-    });
+alphas = {<span class="str">'alpha'</span>: [<span class="num">0.001</span>, <span class="num">0.01</span>, <span class="num">0.1</span>, <span class="num">1</span>, <span class="num">10</span>, <span class="num">100</span>]}  <span class="c"># candidate lambdas</span>
+cv = <span class="fn">KFold</span>(n_splits=<span class="num">5</span>, shuffle=<span class="kw">True</span>, random_state=<span class="num">0</span>)
 
-    fitSvg.innerHTML = inner;
+search = <span class="fn">GridSearchCV</span>(<span class="fn">Ridge</span>(), alphas, cv=cv,
+                      scoring=<span class="str">'neg_mean_squared_error'</span>)
+search.<span class="fn">fit</span>(X_train, y_train)
 
-    let sse=0;
-    xs.forEach((x,i)=>{ const e = predict(beta,x)-ys[i]; sse += e*e; });
-    statTrainMse.textContent = (sse/N).toFixed(4);
-    if (window.renderMathInElement) renderMathInElement(statTrainMse, {delimiters: [{left:'$',right:'$',display:false}], throwOnError: false});
+<span class="fn">print</span>(<span class="str">"best lambda:"</span>, search.best_params_[<span class="str">'alpha'</span>])
+best_model = search.best_estimator_   <span class="c"># refit on all training data w/ best λ</span></pre>
+  <div class="callout tip"><div class="icon">🛠️</div><div class="body">sklearn calls λ <code>alpha</code>. <code>RidgeCV</code> is an even faster built-in shortcut that uses the closed-form efficient LOOCV trick for ridge specifically, avoiding a full grid search loop.</div></div>
+</section>
 
-    return beta;
-  }
+<section class="stage" id="s21">
+  <div class="stage-head"><div class="stage-num">21</div><h2>Connections</h2></div>
+  <div class="grid2">
+    <div class="card accent-blue"><h3>← Builds on</h3><p style="color:var(--text-dim);font-size:0.88rem;">Maximum Likelihood estimation for linear regression, eigen-decomposition, bias–variance decomposition.</p></div>
+    <div class="card accent-gold"><h3>→ Leads to</h3><p style="color:var(--text-dim);font-size:0.88rem;">Lasso/Elastic Net, Bayesian linear regression (MAP estimation), general hyperparameter tuning for any ML model (SVM's C, k-NN's k, tree depth).</p></div>
+  </div>
+</section>
 
-  function renderCvChart(lambda){
-    let inner = '';
-    inner += `<line x1="${cm.l}" y1="${cm.t}" x2="${cm.l}" y2="${CPH-cm.b}" stroke="#2d334b" stroke-width="1"/>`;
-    inner += `<line x1="${cm.l}" y1="${CPH-cm.b}" x2="${CPW-cm.r}" y2="${CPH-cm.b}" stroke="#2d334b" stroke-width="1"/>`;
+<div class="divider"></div>
 
-    let path = '';
-    lambdaGrid.forEach((l,i)=>{
-      const px = cx(l), py = cy(cvErrors[i]);
-      path += (i===0?`M ${px} ${py}`:` L ${px} ${py}`);
-    });
-    inner += `<path d="${path}" fill="none" stroke="#7fb0e8" stroke-width="2.2"/>`;
+<section class="stage" id="s22">
+  <div class="stage-head"><div class="stage-num">22</div><h2>One-Page Brain ⭐</h2></div>
+  <div class="brain">
+    <h3>Core Intuition</h3>
+    <ul><li>Small eigenvalues of XXᵀ make the ML inverse explode → high MSE. Adding λI shifts every eigenvalue up, shrinking the inverse and the MSE — at the cost of some bias.</li></ul>
 
-    const bx = cx(bestLambda), by = cy(cvErrors[bestIdx]);
-    inner += `<circle cx="${bx}" cy="${by}" r="5.5" fill="#8fb996" stroke="#161b2a" stroke-width="1.3"/>`;
+    <h3>5 Formulas</h3>
+    <ul>
+      <li><b>trace(A) = Σλᵢ</b></li>
+      <li><b>MSE(W<sub>ML</sub>) ∝ trace((XXᵀ)⁻¹) = Σ1/λᵢ</b></li>
+      <li><b>W<sub>new</sub> = (XXᵀ + λI)⁻¹XY</b></li>
+      <li><b>eig of new inverse = 1/(λᵢ+λ)</b></li>
+      <li><b>best λ = argmin average K-fold validation error</b></li>
+    </ul>
 
-    const curErr = kfoldCvError(lambda);
-    const px = cx(lambda), py = cy(curErr);
-    inner += `<line x1="${px}" y1="${cm.t}" x2="${px}" y2="${CPH-cm.b}" stroke="#d9b872" stroke-width="1.3" stroke-dasharray="4 3" opacity="0.7"/>`;
-    inner += `<circle cx="${px}" cy="${py}" r="5" fill="#d9b872" stroke="#161b2a" stroke-width="1.3"/>`;
+    <h3>3 Diagrams</h3>
+    <ul><li>Eigenvalue shrinkage panel (§6)</li><li>K-fold rotation grid (§7)</li><li>End-to-end computational pipeline (§14)</li></ul>
 
-    inner += `<text x="${cm.l}" y="${CPH-8}" fill="#5f6785" font-family="JetBrains Mono, monospace" font-size="10">λ→ (log scale)</text>`;
+    <h3>5 Triggers</h3>
+    <ul><li>ill-conditioned / near-singular · trace of inverse · shrinkage · held-out fold · add λI</li></ul>
 
-    cvSvg.innerHTML = inner;
-    statCvMse.textContent = curErr.toFixed(4);
-    if (window.renderMathInElement) renderMathInElement(statCvMse, {delimiters: [{left:'$',right:'$',display:false}], throwOnError: false});
-  }
+    <h3>5 Traps</h3>
+    <ul><li>Bigger λ isn't always better · trace ≠ determinant · CV doesn't produce K deployable models · LOOCV isn't automatically "best" · λ can't be negative</li></ul>
 
-  function renderEigBars(lambda){
-    const maxEig = Math.max(...eigsFull, ...eigsFull.map(e=>e+lambda));
-    let inner = '';
-    eigsFull.forEach((e,i)=>{
-      const before = Math.max(2, (e/maxEig)*90);
-      const after = Math.max(2, ((e+lambda)/maxEig)*90);
-      inner += `<div class="eig-col">
-        <div class="eig-bar-track" style="height:100px;">
-          <div class="eig-bar" style="height:${after}px;background:#d9b872;"></div>
-        </div>
-        <div class="lbl">$\\lambda_{${P-i}}$</div>
-      </div>`;
-    });
-    eigBarsEl.innerHTML = inner;
-    if (window.renderMathInElement) renderMathInElement(eigBarsEl, {delimiters: [{left:'$',right:'$',display:false},{left:'$$',right:'$$',display:true}], throwOnError: false});
+    <h3>5 Shortcuts</h3>
+    <ul><li>Sum-of-eigenvalues = trace, skip factoring · compare Σ1/λᵢ term-by-term · total fits = G×K · LOOCV = K-fold with K=n · refit once on full data with λ*</li></ul>
 
-    const minEig = Math.min(...eigsFull);
-    statMinEig.textContent = minEig < 0.001 ? minEig.toExponential(1) : minEig.toFixed(4);
-    const trace = eigsFull.reduce((s,e)=> s + 1/(e+lambda), 0);
-    statTrace.textContent = trace.toFixed(2);
-  }
+    <h3>Dependencies</h3>
+    <ul><li>Needs: eigen-decomposition, ML estimation for regression, bias-variance tradeoff. Feeds into: Lasso, Elastic Net, Bayesian regression, general hyperparameter search.</li></ul>
+  </div>
+</section>
 
-  function renderAll(){
-    const lambda = sliderToLambda(parseInt(lambdaSlider.value,10));
-    lambdaVal.textContent = '$\\lambda = ' + fmtLambda(lambda).replace(/\$/g,'') + '$';
-    cvBadge.textContent = '$\\lambda = ' + fmtLambda(lambda).replace(/\$/g,'') + '$';
-    renderFitChart(lambda);
-    renderCvChart(lambda);
-    renderEigBars(lambda);
-    if (window.renderMathInElement) {
-      renderMathInElement(lambdaVal, {delimiters: [{left:'$',right:'$',display:false}], throwOnError: false});
-      renderMathInElement(cvBadge, {delimiters: [{left:'$',right:'$',display:false}], throwOnError: false});
-    }
-  }
+<footer>Lecture 35 · Cross-Validation for Minimizing MSE — Study Notes</footer>
 
-  lambdaSlider.addEventListener('input', renderAll);
-
-  document.getElementById('snapBestLambdaBtn').addEventListener('click', ()=>{
-    lambdaSlider.value = lambdaToSlider(bestLambda);
-    renderAll();
-  });
-  document.getElementById('resetLambdaBtn').addEventListener('click', ()=>{
-    lambdaSlider.value = 0;
-    renderAll();
-  });
-
-  renderAll();
-})();
-</script>
-
+</div>
 </body>
 </html>

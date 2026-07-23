@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 36 — Bayesian Modeling for Linear Regression</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080a12;
+  --bg-alt:#0d1019;
+  --panel-bg:#12141f;
+  --panel-bg-2:#151827;
+  --panel-border:rgba(255,255,255,0.08);
+  --panel-border-strong:rgba(255,255,255,0.14);
+  --text:#e7e9f2;
+  --text-dim:#9aa0b4;
+  --text-faint:#666b80;
+
+  --gold:#d4af37;
+  --gold-soft:rgba(212,175,55,0.12);
+  --blue:#5b9dff;
+  --blue-soft:rgba(91,157,255,0.12);
+  --green:#4ade80;
+  --green-soft:rgba(74,222,128,0.12);
+  --purple:#b18cfa;
+  --purple-soft:rgba(177,140,250,0.12);
+  --red:#f87171;
+  --red-soft:rgba(248,113,113,0.12);
+  --teal:#2dd4bf;
+  --teal-soft:rgba(45,212,191,0.12);
+
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --body-font:"Inter",system-ui,sans-serif;
+  --mono-font:"JetBrains Mono",monospace;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(91,157,255,0.08), transparent),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(212,175,55,0.06), transparent),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--body-font);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 100px;}
+
+/* ---------- NAV ---------- */
+nav.topnav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(8,10,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--panel-border);
+  overflow-x:auto;
+  white-space:nowrap;
+  scrollbar-width:thin;
+}
+nav.topnav::-webkit-scrollbar{height:4px;}
+nav.topnav::-webkit-scrollbar-thumb{background:var(--panel-border-strong);border-radius:4px;}
+nav.topnav .navinner{display:inline-flex;gap:6px;padding:10px 16px;}
+nav.topnav a{
+  color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  padding:6px 12px;border-radius:20px;border:1px solid transparent;
+  letter-spacing:0.02em;
+  transition:all .15s ease;
+}
+nav.topnav a:hover{color:var(--gold);border-color:var(--panel-border-strong);background:var(--panel-bg);}
+
+/* ---------- HERO ---------- */
+.hero{padding:52px 0 30px;}
+.hero .kicker{
+  font-family:var(--mono-font);color:var(--teal);font-size:0.78rem;
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:14px;font-weight:600;
+}
+.hero h1{
+  font-family:var(--serif-math-font);font-weight:600;font-size:clamp(1.8rem,5vw,2.7rem);
+  margin:0 0 14px;line-height:1.15;
+  background:linear-gradient(135deg,#fff, #b9c2dd 60%, var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.sub{color:var(--text-dim);font-size:1.02rem;max-width:640px;margin:0 0 20px;}
+.hero .chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  font-family:var(--mono-font);font-size:0.72rem;padding:5px 11px;border-radius:20px;
+  border:1px solid var(--panel-border-strong);color:var(--text-dim);background:var(--panel-bg);
+}
+
+/* ---------- SECTION / CARD SYSTEM ---------- */
+section.stage{margin:44px 0;scroll-margin-top:70px;}
+.stage-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.stage-num{
+  font-family:var(--mono-font);font-size:0.85rem;color:var(--bg);
+  background:var(--gold);width:34px;height:34px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;
+}
+.stage-head h2{
+  font-family:var(--serif-math-font);font-weight:600;font-size:1.5rem;margin:0;color:var(--text);
+}
+.stage-head .tag{
+  font-family:var(--mono-font);font-size:0.68rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+
+.card{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:22px 24px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(0,0,0,0.22);
+}
+.card h3{margin-top:0;font-family:var(--body-font);font-size:1rem;font-weight:700;color:var(--text);}
+.card.accent-gold{border-left:3px solid var(--gold);}
+.card.accent-blue{border-left:3px solid var(--blue);}
+.card.accent-teal{border-left:3px solid var(--teal);}
+.card.accent-purple{border-left:3px solid var(--purple);}
+.card.accent-red{border-left:3px solid var(--red);}
+.card.accent-green{border-left:3px solid var(--green);}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* ---------- CALLOUTS ---------- */
+.callout{
+  border-radius:14px;padding:16px 18px;margin:16px 0;
+  display:flex;gap:12px;align-items:flex-start;
+  border:1px solid var(--panel-border);
+}
+.callout .icon{font-size:1.2rem;line-height:1;flex-shrink:0;margin-top:2px;}
+.callout.tip{background:var(--teal-soft);border-color:rgba(45,212,191,0.3);}
+.callout.warn{background:var(--red-soft);border-color:rgba(248,113,113,0.3);}
+.callout.trap{background:var(--purple-soft);border-color:rgba(177,140,250,0.3);}
+.callout.intuit{background:var(--blue-soft);border-color:rgba(91,157,255,0.3);}
+.callout.trigger{background:var(--gold-soft);border-color:rgba(212,175,55,0.35);}
+.callout b{color:var(--text);}
+.callout .body{color:var(--text-dim);font-size:0.93rem;}
+.callout .body b{color:var(--text);}
+
+/* ---------- EQUATION PANEL ---------- */
+.eq-panel{
+  background:linear-gradient(180deg,var(--panel-bg-2),var(--panel-bg));
+  border:1px solid var(--panel-border-strong);
+  border-radius:18px;
+  padding:2.4rem 1.6rem 2rem;
+  margin:1.8rem 0;
+  box-shadow:0 10px 34px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.eq-panel::before{
+  content:"";position:absolute;top:-40%;left:50%;transform:translateX(-50%);
+  width:70%;height:140%;background:radial-gradient(ellipse at center, var(--eq-glow,rgba(212,175,55,0.08)), transparent 70%);
+  pointer-events:none;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.15rem,3.4vw,1.9rem);
+  color:var(--text);
+  line-height:2;
+  position:relative;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.9rem;right:1.3rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:var(--green);font-style:italic;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);font-weight:600;}
+.op-big{font-size:1.5em;vertical-align:middle;display:inline-block;}
+sub,sup{font-size:0.62em;}
+sup.T{font-style:normal;}
+
+/* legend */
+.legend{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:8px 18px;margin:10px 0 22px;padding:14px 18px;
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:12px;
+}
+.legend .row{display:flex;gap:8px;font-size:0.86rem;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-style:italic;min-width:34px;font-size:1.02rem;}
+.legend .desc{color:var(--text-dim);}
+
+/* ---------- MATRIX GRID ---------- */
+.matrix{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;}
+.matrix .bracket{font-size:2.2em;color:var(--text-dim);font-family:var(--serif-math-font);}
+.matrix table{border-collapse:collapse;}
+.matrix td{padding:4px 12px;font-family:var(--serif-math-font);font-size:1.05rem;text-align:center;}
+
+/* ---------- STEP TIMELINE ---------- */
+.timeline{position:relative;margin:24px 0;padding-left:6px;}
+.tstep{
+  position:relative;padding:16px 18px 16px 52px;margin-bottom:4px;
+  background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;
+}
+.tstep:not(:last-child){margin-bottom:22px;}
+.tstep:not(:last-child)::after{
+  content:"";position:absolute;left:34px;top:100%;width:2px;height:22px;
+  background:linear-gradient(var(--gold),transparent);
+}
+.tstep .badge{
+  position:absolute;left:14px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);color:var(--bg);font-family:var(--mono-font);font-weight:700;font-size:0.8rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.tstep h4{margin:0 0 6px;font-size:0.95rem;color:var(--text);}
+.tstep .expr{font-family:var(--serif-math-font);font-size:1.05rem;color:var(--gold);margin-top:6px;}
+.tstep p{margin:4px 0 0;color:var(--text-dim);font-size:0.88rem;}
+
+/* ---------- TABLES ---------- */
+table.data{width:100%;border-collapse:collapse;margin:14px 0;font-size:0.9rem;}
+table.data th{
+  text-align:left;padding:10px 12px;background:var(--panel-bg-2);
+  color:var(--gold);font-family:var(--mono-font);font-size:0.72rem;
+  text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--panel-border-strong);
+}
+table.data td{padding:10px 12px;border-bottom:1px solid var(--panel-border);color:var(--text-dim);}
+table.data tr:last-child td{border-bottom:none;}
+table.data td.hi{color:var(--text);font-weight:600;}
+table.data code{color:var(--teal);}
+
+/* ---------- CODE ---------- */
+pre.code{
+  background:#0a0c14;border:1px solid var(--panel-border);border-radius:12px;
+  padding:16px 18px;overflow-x:auto;font-family:var(--mono-font);font-size:0.82rem;
+  line-height:1.65;color:#c9d1e8;
+}
+pre.code .c{color:var(--text-faint);font-style:italic;}
+pre.code .kw{color:var(--purple);}
+pre.code .fn{color:var(--blue);}
+pre.code .num{color:var(--green);}
+pre.code .str{color:var(--gold);}
+
+/* ---------- DIAGRAM: pipeline ---------- */
+.pipeline{display:flex;align-items:center;flex-wrap:wrap;gap:0;justify-content:center;margin:20px 0;}
+.pnode{
+  background:var(--panel-bg-2);border:1px solid var(--panel-border-strong);
+  border-radius:12px;padding:12px 14px;font-size:0.78rem;text-align:center;
+  min-width:100px;color:var(--text);font-weight:600;
+}
+.pnode.blue{border-color:rgba(91,157,255,0.4);color:var(--blue);}
+.pnode.gold{border-color:rgba(212,175,55,0.4);color:var(--gold);}
+.pnode.teal{border-color:rgba(45,212,191,0.4);color:var(--teal);}
+.pnode.purple{border-color:rgba(177,140,250,0.4);color:var(--purple);}
+.parrow{color:var(--text-faint);font-size:1.3rem;padding:0 8px;}
+@media(max-width:680px){.parrow{transform:rotate(90deg);}}
+
+/* ---------- KFOLD DIAGRAM ---------- */
+.kfold-wrap{margin:20px 0;}
+.kfold-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+.kfold-label{width:78px;font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);flex-shrink:0;}
+.kfold-cell{
+  flex:1;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.68rem;font-weight:600;
+  background:var(--blue-soft);color:var(--blue);border:1px solid rgba(91,157,255,0.3);
+}
+.kfold-cell.val{background:var(--red-soft);color:var(--red);border-color:rgba(248,113,113,0.4);}
+
+/* ---------- EIGEN DIAGRAM (SVG holder) ---------- */
+.svg-box{
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:14px;
+  padding:14px;margin:18px 0;display:flex;justify-content:center;
+}
+.svg-box svg{max-width:100%;height:auto;}
+
+/* ---------- ONE PAGE BRAIN ---------- */
+.brain{
+  background:linear-gradient(160deg, rgba(212,175,55,0.06), rgba(91,157,255,0.04));
+  border:1px solid var(--panel-border-strong);border-radius:20px;padding:26px 26px 8px;
+}
+.brain h3{color:var(--gold);font-family:var(--serif-math-font);font-size:1.1rem;margin:0 0 10px;}
+.brain ul{margin:0 0 18px;padding-left:20px;color:var(--text-dim);font-size:0.88rem;}
+.brain ul li{margin-bottom:5px;}
+.brain ul li b{color:var(--text);}
+
+footer{text-align:center;padding:40px 0 10px;color:var(--text-faint);font-size:0.78rem;font-family:var(--mono-font);}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--panel-border-strong),transparent);margin:50px 0;}
+</style>
+</head>
+<body>
+<nav class="topnav"><div class="navinner">
+<a href="#s-1">-1 Pattern</a>
+<a href="#s0">0 Problem</a>
+<a href="#s1">1 History</a>
+<a href="#s2">2 Engineering</a>
+<a href="#s3">3 Math</a>
+<a href="#s4">4 Formula</a>
+<a href="#s5">5 Anatomy</a>
+<a href="#s6">6 Derivation</a>
+<a href="#s7">7 Algorithm</a>
+<a href="#s8">8 Optimization</a>
+<a href="#s9">9 Edge Cases</a>
+<a href="#s10">10 Triggers</a>
+<a href="#s11">11 Recognition</a>
+<a href="#s12">12 Shape</a>
+<a href="#s13">13 Symbols</a>
+<a href="#s14">14 Flow</a>
+<a href="#s15">15 Families</a>
+<a href="#s16">16 Invariants</a>
+<a href="#s17">17 Expert</a>
+<a href="#s18">18 Traps</a>
+<a href="#s19">19 Shortcuts</a>
+<a href="#s20">20 Industry</a>
+<a href="#s21">21 Connections</a>
+<a href="#s22">22 One Page</a>
+</div></nav>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Lecture 38 · Probabilistic Regression</div>
+  <h1>Bayesian Modeling for Linear Regression</h1>
+  <p class="sub">Stop treating <span class="sym-param">W</span> as one fixed unknown number to estimate. Treat it as a <b>random variable</b> with its own belief distribution — then watch Ridge Regression fall out as a special case, for free.</p>
+  <div class="chips">
+    <span class="chip">Bayes' Theorem</span>
+    <span class="chip">Conjugate Priors</span>
+    <span class="chip">MAP Estimation</span>
+    <span class="chip">Gaussian Prior</span>
+    <span class="chip">Regularization</span>
+  </div>
+</div>
+<section class="stage" id="s-1">
+  <div class="stage-head"><div class="stage-num">−1</div><h2>Cognitive Pattern</h2><span class="tag">what kind of thinking is this?</span></div>
+  <div class="grid3">
+    <div class="card accent-purple"><h3>🎲 Probabilistic Inference</h3><p style="color:var(--text-dim);font-size:0.9rem;">We reason about <span class="sym-param">W</span> as a <i>distribution</i>, not a point — belief gets updated by evidence, exactly like updating odds after new information.</p></div>
+    <div class="card accent-gold"><h3>⚙️ Optimization</h3><p style="color:var(--text-dim);font-size:0.9rem;">Finding the single best <span class="sym-param">W</span> (the MAP estimate) is still a maximization/minimization problem underneath the probability.</p></div>
+    <div class="card accent-blue"><h3>🔷 Transformation</h3><p style="color:var(--text-dim);font-size:0.9rem;">A probability statement (posterior) is algebraically <i>transformed</i> into a familiar-looking loss function with a penalty term.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s0">
+  <div class="stage-head"><div class="stage-num">0</div><h2>The Problem</h2></div>
+  <div class="card accent-red">
+    <h3>Why does this problem exist?</h3>
+    <p style="color:var(--text-dim);">Ordinary (frequentist) regression treats <span class="sym-param">W</span> as some fixed, unknown but exact true number, and asks "what single value best explains the data I saw?" That view has no natural place to put outside knowledge — e.g. "I expect weights to be small and centered near zero unless the data strongly says otherwise." It also gives no answer for <i>why</i> ridge regression's λ penalty is the "correct" thing to add — it just works empirically.</p>
+  </div>
+  <div class="callout warn">
+    <div class="icon">⚠️</div>
+    <div class="body"><b>What happens if we don't solve it?</b> We're stuck justifying regularization as a numerical trick (Lecture 35) rather than a principled modeling choice — and we have no framework for expressing genuine prior knowledge, or for reasoning about <i>uncertainty</i> in W itself rather than just a single fitted value.</div>
+  </div>
+  <div class="callout intuit">
+    <div class="icon">🎯</div>
+    <div class="body"><b>Real-life analogy.</b> A detective doesn't start an investigation with a blank mind — they start with priors ("most break-ins are not conducted by strangers with no connection to the house") and update those beliefs as evidence comes in. The final verdict is a <i>posterior</i> belief — a blend of prior suspicion and new evidence, not evidence alone. Bayesian regression treats the weights the same way.</div>
+  </div>
+</section>
+
+<section class="stage" id="s1">
+  <div class="stage-head"><div class="stage-num">1</div><h2>History</h2></div>
+  <div class="card">
+    <p style="color:var(--text-dim);">Bayes' theorem (Rev. Thomas Bayes, published 1763) originally addressed simple conditional probability puzzles. Its use for parameter estimation in statistical models — treating unknown parameters as random variables with a prior distribution — grew into the broader field of <b>Bayesian statistics</b> through the 20th century, and was resisted for decades by the dominant frequentist school, which considered "probability of a parameter" philosophically suspect (parameters are fixed, not random, in that view). Bayesian linear regression became a standard tool once <b>conjugate priors</b> were identified — priors chosen specifically so the posterior update stays in closed form, avoiding intractable integrals.</p>
+  </div>
+</section>
+
+<section class="stage" id="s2">
+  <div class="stage-head"><div class="stage-num">2</div><h2>Engineering Thinking</h2><span class="tag">before any math</span></div>
+  <div class="grid2">
+    <div class="card accent-teal"><h3>Property we want</h3><p style="color:var(--text-dim);font-size:0.9rem;">A way to combine "what the data says" with "what we already believe" into one coherent estimate — and to keep the math tractable while doing it.</p></div>
+    <div class="card accent-teal"><h3>Constraint</h3><p style="color:var(--text-dim);font-size:0.9rem;">If prior and posterior belong to different distribution families, every update requires new (often intractable) integration. We need the family to stay closed under updating.</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><div class="body"><b>Engineering instinct:</b> pick a prior shape that "plays nicely" algebraically with the likelihood shape you already have (Gaussian likelihood → try a Gaussian prior) so that multiplying them together stays inside the same family — this is exactly what "conjugate" means.</div></div>
+</section>
+
+<section class="stage" id="s3">
+  <div class="stage-head"><div class="stage-num">3</div><h2>Mathematical Translation</h2></div>
+  <div class="card">
+    <table class="data">
+      <tr><th>Engineering statement</th><th>Math translation</th></tr>
+      <tr><td>"Belief about W before data"</td><td class="hi">Prior P(W)</td></tr>
+      <tr><td>"How well W explains the data"</td><td class="hi">Likelihood P(Data | W)</td></tr>
+      <tr><td>"Updated belief after data"</td><td class="hi">Posterior P(W | Data) ∝ P(Data|W)·P(W)</td></tr>
+      <tr><td>"Best single estimate of W"</td><td class="hi">Ŵ<sub>MAP</sub> = argmax<sub>W</sub> P(W|Data)</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="stage" id="s4">
+  <div class="stage-head"><div class="stage-num">4</div><h2>Formula Construction</h2><span class="tag">built line by line</span></div>
+
+  <div class="callout intuit"><div class="icon">①</div><div class="body">Start from Bayes' theorem itself — the universal rule for updating belief.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(177,140,250,0.10);">
+    <div class="eq-label">Step 1 — Bayes' Theorem</div>
+    <div class="eq-main"><span class="sym-fn">P</span>(<span class="sym-param">W</span> | Data) &nbsp;<span class="sym-op">=</span>&nbsp; <span style="display:inline-block;vertical-align:middle;"><span style="display:block;border-bottom:1.5px solid var(--text-dim);padding:0 8px 4px;">P(Data|<span class="sym-param">W</span>)&nbsp;P(<span class="sym-param">W</span>)</span><span style="display:block;padding-top:4px;">P(Data)</span></span></div>
+    <div class="eq-number">Eq. 38.1</div>
+  </div>
+  <div class="callout tip"><div class="icon">✂️</div><div class="body">P(Data) doesn't depend on <span class="sym-param">W</span> — it's just a normalizing constant. For finding the <i>best</i> W we can drop it: <b>posterior ∝ likelihood × prior</b>.</div></div>
+
+  <div class="callout intuit"><div class="icon">②</div><div class="body">Choose the Gaussian likelihood: each target is normally distributed around the linear prediction.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(91,157,255,0.10);">
+    <div class="eq-label">Step 2 — Likelihood</div>
+    <div class="eq-main"><span class="sym-var">Y</span> | <span class="sym-var">X</span>, <span class="sym-param">W</span> &nbsp;<span class="sym-op">∼</span>&nbsp; <span class="sym-fn">N</span>( <span class="sym-param">W</span><sup class="T">T</sup><span class="sym-var">X</span> , 1 )</div>
+    <div class="eq-number">Eq. 38.2</div>
+  </div>
+
+  <div class="callout intuit"><div class="icon">③</div><div class="body">Choose the conjugate Gaussian prior: weights centered at zero, independent, moderate spread γ².</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(212,175,55,0.10);">
+    <div class="eq-label">Step 3 — Prior</div>
+    <div class="eq-main"><span class="sym-param">W</span> &nbsp;<span class="sym-op">∼</span>&nbsp; <span class="sym-fn">N</span>( <span class="sym-const">0</span> , <span class="sym-const">γ</span><sup>2</sup><span class="sym-fn">I</span> )</div>
+    <div class="eq-number">Eq. 38.3</div>
+  </div>
+
+  <div class="callout intuit"><div class="icon">④</div><div class="body">Multiply likelihood × prior. Because both are Gaussian, the posterior is <i>also</i> Gaussian (conjugacy in action) — and maximizing it reduces to a familiar-looking minimization.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(45,212,191,0.12);">
+    <div class="eq-label">Step 4 — MAP Objective</div>
+    <div class="eq-main">min<sub><span class="sym-param">W</span></sub>&nbsp; <span class="op-big sym-op">½</span> <span class="op-big sym-op">Σ</span><sub>i=1</sub><sup>n</sup> (<span class="sym-var">y</span><sub>i</sub> <span class="sym-op">−</span> <span class="sym-param">W</span><sup class="T">T</sup><span class="sym-var">x</span><sub>i</sub>)<sup>2</sup> &nbsp;<span class="sym-op">+</span>&nbsp; <span class="sym-op">1</span>/(2<span class="sym-const">γ</span><sup>2</sup>) ‖<span class="sym-param">W</span>‖<sup>2</sup></div>
+    <div class="eq-number">Eq. 38.4</div>
+  </div>
+
+  <div class="callout intuit"><div class="icon">⑤</div><div class="body">Solving this quadratic minimization in closed form gives the MAP estimator — identical in shape to the Ridge estimator from Lecture 35, with <span class="sym-param">λ</span> replaced by <span class="sym-op">1</span>/<span class="sym-const">γ</span><sup>2</sup>.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(212,175,55,0.14);">
+    <div class="eq-label">Step 5 — MAP Estimator (closed form)</div>
+    <div class="eq-main"><span class="sym-param">Ŵ</span><sub>MAP</sub> &nbsp;<span class="sym-op">=</span>&nbsp; (<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup> <span class="sym-op">+</span> <span class="op-big sym-op">1</span>/<span class="sym-const">γ</span><sup>2</sup><span class="sym-fn">I</span>)<sup>-1</sup> <span class="sym-fn">X</span><span class="sym-var">Y</span></div>
+    <div class="eq-number">Eq. 38.5</div>
+  </div>
+</section>
+<section class="stage" id="s5">
+  <div class="stage-head"><div class="stage-num">5</div><h2>Formula Anatomy</h2></div>
+  <div class="legend">
+    <div class="row"><span class="sym sym-var">X, Y</span><span class="desc">— observed data (features, targets)</span></div>
+    <div class="row"><span class="sym sym-param">W</span><span class="desc">— weight vector, now a random variable</span></div>
+    <div class="row"><span class="sym sym-const">γ²</span><span class="desc">— prior variance: how tightly we believe W is near 0</span></div>
+    <div class="row"><span class="sym sym-fn">N(μ,Σ)</span><span class="desc">— Gaussian (Normal) distribution</span></div>
+    <div class="row"><span class="sym sym-fn">P(W|Data)</span><span class="desc">— posterior: belief about W after seeing data</span></div>
+    <div class="row"><span class="sym sym-op">1/γ²</span><span class="desc">— plays the exact role of λ from Lecture 35</span></div>
+  </div>
+  <div class="callout tip"><div class="icon">🔗</div><div class="body"><b>Key anatomical insight:</b> a <i>tight</i> prior (small γ²) means "I strongly believe W is near zero" → large 1/γ² → strong regularization. A <i>wide, uninformative</i> prior (γ² → ∞) means "I have no opinion" → 1/γ² → 0 → MAP reduces exactly to plain Maximum Likelihood.</div></div>
+</section>
+
+<section class="stage" id="s6">
+  <div class="stage-head"><div class="stage-num">6</div><h2>Derivation — From Posterior to Penalized Loss</h2></div>
+
+  <div class="timeline">
+    <div class="tstep">
+      <div class="badge">1</div>
+      <h4>Posterior ∝ Likelihood × Prior</h4>
+      <div class="expr">P(W|Data) ∝ P(Data|W) · P(W)</div>
+      <p>Drop the W-independent normalizer P(Data); maximizing the right side is equivalent to maximizing the posterior.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">2</div>
+      <h4>Take the log</h4>
+      <div class="expr">log P(W|Data) ∝ log P(Data|W) + log P(W)</div>
+      <p>Log turns a product into a sum, and is monotonic — the same W maximizes both the posterior and its log.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">3</div>
+      <h4>Expand each Gaussian log-density</h4>
+      <div class="expr">log P(Data|W) = −½Σ(yᵢ−Wᵀxᵢ)² + const</div>
+      <p>The log of a Gaussian density is a negative squared-error term plus a constant that doesn't involve W.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">4</div>
+      <h4>Expand the prior's log-density</h4>
+      <div class="expr">log P(W) = −(1/2γ²)‖W‖² + const</div>
+      <p>Same trick applied to the Gaussian prior on W itself.</p>
+    </div>
+    <div class="tstep">
+      <div class="badge">5</div>
+      <h4>Flip sign → minimize instead of maximize</h4>
+      <div class="expr">min_W ½Σ(yᵢ−Wᵀxᵢ)² + (1/2γ²)‖W‖²</div>
+      <p>Maximizing a sum of negative terms is the same as minimizing the sum of their positive counterparts — this is exactly the ridge-regression objective.</p>
+    </div>
+  </div>
+
+  <div class="svg-box">
+  <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .lab2{font-family:'JetBrains Mono',monospace;font-size:11px;fill:#9aa0b4;}
+      .val2{font-family:'Fraunces',serif;font-size:14px;}
+      .titletxt2{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;fill:#e7e9f2;}
+    </style>
+    <rect x="20" y="70" width="150" height="50" rx="10" fill="rgba(91,157,255,0.12)" stroke="#5b9dff" stroke-width="1.2"/>
+    <text x="95" y="90" text-anchor="middle" class="titletxt2" fill="#5b9dff">Likelihood</text>
+    <text x="95" y="108" text-anchor="middle" class="lab2">P(Data|W)</text>
+
+    <text x="195" y="102" text-anchor="middle" class="val2" fill="#f87171" font-size="20">×</text>
+
+    <rect x="220" y="70" width="150" height="50" rx="10" fill="rgba(212,175,55,0.12)" stroke="#d4af37" stroke-width="1.2"/>
+    <text x="295" y="90" text-anchor="middle" class="titletxt2" fill="#d4af37">Prior</text>
+    <text x="295" y="108" text-anchor="middle" class="lab2">P(W) = N(0,γ²I)</text>
+
+    <text x="395" y="102" text-anchor="middle" class="val2" fill="#f87171" font-size="20">∝</text>
+
+    <rect x="420" y="60" width="200" height="70" rx="10" fill="rgba(45,212,191,0.14)" stroke="#2dd4bf" stroke-width="1.4"/>
+    <text x="520" y="85" text-anchor="middle" class="titletxt2" fill="#2dd4bf">Posterior</text>
+    <text x="520" y="103" text-anchor="middle" class="lab2">Gaussian</text>
+    <text x="520" y="118" text-anchor="middle" class="lab2">(conjugacy)</text>
+
+    <text x="330" y="30" text-anchor="middle" class="titletxt2">Gaussian × Gaussian = Gaussian</text>
+    <line x1="20" y1="150" x2="620" y2="150" stroke="#292d3f" stroke-width="1"/>
+    <text x="330" y="172" text-anchor="middle" class="lab2">log(likelihood × prior) = −½‖Y−WᵀX‖² − (1/2γ²)‖W‖² + const</text>
+  </svg>
+  </div>
+
+  <div class="callout warn"><div class="icon">⚖️</div><div class="body"><b>Notice:</b> this derivation never mentions eigenvalues or trace at all — yet it lands on the exact same closed-form estimator as Lecture 35's linear-algebra argument, just arrived at from a completely different (probabilistic) direction, with <span class="sym-op">λ = 1/γ²</span>.</div></div>
+</section>
+<section class="stage" id="s7">
+  <div class="stage-head"><div class="stage-num">7</div><h2>Algorithm</h2></div>
+  <pre class="code"><span class="c"># pseudocode: Bayesian (MAP) linear regression fit</span>
+<span class="kw">def</span> <span class="fn">fit_map_ridge</span>(X, Y, gamma_sq):
+    lam = <span class="num">1</span> / gamma_sq                 <span class="c"># prior variance -> penalty strength</span>
+    A = X @ X.T + lam * np.eye(d)
+    W_map = np.linalg.<span class="fn">inv</span>(A) @ X @ Y
+    <span class="kw">return</span> W_map
+
+<span class="c"># choosing gamma^2 (or equivalently lambda) via CV — same loop as Lecture 35</span>
+<span class="kw">for</span> gamma_sq <span class="kw">in</span> candidate_gamma_sqs:
+    avg_err = <span class="fn">k_fold_cv_error</span>(X, Y, gamma_sq)
+best_gamma_sq = <span class="fn">argmin</span>(avg_err)</pre>
+  <div class="callout tip"><div class="icon">🔁</div><div class="body">The <i>fitting</i> step is unchanged from ridge regression — only the <i>interpretation</i> of the penalty term changed, from "numerical stabilizer" to "encoded prior belief."</div></div>
+</section>
+
+<section class="stage" id="s8">
+  <div class="stage-head"><div class="stage-num">8</div><h2>Optimization</h2></div>
+  <table class="data">
+    <tr><th>Approach</th><th>What you get</th><th>Cost</th></tr>
+    <tr><td>MAP (point estimate)</td><td class="hi">Single best W — same cost as ridge regression</td><td>Cheap — one matrix inverse</td></tr>
+    <tr><td>Full Bayesian posterior</td><td class="hi">Entire distribution over W (mean + covariance)</td><td>More expensive — need posterior covariance too, but still closed-form for Gaussian conjugate case</td></tr>
+    <tr><td>Posterior predictive</td><td class="hi">Distribution over new y, not just a point prediction</td><td>Requires integrating over all plausible W — closed form here, intractable for non-conjugate models</td></tr>
+  </table>
+  <div class="callout tip"><div class="icon">⚡</div><div class="body">Because the Gaussian prior is conjugate to the Gaussian likelihood, computing the <i>full</i> posterior — not just its mode (MAP) — is just as cheap: it's another Gaussian with a closed-form mean and covariance. This is the entire payoff of choosing a conjugate prior.</div></div>
+</section>
+
+<section class="stage" id="s9">
+  <div class="stage-head"><div class="stage-num">9</div><h2>Edge Cases &amp; Limitations</h2></div>
+  <div class="grid2">
+    <div class="card accent-red"><h3>γ² → ∞</h3><p style="color:var(--text-dim);font-size:0.88rem;">Uninformative prior. Penalty term vanishes. MAP = plain ML estimator exactly.</p></div>
+    <div class="card accent-red"><h3>γ² → 0</h3><p style="color:var(--text-dim);font-size:0.88rem;">Overwhelmingly strong prior. W is forced toward 0 regardless of data — the data is essentially ignored.</p></div>
+    <div class="card accent-red"><h3>Non-conjugate priors</h3><p style="color:var(--text-dim);font-size:0.88rem;">Swap the Gaussian prior for, say, a Laplace prior (→ Lasso) and the posterior is no longer Gaussian — no closed form; needs numerical/sampling methods (MCMC, variational inference).</p></div>
+    <div class="card accent-red"><h3>MAP ≠ full Bayesian</h3><p style="color:var(--text-dim);font-size:0.88rem;">MAP throws away all the uncertainty information the posterior carries — it reports only the single most likely W, not how confident we should be in it.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s10">
+  <div class="stage-head"><div class="stage-num">10</div><h2>Hidden Trigger Recognition ⭐</h2></div>
+  <div class="callout trigger"><div class="icon">🔔</div><div class="body">
+    <b>Words that should instantly bring this lecture to mind:</b>
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+      <span class="chip">"prior belief"</span><span class="chip">"posterior"</span><span class="chip">"conjugate prior"</span>
+      <span class="chip">"MAP estimate"</span><span class="chip">"Gaussian prior"</span><span class="chip">"probabilistic justification"</span>
+      <span class="chip">"regularization as a prior"</span><span class="chip">"uncertainty over weights"</span>
+    </div>
+  </div></div>
+</section>
+
+<section class="stage" id="s11">
+  <div class="stage-head"><div class="stage-num">11</div><h2>Pattern Recognition</h2><span class="tag">when to reach for this</span></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>You want to justify a regularization penalty as more than a numerical trick.</li>
+      <li>You have genuine domain knowledge about parameter scale/sign to encode as a prior.</li>
+      <li>You need <i>uncertainty estimates</i> on your weights or predictions, not just point estimates.</li>
+      <li>You're choosing between competing models and want a principled (Bayesian) way to compare them.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="stage" id="s12">
+  <div class="stage-head"><div class="stage-num">12</div><h2>Formula Shape Recognition</h2></div>
+  <table class="data">
+    <tr><th>Notation style</th><th>Formula</th></tr>
+    <tr><td>This lecture (MAP)</td><td class="hi">(XXᵀ + (1/γ²)I)⁻¹XY</td></tr>
+    <tr><td>Lecture 35 (Ridge / linear algebra)</td><td class="hi">(XXᵀ + λI)⁻¹XY, &nbsp; λ = 1/γ²</td></tr>
+    <tr><td>Penalized loss form</td><td class="hi">argmin_W ‖Y−XW‖² + λ‖W‖²</td></tr>
+    <tr><td>Laplace prior instead of Gaussian</td><td class="hi">argmin_W ‖Y−XW‖² + λ‖W‖₁ &nbsp;→ Lasso (MAP with Laplace prior)</td></tr>
+  </table>
+  <div class="callout tip"><div class="icon">🔍</div><div class="body">Same equation, four names. Recognizing this shape under any of these disguises is the single highest-leverage skill from this lecture.</div></div>
+</section>
+
+<section class="stage" id="s13">
+  <div class="stage-head"><div class="stage-num">13</div><h2>Symbol Translation ⭐</h2></div>
+  <table class="data">
+    <tr><th>Notation</th><th>Plain meaning</th><th>In code</th></tr>
+    <tr><td><span class="sym-fn">P(W)</span></td><td>prior distribution over weights</td><td><code>scipy.stats.multivariate_normal(0, gamma_sq*I)</code></td></tr>
+    <tr><td><span class="sym-fn">P(Data|W)</span></td><td>likelihood of data given weights</td><td>Gaussian noise model around Xw</td></tr>
+    <tr><td><span class="sym-fn">P(W|Data)</span></td><td>posterior — updated belief</td><td><code>sklearn.linear_model.BayesianRidge</code></td></tr>
+    <tr><td><span class="sym-const">γ²</span></td><td>prior variance / prior confidence</td><td><code>alpha_1, alpha_2</code> hyperpriors in BayesianRidge</td></tr>
+    <tr><td>MAP</td><td>mode of the posterior (single best point)</td><td><code>.coef_</code> after fitting</td></tr>
+  </table>
+</section>
+
+<section class="stage" id="s14">
+  <div class="stage-head"><div class="stage-num">14</div><h2>Computational Flow ⭐</h2></div>
+  <div class="pipeline">
+    <div class="pnode gold">Choose Prior P(W)</div><div class="parrow">→</div>
+    <div class="pnode blue">Observe Data (X,Y)</div><div class="parrow">→</div>
+    <div class="pnode purple">Compute Likelihood P(Data|W)</div><div class="parrow">→</div>
+    <div class="pnode teal">Multiply → Posterior P(W|Data)</div><div class="parrow">→</div>
+    <div class="pnode gold">Maximize → Ŵ<sub>MAP</sub></div><div class="parrow">→</div>
+    <div class="pnode blue">Predict on new X</div>
+  </div>
+</section>
+<section class="stage" id="s15">
+  <div class="stage-head"><div class="stage-num">15</div><h2>Problem Families</h2></div>
+  <div class="grid3">
+    <div class="card accent-gold"><h3>MLE</h3><p style="color:var(--text-dim);font-size:0.87rem;">No prior (or a flat/uninformative one). Pure data-driven point estimate.</p></div>
+    <div class="card accent-teal"><h3>MAP (this lecture)</h3><p style="color:var(--text-dim);font-size:0.87rem;">Prior + likelihood → single best point (posterior mode). Gaussian prior → Ridge.</p></div>
+    <div class="card accent-purple"><h3>Full Bayesian Inference</h3><p style="color:var(--text-dim);font-size:0.87rem;">Keep the entire posterior distribution — report uncertainty, not just a point.</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">🧩</div><div class="body">Swap the prior family and you get a whole map of related estimators: Gaussian prior → Ridge, Laplace prior → Lasso, non-informative/flat prior → plain MLE.</div></div>
+</section>
+
+<section class="stage" id="s16">
+  <div class="stage-head"><div class="stage-num">16</div><h2>Invariant Library ⭐</h2></div>
+  <div class="grid3">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim);font-size:0.87rem;">Gaussian likelihood × Gaussian prior = Gaussian posterior (conjugacy). MAP = MLE when the prior is uninformative (flat).</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim);font-size:0.87rem;">"MAP always outperforms MLE" — only when the prior actually reflects reality; a badly-chosen prior can hurt.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim);font-size:0.87rem;">The posterior is never computed by ignoring the prior — dropping it silently turns Bayesian inference back into plain MLE, not a "better" Bayesian answer.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s17">
+  <div class="stage-head"><div class="stage-num">17</div><h2>Expert Thinking</h2></div>
+  <div class="callout intuit"><div class="icon">🧠</div><div class="body">An expert sees any "+ λ‖W‖²" penalty and immediately reads it as "someone put a Gaussian prior on the weights" — and any "+λ‖W‖₁" penalty as "someone put a Laplace prior on the weights." The regularizer <i>is</i> the prior in disguise; recognizing this instantly tells you what assumption is baked into the model.</div></div>
+</section>
+
+<section class="stage" id="s18">
+  <div class="stage-head"><div class="stage-num">18</div><h2>Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 1:</b> Writing the prior as depending on the data — it doesn't. P(W) is fixed <i>before</i> any data is observed; only the posterior depends on data.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 2:</b> Forgetting to drop P(Data) as a constant when deriving MAP — it doesn't affect the argmax over W, but students often try to "compute" it unnecessarily.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 3:</b> Mixing up which variance is which — γ² is the <i>prior's</i> variance (belief about W), not the noise variance of the likelihood (belief about Y given W).</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 4:</b> Assuming MAP gives you uncertainty estimates — it doesn't. MAP is a single point (the peak of the posterior); you need the full posterior covariance for uncertainty.</div></div>
+</section>
+
+<section class="stage" id="s19">
+  <div class="stage-head"><div class="stage-num">19</div><h2>Exam Shortcuts</h2></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>Told "Gaussian prior with variance γ²" → immediately write λ = 1/γ² and reuse the ridge-regression closed form.</li>
+      <li>Asked to derive MAP → don't re-derive from scratch: log(likelihood·prior), expand two Gaussian log-densities, drop constants, done.</li>
+      <li>Told "Laplace prior" → skip straight to "this is Lasso," no closed form exists.</li>
+      <li>γ² → ∞ on an exam question → answer is always "reduces to MLE."</li>
+    </ul>
+  </div>
+</section>
+
+<section class="stage" id="s20">
+  <div class="stage-head"><div class="stage-num">20</div><h2>Industry Implementation</h2></div>
+  <pre class="code"><span class="c"># scikit-learn: Bayesian Ridge Regression</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> BayesianRidge
+
+model = <span class="fn">BayesianRidge</span>()   <span class="c"># learns prior precision from data automatically</span>
+model.<span class="fn">fit</span>(X_train, y_train)
+
+y_pred, y_std = model.<span class="fn">predict</span>(X_test, return_std=<span class="kw">True</span>)
+<span class="c"># y_std gives per-prediction uncertainty -- impossible to get from plain Ridge</span>
+
+<span class="fn">print</span>(<span class="str">"posterior mean weights:"</span>, model.coef_)
+<span class="fn">print</span>(<span class="str">"implied lambda (alpha/lambda_):"</span>, model.lambda_)</pre>
+  <div class="callout tip"><div class="icon">🛠️</div><div class="body">For full posterior sampling beyond Gaussian conjugacy (e.g. non-conjugate priors, hierarchical models), tools like <code>PyMC</code> or <code>Stan</code> use MCMC/variational inference instead of closed forms.</div></div>
+</section>
+
+<section class="stage" id="s21">
+  <div class="stage-head"><div class="stage-num">21</div><h2>Connections</h2></div>
+  <div class="grid2">
+    <div class="card accent-blue"><h3>← Builds on</h3><p style="color:var(--text-dim);font-size:0.88rem;">Lecture 35's Ridge Regression and regularized MSE, Gaussian distributions, Bayes' theorem, MLE.</p></div>
+    <div class="card accent-gold"><h3>→ Leads to</h3><p style="color:var(--text-dim);font-size:0.88rem;">Full Bayesian inference / posterior predictive distributions, Lasso via Laplace priors, Bayesian model comparison, Gaussian Processes, hierarchical Bayesian models.</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="stage" id="s22">
+  <div class="stage-head"><div class="stage-num">22</div><h2>One-Page Brain ⭐</h2></div>
+  <div class="brain">
+    <h3>Core Intuition</h3>
+    <ul><li>Treat W as a random variable with a prior belief. Combine that belief with the likelihood of the observed data via Bayes' theorem to get a posterior. The mode of that posterior (MAP) turns out to be exactly Ridge Regression when the prior is Gaussian.</li></ul>
+
+    <h3>5 Formulas</h3>
+    <ul>
+      <li><b>P(W|Data) ∝ P(Data|W)·P(W)</b></li>
+      <li><b>Likelihood: Y|X,W ~ N(WᵀX, 1)</b></li>
+      <li><b>Prior: W ~ N(0, γ²I)</b></li>
+      <li><b>MAP objective: min ½Σ(yᵢ−Wᵀxᵢ)² + (1/2γ²)‖W‖²</b></li>
+      <li><b>Ŵ_MAP = (XXᵀ + (1/γ²)I)⁻¹XY</b></li>
+    </ul>
+
+    <h3>3 Diagrams</h3>
+    <ul><li>Bayes update flow (Step 1, §4)</li><li>Gaussian × Gaussian = Gaussian conjugacy diagram (§6)</li><li>End-to-end computational pipeline (§14)</li></ul>
+
+    <h3>5 Triggers</h3>
+    <ul><li>prior belief · posterior · conjugate prior · MAP estimate · regularization-as-prior</li></ul>
+
+    <h3>5 Traps</h3>
+    <ul><li>prior never depends on data · P(Data) is a droppable constant · γ² is the prior's variance, not the noise variance · MAP gives no uncertainty · dropping the prior silently reverts to MLE</li></ul>
+
+    <h3>5 Shortcuts</h3>
+    <ul><li>Gaussian prior variance γ² → set λ=1/γ² and reuse ridge formula · derive MAP by expanding two log-Gaussians and dropping constants · Laplace prior → Lasso, no closed form · γ²→∞ → MLE · γ²→0 → W forced to 0</li></ul>
+
+    <h3>Dependencies</h3>
+    <ul><li>Needs: Bayes' theorem, Gaussian distributions, Lecture 35's ridge regression. Feeds into: full Bayesian inference, Lasso, Gaussian Processes, Bayesian model comparison.</li></ul>
+  </div>
+</section>
+
+<footer>Lecture 38 · Bayesian Modeling for Linear Regression — Study Notes</footer>
+
+</div>
+</body>
+</html>
