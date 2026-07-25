@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 34 · Goodness of MLE for Linear Regression</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d14;
+  --panel-bg:#12141c;
+  --panel-bg-2:#151826;
+  --panel-border: rgba(255,255,255,0.08);
+  --panel-border-strong: rgba(255,255,255,0.14);
+  --text:#e7e9f2;
+  --text-dim:#9aa0b4;
+  --text-faint:#6b7086;
+  --gold:#e6b95c;
+  --gold-dim: rgba(230,185,92,0.15);
+  --teal:#5ce6c8;
+  --teal-dim: rgba(92,230,200,0.13);
+  --purple:#b39bf0;
+  --purple-dim: rgba(179,155,240,0.14);
+  --blue:#7cb3f7;
+  --blue-dim: rgba(124,179,247,0.14);
+  --red:#f2748c;
+  --red-dim: rgba(242,116,140,0.14);
+  --green:#7fd99a;
+  --green-dim: rgba(127,217,154,0.14);
+  --serif-math-font: "Fraunces", "STIX Two Math", serif;
+  --sans: "Inter", sans-serif;
+  --mono-font: "JetBrains Mono", monospace;
+  --radius: 16px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(1200px 600px at 10% -10%, rgba(179,155,240,0.08), transparent 60%),
+    radial-gradient(1000px 500px at 100% 0%, rgba(92,230,200,0.06), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  line-height:1.65;
+  padding: 0 0 6rem 0;
+}
+.wrap{max-width:920px;margin:0 auto;padding: 0 1.25rem;}
+
+/* ---------- Header ---------- */
+.hero{
+  padding: 3.2rem 1.25rem 2.4rem;
+  text-align:center;
+  border-bottom: 1px solid var(--panel-border);
+  margin-bottom: 2.5rem;
+  background: linear-gradient(180deg, rgba(179,155,240,0.06), transparent);
+}
+.hero .kicker{
+  font-family: var(--mono-font);
+  letter-spacing:0.18em;
+  text-transform:uppercase;
+  font-size:0.72rem;
+  color:var(--teal);
+  margin-bottom:0.9rem;
+}
+.hero h1{
+  font-family:var(--serif-math-font);
+  font-weight:700;
+  font-size: clamp(1.6rem, 4.4vw, 2.6rem);
+  margin: 0 0 0.7rem;
+  color:#fff;
+}
+.hero .sub{
+  color:var(--text-dim);
+  max-width:620px;
+  margin: 0 auto;
+  font-size:0.98rem;
+}
+.depth-note{
+  max-width:640px;
+  margin: 1.4rem auto 0;
+  background: var(--gold-dim);
+  border: 1px solid rgba(230,185,92,0.3);
+  border-radius: 12px;
+  padding: 0.9rem 1.1rem;
+  font-size:0.86rem;
+  color:#f0dca8;
+  text-align:left;
+}
+
+/* ---------- Stage nav ---------- */
+.stage-nav{
+  display:flex; flex-wrap:wrap; gap:0.4rem;
+  justify-content:center;
+  margin: 0 auto 3rem;
+  max-width: 900px;
+  padding: 0 1.25rem;
+}
+.stage-nav a{
+  font-family:var(--mono-font);
+  font-size:0.68rem;
+  color:var(--text-faint);
+  text-decoration:none;
+  border:1px solid var(--panel-border);
+  border-radius:999px;
+  padding:0.32rem 0.7rem;
+  transition: all .15s ease;
+}
+.stage-nav a:hover{ color:var(--teal); border-color: var(--teal); }
+
+/* ---------- Section framework ---------- */
+section.stage{
+  margin: 0 auto 3.2rem;
+  scroll-margin-top: 1rem;
+}
+.stage-head{
+  display:flex; align-items:baseline; gap:0.7rem;
+  margin-bottom:1.1rem;
+}
+.stage-num{
+  font-family: var(--mono-font);
+  color:var(--purple);
+  font-size:0.85rem;
+  background: var(--purple-dim);
+  border:1px solid rgba(179,155,240,0.3);
+  padding:0.15rem 0.55rem;
+  border-radius:8px;
+  flex-shrink:0;
+}
+.stage-head h2{
+  font-family:var(--serif-math-font);
+  font-weight:600;
+  font-size:1.35rem;
+  margin:0;
+  color:#fff;
+}
+.stage-head .star{color:var(--gold);}
+.card{
+  background: var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.5rem;
+  margin-bottom:1rem;
+}
+.card h4{
+  margin:0 0 0.6rem;
+  font-size:0.95rem;
+  color:var(--teal);
+  font-family:var(--sans);
+  font-weight:700;
+}
+.card p{ margin: 0.4rem 0; color:var(--text); font-size:0.95rem;}
+.card p.dim{color:var(--text-dim);}
+
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:1rem;}
+@media (max-width:680px){ .grid2{grid-template-columns:1fr;} }
+
+/* callouts */
+.callout{
+  border-radius:14px;
+  padding:1.1rem 1.3rem;
+  margin: 1rem 0;
+  border:1px solid;
+  font-size:0.92rem;
+}
+.callout.tip{ background:var(--teal-dim); border-color: rgba(92,230,200,0.35);}
+.callout.warn{ background:var(--red-dim); border-color: rgba(242,116,140,0.35);}
+.callout.insight{ background:var(--purple-dim); border-color: rgba(179,155,240,0.35);}
+.callout.note{ background:var(--blue-dim); border-color: rgba(124,179,247,0.35);}
+.callout .lbl{
+  font-family:var(--mono-font); font-size:0.7rem; text-transform:uppercase;
+  letter-spacing:0.08em; opacity:0.85; margin-bottom:0.4rem; display:block;
+}
+.callout.tip .lbl{color:var(--teal);}
+.callout.warn .lbl{color:var(--red);}
+.callout.insight .lbl{color:var(--purple);}
+.callout.note .lbl{color:var(--blue);}
+
+/* ---------- Equation panels ---------- */
+.eq-panel{
+  background: linear-gradient(180deg, var(--panel-bg-2), var(--panel-bg));
+  border: 1px solid var(--panel-border-strong);
+  border-radius: 18px;
+  padding: 2.2rem 1.6rem 1.8rem;
+  margin: 1.6rem 0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  text-align:center;
+  position:relative;
+}
+.eq-panel .eq-label{
+  position:absolute; top:0.9rem; left:1.2rem;
+  font-family:var(--mono-font); font-size:0.68rem;
+  text-transform:uppercase; letter-spacing:0.1em;
+  color:var(--text-faint);
+}
+.eq-panel .eq-number{
+  position:absolute; bottom:0.7rem; right:1.2rem;
+  font-size:0.72rem; opacity:0.5; font-family:var(--mono-font);
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size: clamp(1.15rem, 3vw, 1.9rem);
+  color:#fff;
+  line-height:1.9;
+}
+.eq-main .line{ display:block; margin: 0.35rem 0;}
+.op{ color:var(--red); font-weight:600; }
+.op-big{ font-size:1.4em; vertical-align:-0.15em; color:var(--red); }
+.var{ color:var(--blue); font-style:italic; }
+.param{ color:var(--gold); font-style:italic; }
+.const{ color:var(--green); }
+.fn{ color:var(--purple); font-style:normal; }
+i.var, i.param{font-style:italic;}
+.eq-main sub, .eq-main sup{ font-size:0.62em; }
+
+/* legend */
+.legend{
+  display:grid; grid-template-columns: 1fr 1fr;
+  gap:0.5rem 1.3rem;
+  background: var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:12px;
+  padding:1rem 1.2rem;
+  margin: -0.4rem 0 1.4rem;
+  font-size:0.85rem;
+}
+@media (max-width:680px){ .legend{grid-template-columns:1fr;} }
+.legend .item{ display:flex; gap:0.5rem; align-items:baseline;}
+.legend .sym{ font-family:var(--serif-math-font); font-style:italic; min-width:1.6rem; }
+.legend .desc{ color:var(--text-dim); }
+
+/* matrix */
+.matrix-wrap{ display:flex; justify-content:center; align-items:center; gap:0.5rem; margin:1.2rem 0; flex-wrap:wrap;}
+.matrix{
+  display:inline-grid;
+  border-left: 2px solid var(--text-dim);
+  border-right: 2px solid var(--text-dim);
+  padding: 0.5rem 0.9rem;
+  gap: 0.4rem 1rem;
+  font-family: var(--serif-math-font);
+  font-size:1.05rem;
+}
+.matrix .cell{ text-align:center; }
+
+/* step timeline */
+.timeline{ position:relative; margin: 1.6rem 0; padding-left: 2.2rem;}
+.timeline::before{
+  content:""; position:absolute; left:0.85rem; top:0.4rem; bottom:0.4rem;
+  width:2px; background: linear-gradient(180deg, var(--purple), var(--teal));
+  opacity:0.4;
+}
+.step{ position:relative; margin-bottom:1.4rem; }
+.step .badge{
+  position:absolute; left:-2.2rem; top:0;
+  width:1.7rem; height:1.7rem; border-radius:50%;
+  background: var(--panel-bg-2); border:1px solid var(--purple);
+  color:var(--purple); font-family:var(--mono-font); font-size:0.78rem;
+  display:flex; align-items:center; justify-content:center;
+}
+.step .step-card{
+  background:var(--panel-bg); border:1px solid var(--panel-border);
+  border-radius:12px; padding:0.9rem 1.1rem;
+}
+.step .step-title{ font-weight:700; font-size:0.88rem; color:var(--teal); margin-bottom:0.3rem;}
+.step .step-math{ font-family:var(--serif-math-font); font-size:1.05rem; color:#fff;}
+.step .step-why{ font-size:0.83rem; color:var(--text-dim); margin-top:0.35rem;}
+
+/* tables */
+table.data-table{ width:100%; border-collapse:collapse; font-size:0.88rem; margin:1rem 0;}
+table.data-table th{
+  text-align:left; font-family:var(--mono-font); font-size:0.72rem;
+  text-transform:uppercase; letter-spacing:0.05em; color:var(--text-faint);
+  border-bottom:1px solid var(--panel-border-strong); padding:0.5rem 0.6rem;
+}
+table.data-table td{ padding:0.55rem 0.6rem; border-bottom:1px solid var(--panel-border); color:var(--text);}
+table.data-table tr:last-child td{border-bottom:none;}
+
+/* trigger chips */
+.chips{ display:flex; flex-wrap:wrap; gap:0.5rem; }
+.chip{
+  font-family:var(--mono-font); font-size:0.78rem;
+  background: var(--gold-dim); color:#f0dca8;
+  border:1px solid rgba(230,185,92,0.35);
+  padding:0.3rem 0.65rem; border-radius:8px;
+}
+
+/* pseudo code */
+pre.code{
+  background:#0a0b11; border:1px solid var(--panel-border);
+  border-radius:12px; padding:1rem 1.2rem; overflow-x:auto;
+  font-family:var(--mono-font); font-size:0.82rem; color:#c9d6f0;
+  line-height:1.7;
+}
+pre.code .cm{ color:var(--text-faint); }
+pre.code .kw{ color:var(--purple); }
+pre.code .fn2{ color:var(--teal); }
+
+/* diagram boxes */
+.flow{ display:flex; align-items:center; gap:0.4rem; flex-wrap:wrap; justify-content:center; margin: 1.4rem 0;}
+.flow .box{
+  background:var(--panel-bg-2); border:1px solid var(--panel-border-strong);
+  border-radius:10px; padding:0.6rem 0.9rem; font-size:0.82rem; text-align:center;
+  min-width:90px;
+}
+.flow .arrow{ color:var(--text-faint); font-size:1.1rem; }
+.flow .box.v{border-color:rgba(124,179,247,0.5); color:var(--blue);}
+.flow .box.p{border-color:rgba(230,185,92,0.5); color:var(--gold);}
+.flow .box.f{border-color:rgba(179,155,240,0.5); color:var(--purple);}
+.flow .box.o{border-color:rgba(242,116,140,0.5); color:var(--red);}
+
+/* trap cards */
+.trap{
+  background: var(--panel-bg); border:1px solid rgba(242,116,140,0.25);
+  border-left:4px solid var(--red);
+  border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:0.8rem;
+}
+.trap .q{ font-weight:700; font-size:0.9rem; margin-bottom:0.35rem;}
+.trap .wrong{ color:var(--red); font-size:0.85rem;}
+.trap .right{ color:var(--green); font-size:0.85rem; margin-top:0.25rem;}
+
+/* one pager */
+.brain{
+  background: linear-gradient(160deg, rgba(179,155,240,0.08), rgba(92,230,200,0.05));
+  border: 1px solid var(--panel-border-strong);
+  border-radius:20px; padding:1.8rem;
+}
+.brain h3{ font-family:var(--serif-math-font); color:#fff; margin-top:0;}
+.brain-grid{ display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+@media (max-width:680px){ .brain-grid{grid-template-columns:1fr;} }
+
+footer{ text-align:center; color:var(--text-faint); font-size:0.78rem; margin-top:3rem;}
+
+.svg-caption{ text-align:center; font-size:0.78rem; color:var(--text-faint); margin-top:-0.6rem; font-family:var(--mono-font);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">MLT · Interactive Notes · Lecture 34</div>
+  <h1>Goodness of the MLE for Linear Regression</h1>
+  <div class="sub">We already know <span style="color:var(--gold)">Ŵ<sub>ML</sub></span> is the least-squares solution. Today's question is sharper: <em>how close is it to the truth, on average?</em></div>
+  <div class="depth-note">
+    <b>How deep we're going:</b> This lecture builds directly on two things you've already covered — the probabilistic view of linear regression and Maximum Likelihood Estimation. So we'll move quickly through Problem → History → Engineering setup, and spend the real depth on the derivation of <span style="font-family:var(--mono-font)">𝔼[‖Ŵ<sub>ML</sub> − W‖²] = σ²·Tr((XᵀX)⁻¹)</span> — that result, and what it implies about feature engineering, is the new content worth internalizing.
+  </div>
+</div>
+
+<div class="stage-nav">
+  <a href="#s-1">Cognitive Pattern</a><a href="#s0">Problem</a><a href="#s1">History</a><a href="#s2">Engineering</a>
+  <a href="#s3">Math Translation</a><a href="#s4">Formula Construction</a><a href="#s5">Anatomy</a><a href="#s6">Derivation</a>
+  <a href="#s7">Algorithm</a><a href="#s8">Optimization</a><a href="#s9">Edge Cases</a><a href="#s10">Triggers ⭐</a>
+  <a href="#s11">Pattern Recognition</a><a href="#s12">Shape Recognition</a><a href="#s13">Symbol Map ⭐</a><a href="#s14">Computational Flow ⭐</a>
+  <a href="#s15">Problem Families</a><a href="#s16">Invariants ⭐</a><a href="#s17">Expert Thinking</a><a href="#s18">Trap Library ⭐</a>
+  <a href="#s19">Exam Shortcuts</a><a href="#s20">Industry</a><a href="#s21">Connections</a><a href="#s22">One-Page Brain ⭐</a>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1 -->
+<section class="stage" id="s-1">
+  <div class="stage-head"><span class="stage-num">-1</span><h2>Cognitive Pattern</h2></div>
+  <div class="card">
+    <p>This lecture is a pure <b>probability / estimation-theory</b> problem wearing a linear-regression costume. You are not fitting a model here — you are asking a meta-question about a model you already fit: <i>"If I reran this experiment with fresh noise, how much would my estimated weights wobble around the truth?"</i></p>
+    <p class="dim">The mental mode to switch into: <b>Ŵ<sub>ML</sub> is a random variable</b>, not a fixed number. Every time you'd say "the estimate is X," you should mentally add "...for this particular noisy sample." That single reframing is 80% of this lecture.</p>
+  </div>
+  <div class="callout note"><span class="lbl">Analogy</span>
+  Think of an archer shooting at a bullseye (<span style="color:var(--gold)">the true W</span>) in windy conditions (<span style="color:var(--blue)">the noise ε</span>). Each arrow (<span style="color:var(--purple)">each Ŵ<sub>ML</sub></span>) lands somewhere different because the wind changes shot to shot. "Goodness of the estimator" is not asking where one arrow landed — it's asking: <i>on average, how far do arrows land from the bullseye, and can we tell from the archer's stance (the feature matrix X) whether the spread will be tight or wide?</i>
+  </div>
+</section>
+
+<!-- STAGE 0 -->
+<section class="stage" id="s0">
+  <div class="stage-head"><span class="stage-num">0</span><h2>The Problem</h2></div>
+  <div class="card">
+    <p>You've derived that <span class="param">Ŵ<sub>ML</sub></span> = (XᵀX)<sup>-1</sup>XᵀY minimizes squared error and maximizes likelihood. Great — but that derivation only proves it's the <i>best fit to the data you happened to observe</i>. It says nothing about whether that fit is close to the actual physical/generative relationship <span class="param">W</span> that produced the data.</p>
+    <p>Two datasets generated by the exact same true <span class="param">W</span>, with different random noise draws, will produce two <i>different</i> Ŵ<sub>ML</sub>'s. So which one do you trust? This lecture gives you a number that answers: <b>"on average, how far off is my estimator, and what controls that distance?"</b></p>
+  </div>
+  <div class="callout warn"><span class="lbl">Why this matters practically</span>
+  A model can have low training error and still have an unreliable Ŵ<sub>ML</sub> — e.g. under multicollinearity. Training error alone won't warn you. This lecture's formula will.
+  </div>
+</section>
+
+<!-- STAGE 1 -->
+<section class="stage" id="s1">
+  <div class="stage-head"><span class="stage-num">1</span><h2>History</h2></div>
+  <div class="card">
+    <p class="dim">This is a compressed stage — it builds directly on classical estimation theory rather than having a distinct invention story of its own.</p>
+    <p>Gauss and Legendre gave us least squares in the early 1800s purely as a curve-fitting trick — minimize sum of squared errors, done. It took the later development of probability theory (Fisher's formalization of Maximum Likelihood in the 1920s) to show that least-squares isn't an arbitrary choice: under Gaussian noise, it <i>is</i> the maximum likelihood estimator. Once that equivalence was established, statisticians immediately asked the natural follow-up — <i>"how good is this estimator?"</i> — which is exactly the question that led to variance/covariance analysis of Ŵ<sub>ML</sub>, the subject of today.</p>
+  </div>
+</section>
+
+<!-- STAGE 2 -->
+<section class="stage" id="s2">
+  <div class="stage-head"><span class="stage-num">2</span><h2>Engineering Thinking</h2></div>
+  <div class="card">
+    <p>Before writing any math, whiteboard the requirements for a "goodness" measure of an estimator:</p>
+    <div class="grid2">
+      <div class="card" style="margin:0;">
+        <h4>What we want</h4>
+        <p>• A single scalar number summarizing how far Ŵ<sub>ML</sub> typically lands from W.</p>
+        <p>• It should account for the fact that Ŵ<sub>ML</sub> is random (average over all possible noise draws).</p>
+        <p>• It should penalize distance in <i>any</i> direction of the weight-vector space, not just one coordinate.</p>
+      </div>
+      <div class="card" style="margin:0;">
+        <h4>Constraints</h4>
+        <p>• Must be computable from things we control or observe: X, and (if known/estimated) σ².</p>
+        <p>• Should decompose cleanly enough that we can see <i>which factor</i> (noise vs. features) is responsible for poor performance.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 3 -->
+<section class="stage" id="s3">
+  <div class="stage-head"><span class="stage-num">3</span><h2>Mathematical Translation</h2></div>
+  <div class="card">
+    <table class="data-table">
+      <tr><th>Engineering requirement</th><th>Math translation</th></tr>
+      <tr><td>"Distance between two vectors, in any direction"</td><td>Squared Euclidean (L2) norm: ‖Ŵ<sub>ML</sub> − W‖²</td></tr>
+      <tr><td>"Average over randomness from noise"</td><td>Take expectation: 𝔼[ · ]</td></tr>
+      <tr><td>"Summarize as one scalar"</td><td>𝔼[‖Ŵ<sub>ML</sub> − W‖²] — a single number</td></tr>
+    </table>
+    <p class="dim">Put together: we want to compute 𝔼[‖Ŵ<sub>ML</sub> − W‖²]. Everything from here is algebra + probability to actually evaluate that expression.</p>
+  </div>
+</section>
+
+<!-- STAGE 4: FORMULA CONSTRUCTION -->
+<section class="stage" id="s4">
+  <div class="stage-head"><span class="stage-num">4</span><h2>Formula Construction</h2></div>
+  <div class="card">
+    <p>We build the result piece by piece rather than dropping it fully formed. Start from the generative model:</p>
+  </div>
+
+  <div class="eq-panel">
+    <span class="eq-label">Generative Model</span>
+    <div class="eq-main">
+      <span class="line"><i class="var">Y</i> = <i class="param">W</i><sup>T</sup><i class="var">X</i> + <i class="var">ε</i>,&nbsp;&nbsp; <i class="var">ε</i> ∼ 𝒩(0, <i class="const">σ²</i>)</span>
+    </div>
+    <span class="eq-number">Eq. 34.1</span>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="color:var(--blue)">X</span><span class="desc">observed feature matrix (n rows × d features)</span></div>
+    <div class="item"><span class="sym" style="color:var(--blue)">Y</span><span class="desc">observed labels/targets</span></div>
+    <div class="item"><span class="sym" style="color:var(--gold)">W</span><span class="desc">the true, unknown weight vector</span></div>
+    <div class="item"><span class="sym" style="color:var(--blue)">ε</span><span class="desc">Gaussian noise, mean 0, variance σ²</span></div>
+  </div>
+
+  <div class="card">
+    <p>We already derived (previous lectures) that the MLE solution equals the least-squares closed form:</p>
+  </div>
+
+  <div class="eq-panel">
+    <span class="eq-label">MLE Solution (recall)</span>
+    <div class="eq-main">
+      <span class="line"><i class="param">Ŵ</i><sub>ML</sub> = (<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup> <i class="var">X</i><sup>T</sup><i class="var">Y</i></span>
+    </div>
+    <span class="eq-number">Eq. 34.2</span>
+  </div>
+
+  <div class="card">
+    <p>Substitute Eq. 34.1 into Eq. 34.2 — this is the key algebraic move that will let noise "fall out" cleanly:</p>
+  </div>
+
+  <div class="eq-panel">
+    <span class="eq-label">Substitution</span>
+    <div class="eq-main">
+      <span class="line"><i class="param">Ŵ</i><sub>ML</sub> = (<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup><i class="var">X</i><sup>T</sup>(<i class="param">X</i><i class="param">W</i> + <i class="var">ε</i>)</span>
+      <span class="line">= (<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup>(<i class="var">X</i><sup>T</sup><i class="var">X</i>)<i class="param">W</i> + (<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup><i class="var">X</i><sup>T</sup><i class="var">ε</i></span>
+      <span class="line"><i class="param">Ŵ</i><sub>ML</sub> = <i class="param">W</i> + (<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup><i class="var">X</i><sup>T</sup><i class="var">ε</i></span>
+    </div>
+    <span class="eq-number">Eq. 34.3</span>
+  </div>
+
+  <div class="callout insight"><span class="lbl">The construction moment</span>
+  Look at Eq. 34.3: the estimate equals the truth <b>plus a noise term</b>. This single line is why the whole lecture works — it tells us the "error" of our estimator is <i>literally just the noise, reshaped by (XᵀX)⁻¹Xᵀ</i>. Now "how good is Ŵ<sub>ML</sub>?" becomes "how big does noise get after this reshaping?" — a question we can answer with expectations.
+  </div>
+
+  <div class="card">
+    <p>Rearranging Eq. 34.3 gives the estimator's error directly, then we square, norm, and expect it — assembling the final formula:</p>
+  </div>
+
+  <div class="eq-panel">
+    <span class="eq-label">Target Formula — Goodness of MLE</span>
+    <div class="eq-main">
+      <span class="line"><span class="fn">𝔼</span>[‖<i class="param">Ŵ</i><sub>ML</sub> − <i class="param">W</i>‖²] = <i class="const">σ</i><sup>2</sup> · <span class="op-big">Tr</span>((<i class="var">X</i><sup>T</sup><i class="var">X</i>)<sup>-1</sup>)</span>
+    </div>
+    <span class="eq-number">Eq. 34.4 — the result</span>
+  </div>
+</section>
+
+<!-- STAGE 5: ANATOMY -->
+<section class="stage" id="s5">
+  <div class="stage-head"><span class="stage-num">5</span><h2>Formula Anatomy</h2></div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="color:var(--purple)">𝔼[·]</span><span class="desc">expectation over the randomness of ε (average across infinitely many resamples of noise)</span></div>
+    <div class="item"><span class="sym" style="color:var(--gold)">Ŵ<sub>ML</sub> − W</span><span class="desc">the estimator's error vector — how far off, in every coordinate</span></div>
+    <div class="item"><span class="sym">‖·‖²</span><span class="desc">squared Euclidean length of that error vector</span></div>
+    <div class="item"><span class="sym" style="color:var(--green)">σ²</span><span class="desc">noise variance — how loud the environment is</span></div>
+    <div class="item"><span class="sym" style="color:var(--red)">Tr(·)</span><span class="desc">trace = sum of diagonal entries; here, sum of the per-coordinate variances</span></div>
+    <div class="item"><span class="sym" style="color:var(--blue)">(XᵀX)⁻¹</span><span class="desc">inverse of the (scaled) feature covariance matrix — encodes feature geometry</span></div>
+  </div>
+  <div class="callout tip"><span class="lbl">Plain English</span>
+  <b>Expected squared error of the estimate = noise level × a number describing how "spread out / correlated" your features are.</b> Two independent knobs, multiplied together.
+  </div>
+</section>
+
+<!-- STAGE 6: DERIVATION -->
+<section class="stage" id="s6">
+  <div class="stage-head"><span class="stage-num">6</span><h2>Derivation</h2></div>
+  <div class="card"><p>We pick up from Eq. 34.3: <span style="font-family:var(--serif-math-font)">Ŵ<sub>ML</sub> − W = (XᵀX)⁻¹Xᵀε</span>. Let's push this all the way to Eq. 34.4.</p></div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="badge">1</div>
+      <div class="step-card">
+        <div class="step-title">Define the error vector</div>
+        <div class="step-math">let&nbsp; <i class="var">δ</i> = Ŵ<sub>ML</sub> − W = (X<sup>T</sup>X)<sup>-1</sup>X<sup>T</sup>ε</div>
+        <div class="step-why">δ is a linear transformation of the Gaussian noise vector ε — that's what makes it tractable.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="badge">2</div>
+      <div class="step-card">
+        <div class="step-title">Write squared norm as inner product</div>
+        <div class="step-math">‖δ‖² = δ<sup>T</sup>δ = ε<sup>T</sup>X(X<sup>T</sup>X)<sup>-1</sup>(X<sup>T</sup>X)<sup>-1</sup>X<sup>T</sup>ε</div>
+        <div class="step-why">Transpose of a product reverses order: δᵀ = εᵀX(XᵀX)⁻¹ (since (XᵀX)⁻¹ is symmetric, its transpose equals itself).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="badge">3</div>
+      <div class="step-card">
+        <div class="step-title">Take expectation over ε</div>
+        <div class="step-math">𝔼[‖δ‖²] = 𝔼[ εᵀ · A · ε ], &nbsp; where A = X(XᵀX)⁻²Xᵀ</div>
+        <div class="step-why">A quadratic form in a random vector — this is exactly the setup where the trace trick applies.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="badge">4</div>
+      <div class="step-card">
+        <div class="step-title">Apply the trace trick</div>
+        <div class="step-math">𝔼[εᵀAε] = Tr(A · Cov(ε)) = σ² · Tr(A)</div>
+        <div class="step-why">For zero-mean ε with covariance σ²I, 𝔼[εᵀAε] = σ²Tr(A) — a standard identity because a scalar equals its own trace, and trace is cyclic: Tr(εᵀAε)=Tr(Aεεᵀ), then 𝔼[εεᵀ]=σ²I.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="badge">5</div>
+      <div class="step-card">
+        <div class="step-title">Simplify the trace using cyclic property</div>
+        <div class="step-math">Tr(X(XᵀX)⁻²Xᵀ) = Tr((XᵀX)⁻²·XᵀX) = Tr((XᵀX)⁻¹)</div>
+        <div class="step-why">Cyclic permutation inside Tr(·) lets XᵀX and (XᵀX)⁻² collapse together, since (XᵀX)⁻²(XᵀX) = (XᵀX)⁻¹.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="badge">6</div>
+      <div class="step-card">
+        <div class="step-title">Final result</div>
+        <div class="step-math" style="color:var(--gold)">𝔼[‖Ŵ<sub>ML</sub> − W‖²] = σ² · Tr((XᵀX)⁻¹)</div>
+        <div class="step-why">Exactly Eq. 34.4. Noise variance and feature geometry appear as two clean, separable factors.</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout note"><span class="lbl">Numerical sanity check</span>
+  Suppose d = 1 (single feature), so XᵀX is just a scalar = Σxᵢ². Then the formula reduces to 𝔼[(ŵ − w)²] = σ²/Σxᵢ² — the familiar "variance of the slope estimate" from simple linear regression. This is a good self-check: the general matrix formula must collapse to the 1-D case you may already know.
+  </div>
+</section>
+
+<!-- STAGE 7: ALGORITHM -->
+<section class="stage" id="s7">
+  <div class="stage-head"><span class="stage-num">7</span><h2>Algorithm</h2></div>
+  <div class="card">
+    <p>This isn't a "training" algorithm — it's a diagnostic you run alongside training to audit reliability.</p>
+    <pre class="code"><span class="cm"># Inputs: X (n x d design matrix), Y (n,), sigma2 (noise variance, known or estimated)</span>
+
+<span class="kw">def</span> <span class="fn2">estimator_quality</span>(X, sigma2):
+    XtX      = X.T @ X                    <span class="cm"># d x d Gram matrix</span>
+    XtX_inv  = <span class="fn2">np.linalg.inv</span>(XtX)      <span class="cm"># (X^T X)^-1</span>
+    trace    = <span class="fn2">np.trace</span>(XtX_inv)       <span class="cm"># sum of diagonal entries</span>
+    expected_sq_error = sigma2 * trace
+    <span class="kw">return</span> expected_sq_error
+
+<span class="cm"># Usage alongside fitting:</span>
+W_hat = XtX_inv @ X.T @ Y                 <span class="cm"># the MLE / least-squares fit</span>
+quality = <span class="fn2">estimator_quality</span>(X, sigma2_hat)
+</pre>
+    <p class="dim">σ² itself isn't known in practice — it's usually estimated from residuals: σ̂² ≈ RSS / (n − d).</p>
+  </div>
+</section>
+
+<!-- STAGE 8: OPTIMIZATION -->
+<section class="stage" id="s8">
+  <div class="stage-head"><span class="stage-num">8</span><h2>Optimization</h2></div>
+  <div class="grid2">
+    <div class="card" style="margin:0;">
+      <h4>Computational cost</h4>
+      <p>Forming and inverting XᵀX is O(nd² + d³). For high-dimensional d, explicit inversion is avoided — use a Cholesky or QR decomposition of X and read the trace off the decomposition instead of computing a full inverse.</p>
+    </div>
+    <div class="card" style="margin:0;">
+      <h4>Trick</h4>
+      <p>You rarely need the full matrix (XᵀX)⁻¹ — only its trace. If you already have the SVD X = UΣVᵀ, then Tr((XᵀX)⁻¹) = Σ 1/σᵢ² over the singular values σᵢ of X. Much cheaper and numerically stabler than a direct inverse.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 9: EDGE CASES -->
+<section class="stage" id="s9">
+  <div class="stage-head"><span class="stage-num">9</span><h2>Edge Cases</h2></div>
+  <div class="card">
+    <p><b>1. XᵀX is singular or near-singular (multicollinearity).</b> If two features are highly correlated (or d &gt; n), (XᵀX)⁻¹ blows up — some diagonal entries become huge, so Tr((XᵀX)⁻¹) → ∞. The formula is correctly telling you: <i>the MLE exists but is essentially useless, wildly unstable across resamples.</i></p>
+    <p><b>2. d ≥ n (more features than samples).</b> XᵀX isn't even invertible. Ŵ<sub>ML</sub> is undefined without regularization (ridge, etc.) — the formula's assumptions break down entirely.</p>
+    <p><b>3. σ² unknown.</b> In practice σ² is estimated from residuals; the formula then has extra estimation noise baked in via σ̂², which itself has some sampling variance — a second-order effect not covered by Eq. 34.4 directly.</p>
+  </div>
+  <div class="callout warn"><span class="lbl">Common misconception</span>
+  A small training/residual error does <b>not</b> imply small 𝔼[‖Ŵ<sub>ML</sub> − W‖²]. You can fit the observed points almost perfectly while still being far from the true W, if the features are poorly conditioned. Residual error and estimator error measure different things.
+  </div>
+</section>
+
+<!-- STAGE 10: TRIGGERS -->
+<section class="stage" id="s10">
+  <div class="stage-head"><span class="stage-num">10</span><h2>Hidden Trigger Recognition <span class="star">⭐</span></h2></div>
+  <div class="card">
+    <p>Phrases in a question that should instantly cue <i>this exact result</i>:</p>
+    <div class="chips">
+      <span class="chip">"expected squared distance from true W"</span>
+      <span class="chip">"goodness / quality of an estimator"</span>
+      <span class="chip">"how reliable is the MLE"</span>
+      <span class="chip">"trace of (XᵀX)⁻¹"</span>
+      <span class="chip">"variance of the least-squares estimator"</span>
+      <span class="chip">"effect of noise on parameter estimation"</span>
+      <span class="chip">"why does multicollinearity hurt regression"</span>
+      <span class="chip">"feature engineering to reduce estimation error"</span>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 11: PATTERN RECOGNITION -->
+<section class="stage" id="s11">
+  <div class="stage-head"><span class="stage-num">11</span><h2>Pattern Recognition</h2></div>
+  <div class="card">
+    <p>Reach for this whenever a problem asks you to evaluate an estimator <i>itself</i> — not the fit's error on the training set, but its distance to a ground-truth parameter that generated the data. It "smells like" this topic whenever:</p>
+    <p>• The setup explicitly separates a <b>true</b> parameter from an <b>estimated</b> one.</p>
+    <p>• Noise is Gaussian and additive (the trace-trick machinery specifically relies on this).</p>
+    <p>• Someone asks how to make an estimator "more reliable" without more data — that's a feature-design question, answered by shrinking Tr((XᵀX)⁻¹).</p>
+  </div>
+</section>
+
+<!-- STAGE 12: SHAPE RECOGNITION -->
+<section class="stage" id="s12">
+  <div class="stage-head"><span class="stage-num">12</span><h2>Formula Shape Recognition</h2></div>
+  <div class="card">
+    <p>Same idea, different notational skins you'll meet across textbooks:</p>
+    <table class="data-table">
+      <tr><th>Form</th><th>Where you'll see it</th></tr>
+      <tr><td>𝔼[‖Ŵ<sub>ML</sub> − W‖²] = σ²Tr((XᵀX)⁻¹)</td><td>ML / stats-for-ML courses (this lecture's form)</td></tr>
+      <tr><td>Cov(Ŵ) = σ²(XᵀX)⁻¹</td><td>Econometrics / classical statistics — the full covariance matrix, of which our result is just the trace</td></tr>
+      <tr><td>Var(ŵⱼ) = σ² · [(XᵀX)⁻¹]<sub>jj</sub></td><td>Per-coefficient standard errors reported by regression software (e.g. statsmodels summary tables)</td></tr>
+      <tr><td>MSE(Ŵ) = Bias² + Tr(Cov(Ŵ))</td><td>Bias-variance decomposition — here Bias = 0, so MSE reduces exactly to our formula</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 13: SYMBOL TRANSLATION -->
+<section class="stage" id="s13">
+  <div class="stage-head"><span class="stage-num">13</span><h2>Symbol Translation <span class="star">⭐</span></h2></div>
+  <div class="card">
+    <table class="data-table">
+      <tr><th>Symbol</th><th>Meaning</th><th>Code</th></tr>
+      <tr><td>X</td><td>design/feature matrix, n×d</td><td><code>X</code> — numpy array</td></tr>
+      <tr><td>Y</td><td>observed targets</td><td><code>Y</code></td></tr>
+      <tr><td>W, Ŵ<sub>ML</sub></td><td>true weights, estimated weights</td><td><code>W_true</code>, <code>W_hat</code></td></tr>
+      <tr><td>σ²</td><td>noise variance</td><td><code>sigma2</code></td></tr>
+      <tr><td>(XᵀX)⁻¹</td><td>inverse Gram / feature-covariance matrix</td><td><code>np.linalg.inv(X.T @ X)</code></td></tr>
+      <tr><td>Tr(·)</td><td>sum of diagonal entries</td><td><code>np.trace(M)</code></td></tr>
+      <tr><td>𝔼[‖Ŵ<sub>ML</sub> − W‖²]</td><td>expected squared estimation error</td><td><code>sigma2 * np.trace(inv(X.T@X))</code></td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- STAGE 14: COMPUTATIONAL FLOW -->
+<section class="stage" id="s14">
+  <div class="stage-head"><span class="stage-num">14</span><h2>Computational Flow <span class="star">⭐</span></h2></div>
+  <div class="card"><p>End-to-end pipeline showing where this metric lives relative to model fitting:</p></div>
+  <div class="flow">
+    <div class="box v">Raw data<br>(X, Y)</div><div class="arrow">→</div>
+    <div class="box f">Fit Ŵ<sub>ML</sub><br>= (XᵀX)⁻¹XᵀY</div><div class="arrow">→</div>
+    <div class="box p">Estimate σ̂²<br>from residuals</div><div class="arrow">→</div>
+    <div class="box o">Compute Tr((XᵀX)⁻¹)<br>from X alone</div><div class="arrow">→</div>
+    <div class="box o" style="border-color:var(--gold); color:var(--gold);">Estimator quality<br>σ̂²·Tr((XᵀX)⁻¹)</div>
+  </div>
+  <div class="svg-caption">figure — where "goodness of MLE" sits in the modeling pipeline</div>
+  <div class="callout tip"><span class="lbl">Key observation</span>
+  Note the branch: fitting Ŵ<sub>ML</sub> needs Y, but Tr((XᵀX)⁻¹) needs <b>only X</b>. You can judge how reliable your estimator <i>will be</i> purely by inspecting your feature matrix, before you even see the labels — this is exactly what experimental design ("which points should I measure X at?") exploits.
+  </div>
+</section>
+
+<!-- STAGE 15: PROBLEM FAMILIES -->
+<section class="stage" id="s15">
+  <div class="stage-head"><span class="stage-num">15</span><h2>Problem Families</h2></div>
+  <div class="grid2">
+    <div class="card" style="margin:0;">
+      <h4>Ridge Regression</h4>
+      <p>Adds a penalty λ‖W‖² to trade a little bias for a large reduction in variance — directly motivated by this lecture's insight that Tr((XᵀX)⁻¹) can explode.</p>
+    </div>
+    <div class="card" style="margin:0;">
+      <h4>Cramér–Rao Lower Bound</h4>
+      <p>States no unbiased estimator can beat Var ≥ (Fisher Information)⁻¹. For linear regression, Ŵ<sub>ML</sub> actually <i>achieves</i> this bound — it's provably the best unbiased estimator (Gauss–Markov / efficiency).</p>
+    </div>
+    <div class="card" style="margin:0;">
+      <h4>Bias–Variance Decomposition</h4>
+      <p>The general framework this result is a special case of: total error = bias² + variance (+ irreducible noise). Here bias is exactly zero, so all error is "variance."</p>
+    </div>
+    <div class="card" style="margin:0;">
+      <h4>Optimal Experimental Design</h4>
+      <p>Explicitly chooses X (which inputs to measure at) to minimize Tr((XᵀX)⁻¹) subject to a measurement budget — a direct engineering application of today's formula.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STAGE 16: INVARIANTS -->
+<section class="stage" id="s16">
+  <div class="stage-head"><span class="stage-num">16</span><h2>Invariant Library <span class="star">⭐</span></h2></div>
+  <div class="card">
+    <h4 style="color:var(--green)">Always true</h4>
+    <p>• Ŵ<sub>ML</sub> is <b>unbiased</b>: 𝔼[Ŵ<sub>ML</sub>] = W exactly (given the Gaussian linear model assumptions hold).</p>
+    <p>• 𝔼[‖Ŵ<sub>ML</sub> − W‖²] scales <b>linearly</b> in σ².</p>
+    <p>• More/better-spread data (larger, more diverse XᵀX) can only shrink or keep equal — never increase — Tr((XᵀX)⁻¹), for a fixed feature set.</p>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--gold)">Sometimes true</h4>
+    <p>• "Adding more features improves the estimator" — <b>only if</b> those features are genuinely informative and not collinear with existing ones. Adding a near-duplicate feature can inflate Tr((XᵀX)⁻¹) instead.</p>
+    <p>• "More data always reduces this error" — true in aggregate as n grows for i.i.d.-style designs, but a badly chosen new data point (near-collinear with old ones) can still leave Tr((XᵀX)⁻¹) nearly unchanged.</p>
+  </div>
+  <div class="card">
+    <h4 style="color:var(--red)">Never true</h4>
+    <p>• Ŵ<sub>ML</sub> is <b>never</b> guaranteed to equal W exactly for any single draw — only in expectation, not sample-by-sample. (Counterexample: run the fit twice on resampled noise, get two different answers — both "correct" MLEs.)</p>
+    <p>• Low residual/training error does <b>not</b> imply low 𝔼[‖Ŵ<sub>ML</sub>−W‖²] — see edge case #1 above (multicollinearity can give perfect-looking fits with terrible parameter reliability).</p>
+  </div>
+</section>
+
+<!-- STAGE 17: EXPERT THINKING -->
+<section class="stage" id="s17">
+  <div class="stage-head"><span class="stage-num">17</span><h2>Expert Thinking</h2></div>
+  <div class="card">
+    <p>A practitioner doesn't re-derive this every time — they just glance at two things: <b>(a) the condition number of XᵀX</b> (or equivalently, correlation among columns of X), and <b>(b) the estimated residual variance σ̂²</b>. If condition number is huge, they know instantly, without computing anything further, that coefficients will be unstable — and reach straight for ridge regression, feature selection, or PCA-based dimensionality reduction before even looking at p-values.</p>
+    <p class="dim">The compressed intuition experts carry: <i>"variance of my coefficients = noise × how badly my features overlap."</i> Two words to listen for in your own head: <b>collinearity</b> and <b>noise</b>.</p>
+  </div>
+</section>
+
+<!-- STAGE 18: TRAP LIBRARY -->
+<section class="stage" id="s18">
+  <div class="stage-head"><span class="stage-num">18</span><h2>Examiner Trap Library <span class="star">⭐</span></h2></div>
+
+  <div class="trap">
+    <div class="q">Q: "Since Ŵ<sub>ML</sub> minimizes training error, it must also be the estimator with smallest 𝔼[‖Ŵ−W‖²] among all possible estimators." True or false?</div>
+    <div class="wrong">✗ Tempting answer: "True — it's the optimal fit, so it must be optimal in every sense."</div>
+    <div class="right">✓ Correct: True, but for a subtler reason — it's optimal specifically among <b>unbiased</b> estimators (Gauss–Markov / Cramér–Rao). A biased estimator (e.g. ridge) can have strictly lower 𝔼[‖Ŵ−W‖²] by trading a little bias for a lot less variance.</div>
+  </div>
+
+  <div class="trap">
+    <div class="q">Q: "If I double the amount of training data (n), 𝔼[‖Ŵ<sub>ML</sub>−W‖²] is guaranteed to halve." True or false?</div>
+    <div class="wrong">✗ Tempting answer: "True — more data always means better estimates."</div>
+    <div class="right">✓ Correct: Not guaranteed in general — it depends entirely on how the new points affect Tr((XᵀX)⁻¹). It's typically true for i.i.d.-style sampling, but not a mathematical certainty for arbitrary new points (e.g. duplicating an existing row changes nothing about which directions XᵀX is weak in).</div>
+  </div>
+
+  <div class="trap">
+    <div class="q">Q: A student writes 𝔼[‖Ŵ<sub>ML</sub>−W‖²] = σ² · (XᵀX)⁻¹ (dropping the trace). Why is this wrong?</div>
+    <div class="wrong">✗ (XᵀX)⁻¹ is a d×d matrix — you cannot equate a scalar (expected squared norm) to a matrix.</div>
+    <div class="right">✓ The trace is what collapses the matrix Cov(Ŵ)=σ²(XᵀX)⁻¹ down into the single scalar 𝔼[‖Ŵ−W‖²] = sum of per-coordinate variances = Tr(Cov(Ŵ)).</div>
+  </div>
+</section>
+
+<!-- STAGE 19: EXAM SHORTCUTS -->
+<section class="stage" id="s19">
+  <div class="stage-head"><span class="stage-num">19</span><h2>Exam Shortcuts</h2></div>
+  <div class="card">
+    <p>• See "expected squared error of an estimator" in a Gaussian-noise linear model → immediately write σ²Tr((XᵀX)⁻¹) without re-deriving, then adjust only if the question changes an assumption.</p>
+    <p>• To eliminate wrong MCQ options fast: any option that doesn't have σ² multiplied by <i>something involving X</i> is wrong (both factors must appear, separably).</p>
+    <p>• If asked for the 1-D / simple linear regression special case, remember the reduction: σ²/Σxᵢ² — a good way to sanity-check any general-d answer choice by setting d=1 mentally.</p>
+  </div>
+</section>
+
+<!-- STAGE 20: INDUSTRY -->
+<section class="stage" id="s20">
+  <div class="stage-head"><span class="stage-num">20</span><h2>Industry Implementation</h2></div>
+  <div class="card">
+    <p>• <b>statsmodels</b> (`OLS(...).fit()`) — the `.bse` (standard errors) and full covariance matrix `.cov_params()` reported after fitting are literally σ̂²(XᵀX)⁻¹ under the hood; the diagonal gives per-coefficient variance, and its trace is exactly today's quantity.</p>
+    <p>• <b>sklearn</b> — `LinearRegression` doesn't report this by default (it's fit-focused, not inference-focused); you'd combine it with `statsmodels` or compute `np.linalg.inv(X.T@X)` yourself for this diagnostic.</p>
+    <p>• <b>VIF (Variance Inflation Factor)</b> — a standard collinearity diagnostic in most stats packages — is essentially a per-feature decomposition of exactly the same Tr((XᵀX)⁻¹) blow-up this lecture warns about.</p>
+  </div>
+</section>
+
+<!-- STAGE 21: CONNECTIONS -->
+<section class="stage" id="s21">
+  <div class="stage-head"><span class="stage-num">21</span><h2>Connections</h2></div>
+  <div class="card">
+    <p><b>Came before:</b> Probabilistic view of linear regression (Y|X ~ 𝒩(WᵀX, σ²)), derivation that MLE = least squares.</p>
+    <p><b>Comes next:</b> Since noise σ² can't be engineered away, the natural next topic is <b>feature engineering / regularization</b> as the lever we <i>can</i> pull — leading directly into ridge regression, where a small bias is deliberately introduced to shrink Tr((XᵀX)⁻¹)-driven variance.</p>
+  </div>
+</section>
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<section class="stage" id="s22">
+  <div class="stage-head"><span class="stage-num">22</span><h2>One-Page Brain <span class="star">⭐</span></h2></div>
+  <div class="brain">
+    <h3>Goodness of MLE for Linear Regression — Everything on One Page</h3>
+    <div class="brain-grid">
+      <div>
+        <h4 style="color:var(--teal)">Core intuition</h4>
+        <p style="font-size:0.9rem;">Ŵ<sub>ML</sub> is a random variable (depends on noise). Its expected squared distance from the truth W splits cleanly into <b>noise level × feature geometry</b>.</p>
+        <h4 style="color:var(--teal)">5 key formulas</h4>
+        <p style="font-size:0.85rem;">1. Y = WᵀX + ε, ε~𝒩(0,σ²)<br>2. Ŵ<sub>ML</sub> = (XᵀX)⁻¹XᵀY<br>3. Ŵ<sub>ML</sub> − W = (XᵀX)⁻¹Xᵀε<br>4. Cov(Ŵ<sub>ML</sub>) = σ²(XᵀX)⁻¹<br>5. <b>𝔼[‖Ŵ<sub>ML</sub>−W‖²] = σ²Tr((XᵀX)⁻¹)</b></p>
+      </div>
+      <div>
+        <h4 style="color:var(--gold)">5 triggers</h4>
+        <p style="font-size:0.85rem;">"goodness of estimator" · "expected squared distance" · "trace of (XᵀX)⁻¹" · "estimator reliability" · "why multicollinearity hurts"</p>
+        <h4 style="color:var(--red)">5 traps</h4>
+        <p style="font-size:0.85rem;">Low training error ≠ low estimator error · "optimal fit" ≠ "optimal among all estimators" (only unbiased ones) · dropping the trace · assuming more data always halves the error · forgetting Ŵ<sub>ML</sub> is unbiased but still random</p>
+      </div>
+    </div>
+    <h4 style="color:var(--purple)">5 shortcuts</h4>
+    <p style="font-size:0.85rem;">d=1 sanity check → σ²/Σxᵢ² &nbsp;·&nbsp; both σ² and an X-term must appear in any correct answer &nbsp;·&nbsp; use SVD singular values: Tr((XᵀX)⁻¹)=Σ1/σᵢ² &nbsp;·&nbsp; bad conditioning ⇒ inflate immediately suspect ridge &nbsp;·&nbsp; VIF ≈ per-feature version of this diagnostic</p>
+    <h4 style="color:var(--blue)">Dependencies</h4>
+    <p style="font-size:0.85rem;"><b>Needs:</b> probabilistic linear regression, MLE derivation, basic matrix trace/expectation identities. <b>Feeds into:</b> ridge/Lasso regression, bias-variance tradeoff, optimal experimental design, Cramér–Rao bound / Gauss–Markov theorem.</p>
+  </div>
+</section>
+
+<footer>Lecture 34 · IIT Madras MLT Interactive Notes · built with the ML Learning Framework + Premium Math Typesetting</footer>
+
+</div>
+</body>
+</html>

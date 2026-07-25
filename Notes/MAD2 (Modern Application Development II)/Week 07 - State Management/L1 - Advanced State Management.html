@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced State Management in Vue — Week 7, Lecture 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420;
+    --bg-alt:#0F1A2B;
+    --card:#132239;
+    --card-2:#0F1D31;
+    --border:#22314C;
+    --border-soft:#1A2740;
+    --text:#E7EDF6;
+    --muted:#8CA0C0;
+    --mint:#5EEAD4;
+    --mint-dim:#3AA793;
+    --amber:#F5C24C;
+    --coral:#FB7C86;
+    --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace;
+    --display:'Space Grotesk', sans-serif;
+    --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(30px,4.6vw,46px);
+    line-height:1.1; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: UNIDIRECTIONAL LOOP ---------- */
+  .loop-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:38px 24px 30px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .loop-stage{ position:relative; width:100%; max-width:520px; height:300px; margin:0 auto; }
+  .loop-node{
+    position:absolute; width:132px; padding:14px 10px; border-radius:12px; text-align:center;
+    font-family:var(--display); font-weight:600; font-size:14.5px; border:1px solid var(--border-soft);
+    background:var(--card); box-shadow:0 0 0 0 rgba(94,234,212,0);
+  }
+  .loop-node .sub{ display:block; font-family:var(--mono); font-weight:400; font-size:11px; color:var(--muted); margin-top:4px; }
+  .loop-node.state{ top:0; left:50%; transform:translateX(-50%); animation:glow 4.5s ease infinite; animation-delay:0s; }
+  .loop-node.view{ bottom:0; left:0; animation:glow 4.5s ease infinite; animation-delay:1.5s; }
+  .loop-node.action{ bottom:0; right:0; animation:glow 4.5s ease infinite; animation-delay:3s; }
+  @keyframes glow{
+    0%, 66%, 100%{ border-color:var(--border-soft); box-shadow:0 0 0 0 rgba(94,234,212,0); color:var(--text); }
+    8%, 25%{ border-color:var(--mint); box-shadow:0 0 22px -4px rgba(94,234,212,0.55); color:var(--mint); }
+  }
+  .loop-arrow{ position:absolute; font-family:var(--mono); color:var(--muted); font-size:12px; }
+  .loop-arrow.a1{ top:78px; left:60%; }
+  .loop-arrow.a2{ bottom:44px; left:44%; transform:translateX(-50%); }
+  .loop-arrow.a3{ top:78px; right:58%; }
+  .loop-svg{ position:absolute; inset:0; width:100%; height:100%; }
+  .loop-path{ fill:none; stroke:var(--border); stroke-width:1.5; stroke-dasharray:5 5; }
+  .loop-caption{ text-align:center; color:var(--muted); font-size:13px; margin-top:8px; font-family:var(--mono); }
+
+  /* ---------- SECTIONS ---------- */
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0 0 14px; font-size:15.5px; }
+  .overview-card p:last-child{ margin-bottom:0; }
+
+  /* formula box */
+  .formula{
+    margin-top:16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    background:var(--card-2); border:1px dashed var(--border); border-radius:10px; padding:14px 18px;
+    font-family:var(--mono); font-size:15px;
+  }
+  .formula .ui{ color:var(--mint); }
+  .formula .fn{ color:var(--lilac); }
+  .formula .state{ color:var(--amber); }
+  .formula .label{ font-family:var(--body); font-size:12.5px; color:var(--muted); margin-left:auto; font-style:italic; }
+
+  /* ---------- PROP DRILLING TREE ---------- */
+  .tree-card{ overflow-x:auto; }
+  .tree{ display:flex; flex-direction:column; align-items:center; gap:0; min-width:520px; padding:6px 0 0; }
+  .tree-row{ display:flex; justify-content:center; gap:36px; position:relative; }
+  .tree-row + .tree-row{ margin-top:34px; }
+  .tree-node{
+    padding:10px 16px; border-radius:9px; font-family:var(--mono); font-size:12.5px;
+    border:1px solid var(--border-soft); background:var(--card-2); color:var(--muted); white-space:nowrap; position:relative;
+  }
+  .tree-node.endpoint{ border-color:var(--mint-dim); color:var(--mint); background:rgba(94,234,212,0.06); }
+  .tree-node.pass-through{ border-color:var(--coral); color:var(--coral); background:rgba(251,124,134,0.06); }
+  .tree-connector{ width:1px; height:34px; background:var(--border); margin:0 auto; position:relative; }
+  .tree-connector::after{
+    content:'props ↓'; position:absolute; left:8px; top:6px; font-family:var(--mono); font-size:10px; color:var(--coral);
+    white-space:nowrap;
+  }
+  .tree-connectors-row{ display:flex; justify-content:center; }
+  .tree-legend{ display:flex; gap:20px; justify-content:center; margin-top:18px; font-size:12.5px; color:var(--muted); font-family:var(--mono); flex-wrap:wrap; }
+
+  /* ---------- GLOBAL VAR VS STORE ---------- */
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .compare-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .compare-card.bad{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .compare-card.good{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .compare-card h3{ font-family:var(--display); font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+  .compare-card.bad h3{ color:var(--coral); }
+  .compare-card.good h3{ color:var(--mint); }
+  .mutate-viz{ display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+  .mutate-node{ font-family:var(--mono); font-size:11.5px; padding:6px 10px; border-radius:20px; }
+  .compare-card.bad .mutate-node{ background:rgba(251,124,134,0.12); color:var(--coral); border:1px solid #7a3540; }
+  .compare-card.good .mutate-node{ background:rgba(94,234,212,0.12); color:var(--mint); border:1px solid var(--mint-dim); }
+  .gate{
+    text-align:center; font-family:var(--mono); font-size:11px; color:var(--mint); background:var(--card-2);
+    border:1px solid var(--mint-dim); border-radius:8px; padding:6px; margin:8px auto; width:120px;
+  }
+  .compare-card p{ margin:0; font-size:13.5px; color:var(--muted); }
+
+  /* ---------- TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.tool{ font-family:var(--mono); font-weight:600; color:var(--mint); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+  td.what{ color:var(--text); }
+
+  /* ---------- CALLOUT BOXES ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:760px){
+    .callout-grid{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+    .loop-stage{ height:340px; }
+    .loop-node{ width:112px; font-size:13px; padding:12px 8px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .formula{ font-size:13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 7, Lecture 1</div>
+    <h1 class="title">Advanced State<br><span class="accent">Management</span> in Vue</h1>
+    <p class="subtitle">Where does the truth about your app live — and who's allowed to change it?</p>
+
+    <div class="loop-card">
+      <div class="loop-stage">
+        <svg class="loop-svg" viewBox="0 0 520 300" preserveAspectRatio="none">
+          <path class="loop-path" d="M 260 60 L 90 250" />
+          <path class="loop-path" d="M 90 260 L 430 260" />
+          <path class="loop-path" d="M 430 250 L 270 60" />
+        </svg>
+        <div class="loop-node state" style="top:0;">State<span class="sub">source of truth</span></div>
+        <div class="loop-node view" style="bottom:0; left:0;">View<span class="sub">f(state)</span></div>
+        <div class="loop-node action" style="bottom:0; right:0;">Actions<span class="sub">clicks, input</span></div>
+      </div>
+      <div class="loop-caption">state → view → action → state — one direction, always</div>
+    </div>
+  </div>
+
+  <!-- ================= 1. STATE MANAGEMENT ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>What Is "State"?</h2></div>
+    <div class="card overview-card">
+      <p><strong>Application state</strong> is the collection of variables at the frontend that represents the current UI. Declarative programming treats the interface as a direct, predictable output of that state — nothing more.</p>
+      <div class="formula">
+        <span class="ui">UI</span> <span style="color:var(--muted)">=</span> <span class="fn">f</span><span style="color:var(--muted)">(</span><span class="state">state</span><span style="color:var(--muted)">)</span>
+        <span class="label">change the state, the view redraws itself — you never touch the DOM by hand</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROP DRILLING DIAGRAM ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>The Problem With Deep Component Trees</h2></div>
+    <p class="lede">Vue components form a tree. Passing data between distant nodes means shoving it through every component in between — even ones that don't care about it.</p>
+    <div class="card tree-card">
+      <div class="tree">
+        <div class="tree-row"><div class="tree-node">App</div></div>
+        <div class="tree-connector"></div>
+        <div class="tree-row"><div class="tree-node pass-through">Layout <span style="opacity:.6">(doesn't use it)</span></div></div>
+        <div class="tree-connector"></div>
+        <div class="tree-row"><div class="tree-node pass-through">Sidebar <span style="opacity:.6">(doesn't use it)</span></div></div>
+        <div class="tree-connector"></div>
+        <div class="tree-row"><div class="tree-node endpoint">MenuItem <span style="opacity:.8">(finally uses it)</span></div></div>
+      </div>
+      <div class="tree-legend">
+        <span><span class="dot coral"></span>forced to relay a prop it never uses</span>
+        <span><span class="dot mint"></span>the component that actually needs the data</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GLOBAL VAR VS STORE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>Global Variables vs. Controlled Stores</h2></div>
+    <p class="lede">A global variable solves the drilling problem — but opens a worse one.</p>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h3><span class="dot coral"></span>Plain Global Variable</h3>
+        <div class="mutate-viz">
+          <span class="mutate-node">Sidebar → mutates</span>
+          <span class="mutate-node">Menu → mutates</span>
+          <span class="mutate-node">Modal → mutates</span>
+        </div>
+        <p>Any component can change it, from anywhere, at any time. When something breaks, there's no single place to look — like a shared whiteboard everyone scribbles on with no eraser log.</p>
+      </div>
+      <div class="compare-card good">
+        <h3><span class="dot mint"></span>Controlled Store</h3>
+        <div class="mutate-viz">
+          <span class="mutate-node">Sidebar → action</span>
+          <span class="mutate-node">Menu → action</span>
+        </div>
+        <div class="gate">⇣ dispatch ⇣</div>
+        <p>Components can only request a change through a defined action. One gate, one source of truth — like a bank teller window instead of an open vault.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= INDUSTRY PATTERNS TABLE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Where Vuex Comes From</h2></div>
+    <p class="lede">Vuex didn't appear in a vacuum — it borrows from a small family of state-management ideas.</p>
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Core idea</th><th>Think of it as…</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tool">Flux <span style="color:var(--muted); font-weight:400;">(Facebook)</span></td>
+            <td class="what">A store, a dispatcher, and strictly unidirectional data flow for React apps.</td>
+            <td class="analogy-cell">a one-way conveyor belt, not a two-way street</td>
+          </tr>
+          <tr>
+            <td class="tool">Redux</td>
+            <td class="what">State is read-only; changes only happen through pure functions, which keeps outcomes predictable and easy to debug.</td>
+            <td class="analogy-cell">a ledger you can only append to, never erase</td>
+          </tr>
+          <tr>
+            <td class="tool">Elm Architecture</td>
+            <td class="what">A functional loop of model (state), view (HTML), and messages (updates) — small and minimal by design.</td>
+            <td class="analogy-cell">a thermostat: read temp → decide → adjust → repeat</td>
+          </tr>
+          <tr>
+            <td class="tool">Vuex</td>
+            <td class="what">Vue's own take on the same idea: one global, restricted-access store as the app's single source of truth.</td>
+            <td class="analogy-cell">these ideas, tailored to Vue's component tree</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>One direction only</h4>
+        <p>State drives the view, the view triggers actions, actions update state. Never skip the cycle — that's what keeps it debuggable.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Build the mental model</h4>
+        <p>The point of these patterns isn't ceremony — it's giving you one clear, predictable picture of how data moves through the app.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Centralize to scale</h4>
+        <p>Letting children mutate parent data directly doesn't scale. A centralized, predictable store is what lets an app grow without breaking itself.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Week 7, Lecture 1 — Advanced State Management in Vue</footer>
+</div>
+</body>
+</html>

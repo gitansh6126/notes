@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 37 — Ridge Regression</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#080a12;
+  --bg-alt:#0d1019;
+  --panel-bg:#12141f;
+  --panel-bg-2:#151827;
+  --panel-border:rgba(255,255,255,0.08);
+  --panel-border-strong:rgba(255,255,255,0.14);
+  --text:#e7e9f2;
+  --text-dim:#9aa0b4;
+  --text-faint:#666b80;
+
+  --gold:#d4af37;
+  --gold-soft:rgba(212,175,55,0.12);
+  --blue:#5b9dff;
+  --blue-soft:rgba(91,157,255,0.12);
+  --green:#4ade80;
+  --green-soft:rgba(74,222,128,0.12);
+  --purple:#b18cfa;
+  --purple-soft:rgba(177,140,250,0.12);
+  --red:#f87171;
+  --red-soft:rgba(248,113,113,0.12);
+  --teal:#2dd4bf;
+  --teal-soft:rgba(45,212,191,0.12);
+
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --body-font:"Inter",system-ui,sans-serif;
+  --mono-font:"JetBrains Mono",monospace;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(91,157,255,0.08), transparent),
+    radial-gradient(ellipse 900px 600px at 90% 10%, rgba(212,175,55,0.06), transparent),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--body-font);
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{max-width:920px;margin:0 auto;padding:0 20px 100px;}
+
+/* ---------- NAV ---------- */
+nav.topnav{
+  position:sticky;top:0;z-index:50;
+  background:rgba(8,10,18,0.85);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--panel-border);
+  overflow-x:auto;
+  white-space:nowrap;
+  scrollbar-width:thin;
+}
+nav.topnav::-webkit-scrollbar{height:4px;}
+nav.topnav::-webkit-scrollbar-thumb{background:var(--panel-border-strong);border-radius:4px;}
+nav.topnav .navinner{display:inline-flex;gap:6px;padding:10px 16px;}
+nav.topnav a{
+  color:var(--text-dim);text-decoration:none;font-size:0.78rem;font-weight:600;
+  padding:6px 12px;border-radius:20px;border:1px solid transparent;
+  letter-spacing:0.02em;
+  transition:all .15s ease;
+}
+nav.topnav a:hover{color:var(--gold);border-color:var(--panel-border-strong);background:var(--panel-bg);}
+
+/* ---------- HERO ---------- */
+.hero{padding:52px 0 30px;}
+.hero .kicker{
+  font-family:var(--mono-font);color:var(--teal);font-size:0.78rem;
+  letter-spacing:0.12em;text-transform:uppercase;margin-bottom:14px;font-weight:600;
+}
+.hero h1{
+  font-family:var(--serif-math-font);font-weight:600;font-size:clamp(1.8rem,5vw,2.7rem);
+  margin:0 0 14px;line-height:1.15;
+  background:linear-gradient(135deg,#fff, #b9c2dd 60%, var(--gold));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.hero p.sub{color:var(--text-dim);font-size:1.02rem;max-width:640px;margin:0 0 20px;}
+.hero .chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  font-family:var(--mono-font);font-size:0.72rem;padding:5px 11px;border-radius:20px;
+  border:1px solid var(--panel-border-strong);color:var(--text-dim);background:var(--panel-bg);
+}
+
+/* ---------- SECTION / CARD SYSTEM ---------- */
+section.stage{margin:44px 0;scroll-margin-top:70px;}
+.stage-head{display:flex;align-items:baseline;gap:12px;margin-bottom:16px;}
+.stage-num{
+  font-family:var(--mono-font);font-size:0.85rem;color:var(--bg);
+  background:var(--gold);width:34px;height:34px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;
+}
+.stage-head h2{
+  font-family:var(--serif-math-font);font-weight:600;font-size:1.5rem;margin:0;color:var(--text);
+}
+.stage-head .tag{
+  font-family:var(--mono-font);font-size:0.68rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+
+.card{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:22px 24px;
+  margin:14px 0;
+  box-shadow:0 8px 24px rgba(0,0,0,0.22);
+}
+.card h3{margin-top:0;font-family:var(--body-font);font-size:1rem;font-weight:700;color:var(--text);}
+.card.accent-gold{border-left:3px solid var(--gold);}
+.card.accent-blue{border-left:3px solid var(--blue);}
+.card.accent-teal{border-left:3px solid var(--teal);}
+.card.accent-purple{border-left:3px solid var(--purple);}
+.card.accent-red{border-left:3px solid var(--red);}
+.card.accent-green{border-left:3px solid var(--green);}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:680px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+/* ---------- CALLOUTS ---------- */
+.callout{
+  border-radius:14px;padding:16px 18px;margin:16px 0;
+  display:flex;gap:12px;align-items:flex-start;
+  border:1px solid var(--panel-border);
+}
+.callout .icon{font-size:1.2rem;line-height:1;flex-shrink:0;margin-top:2px;}
+.callout.tip{background:var(--teal-soft);border-color:rgba(45,212,191,0.3);}
+.callout.warn{background:var(--red-soft);border-color:rgba(248,113,113,0.3);}
+.callout.trap{background:var(--purple-soft);border-color:rgba(177,140,250,0.3);}
+.callout.intuit{background:var(--blue-soft);border-color:rgba(91,157,255,0.3);}
+.callout.trigger{background:var(--gold-soft);border-color:rgba(212,175,55,0.35);}
+.callout b{color:var(--text);}
+.callout .body{color:var(--text-dim);font-size:0.93rem;}
+.callout .body b{color:var(--text);}
+
+/* ---------- EQUATION PANEL ---------- */
+.eq-panel{
+  background:linear-gradient(180deg,var(--panel-bg-2),var(--panel-bg));
+  border:1px solid var(--panel-border-strong);
+  border-radius:18px;
+  padding:2.4rem 1.6rem 2rem;
+  margin:1.8rem 0;
+  box-shadow:0 10px 34px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.03);
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.eq-panel::before{
+  content:"";position:absolute;top:-40%;left:50%;transform:translateX(-50%);
+  width:70%;height:140%;background:radial-gradient(ellipse at center, var(--eq-glow,rgba(212,175,55,0.08)), transparent 70%);
+  pointer-events:none;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);
+  text-transform:uppercase;letter-spacing:0.1em;margin-bottom:14px;
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.15rem,3.4vw,1.9rem);
+  color:var(--text);
+  line-height:2;
+  position:relative;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.9rem;right:1.3rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:var(--green);font-style:italic;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);font-weight:600;}
+.op-big{font-size:1.5em;vertical-align:middle;display:inline-block;}
+sub,sup{font-size:0.62em;}
+sup.T{font-style:normal;}
+
+/* legend */
+.legend{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:8px 18px;margin:10px 0 22px;padding:14px 18px;
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:12px;
+}
+.legend .row{display:flex;gap:8px;font-size:0.86rem;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-style:italic;min-width:34px;font-size:1.02rem;}
+.legend .desc{color:var(--text-dim);}
+
+/* ---------- MATRIX GRID ---------- */
+.matrix{display:inline-flex;align-items:center;gap:6px;vertical-align:middle;}
+.matrix .bracket{font-size:2.2em;color:var(--text-dim);font-family:var(--serif-math-font);}
+.matrix table{border-collapse:collapse;}
+.matrix td{padding:4px 12px;font-family:var(--serif-math-font);font-size:1.05rem;text-align:center;}
+
+/* ---------- STEP TIMELINE ---------- */
+.timeline{position:relative;margin:24px 0;padding-left:6px;}
+.tstep{
+  position:relative;padding:16px 18px 16px 52px;margin-bottom:4px;
+  background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;
+}
+.tstep:not(:last-child){margin-bottom:22px;}
+.tstep:not(:last-child)::after{
+  content:"";position:absolute;left:34px;top:100%;width:2px;height:22px;
+  background:linear-gradient(var(--gold),transparent);
+}
+.tstep .badge{
+  position:absolute;left:14px;top:16px;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);color:var(--bg);font-family:var(--mono-font);font-weight:700;font-size:0.8rem;
+  display:flex;align-items:center;justify-content:center;
+}
+.tstep h4{margin:0 0 6px;font-size:0.95rem;color:var(--text);}
+.tstep .expr{font-family:var(--serif-math-font);font-size:1.05rem;color:var(--gold);margin-top:6px;}
+.tstep p{margin:4px 0 0;color:var(--text-dim);font-size:0.88rem;}
+
+/* ---------- TABLES ---------- */
+table.data{width:100%;border-collapse:collapse;margin:14px 0;font-size:0.9rem;}
+table.data th{
+  text-align:left;padding:10px 12px;background:var(--panel-bg-2);
+  color:var(--gold);font-family:var(--mono-font);font-size:0.72rem;
+  text-transform:uppercase;letter-spacing:0.06em;border-bottom:1px solid var(--panel-border-strong);
+}
+table.data td{padding:10px 12px;border-bottom:1px solid var(--panel-border);color:var(--text-dim);}
+table.data tr:last-child td{border-bottom:none;}
+table.data td.hi{color:var(--text);font-weight:600;}
+table.data code{color:var(--teal);}
+
+/* ---------- CODE ---------- */
+pre.code{
+  background:#0a0c14;border:1px solid var(--panel-border);border-radius:12px;
+  padding:16px 18px;overflow-x:auto;font-family:var(--mono-font);font-size:0.82rem;
+  line-height:1.65;color:#c9d1e8;
+}
+pre.code .c{color:var(--text-faint);font-style:italic;}
+pre.code .kw{color:var(--purple);}
+pre.code .fn{color:var(--blue);}
+pre.code .num{color:var(--green);}
+pre.code .str{color:var(--gold);}
+
+/* ---------- DIAGRAM: pipeline ---------- */
+.pipeline{display:flex;align-items:center;flex-wrap:wrap;gap:0;justify-content:center;margin:20px 0;}
+.pnode{
+  background:var(--panel-bg-2);border:1px solid var(--panel-border-strong);
+  border-radius:12px;padding:12px 14px;font-size:0.78rem;text-align:center;
+  min-width:100px;color:var(--text);font-weight:600;
+}
+.pnode.blue{border-color:rgba(91,157,255,0.4);color:var(--blue);}
+.pnode.gold{border-color:rgba(212,175,55,0.4);color:var(--gold);}
+.pnode.teal{border-color:rgba(45,212,191,0.4);color:var(--teal);}
+.pnode.purple{border-color:rgba(177,140,250,0.4);color:var(--purple);}
+.parrow{color:var(--text-faint);font-size:1.3rem;padding:0 8px;}
+@media(max-width:680px){.parrow{transform:rotate(90deg);}}
+
+/* ---------- KFOLD DIAGRAM ---------- */
+.kfold-wrap{margin:20px 0;}
+.kfold-row{display:flex;gap:6px;margin-bottom:8px;align-items:center;}
+.kfold-label{width:78px;font-family:var(--mono-font);font-size:0.72rem;color:var(--text-faint);flex-shrink:0;}
+.kfold-cell{
+  flex:1;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.68rem;font-weight:600;
+  background:var(--blue-soft);color:var(--blue);border:1px solid rgba(91,157,255,0.3);
+}
+.kfold-cell.val{background:var(--red-soft);color:var(--red);border-color:rgba(248,113,113,0.4);}
+
+/* ---------- EIGEN DIAGRAM (SVG holder) ---------- */
+.svg-box{
+  background:var(--bg-alt);border:1px solid var(--panel-border);border-radius:14px;
+  padding:14px;margin:18px 0;display:flex;justify-content:center;
+}
+.svg-box svg{max-width:100%;height:auto;}
+
+/* ---------- ONE PAGE BRAIN ---------- */
+.brain{
+  background:linear-gradient(160deg, rgba(212,175,55,0.06), rgba(91,157,255,0.04));
+  border:1px solid var(--panel-border-strong);border-radius:20px;padding:26px 26px 8px;
+}
+.brain h3{color:var(--gold);font-family:var(--serif-math-font);font-size:1.1rem;margin:0 0 10px;}
+.brain ul{margin:0 0 18px;padding-left:20px;color:var(--text-dim);font-size:0.88rem;}
+.brain ul li{margin-bottom:5px;}
+.brain ul li b{color:var(--text);}
+
+footer{text-align:center;padding:40px 0 10px;color:var(--text-faint);font-size:0.78rem;font-family:var(--mono-font);}
+
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--panel-border-strong),transparent);margin:50px 0;}
+</style>
+</head>
+<body>
+<nav class="topnav"><div class="navinner">
+<a href="#s-1">-1 Pattern</a>
+<a href="#s0">0 Problem</a>
+<a href="#s1">1 History</a>
+<a href="#s2">2 Engineering</a>
+<a href="#s3">3 Math</a>
+<a href="#s4">4 Formula</a>
+<a href="#s5">5 Anatomy</a>
+<a href="#s6">6 Derivation</a>
+<a href="#s7">7 Algorithm</a>
+<a href="#s8">8 Optimization</a>
+<a href="#s9">9 Edge Cases</a>
+<a href="#s10">10 Triggers</a>
+<a href="#s11">11 Recognition</a>
+<a href="#s12">12 Shape</a>
+<a href="#s13">13 Symbols</a>
+<a href="#s14">14 Flow</a>
+<a href="#s15">15 Families</a>
+<a href="#s16">16 Invariants</a>
+<a href="#s17">17 Expert</a>
+<a href="#s18">18 Traps</a>
+<a href="#s19">19 Shortcuts</a>
+<a href="#s20">20 Industry</a>
+<a href="#s21">21 Connections</a>
+<a href="#s22">22 One Page</a>
+</div></nav>
+
+<div class="wrap">
+
+<div class="hero">
+  <div class="kicker">Lecture 37 · Regularized Regression</div>
+  <h1>Ridge Regression</h1>
+  <p class="sub">When several different weight vectors fit your data <b>equally well</b>, plain least squares has no way to choose between them. Ridge Regression breaks the tie — by preferring the smallest, most stable set of coefficients.</p>
+  <div class="chips">
+    <span class="chip">L2 Regularization</span>
+    <span class="chip">Feature Redundancy</span>
+    <span class="chip">Coefficient Shrinkage</span>
+    <span class="chip">Bayesian Prior</span>
+    <span class="chip">Model Stability</span>
+  </div>
+</div>
+<section class="stage" id="s-1">
+  <div class="stage-head"><div class="stage-num">−1</div><h2>Cognitive Pattern</h2><span class="tag">what kind of thinking is this?</span></div>
+  <div class="grid3">
+    <div class="card accent-blue"><h3>🔷 Linear Algebra</h3><p style="color:var(--text-dim);font-size:0.9rem;">Redundant features mean XXᵀ is singular or near-singular — there's an entire <i>subspace</i> of weight vectors that fit equally well.</p></div>
+    <div class="card accent-gold"><h3>⚙️ Optimization / Tie-Breaking</h3><p style="color:var(--text-dim);font-size:0.9rem;">Among infinitely many zero-error solutions, we need a secondary criterion to pick <i>one</i> — smallest norm.</p></div>
+    <div class="card accent-purple"><h3>🎲 Probability</h3><p style="color:var(--text-dim);font-size:0.9rem;">The same tie-breaker falls out naturally if you believe, a priori, that weights are more likely to be small (Bayesian view, Lecture 38).</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s0">
+  <div class="stage-head"><div class="stage-num">0</div><h2>The Problem</h2></div>
+  <div class="card accent-red">
+    <h3>Why does this problem exist?</h3>
+    <p style="color:var(--text-dim);">Standard linear regression finds <span class="sym-param">ŵ</span><sub>ML</sub> = argmin<sub>w</sub> Σ(w<sup class="T">T</sup>x<sub>i</sub> − y<sub>i</sub>)². This works fine when features are independent. But add a <b>redundant</b> feature — one that's a linear combination of others (e.g. a "BMI-like" feature built from Height and Weight) — and suddenly <i>many different weight vectors</i> produce the exact same predictions and the exact same loss. The loss function alone can't tell them apart.</p>
+  </div>
+  <div class="callout warn">
+    <div class="icon">⚠️</div>
+    <div class="body"><b>What happens if we don't solve it?</b> The specific weights returned become arbitrary — sensitive to tiny numerical noise, hard to interpret, and unstable: retrain on a slightly different sample and the coefficients can swing wildly, even though predictions stay identical.</div>
+  </div>
+  <div class="callout intuit">
+    <div class="icon">📏</div>
+    <div class="body"><b>Real-life analogy.</b> If two rulers always agree — one measures in inches, the other in a fixed multiple of inches — then "how much of the length was measured by ruler A vs ruler B" is a meaningless question; infinitely many splits explain the same total length. Ridge Regression is the rule "when in doubt, split it as evenly/minimally as possible" rather than letting the split be arbitrary.</div>
+  </div>
+</section>
+
+<section class="stage" id="s1">
+  <div class="stage-head"><div class="stage-num">1</div><h2>History</h2></div>
+  <div class="card">
+    <p style="color:var(--text-dim);">Ridge Regression was formalized by Hoerl &amp; Kennard (1970) precisely to handle <b>multicollinearity</b> — the statistical name for feature redundancy. It's the same estimator derived two other ways in this course: as a fix for exploding MSE via eigenvalue shrinkage (Lecture 35), and as the MAP estimate under a Gaussian prior (Lecture 38). This lecture arrives at it from a third angle — as a principled tie-breaker among equally-good solutions.</p>
+  </div>
+</section>
+
+<section class="stage" id="s2">
+  <div class="stage-head"><div class="stage-num">2</div><h2>Engineering Thinking</h2><span class="tag">before any math</span></div>
+  <div class="grid2">
+    <div class="card accent-teal"><h3>Property we want</h3><p style="color:var(--text-dim);font-size:0.9rem;">Among all weight vectors achieving (near-)minimum training loss, pick the one that is <i>simplest</i> — smallest magnitude.</p></div>
+    <div class="card accent-teal"><h3>Constraint</h3><p style="color:var(--text-dim);font-size:0.9rem;">Can't just discard the redundant feature (we may not know in advance which features are redundant, or by how much) — the fix must work automatically, for any dataset.</p></div>
+  </div>
+  <div class="callout tip"><div class="icon">💡</div><div class="body"><b>Engineering instinct:</b> add a second, small cost to the objective that only cares about the <i>size</i> of w — this nudges the optimizer toward the smallest-norm member of the tied solution set, without needing to know which features are redundant ahead of time.</div></div>
+</section>
+
+<section class="stage" id="s3">
+  <div class="stage-head"><div class="stage-num">3</div><h2>Mathematical Translation</h2></div>
+  <div class="card">
+    <table class="data">
+      <tr><th>Engineering statement</th><th>Math translation</th></tr>
+      <tr><td>"Fit the data well"</td><td class="hi">minimize Σ(wᵀxᵢ − yᵢ)²</td></tr>
+      <tr><td>"...but prefer small coefficients when tied"</td><td class="hi">add + λ‖w‖² to the objective</td></tr>
+      <tr><td>"balance between the two goals"</td><td class="hi">λ controls how strongly size is preferred over fit</td></tr>
+    </table>
+  </div>
+</section>
+
+<section class="stage" id="s4">
+  <div class="stage-head"><div class="stage-num">4</div><h2>Formula Construction</h2><span class="tag">built line by line</span></div>
+
+  <div class="callout intuit"><div class="icon">①</div><div class="body">Start from the plain least-squares objective.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(91,157,255,0.10);">
+    <div class="eq-label">Step 1 — Ordinary Least Squares</div>
+    <div class="eq-main">argmin<sub><span class="sym-param">w</span></sub> &nbsp;<span class="op-big sym-op">Σ</span><sub>i=1</sub><sup>n</sup> (<span class="sym-param">w</span><sup class="T">T</sup><span class="sym-var">x</span><sub>i</sub> <span class="sym-op">−</span> <span class="sym-var">y</span><sub>i</sub>)<sup>2</sup></div>
+    <div class="eq-number">Eq. 37.1</div>
+  </div>
+
+  <div class="callout warn"><div class="icon">②</div><div class="body">With a redundant feature, this objective is flat along an entire direction in weight-space — infinitely many minimizers, all with loss = 0.</div></div>
+
+  <div class="callout intuit"><div class="icon">③</div><div class="body">Add the penalty term to break the tie in favor of small ‖w‖.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(212,175,55,0.12);">
+    <div class="eq-label">Step 2 — Ridge Objective</div>
+    <div class="eq-main">argmin<sub><span class="sym-param">w</span></sub> &nbsp;<span class="op-big sym-op">Σ</span><sub>i=1</sub><sup>n</sup> (<span class="sym-param">w</span><sup class="T">T</sup><span class="sym-var">x</span><sub>i</sub> <span class="sym-op">−</span> <span class="sym-var">y</span><sub>i</sub>)<sup>2</sup> &nbsp;<span class="sym-op">+</span>&nbsp; <span class="sym-const">λ</span> ‖<span class="sym-param">w</span>‖<sup>2</sup></div>
+    <div class="eq-number">Eq. 37.2</div>
+  </div>
+
+  <div class="callout intuit"><div class="icon">④</div><div class="body">Take the gradient with respect to w, set it to zero, solve.</div></div>
+  <div class="eq-panel" style="--eq-glow:rgba(45,212,191,0.10);">
+    <div class="eq-label">Step 3 — Stationary Point</div>
+    <div class="eq-main">2<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup><span class="sym-param">w</span> <span class="sym-op">−</span> 2<span class="sym-fn">X</span><span class="sym-var">Y</span> <span class="sym-op">+</span> 2<span class="sym-const">λ</span><span class="sym-param">w</span> <span class="sym-op">=</span> <span class="sym-const">0</span></div>
+    <div class="eq-number">Eq. 37.3</div>
+  </div>
+
+  <div class="eq-panel" style="--eq-glow:rgba(212,175,55,0.14);">
+    <div class="eq-label">Step 4 — Ridge Estimator</div>
+    <div class="eq-main"><span class="sym-param">ŵ</span><sub>R</sub> &nbsp;<span class="sym-op">=</span>&nbsp; (<span class="sym-fn">X</span><span class="sym-fn">X</span><sup class="T">T</sup> <span class="sym-op">+</span> <span class="sym-const">λ</span><span class="sym-fn">I</span>)<sup>-1</sup> <span class="sym-fn">X</span><span class="sym-var">Y</span></div>
+    <div class="eq-number">Eq. 37.4</div>
+  </div>
+</section>
+<section class="stage" id="s5">
+  <div class="stage-head"><div class="stage-num">5</div><h2>Formula Anatomy</h2></div>
+  <div class="legend">
+    <div class="row"><span class="sym sym-var">xᵢ, yᵢ</span><span class="desc">— i-th feature vector and its target</span></div>
+    <div class="row"><span class="sym sym-param">w</span><span class="desc">— weight vector we're solving for</span></div>
+    <div class="row"><span class="sym sym-const">λ</span><span class="desc">— regularization strength, controls fit-vs-size tradeoff</span></div>
+    <div class="row"><span class="sym sym-fn">‖w‖²</span><span class="desc">— squared L2 norm: w₁²+w₂²+…+wd² (the penalty)</span></div>
+    <div class="row"><span class="sym sym-param">ŵ<sub>R</sub></span><span class="desc">— the Ridge estimator (regularized solution)</span></div>
+  </div>
+</section>
+
+<section class="stage" id="s6">
+  <div class="stage-head"><div class="stage-num">6</div><h2>Derivation — Worked Example: Redundant Features</h2></div>
+
+  <div class="card accent-blue">
+    <h3>Setup</h3>
+    <p style="color:var(--text-dim);font-size:0.92rem;">Three features: <b>Height (h)</b>, <b>Weight (m)</b>, and a redundant third feature <b>r = 2h + 3m</b>. Suppose the true target is <span style="color:var(--text);">y = h + m</span>. Any weight vector of the form below fits the data <b>perfectly</b> (zero training loss), for <i>any</i> value of t:</p>
+    <div class="eq-panel" style="--eq-glow:rgba(91,157,255,0.10);margin-top:16px;">
+      <div class="eq-label">Family of perfect-fit solutions</div>
+      <div class="eq-main">w<sub>h</sub><span class="sym-op">=</span>1<span class="sym-op">−</span>2t &nbsp;&nbsp; w<sub>m</sub><span class="sym-op">=</span>1<span class="sym-op">−</span>3t &nbsp;&nbsp; w<sub>r</sub><span class="sym-op">=</span>t</div>
+      <div class="eq-number">for any t ∈ ℝ</div>
+    </div>
+    <p style="color:var(--text-dim);font-size:0.88rem;">Check: t·r + (1−2t)h + (1−3t)m = t(2h+3m) + h−2th + m−3tm = h + m ✓ — the t-terms always cancel, so <i>every</i> t gives exactly zero error.</p>
+  </div>
+
+  <div class="callout warn"><div class="icon">🎲</div><div class="body">Plain least squares is indifferent between t=0 (weights 1, 1, 0 — ignore the redundant feature entirely) and t=1 (weights −1, −2, 1 — lean entirely on the redundant feature) and every value in between. Nothing in the loss function prefers one over another.</div></div>
+
+  <div class="callout intuit"><div class="icon">📐</div><div class="body">Ridge breaks the tie by minimizing ‖w‖² = (1−2t)² + (1−3t)² + t² <i>over t</i> — picking the smallest vector from the whole tied family.</div></div>
+
+  <table class="data">
+    <tr><th>t</th><th>w_h</th><th>w_m</th><th>w_r</th><th>‖w‖²</th></tr>
+    <tr><td>0</td><td>1.000</td><td>1.000</td><td>0.000</td><td>2.000</td></tr>
+    <tr><td>0.2</td><td>0.600</td><td>0.400</td><td>0.200</td><td>0.560</td></tr>
+    <tr><td class="hi">5/14 ≈ 0.357</td><td class="hi">0.286</td><td class="hi">−0.071</td><td class="hi">0.357</td><td class="hi">3/14 ≈ 0.214 (minimum)</td></tr>
+    <tr><td>0.5</td><td>0.000</td><td>−0.500</td><td>0.500</td><td>0.500</td></tr>
+    <tr><td>1</td><td>−1.000</td><td>−2.000</td><td>1.000</td><td>6.000</td></tr>
+  </table>
+
+  <div class="svg-box">
+  <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+    <style>
+      .ax{stroke:#292d3f;stroke-width:1;}
+      .lab3{font-family:'JetBrains Mono',monospace;font-size:11px;fill:#9aa0b4;}
+    </style>
+    <!-- axes -->
+    <line x1="60" y1="180" x2="600" y2="180" class="ax"/>
+    <line x1="60" y1="20" x2="60" y2="180" class="ax"/>
+    <text x="330" y="205" text-anchor="middle" class="lab3">t (mixing coefficient)</text>
+    <text x="20" y="100" text-anchor="middle" class="lab3" transform="rotate(-90,20,100)">‖w‖²</text>
+    <!-- parabola norm^2 = 2 -10t +14t^2, sampled t in [-0.1,1.1] mapped to x in [60,600], y mapped norm^2 in [0,6.5]->[180,20] -->
+    <polyline fill="none" stroke="#d4af37" stroke-width="2.5"
+      points="60,86 90,64 120,47 150,34 180,26 210,21.5 231,20.4 240,21 270,26 300,34 330,47 360,64 390,86 420,112 450,142 480,175"/>
+    <!-- minimum marker at t=5/14 -> x = 60+ (5/14)*540 ≈ 60+192.9=252.9, y=20.4 -->
+    <circle cx="253" cy="20.4" r="5" fill="#2dd4bf"/>
+    <text x="253" y="12" text-anchor="middle" class="lab3" fill="#2dd4bf">t*=5/14 (Ridge picks this)</text>
+    <!-- t=0 marker -->
+    <circle cx="60" cy="86" r="4" fill="#5b9dff"/>
+    <text x="60" y="102" text-anchor="middle" class="lab3" fill="#5b9dff">t=0</text>
+    <!-- t=1 marker -->
+    <circle cx="600" cy="180" r="4" fill="#f87171"/>
+  </svg>
+  </div>
+
+  <div class="callout tip"><div class="icon">✅</div><div class="body"><b>Takeaway:</b> as λ→0⁺, Ridge converges exactly to this minimum-norm tie-breaker (t*=5/14 here). For λ&gt;0, Ridge goes one step further: it also shrinks the overall solution slightly <i>toward zero</i>, trading a small amount of training fit for even more stability — the same fit-vs-size tradeoff seen in Lecture 35 and Lecture 38, just motivated here by redundancy rather than eigenvalues or priors.</div></div>
+</section>
+<section class="stage" id="s7">
+  <div class="stage-head"><div class="stage-num">7</div><h2>Algorithm</h2></div>
+  <pre class="code"><span class="c"># pseudocode: fit Ridge Regression</span>
+<span class="kw">def</span> <span class="fn">fit_ridge</span>(X, Y, lam):
+    d = X.shape[<span class="num">0</span>]                      <span class="c"># number of features</span>
+    A = X @ X.T + lam * np.eye(d)
+    w_ridge = np.linalg.<span class="fn">solve</span>(A, X @ Y)   <span class="c"># solve, don't explicitly invert</span>
+    <span class="kw">return</span> w_ridge
+
+<span class="c"># lambda chosen via K-fold CV, same recipe as Lecture 35</span></pre>
+  <div class="callout tip"><div class="icon">🛠️</div><div class="body">In practice, always <b>standardize features first</b> (zero mean, unit variance) — the penalty λ‖w‖² treats every coefficient equally, so features on different scales would be penalized unfairly otherwise.</div></div>
+</section>
+
+<section class="stage" id="s8">
+  <div class="stage-head"><div class="stage-num">8</div><h2>Optimization</h2></div>
+  <table class="data">
+    <tr><th>Aspect</th><th>Detail</th></tr>
+    <tr><td>Closed form</td><td class="hi">Yes — no iterative solver needed, unlike Lasso</td></tr>
+    <tr><td>Cost</td><td class="hi">One d×d matrix solve, O(d³) — cheap for moderate d</td></tr>
+    <tr><td>Numerical stability</td><td class="hi">Solving (XXᵀ+λI)w=XY directly is more stable than explicitly computing the inverse</td></tr>
+  </table>
+</section>
+
+<section class="stage" id="s9">
+  <div class="stage-head"><div class="stage-num">9</div><h2>Edge Cases &amp; Limitations</h2></div>
+  <div class="grid2">
+    <div class="card accent-red"><h3>λ = 0</h3><p style="color:var(--text-dim);font-size:0.88rem;">Falls back to plain least squares — tie-breaking disappears, arbitrary solution among the tied family returned (numerically, whichever the solver happens to land on).</p></div>
+    <div class="card accent-red"><h3>λ too large</h3><p style="color:var(--text-dim);font-size:0.88rem;">All coefficients shrink toward 0 — even genuinely useful (non-redundant) features get suppressed, hurting fit.</p></div>
+    <div class="card accent-red"><h3>Unscaled features</h3><p style="color:var(--text-dim);font-size:0.88rem;">A feature measured in millimeters gets penalized far more harshly than the same feature in meters — always standardize first.</p></div>
+    <div class="card accent-red"><h3>Doesn't do feature selection</h3><p style="color:var(--text-dim);font-size:0.88rem;">Ridge shrinks the redundant feature's weight but rarely to exactly zero — if you want it eliminated entirely, that's Lasso's job (L1), not Ridge's (L2).</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s10">
+  <div class="stage-head"><div class="stage-num">10</div><h2>Hidden Trigger Recognition ⭐</h2></div>
+  <div class="callout trigger"><div class="icon">🔔</div><div class="body">
+    <b>Words that should instantly bring this lecture to mind:</b>
+    <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:8px;">
+      <span class="chip">"redundant feature"</span><span class="chip">"multicollinearity"</span><span class="chip">"tie-breaker"</span>
+      <span class="chip">"multiple solutions same loss"</span><span class="chip">"shrinkage"</span><span class="chip">"coefficient stability"</span>
+      <span class="chip">"smallest norm"</span><span class="chip">"L2 penalty"</span>
+    </div>
+  </div></div>
+</section>
+
+<section class="stage" id="s11">
+  <div class="stage-head"><div class="stage-num">11</div><h2>Pattern Recognition</h2><span class="tag">when to reach for this</span></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>You have engineered features that are combinations of others (ratios, sums, interaction terms).</li>
+      <li>Coefficients change drastically between re-training runs on similar data.</li>
+      <li>p (features) is close to or exceeds n (samples).</li>
+      <li>You want to keep all features in the model but shrink the unreliable ones — as opposed to eliminating them (which is Lasso's job).</li>
+    </ul>
+  </div>
+</section>
+
+<section class="stage" id="s12">
+  <div class="stage-head"><div class="stage-num">12</div><h2>Formula Shape Recognition</h2></div>
+  <table class="data">
+    <tr><th>Perspective</th><th>Where it comes from</th><th>Formula</th></tr>
+    <tr><td>Tie-breaker (this lecture)</td><td>Feature redundancy</td><td class="hi">argmin Σ(wᵀxᵢ−yᵢ)² + λ‖w‖²</td></tr>
+    <tr><td>Eigenvalue stabilizer</td><td>Lecture 35</td><td class="hi">MSE ∝ Σ1/λᵢ → add λI to shrink each 1/λᵢ</td></tr>
+    <tr><td>MAP estimator</td><td>Lecture 38</td><td class="hi">Gaussian prior N(0,γ²I), λ = 1/γ²</td></tr>
+    <tr><td>Closed form (all three)</td><td>—</td><td class="hi">ŵ<sub>R</sub> = (XXᵀ+λI)⁻¹XY</td></tr>
+  </table>
+  <div class="callout tip"><div class="icon">🔗</div><div class="body">Three completely different motivations — numerical stability, redundancy tie-breaking, and Bayesian belief — all land on the <i>exact same formula</i>. That convergence is itself a strong signal this is the "right" fix, not just a lucky trick.</div></div>
+</section>
+
+<section class="stage" id="s13">
+  <div class="stage-head"><div class="stage-num">13</div><h2>Symbol Translation ⭐</h2></div>
+  <table class="data">
+    <tr><th>Notation</th><th>Plain meaning</th><th>In code</th></tr>
+    <tr><td><span class="sym-fn">‖w‖²</span></td><td>sum of squared weights</td><td><code>np.sum(w**2)</code> or <code>w @ w</code></td></tr>
+    <tr><td><span class="sym-const">λ</span></td><td>how strongly we prefer small w</td><td><code>alpha</code> param in sklearn's <code>Ridge</code></td></tr>
+    <tr><td>redundant feature</td><td>a column that's a linear combo of others</td><td>high VIF / near-perfect correlation in data</td></tr>
+    <tr><td>ŵ<sub>R</sub></td><td>the ridge (regularized) solution</td><td><code>model.coef_</code> after <code>Ridge().fit()</code></td></tr>
+  </table>
+</section>
+
+<section class="stage" id="s14">
+  <div class="stage-head"><div class="stage-num">14</div><h2>Computational Flow ⭐</h2></div>
+  <div class="pipeline">
+    <div class="pnode blue">Raw Features<br>(incl. redundant)</div><div class="parrow">→</div>
+    <div class="pnode teal">Standardize</div><div class="parrow">→</div>
+    <div class="pnode gold">Add λ‖w‖² penalty</div><div class="parrow">→</div>
+    <div class="pnode purple">Solve (XXᵀ+λI)w=XY</div><div class="parrow">→</div>
+    <div class="pnode blue">Stable, shrunk ŵ<sub>R</sub></div>
+  </div>
+</section>
+<section class="stage" id="s15">
+  <div class="stage-head"><div class="stage-num">15</div><h2>Problem Families</h2></div>
+  <div class="grid3">
+    <div class="card accent-gold"><h3>Ridge (L2)</h3><p style="color:var(--text-dim);font-size:0.87rem;">Shrinks all weights smoothly, keeps every feature. Best when features are correlated but all plausibly relevant.</p></div>
+    <div class="card accent-purple"><h3>Lasso (L1)</h3><p style="color:var(--text-dim);font-size:0.87rem;">Drives redundant/irrelevant weights to exactly zero — true feature selection.</p></div>
+    <div class="card accent-teal"><h3>Elastic Net</h3><p style="color:var(--text-dim);font-size:0.87rem;">Mix of both — handles groups of correlated redundant features better than pure Lasso.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s16">
+  <div class="stage-head"><div class="stage-num">16</div><h2>Invariant Library ⭐</h2></div>
+  <div class="grid3">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim);font-size:0.87rem;">Among all exact-fit solutions to an underdetermined system, there is a unique minimum-norm one — and it's what λ→0⁺ Ridge converges to.</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim);font-size:0.87rem;">"Ridge sets redundant weights to zero" — only approximately; L2 shrinks but essentially never zeroes out exactly.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim);font-size:0.87rem;">Ridge never changes <i>predictions</i> on the training data when λ=0 vs. any other tied minimizer — all members of the tied family give identical fitted values on training data.</p></div>
+  </div>
+</section>
+
+<section class="stage" id="s17">
+  <div class="stage-head"><div class="stage-num">17</div><h2>Expert Thinking</h2></div>
+  <div class="callout intuit"><div class="icon">🧠</div><div class="body">An expert who sees a correlation matrix with near-1.0 off-diagonal entries doesn't panic about which feature is "the real one" — they immediately reach for Ridge, knowing it will automatically spread credit sensibly across the redundant group rather than arbitrarily dumping it all on one.</div></div>
+</section>
+
+<section class="stage" id="s18">
+  <div class="stage-head"><div class="stage-num">18</div><h2>Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 1:</b> "Redundant features cause higher training loss" — <b>false</b>. Training loss can still hit zero; the problem is the <i>coefficients</i> become ill-defined/unstable, not the fit quality.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 2:</b> Thinking Ridge "removes" redundant features — it shrinks, it doesn't eliminate (that's Lasso).</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 3:</b> Forgetting to standardize features before applying Ridge — unscaled features get unevenly penalized, biasing which "tied" solution gets picked.</div></div>
+  <div class="callout trap"><div class="icon">🪤</div><div class="body"><b>Trap 4:</b> Assuming λ only affects redundant/correlated coefficients — it penalizes <i>every</i> weight, including well-identified, non-redundant ones, just typically with less visible effect.</div></div>
+</section>
+
+<section class="stage" id="s19">
+  <div class="stage-head"><div class="stage-num">19</div><h2>Exam Shortcuts</h2></div>
+  <div class="card">
+    <ul style="color:var(--text-dim);margin:0;padding-left:20px;">
+      <li>"Multiple weight vectors give same loss" in a question → immediately think redundant/collinear features → Ridge as tie-breaker.</li>
+      <li>To find the minimum-norm member of a tied family: parameterize the family by one free variable t, minimize ‖w(t)‖² via calculus (a simple quadratic in t).</li>
+      <li>Asked "what does Ridge converge to as λ→0⁺ under redundancy?" → the minimum-norm exact-fit solution, not necessarily "the" original ground-truth weights.</li>
+      <li>Ridge formula is always ŵ = (XXᵀ+λI)⁻¹XY — memorize once, recognize under three names (Lec 35, 37, 38).</li>
+    </ul>
+  </div>
+</section>
+
+<section class="stage" id="s20">
+  <div class="stage-head"><div class="stage-num">20</div><h2>Industry Implementation</h2></div>
+  <pre class="code"><span class="c"># scikit-learn: Ridge with standardization pipeline</span>
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> Ridge
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> StandardScaler
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> make_pipeline
+
+model = <span class="fn">make_pipeline</span>(<span class="fn">StandardScaler</span>(), <span class="fn">Ridge</span>(alpha=<span class="num">1.0</span>))
+model.<span class="fn">fit</span>(X_train, y_train)
+
+<span class="c"># inspect shrinkage on a redundant-feature dataset</span>
+<span class="fn">print</span>(<span class="str">"coefficients:"</span>, model.named_steps[<span class="str">'ridge'</span>].coef_)</pre>
+  <div class="callout tip"><div class="icon">🛠️</div><div class="body">Check <code>VarianceInflationFactor (VIF)</code> from <code>statsmodels</code> beforehand to actually detect which features are redundant — Ridge treats the symptom, VIF diagnoses the cause.</div></div>
+</section>
+
+<section class="stage" id="s21">
+  <div class="stage-head"><div class="stage-num">21</div><h2>Connections</h2></div>
+  <div class="grid2">
+    <div class="card accent-blue"><h3>← Builds on</h3><p style="color:var(--text-dim);font-size:0.88rem;">Ordinary least squares, linear algebra of underdetermined systems, norms.</p></div>
+    <div class="card accent-gold"><h3>→ Leads to / mirrors</h3><p style="color:var(--text-dim);font-size:0.88rem;">Lecture 35 (eigenvalue view of the same estimator), Lecture 38 (Bayesian/MAP view of the same estimator), Lasso &amp; Elastic Net.</p></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="stage" id="s22">
+  <div class="stage-head"><div class="stage-num">22</div><h2>One-Page Brain ⭐</h2></div>
+  <div class="brain">
+    <h3>Core Intuition</h3>
+    <ul><li>Redundant features create a whole family of weight vectors with identical (often zero) training loss. Ridge's L2 penalty breaks the tie by selecting the smallest-norm member of that family, and further shrinks it as λ grows — trading a little fit for a lot of stability.</li></ul>
+
+    <h3>5 Formulas</h3>
+    <ul>
+      <li><b>OLS: argmin Σ(wᵀxᵢ−yᵢ)²</b></li>
+      <li><b>Ridge: argmin Σ(wᵀxᵢ−yᵢ)² + λ‖w‖²</b></li>
+      <li><b>Stationary point: XXᵀw − XY + λw = 0</b></li>
+      <li><b>ŵ_R = (XXᵀ + λI)⁻¹XY</b></li>
+      <li><b>Worked example: ‖w(t)‖² = 2 − 10t + 14t², minimized at t*=5/14</b></li>
+    </ul>
+
+    <h3>3 Diagrams</h3>
+    <ul><li>Formula construction chain (§4)</li><li>Norm-vs-t parabola for the redundant-feature example (§6)</li><li>End-to-end computational pipeline (§14)</li></ul>
+
+    <h3>5 Triggers</h3>
+    <ul><li>redundant feature · multicollinearity · tie-breaker · multiple solutions same loss · coefficient instability</li></ul>
+
+    <h3>5 Traps</h3>
+    <ul><li>redundancy doesn't raise training loss · Ridge shrinks, doesn't eliminate · unscaled features bias the tiebreak · λ penalizes every weight, not just redundant ones · λ=0 tiebreak is solver-dependent, not principled</li></ul>
+
+    <h3>5 Shortcuts</h3>
+    <ul><li>parameterize tied family by one free variable, minimize ‖w(t)‖² via simple calculus · same closed form as Lec 35 &amp; 38, just three motivations · λ→0⁺ → min-norm exact-fit solution · λ→∞ → all weights → 0 · always standardize before penalizing</li></ul>
+
+    <h3>Dependencies</h3>
+    <ul><li>Needs: OLS, vector norms, underdetermined linear systems. Connects directly to: Lecture 35 (eigenvalue view), Lecture 38 (Bayesian/MAP view), Lasso, Elastic Net.</li></ul>
+  </div>
+</section>
+
+<footer>Lecture 37 · Ridge Regression — Study Notes</footer>
+
+</div>
+</body>
+</html>

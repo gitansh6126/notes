@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 39 — Linear Regression vs. LASSO Regression | MLT Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#080b14; --bg2:#0d1120;
+    --panel-bg:#11162a; --panel-bg2:#141a33;
+    --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.14);
+    --text:#e7e9f5; --text-dim:#9aa1c2; --text-faint:#666d92;
+    --gold:#e8b64c; --gold-soft:rgba(232,182,76,0.15);
+    --teal:#3fd8c4; --teal-soft:rgba(63,216,196,0.15);
+    --purple:#b48af0; --purple-soft:rgba(180,138,240,0.15);
+    --blue:#6fa8f5; --green:#5fd98a; --red:#f2707a;
+    --serif:'Fraunces','STIX Two Math',serif; --sans:'Inter',-apple-system,sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px),
+      radial-gradient(ellipse 90% 60% at 80% -10%, rgba(232,182,76,0.09), transparent),
+      radial-gradient(ellipse 80% 50% at 0% 20%, rgba(180,138,240,0.09), transparent),
+      linear-gradient(var(--bg), var(--bg2));
+    background-attachment:fixed; background-size:42px 42px, 42px 42px, auto, auto, auto;
+    color:var(--text); font-family:var(--sans); line-height:1.6; font-size:16px;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding:0 20px 100px;}
+  .hero{padding:64px 0 40px; text-align:center;}
+  .kicker{font-family:var(--mono); font-size:0.78rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:18px; display:flex; align-items:center; justify-content:center; gap:10px;}
+  .kicker::before,.kicker::after{content:''; height:1px; width:36px; background:linear-gradient(90deg, transparent, var(--gold));}
+  .kicker::after{background:linear-gradient(90deg, var(--gold), transparent);}
+  h1.title{font-family:var(--serif); font-weight:600; font-size:clamp(1.9rem,4.4vw,3.1rem); letter-spacing:-0.01em; line-height:1.15;
+    background:linear-gradient(135deg,#fff 20%, var(--teal) 90%); -webkit-background-clip:text; background-clip:text; color:transparent; margin-bottom:16px;}
+  .subtitle{color:var(--text-dim); font-size:1.05rem; max-width:660px; margin:0 auto;}
+  .hero-badges{display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:26px;}
+  .badge{font-family:var(--mono); font-size:0.72rem; padding:6px 14px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-dim); background:rgba(255,255,255,0.02);}
+  .stagenav{position:sticky; top:0; z-index:50; backdrop-filter:blur(14px); background:rgba(8,11,20,0.85); border-bottom:1px solid var(--border); padding:12px 0; margin-bottom:10px;}
+  .stagenav-inner{max-width:980px; margin:0 auto; padding:0 20px; display:flex; gap:6px; overflow-x:auto; scrollbar-width:none;}
+  .stagenav-inner::-webkit-scrollbar{display:none;}
+  .stagenav a{flex:0 0 auto; font-family:var(--mono); font-size:0.68rem; color:var(--text-faint); text-decoration:none; padding:6px 10px; border-radius:8px; white-space:nowrap; border:1px solid transparent; transition:.15s;}
+  .stagenav a:hover{color:var(--gold); border-color:var(--border-strong); background:rgba(255,255,255,0.03);}
+  section{margin:56px 0; scroll-margin-top:70px;}
+  .stage-label{font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--purple); margin-bottom:8px; display:flex; align-items:center; gap:10px;}
+  .stage-num{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:6px; background:var(--purple-soft); color:var(--purple); font-size:0.7rem; font-weight:700;}
+  h2{font-family:var(--serif); font-weight:600; font-size:clamp(1.35rem,2.6vw,1.9rem); margin-bottom:16px; color:#fff;}
+  h3{font-family:var(--serif); font-weight:600; font-size:1.15rem; margin:22px 0 10px; color:var(--teal);}
+  p{color:var(--text-dim); margin-bottom:12px;}
+  p strong, li strong{color:var(--text);}
+  ul,ol{color:var(--text-dim); padding-left:22px; margin-bottom:12px;}
+  li{margin-bottom:6px;}
+  a{color:var(--teal);}
+  .card{background:var(--panel-bg); border:1px solid var(--border); border-radius:16px; padding:24px 26px; margin:18px 0; box-shadow:0 10px 30px rgba(0,0,0,0.25);}
+  .card.accent-gold{border-top:2px solid var(--gold);}
+  .card.accent-teal{border-top:2px solid var(--teal);}
+  .card.accent-purple{border-top:2px solid var(--purple);}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  .grid4{display:grid; grid-template-columns:repeat(4,1fr); gap:14px;}
+  @media(max-width:720px){.grid2{grid-template-columns:1fr;} .grid4{grid-template-columns:1fr 1fr;}}
+  .callout{border-radius:14px; padding:16px 18px; margin:16px 0; display:flex; gap:12px; border:1px solid var(--border-strong); background:rgba(255,255,255,0.02);}
+  .callout .icon{font-size:1.2rem; flex:0 0 auto;}
+  .callout.analogy{border-left:3px solid var(--teal); background:var(--teal-soft);}
+  .callout.warning{border-left:3px solid var(--red); background:rgba(242,112,122,0.08);}
+  .callout.exam{border-left:3px solid var(--gold); background:var(--gold-soft);}
+  .callout.insight{border-left:3px solid var(--purple); background:var(--purple-soft);}
+  .callout .label{font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; display:block;}
+  .callout.analogy .label{color:var(--teal);} .callout.warning .label{color:var(--red);} .callout.exam .label{color:var(--gold);} .callout.insight .label{color:var(--purple);}
+  .eq-panel{background:linear-gradient(180deg, var(--panel-bg2), var(--panel-bg)); border:1px solid var(--border-strong); border-radius:16px; padding:34px 22px 26px; margin:20px 0; box-shadow:0 8px 30px rgba(0,0,0,0.3); text-align:center; position:relative; overflow:hidden;}
+  .eq-panel::before{content:''; position:absolute; top:-40%; left:50%; transform:translateX(-50%); width:70%; height:140%; background:radial-gradient(ellipse, rgba(63,216,196,0.08), transparent 70%); pointer-events:none;}
+  .eq-label{font-family:var(--mono); font-size:0.7rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-faint); margin-bottom:14px;}
+  .eq-main{font-family:var(--serif); font-style:italic; font-size:clamp(1.15rem,2.6vw,1.7rem); color:var(--text); line-height:2.1; position:relative;}
+  .eq-number{position:absolute; bottom:10px; right:16px; font-family:var(--mono); font-size:0.72rem; color:var(--text-faint);}
+  .sym-var{color:var(--blue); font-style:italic;} .sym-param{color:var(--gold); font-style:italic;} .sym-const{color:var(--green); font-style:normal;}
+  .sym-fn{color:var(--purple); font-style:normal;} .sym-op{color:var(--red); font-style:normal;}
+  .legend{display:flex; flex-wrap:wrap; gap:10px; margin:14px 0 22px;}
+  .legend-item{display:flex; align-items:center; gap:8px; font-family:var(--mono); font-size:0.78rem; background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:10px; padding:6px 12px; color:var(--text-dim);}
+  .legend-item .sw{font-style:italic; font-family:var(--serif);}
+  table{width:100%; border-collapse:collapse; margin:16px 0; font-size:0.92rem;}
+  th,td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--border);}
+  th{font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--gold);}
+  td{color:var(--text-dim);} tr:last-child td{border-bottom:none;}
+  .tbl-wrap{overflow-x:auto;}
+  .timeline{position:relative; margin:24px 0; padding-left:34px;}
+  .timeline::before{content:''; position:absolute; left:11px; top:6px; bottom:6px; width:2px; background:linear-gradient(var(--purple), var(--teal));}
+  .step{position:relative; margin-bottom:22px;}
+  .step-badge{position:absolute; left:-34px; top:0; width:24px; height:24px; border-radius:50%; background:var(--panel-bg2); border:2px solid var(--purple); color:var(--purple); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:0.72rem; font-weight:700;}
+  .step-title{font-family:var(--sans); font-weight:700; font-size:0.92rem; color:#fff; margin-bottom:4px;}
+  .step-eq{font-family:var(--serif); font-style:italic; color:var(--text); font-size:1.05rem;}
+  pre{background:#0a0d1a; border:1px solid var(--border); border-radius:12px; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; margin:14px 0; line-height:1.7;}
+  code{font-family:var(--mono); font-size:0.85em; color:var(--teal);}
+  .code-comment{color:var(--text-faint);} .code-kw{color:var(--purple);} .code-str{color:var(--green);} .code-fn{color:var(--blue);}
+  .diagram-frame{background:var(--panel-bg); border:1px solid var(--border); border-radius:16px; padding:18px; margin:18px 0; text-align:center;}
+  .diagram-frame .cap{font-family:var(--mono); font-size:0.72rem; color:var(--text-faint); margin-top:10px;}
+  svg{max-width:100%; height:auto;}
+  .sim{background:var(--panel-bg2); border:1px solid var(--border-strong); border-radius:18px; padding:22px; margin:20px 0;}
+  .sim-header{display:flex; align-items:center; gap:10px; margin-bottom:6px;}
+  .sim-dot{width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 8px var(--gold);}
+  .sim-title{font-family:var(--sans); font-weight:700; font-size:0.95rem; color:#fff;}
+  .sim-body{display:grid; grid-template-columns:1.2fr 1fr; gap:20px; margin-top:14px;}
+  @media(max-width:720px){.sim-body{grid-template-columns:1fr;}}
+  .sim-controls label{font-family:var(--mono); font-size:0.78rem; color:var(--text-dim); display:block; margin-bottom:6px;}
+  input[type=range]{width:100%; accent-color:var(--teal);}
+  .sim-readout{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px;}
+  .readout-box{background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:10px 12px; text-align:center;}
+  .readout-box .rv{font-family:var(--mono); font-size:1.1rem; color:var(--teal); font-weight:700;}
+  .readout-box .rl{font-family:var(--mono); font-size:0.65rem; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.08em;}
+  .pillrow{display:flex; gap:8px; flex-wrap:wrap; margin:14px 0;}
+  .pill{font-family:var(--mono); font-size:0.72rem; padding:5px 12px; border-radius:999px; border:1px solid var(--border-strong); color:var(--text-dim);}
+  .mistake-row td:first-child{color:var(--red); font-weight:700; width:34px;}
+  .fix-row td:first-child{color:var(--green); font-weight:700; width:34px;}
+  .acro{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin:20px 0;}
+  @media(max-width:720px){.acro{grid-template-columns:1fr 1fr;}}
+  .acro-card{background:var(--panel-bg); border:1px solid var(--border-strong); border-radius:14px; padding:16px 10px; text-align:center;}
+  .acro-letter{font-family:var(--serif); font-size:1.9rem; font-weight:600; color:var(--gold);}
+  .acro-word{font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--text-dim); margin:6px 0 4px;}
+  .acro-desc{font-size:0.78rem; color:var(--text-faint);}
+  footer{text-align:center; padding:40px 0 10px; color:var(--text-faint); font-family:var(--mono); font-size:0.75rem;}
+</style>
+</head>
+<body>
+
+<nav class="stagenav">
+  <div class="stagenav-inner">
+    <a href="#problem">0 Problem</a><a href="#history">1 History</a><a href="#engineering">2 Engineering</a>
+    <a href="#translation">3 Math</a><a href="#construction">4 Formula</a><a href="#anatomy">5 Anatomy</a>
+    <a href="#geometry">6 Geometry</a><a href="#acronym">LASSO</a><a href="#algorithm">7 Algorithm</a>
+    <a href="#optimization">8 Choosing λ</a><a href="#edgecases">9 Edge Cases</a><a href="#pattern">10 Pattern</a>
+    <a href="#shape">11 Shape</a><a href="#families">12 Families</a><a href="#expert">13 Expert</a>
+    <a href="#exam">14 Exam</a><a href="#industry">15 Industry</a><a href="#connections">16 Connections</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="kicker">MLT · Lecture 39</div>
+    <h1 class="title">Linear Regression vs. LASSO Regression</h1>
+    <p class="subtitle">Swap Ridge's circle for a diamond, and something remarkable happens: the optimum starts landing exactly on the axes. This lecture explains why corners create zeros — and zeros create feature selection.</p>
+    <div class="hero-badges">
+      <span class="badge">L1 Regularization</span>
+      <span class="badge">Sparsity</span>
+      <span class="badge">Feature Selection</span>
+      <span class="badge">Sequel to Lecture 38 (Ridge)</span>
+    </div>
+  </div>
+
+  <!-- STAGE 0 -->
+  <section id="problem">
+    <div class="stage-label"><span class="stage-num">0</span>Problem</div>
+    <h2>Ridge shrank everything. It selected nothing.</h2>
+    <p>Recall the gene-expression scenario from Lecture 38: 10,000 features, 200 patients. Ridge Regression fixed the instability — coefficients no longer explode — but every single one of the 10,000 genes still has some small, non-zero weight in the final model. A biologist asking <em>"which genes actually matter?"</em> gets no answer. The model is stable, but not interpretable, and it still has to store and compute with all 10,000 numbers at prediction time.</p>
+    <p>What's needed now is a penalty that doesn't just <em>shrink</em> coefficients — it needs to <strong>eliminate</strong> the irrelevant ones outright, setting their weights to exactly <span class="sym-const">0</span>, while keeping non-zero weights for the genes that truly predict the outcome.</p>
+    <div class="callout warning">
+      <div class="icon">⚠️</div>
+      <div><span class="label">The unresolved question from Lecture 38</span>Ridge leaves every feature "a little bit in the model." We need a mechanism that can decide a feature is <em>out</em> entirely — not just small.</div>
+    </div>
+  </section>
+
+  <!-- STAGE 1 -->
+  <section id="history">
+    <div class="stage-label"><span class="stage-num">1</span>History</div>
+    <h2>From geophysics to statistics</h2>
+    <p>The idea of using an L1 penalty to recover sparse solutions first appeared in <strong>geophysics</strong> — Santosa and Symes used it in 1986 to reconstruct sparse seismic reflection signals. Statistician <strong>Robert Tibshirani</strong> formalized and popularized it for regression in his landmark 1996 paper, coining the name <strong>LASSO</strong>. Around the same time, the signal-processing community independently discovered the same idea as <strong>"basis pursuit."</strong> Three fields converging on one trick — penalize with absolute values, not squares — is a strong signal that the geometry underneath is fundamental, not a statistical coincidence.</p>
+  </section>
+
+  <!-- STAGE 2 -->
+  <section id="engineering">
+    <div class="stage-label"><span class="stage-num">2</span>Engineering</div>
+    <h2>What a sparsity-inducing fix must satisfy</h2>
+    <div class="grid2">
+      <div class="card accent-teal"><h3 style="margin-top:0">Must still penalize largeness</h3><p style="margin-bottom:0">Keep everything that made Ridge useful — big weights should still cost something.</p></div>
+      <div class="card accent-teal"><h3 style="margin-top:0">Must create a geometric "attractor" at zero</h3><p style="margin-bottom:0">Unlike Ridge, we now specifically want the optimization to be <em>pulled</em> onto the axes, where some coordinates are exactly 0.</p></div>
+      <div class="card accent-teal"><h3 style="margin-top:0">Must remain a convex penalty</h3><p style="margin-bottom:0">We still want a well-behaved, globally solvable optimization problem — no arbitrary non-convex cutoffs.</p></div>
+      <div class="card accent-teal"><h3 style="margin-top:0">Can sacrifice smoothness at zero</h3><p style="margin-bottom:0">Unlike Stage 2 of Lecture 38, differentiability everywhere is no longer a hard requirement — a sharp corner exactly at zero is now a <em>feature</em>, not a bug.</p></div>
+    </div>
+    <p>That last point is the pivot: Ridge's engineering constraints explicitly ruled out non-smooth penalties. LASSO's do the opposite — a kink at zero is exactly the mechanism that produces sparsity.</p>
+  </section>
+
+  <!-- STAGE 3 -->
+  <section id="translation">
+    <div class="stage-label"><span class="stage-num">3</span>Mathematical Translation</div>
+    <h2>Sum of absolute values instead of sum of squares</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>Engineering requirement</th><th>Mathematical property</th></tr>
+      <tr><td>Penalize largeness</td><td>Still grows with |w<sub>i</sub>|</td></tr>
+      <tr><td>Attractor at zero / corners</td><td>Use <strong>absolute value</strong>, |w<sub>i</sub>|, not the square — its constraint region has flat faces meeting at sharp corners on the axes</td></tr>
+      <tr><td>Stay convex</td><td>|w<sub>i</sub>| is convex (just non-smooth at 0) — optimization is still well-posed</td></tr>
+      <tr><td>Controllable strength</td><td>Multiply by the same tunable <span class="sym-param">λ</span></td></tr>
+    </table>
+    </div>
+    <div class="callout insight">
+      <div class="icon">💡</div>
+      <div><span class="label">The one-symbol change that changes everything</span>Ridge's penalty was ‖w‖₂² — sum of <em>squares</em>. LASSO's is ‖w‖₁ — sum of <em>absolute values</em>. Same "sum over coordinates" structure, but squares curve smoothly through zero while absolute values form a sharp V — and that V is what turns into corners in higher dimensions.</div>
+    </div>
+  </section>
+
+  <!-- STAGE 4 -->
+  <section id="construction">
+    <div class="stage-label"><span class="stage-num">4</span>Formula Construction</div>
+    <h2>Building the L1 penalty and the LASSO objective</h2>
+    <h3>The L1 norm</h3>
+    <div class="eq-panel">
+      <div class="eq-label">L1 Norm of w</div>
+      <div class="eq-main">
+        <span class="sym-op">‖</span><span class="sym-param">w</span><span class="sym-op">‖</span><sub style="font-size:0.5em;">1</sub>
+        &nbsp;=&nbsp;
+        <span class="sym-op" style="font-size:1.5em; vertical-align:-0.2em;">Σ</span><sub style="font-size:0.5em;"><span class="sym-var">i</span>=1</sub><sup style="font-size:0.5em;"><span class="sym-var">D</span></sup>
+        |<span class="sym-param">w<sub>i</sub></span>|
+      </div>
+      <div class="eq-number">Eq. 39.1</div>
+    </div>
+    <h3>The LASSO objective</h3>
+    <div class="eq-panel">
+      <div class="eq-label">LASSO Regression Loss</div>
+      <div class="eq-main">
+        min<sub style="font-size:0.55em;"><span class="sym-param">w</span></sub> &nbsp;
+        <span class="sym-op" style="font-size:1.5em; vertical-align:-0.2em;">Σ</span><sub style="font-size:0.5em;"><span class="sym-var">i</span>=1</sub><sup style="font-size:0.5em;"><span class="sym-var">n</span></sup>
+        (<span class="sym-param">w</span><sup>T</sup><span class="sym-var">x<sub>i</sub></span> − <span class="sym-var">y<sub>i</sub></span>)<sup>2</sup>
+        &nbsp;+&nbsp;
+        <span class="sym-const">λ</span><span class="sym-op">‖</span><span class="sym-param">w</span><span class="sym-op">‖</span><sub style="font-size:0.5em;">1</sub>
+      </div>
+      <div class="eq-number">Eq. 39.2</div>
+    </div>
+    <p>And, exactly parallel to Ridge (Lecture 38, Eq. 38.3), this is equivalent to a constrained problem:</p>
+    <div class="eq-panel">
+      <div class="eq-label">Equivalent Constrained Form</div>
+      <div class="eq-main">
+        min &nbsp;<span class="sym-fn">Loss</span>(<span class="sym-param">w</span>) &nbsp;&nbsp; subject to &nbsp;&nbsp; <span class="sym-op">‖</span><span class="sym-param">w</span><span class="sym-op">‖</span><sub style="font-size:0.5em;">1</sub> ≤ <span class="sym-const">Θ</span>
+      </div>
+      <div class="eq-number">Eq. 39.3</div>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="sw sym-param">w</span> coefficient vector, dimension D</div>
+      <div class="legend-item"><span class="sw sym-const">λ</span> penalty strength (same role as Ridge's λ)</div>
+      <div class="legend-item"><span class="sw sym-op">‖w‖₁</span> sum of absolute values of every coefficient</div>
+      <div class="legend-item"><span class="sw sym-const">Θ</span> L1 budget — total "absolute weight" allowed</div>
+    </div>
+  </section>
+
+  <!-- STAGE 5 -->
+  <section id="anatomy">
+    <div class="stage-label"><span class="stage-num">5</span>Formula Anatomy</div>
+    <h2>What changed from Ridge, symbol by symbol</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>Symbol</th><th>Ridge (L38)</th><th>LASSO (L39)</th></tr>
+      <tr><td>Penalty</td><td><span class="sym-op">‖w‖₂²</span> (sum of squares)</td><td><span class="sym-op">‖w‖₁</span> (sum of absolute values)</td></tr>
+      <tr><td>Constraint shape (2D)</td><td>Circle</td><td>Diamond</td></tr>
+      <tr><td>Differentiable at w=0?</td><td>Yes</td><td>No — sharp corner</td></tr>
+      <tr><td>Typical solution</td><td>All weights non-zero, shrunk</td><td>Many weights exactly zero</td></tr>
+    </table>
+    </div>
+    <div class="callout analogy">
+      <div class="icon">🎒</div>
+      <div><span class="label">Analogy</span>Ridge's leash (Lecture 38) let the athlete wander anywhere inside a circular field — smooth boundary, they stop wherever the fence and their sprint direction meet. LASSO's leash instead attaches to a diamond-shaped fence with sharp corner posts. An athlete sprinting toward almost any direction is statistically far more likely to get caught at one of those corner posts than to touch the fence's flat edge exactly — and a corner post on this fence means "zero" for one of the coordinates.</div>
+    </div>
+  </section>
+
+  <!-- STAGE 6 -->
+  <section id="geometry">
+    <div class="stage-label"><span class="stage-num">6</span>Derivation — The Geometric Intuition for Sparsity</div>
+    <h2>Why corners happen — and why corners mean zero</h2>
+    <p>Just like Ridge, picture the elliptical error contours expanding outward from <span class="sym-param">w<sub>ML</sub></span> until they first touch the constraint region's boundary. The only thing that changed is the <em>shape</em> of that boundary — a diamond instead of a circle.</p>
+    <div class="diagram-frame">
+      <svg viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#666d92"/>
+          </marker>
+        </defs>
+        <line x1="60" y1="230" x2="600" y2="230" stroke="#2a3050" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <line x1="90" y1="400" x2="90" y2="20" stroke="#2a3050" stroke-width="1.5" marker-end="url(#arrow2)"/>
+        <text x="595" y="222" fill="#666d92" font-family="JetBrains Mono" font-size="12" text-anchor="end">w₁</text>
+        <text x="100" y="30" fill="#666d92" font-family="JetBrains Mono" font-size="12">w₂</text>
+
+        <!-- diamond constraint region -->
+        <polygon points="90,135 195,230 90,325 -15,230" fill="#3fd8c4" fill-opacity="0.13" stroke="#3fd8c4" stroke-width="2"/>
+        <text x="90" y="122" fill="#3fd8c4" font-family="JetBrains Mono" font-size="11" text-anchor="middle">‖w‖₁ ≤ Θ</text>
+
+        <!-- ellipses around w_ML, oriented so tangency lands on the right corner (w2 = 0 axis) -->
+        <g>
+          <ellipse cx="420" cy="140" rx="60" ry="26" fill="none" stroke="#e8b64c" stroke-width="1.6" opacity="0.55" transform="rotate(-8 420 140)"/>
+          <ellipse cx="420" cy="140" rx="120" ry="52" fill="none" stroke="#e8b64c" stroke-width="1.6" opacity="0.4" transform="rotate(-8 420 140)"/>
+          <ellipse cx="420" cy="140" rx="180" ry="78" fill="none" stroke="#e8b64c" stroke-width="1.6" opacity="0.28" transform="rotate(-8 420 140)"/>
+          <ellipse cx="420" cy="140" rx="243" ry="105" fill="none" stroke="#e8b64c" stroke-width="1.4" opacity="0.18" transform="rotate(-8 420 140)"/>
+        </g>
+
+        <circle cx="420" cy="140" r="5" fill="#e8b64c"/>
+        <text x="430" y="135" fill="#e8b64c" font-family="Fraunces" font-style="italic" font-size="14">w_ML</text>
+
+        <circle cx="90" cy="230" r="4" fill="#9aa1c2"/>
+        <text x="72" y="248" fill="#9aa1c2" font-family="JetBrains Mono" font-size="11">origin</text>
+
+        <!-- tangent point at the corner (195,230) -> lies exactly on the w1 axis, w2 = 0 -->
+        <circle cx="195" cy="230" r="8" fill="#f2707a" stroke="#fff" stroke-width="1.5"/>
+        <text x="205" y="222" fill="#f2707a" font-family="Fraunces" font-style="italic" font-weight="600" font-size="15">w_Lasso</text>
+        <text x="205" y="244" fill="#f2707a" font-family="JetBrains Mono" font-size="10">(w₂ = 0 exactly)</text>
+        <line x1="90" y1="230" x2="195" y2="230" stroke="#f2707a" stroke-width="1.4" stroke-dasharray="4 3"/>
+      </svg>
+      <div class="cap">The elliptical contours reach the diamond's corner before they reach any flat edge — the tangent point lands exactly on the w₁-axis, forcing w₂ = 0.</div>
+    </div>
+    <div class="timeline">
+      <div class="step"><div class="step-badge">1</div><div class="step-title">Same ellipses as Ridge</div><div class="step-eq" style="font-size:0.95rem;">The loss function J(w) hasn't changed — its contours are still ellipses centered on w_ML.</div></div>
+      <div class="step"><div class="step-badge">2</div><div class="step-title">Different boundary shape</div><div class="step-eq" style="font-size:0.95rem;">Instead of a circle, the constraint ‖w‖₁ ≤ Θ is a diamond with corners sitting exactly on the axes.</div></div>
+      <div class="step"><div class="step-badge">3</div><div class="step-title">Corners stick out geometrically</div><div class="step-eq" style="font-size:0.95rem;">A corner is a point of the boundary that "pokes into" more directions than any point on a flat edge — for most orientations of the ellipse, the corner is what gets touched first.</div></div>
+      <div class="step"><div class="step-badge">4</div><div class="step-title">Corner ⟹ an axis ⟹ a zero coefficient</div><div class="step-eq" style="font-size:0.95rem;">Every corner of the diamond lies exactly on one of the coordinate axes — meaning one coordinate of w is exactly 0 there.</div></div>
+    </div>
+    <div class="callout insight">
+      <div class="icon">📐</div>
+      <div><span class="label">The precise reason, stated carefully</span>It's not that corners are touched <em>every</em> time — it's that corners are touched for a much larger fraction of possible ellipse orientations and positions than any single point on a flat edge, because the diamond has non-smooth "extra exposed area" concentrated exactly at the corners. In high dimensions this effect compounds, and with many features, LASSO solutions are sparse (several axes' worth of corners, i.e. several zero coefficients) with high probability.</div>
+    </div>
+  </section>
+
+  <!-- ACRONYM -->
+  <section id="acronym">
+    <div class="stage-label"><span class="stage-num">★</span>Naming</div>
+    <h2>Decoding "LASSO"</h2>
+    <p>LASSO stands for <strong>L</strong>east <strong>A</strong>bsolute <strong>S</strong>hrinkage and <strong>S</strong>election <strong>O</strong>perator — and each word maps onto a piece of what we just derived:</p>
+    <div class="acro">
+      <div class="acro-card"><div class="acro-letter">L</div><div class="acro-word">Least</div><div class="acro-desc">The least-squares error term, unchanged from ordinary linear regression.</div></div>
+      <div class="acro-card"><div class="acro-letter">A</div><div class="acro-word">Absolute</div><div class="acro-desc">The penalty uses absolute values — the L1 norm — instead of squares.</div></div>
+      <div class="acro-card"><div class="acro-letter">S</div><div class="acro-word">Shrinkage</div><div class="acro-desc">Like Ridge, coefficients are pulled toward zero in magnitude.</div></div>
+      <div class="acro-card"><div class="acro-letter">S</div><div class="acro-word">Selection</div><div class="acro-desc">Unlike Ridge, some coefficients are pulled <em>all the way</em> to zero — automatic feature selection.</div></div>
+      <div class="acro-card"><div class="acro-letter">O</div><div class="acro-word">Operator</div><div class="acro-desc">It's a well-defined operator mapping data (X, y) and a hyperparameter λ to a coefficient vector w.</div></div>
+    </div>
+  </section>
+
+  <!-- SIMULATOR -->
+  <div class="sim">
+    <div class="sim-header"><span class="sim-dot"></span><span class="sim-title">Interactive: Shrink the diamond and watch a coefficient snap to zero</span></div>
+    <p style="color:var(--text-faint); font-size:0.85rem; margin-bottom:4px;">As λ increases, the L1 budget Θ shrinks, the diamond shrinks toward the origin, and the tangent point locks onto the corner on the w₁-axis — meaning w₂ is exactly 0 for a wide range of λ.</p>
+    <div class="sim-body">
+      <div class="diagram-frame" style="margin:0;">
+        <svg id="simSvg" viewBox="0 0 560 380" xmlns="http://www.w3.org/2000/svg">
+          <line x1="50" y1="210" x2="540" y2="210" stroke="#2a3050" stroke-width="1.5"/>
+          <line x1="80" y1="360" x2="80" y2="20" stroke="#2a3050" stroke-width="1.5"/>
+          <text x="530" y="203" fill="#666d92" font-family="JetBrains Mono" font-size="11" text-anchor="end">w₁</text>
+          <text x="88" y="28" fill="#666d92" font-family="JetBrains Mono" font-size="11">w₂</text>
+
+          <g id="ellipseGroup">
+            <ellipse cx="400" cy="140" rx="50" ry="20" fill="none" stroke="#e8b64c" stroke-width="1.4" opacity="0.5" transform="rotate(-8 400 140)"/>
+            <ellipse cx="400" cy="140" rx="100" ry="40" fill="none" stroke="#e8b64c" stroke-width="1.4" opacity="0.38" transform="rotate(-8 400 140)"/>
+            <ellipse cx="400" cy="140" rx="150" ry="60" fill="none" stroke="#e8b64c" stroke-width="1.4" opacity="0.26" transform="rotate(-8 400 140)"/>
+            <ellipse cx="400" cy="140" rx="205" ry="82" fill="none" stroke="#e8b64c" stroke-width="1.3" opacity="0.16" transform="rotate(-8 400 140)"/>
+          </g>
+
+          <polygon id="simDiamond" points="80,80 210,210 80,340 -50,210" fill="#3fd8c4" fill-opacity="0.13" stroke="#3fd8c4" stroke-width="2"/>
+          <circle cx="80" cy="210" r="4" fill="#9aa1c2"/>
+          <circle cx="400" cy="140" r="5" fill="#e8b64c"/>
+          <text x="410" y="135" fill="#e8b64c" font-family="Fraunces" font-style="italic" font-size="13">w_ML</text>
+
+          <line id="simTangentLine" x1="80" y1="210" x2="210" y2="210" stroke="#f2707a" stroke-width="1.3" stroke-dasharray="4 3"/>
+          <circle id="simTangent" cx="210" cy="210" r="8" fill="#f2707a" stroke="#fff" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="sim-controls">
+        <label for="lambdaSlider">λ (regularization strength): <span id="lambdaVal">1.0</span></label>
+        <input type="range" id="lambdaSlider" min="0" max="10" step="0.1" value="1.0">
+        <div class="sim-readout">
+          <div class="readout-box"><div class="rv" id="thetaVal">—</div><div class="rl">Budget Θ</div></div>
+          <div class="readout-box"><div class="rv" id="w1Val">—</div><div class="rl">w_Lasso₁ (approx)</div></div>
+          <div class="readout-box"><div class="rv" id="w2Val">—</div><div class="rl">w_Lasso₂ (approx)</div></div>
+          <div class="readout-box"><div class="rv" id="sparseVal">—</div><div class="rl">Is w₂ exactly zero?</div></div>
+        </div>
+        <p style="font-size:0.78rem; color:var(--text-faint); margin-top:12px;">Compare this to the Ridge simulator (Lecture 38): there, w₂ approached zero only in the limit λ → ∞. Here, w₂ can hit exactly zero at a finite λ.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 7 -->
+  <section id="algorithm">
+    <div class="stage-label"><span class="stage-num">7</span>Algorithm</div>
+    <h2>Why there's no closed form — and what's used instead</h2>
+    <p>Ridge had a clean closed-form solution (Lecture 38, Eq. 38.4) because its penalty is smooth everywhere. LASSO's penalty has a corner at zero, so ordinary calculus (setting a gradient to zero) doesn't directly apply. In practice, LASSO is solved iteratively:</p>
+    <pre><code><span class="code-comment"># pseudocode — coordinate descent with soft-thresholding</span>
+<span class="code-kw">function</span> <span class="code-fn">lasso_fit</span>(X, y, lam, iters):
+    w = zeros(X.shape[1])
+    <span class="code-kw">for</span> t <span class="code-kw">in</span> range(iters):
+        <span class="code-kw">for</span> j <span class="code-kw">in</span> range(len(w)):
+            <span class="code-comment"># compute residual ignoring feature j, then</span>
+            <span class="code-comment"># "soft-threshold" — shrink toward 0, and clip to exactly 0</span>
+            <span class="code-comment"># if the raw update falls inside [-lam, lam]</span>
+            w[j] = <span class="code-fn">soft_threshold</span>(partial_update_j, lam)
+    <span class="code-kw">return</span> w</code></pre>
+    <p>The <code>soft_threshold</code> step is the algorithmic heart of sparsity: any coordinate whose unpenalized update would fall within a small window around zero gets snapped to exactly zero, rather than merely shrunk.</p>
+  </section>
+
+  <!-- STAGE 8 -->
+  <section id="optimization">
+    <div class="stage-label"><span class="stage-num">8</span>Optimization — Choosing λ</div>
+    <h2>Same tuning philosophy as Ridge, different curve to watch</h2>
+    <ul>
+      <li><strong>Cross-validation</strong>, exactly as in Ridge — sweep λ, pick the value with lowest validation error.</li>
+      <li><strong>Watch the sparsity pattern</strong>, not just the error: as λ increases, plot how many coefficients are exactly zero. This "number of selected features vs. λ" curve is LASSO-specific — Ridge has no equivalent, since it never hits exactly zero.</li>
+      <li><strong>LARS (Least Angle Regression)</strong> can trace the entire path of solutions across all λ efficiently, rather than refitting from scratch at each λ.</li>
+    </ul>
+  </section>
+
+  <!-- STAGE 9 -->
+  <section id="edgecases">
+    <div class="stage-label"><span class="stage-num">9</span>Edge Cases</div>
+    <h2>Where LASSO behaves unexpectedly</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>Case</th><th>What happens</th></tr>
+      <tr><td>Highly correlated features</td><td>LASSO tends to arbitrarily pick <em>one</em> feature from a correlated group and zero out the rest — even if they're equally predictive. (Ridge instead spreads weight evenly across correlated features.)</td></tr>
+      <tr><td>More features than samples (D &gt; n)</td><td>LASSO can select at most n non-zero coefficients — a hard cap tied to the number of training points.</td></tr>
+      <tr><td>λ = 0</td><td>Reduces to ordinary Linear Regression, same as Ridge at λ = 0.</td></tr>
+      <tr><td>λ very large</td><td>All coefficients driven to exactly 0 — an intercept-only model.</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- STAGE 10 -->
+  <section id="pattern">
+    <div class="stage-label"><span class="stage-num">10</span>Pattern Recognition</div>
+    <h2>Signals that should make you reach for LASSO over Ridge</h2>
+    <div class="pillrow">
+      <span class="pill">You suspect most features are irrelevant</span>
+      <span class="pill">You need an interpretable, short list of predictors</span>
+      <span class="pill">Model needs to be fast at inference (fewer active features)</span>
+      <span class="pill">Features are not strongly correlated with each other</span>
+      <span class="pill">"Which variables actually matter?" is the business question</span>
+    </div>
+    <p>If instead the goal is purely predictive accuracy with many correlated, all-plausibly-relevant features, Ridge (or Elastic Net) is usually the safer default.</p>
+  </section>
+
+  <!-- STAGE 11 -->
+  <section id="shape">
+    <div class="stage-label"><span class="stage-num">11</span>Formula Shape Recognition</div>
+    <h2>Spotting the L1 pattern elsewhere</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr><th>Field / Context</th><th>Notation</th></tr>
+      <tr><td>Statistics (LASSO)</td><td>Loss(w) + λ‖w‖₁</td></tr>
+      <tr><td>Signal processing ("basis pursuit")</td><td>min ‖s‖₁ subject to As = b</td></tr>
+      <tr><td>Compressed sensing</td><td>Recovering sparse signals from few measurements via an L1 penalty</td></tr>
+      <tr><td>Sparse coding / dictionary learning</td><td>Same "sum of |coefficient|" penalty over a learned dictionary's activation weights</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- STAGE 12 -->
+  <section id="families">
+    <div class="stage-label"><span class="stage-num">12</span>Problem Families</div>
+    <h2>The full regularization family, now complete</h2>
+    <div class="grid2">
+      <div class="card accent-gold"><h3 style="margin-top:0">Ridge (L2) — Lecture 38</h3><p style="margin-bottom:0">Circle constraint. Smooth shrinkage, dense solutions, handles correlated features gracefully.</p></div>
+      <div class="card accent-teal"><h3 style="margin-top:0">LASSO (L1) — this lecture</h3><p style="margin-bottom:0">Diamond constraint. Corner-seeking, sparse solutions, automatic feature selection.</p></div>
+      <div class="card accent-purple"><h3 style="margin-top:0">Elastic Net</h3><p style="margin-bottom:0">λ₁‖w‖₁ + λ₂‖w‖₂² — a rounded-diamond constraint region; sparse like LASSO but more stable under correlated features like Ridge.</p></div>
+      <div class="card accent-purple"><h3 style="margin-top:0">Group LASSO</h3><p style="margin-bottom:0">Zeros out entire <em>groups</em> of coefficients together (e.g. all dummy variables for one categorical feature) rather than one at a time.</p></div>
+    </div>
+  </section>
+
+  <!-- STAGE 13 -->
+  <section id="expert">
+    <div class="stage-label"><span class="stage-num">13</span>Expert Thinking</div>
+    <h2>How a practitioner reasons about this day to day</h2>
+    <div class="callout insight">
+      <div class="icon">🧠</div>
+      <div><span class="label">Mental shortcut</span>"Need interpretability or feature selection → start with LASSO. Need stability with correlated features → start with Ridge. Want both → Elastic Net." This single decision rule covers most real-world regularizer choices.</div>
+    </div>
+    <div class="callout insight">
+      <div class="icon">🧠</div>
+      <div><span class="label">Mental shortcut</span>An expert never trusts LASSO's specific selected features too literally when predictors are correlated — the "winner" among a correlated group can flip between resamples. They check stability via bootstrap before reporting "these are the important features."</div>
+    </div>
+  </section>
+
+  <!-- MISTAKES -->
+  <section>
+    <h2 style="margin-top:0;">Common Mistakes</h2>
+    <div class="tbl-wrap">
+    <table>
+      <tr class="mistake-row"><td>✗</td><td>"LASSO always outperforms Ridge because it's sparse."</td></tr>
+      <tr class="fix-row"><td>✓</td><td>Sparsity aids interpretability, not necessarily accuracy — with many correlated, genuinely useful features, Ridge or Elastic Net often predicts better.</td></tr>
+      <tr class="mistake-row"><td>✗</td><td>Assuming LASSO has a closed-form solution like Ridge.</td></tr>
+      <tr class="fix-row"><td>✓</td><td>The L1 penalty is non-differentiable at zero — LASSO requires iterative methods (coordinate descent, LARS), not a matrix inversion.</td></tr>
+      <tr class="mistake-row"><td>✗</td><td>Treating LASSO's selected features as a definitive, stable ranking of importance.</td></tr>
+      <tr class="fix-row"><td>✓</td><td>Under correlated predictors, the specific subset selected can be unstable across resamples — validate selection stability before drawing conclusions.</td></tr>
+    </table>
+    </div>
+  </section>
+
+  <!-- STAGE 14 -->
+  <section id="exam">
+    <div class="stage-label"><span class="stage-num">14</span>Exam Shortcuts</div>
+    <h2>IITM-style traps and fast checks</h2>
+    <div class="callout exam">
+      <div class="icon">🎯</div>
+      <div><span class="label">Common trap question</span>"Which regularizer sets coefficients to exactly zero?" — <strong>L1 / LASSO</strong>, because its constraint region has corners on the axes. L2 / Ridge's circular region has no corners, so it (almost) never does.</div>
+    </div>
+    <div class="callout exam">
+      <div class="icon">🎯</div>
+      <div><span class="label">Fast sanity check</span>Diamond ⟹ LASSO ⟹ sparse. Circle ⟹ Ridge ⟹ dense-but-shrunk. If a question shows a rounded-diamond shape, that's Elastic Net.</div>
+    </div>
+    <div class="callout exam">
+      <div class="icon">🎯</div>
+      <div><span class="label">Shortcut</span>Expand the LASSO acronym cold under time pressure: Least Absolute Shrinkage and Selection Operator — "Selection" is the word graders look for when asking what distinguishes LASSO from Ridge.</div>
+    </div>
+  </section>
+
+  <!-- STAGE 15 -->
+  <section id="industry">
+    <div class="stage-label"><span class="stage-num">15</span>Industry Implementation</div>
+    <h2>What this looks like in real tools</h2>
+    <pre><code><span class="code-comment"># scikit-learn</span>
+<span class="code-kw">from</span> sklearn.linear_model <span class="code-kw">import</span> Lasso
+
+model = <span class="code-fn">Lasso</span>(alpha=<span class="code-str">1.0</span>)  <span class="code-comment"># alpha == λ, same naming convention as Ridge</span>
+model.fit(X_train, y_train)
+<span class="code-comment"># model.coef_ will contain exact zeros for unselected features</span></code></pre>
+    <p>The R ecosystem's <code>glmnet</code> package popularized fast coordinate-descent implementations for LASSO, Ridge, and Elastic Net together, computing the entire regularization path across many λ values in one efficient pass — the industry-standard tool referenced across most applied statistics courses.</p>
+  </section>
+
+  <!-- STAGE 16 -->
+  <section id="connections">
+    <div class="stage-label"><span class="stage-num">16</span>Connections</div>
+    <h2>Closing the Ridge–LASSO arc</h2>
+    <p>Lectures 38 and 39 together form one complete idea, told through two shapes: a circle that shrinks smoothly, and a diamond whose corners create sparsity. That single geometric contrast — "does the constraint region have corners on the axes?" — is the lens through which every future regularizer in this course (Elastic Net, Group LASSO, and beyond) should be read.</p>
+    <div class="callout insight">
+      <div class="icon">🔗</div>
+      <div><span class="label">Thread forward</span>The natural next question — "can we get LASSO's sparsity <em>and</em> Ridge's stability under correlated features at once?" — leads directly to Elastic Net, which blends both penalties into a single rounded-diamond constraint region.</div>
+    </div>
+  </section>
+
+  <footer>MLT Notes · Lecture 39 · Built with the Discovery Lecture Framework · Sequel to Lecture 38</footer>
+</div>
+
+<script>
+  const slider = document.getElementById('lambdaSlider');
+  const lambdaVal = document.getElementById('lambdaVal');
+  const thetaVal = document.getElementById('thetaVal');
+  const w1Val = document.getElementById('w1Val');
+  const w2Val = document.getElementById('w2Val');
+  const sparseVal = document.getElementById('sparseVal');
+  const simDiamond = document.getElementById('simDiamond');
+  const simTangentLine = document.getElementById('simTangentLine');
+  const simTangent = document.getElementById('simTangent');
+
+  const originX = 80, originY = 210;
+  const mlX = 400, mlY = 140;
+  const maxHalf = 260; // diamond half-width at lambda=0
+  const minHalf = 8;
+
+  function diamondPoints(cx, cy, half){
+    return `${cx},${cy-half} ${cx+half},${cy} ${cx},${cy+half} ${cx-half},${cy}`;
+  }
+
+  function update(){
+    const lam = parseFloat(slider.value);
+    lambdaVal.textContent = lam.toFixed(1);
+
+    let half = maxHalf / (1 + lam * 1.6);
+    half = Math.max(minHalf, Math.min(maxHalf, half));
+
+    const theta = (half / 40).toFixed(2);
+    thetaVal.textContent = theta;
+
+    simDiamond.setAttribute('points', diamondPoints(originX, originY, half));
+
+    // distance along w1 axis (horizontal) toward w_ML's x-direction sign
+    const dirX = mlX >= originX ? 1 : -1;
+    const cornerX = originX + dirX * half;
+    const cornerY = originY; // w2 = 0 on this corner
+
+    // if diamond is large enough that w_ML itself is inside it (rough check via L1 distance)
+    const l1dist = Math.abs(mlX - originX) + Math.abs(mlY - originY);
+    let tx, ty, isZero;
+    if (half >= l1dist * 0.42) {
+      // large diamond: treat as containing w_ML region, tangent ~ w_ML
+      tx = mlX; ty = mlY; isZero = false;
+    } else {
+      tx = cornerX; ty = cornerY; isZero = true;
+    }
+
+    simTangentLine.setAttribute('x2', tx);
+    simTangentLine.setAttribute('y2', ty);
+    simTangent.setAttribute('cx', tx);
+    simTangent.setAttribute('cy', ty);
+
+    const w1 = ((tx - originX) / 40).toFixed(2);
+    const w2 = ((originY - ty) / 40).toFixed(2);
+    w1Val.textContent = w1;
+    w2Val.textContent = isZero ? '0.00' : w2;
+    sparseVal.textContent = isZero ? 'Yes' : 'No';
+  }
+
+  slider.addEventListener('input', update);
+  update();
+</script>
+
+</body>
+</html>

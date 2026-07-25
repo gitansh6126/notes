@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Single File Components in Vue CLI — Screencast 7.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420; --bg-alt:#0F1A2B; --card:#132239; --card-2:#0F1D31;
+    --border:#22314C; --border-soft:#1A2740; --text:#E7EDF6; --muted:#8CA0C0;
+    --mint:#5EEAD4; --mint-dim:#3AA793; --amber:#F5C24C; --coral:#FB7C86; --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.4vw,44px);
+    line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: SFC ANATOMY ---------- */
+  .sfc-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .sfc-bar{ display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--card); border-bottom:1px solid var(--border); }
+  .sfc-dot{ width:8px; height:8px; border-radius:50%; background:var(--border-soft); }
+  .sfc-label{ font-family:var(--mono); font-size:12.5px; color:var(--text); margin-left:4px; }
+  .sfc-block{ padding:16px 20px; border-left:3px solid; font-family:var(--mono); font-size:12.5px; }
+  .sfc-block + .sfc-block{ border-top:1px solid var(--border-soft); }
+  .sfc-block .tag{ font-size:10px; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:8px; display:block; font-family:var(--body); font-weight:600; }
+  .sfc-block.template{ border-color:var(--mint); background:rgba(94,234,212,0.04); }
+  .sfc-block.template .tag{ color:var(--mint); }
+  .sfc-block.script{ border-color:var(--lilac); background:rgba(156,140,255,0.04); }
+  .sfc-block.script .tag{ color:var(--lilac); }
+  .sfc-block.style{ border-color:var(--amber); background:rgba(245,194,76,0.04); }
+  .sfc-block.style .tag{ color:var(--amber); }
+  .sfc-block pre{ margin:0; color:var(--text); white-space:pre-wrap; }
+  .tok-kw{ color:var(--lilac); } .tok-str{ color:var(--mint); } .tok-fn{ color:#8bb9d6; } .tok-tag{ color:var(--amber); }
+  .sfc-caption{ text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:16px; }
+  .sfc-caption b{ color:var(--mint); }
+
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0; font-size:15.5px; }
+
+  /* ---------- SCOPED STYLE DIAGRAM ---------- */
+  .scope-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .scope-card{ border-radius:12px; padding:18px; border:1px solid; }
+  .scope-card.leak{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .scope-card.contained{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .scope-card h4{ margin:0 0 12px; font-family:var(--display); font-size:14.5px; display:flex; align-items:center; gap:8px; }
+  .scope-card.leak h4{ color:var(--coral); }
+  .scope-card.contained h4{ color:var(--mint); }
+  .scope-comp{ font-family:var(--mono); font-size:11.5px; padding:8px 10px; border-radius:6px; margin-bottom:6px; border:1px dashed var(--border-soft); }
+  .scope-card.leak .scope-comp{ background:rgba(251,124,134,0.1); border-color:var(--coral); color:var(--coral); }
+  .scope-card.contained .scope-comp.affected{ background:rgba(94,234,212,0.12); border-color:var(--mint-dim); color:var(--mint); }
+  .scope-card.contained .scope-comp.safe{ color:var(--muted); }
+  .scope-card p{ margin:10px 0 0; font-size:12.5px; color:var(--muted); }
+
+  /* ---------- CLI TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.tool{ font-family:var(--mono); font-weight:600; color:var(--mint); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+  td.what{ color:var(--text); }
+
+  /* ---------- NODE/NPM CARDS ---------- */
+  .char-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  .char-card{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; }
+  .char-card h3{ font-family:var(--display); font-size:14.5px; margin:0 0 6px; display:flex; align-items:center; }
+  .char-card p{ margin:0; font-size:13px; color:var(--muted); }
+
+  /* ---------- WORKFLOW TIMELINE ---------- */
+  .timeline-card{ overflow-x:auto; }
+  .timeline{ display:flex; align-items:center; gap:0; min-width:600px; padding:20px 4px 6px; position:relative; }
+  .timeline::before{ content:''; position:absolute; left:0; right:0; top:38px; height:1px; background:var(--border); }
+  .tl-step{ flex:1; display:flex; flex-direction:column; align-items:center; position:relative; }
+  .tl-dot{ width:14px; height:14px; border-radius:50%; background:var(--card-2); border:2px solid var(--mint-dim); z-index:1; margin-bottom:10px; }
+  .tl-label{ font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; }
+  .tl-cmd{ font-family:var(--mono); font-size:10px; color:var(--mint); margin-top:4px; text-align:center; }
+
+  /* ---------- CONSIDERATIONS ---------- */
+  .warn-box{
+    margin-top:8px; padding:14px 16px; border:1px dashed var(--amber); border-radius:10px;
+    background:rgba(245,194,76,0.06); display:flex; gap:12px; align-items:flex-start;
+  }
+  .warn-box .icon{ font-family:var(--mono); color:var(--amber); font-size:18px; flex:none; }
+  .warn-box p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .warn-box b{ color:var(--amber); }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  @media (max-width:760px){
+    .scope-grid{ grid-template-columns:1fr; }
+    .char-grid{ grid-template-columns:1fr; }
+    .callout-grid{ grid-template-columns:1fr; }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .sfc-block{ font-size:11px; padding:14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Screencast 7.2</div>
+    <h1 class="title">Single File Components<br>in <span class="accent">Vue CLI</span></h1>
+    <p class="subtitle">HTML, JavaScript, and CSS, all living in one <code style="font-family:var(--mono); color:var(--mint);">.vue</code> file — instead of three files pretending to be one component.</p>
+
+    <div class="sfc-card">
+      <div class="sfc-bar"><span class="sfc-dot"></span><span class="sfc-dot"></span><span class="sfc-dot"></span><span class="sfc-label">Greeting.vue</span></div>
+      <div class="sfc-block template">
+        <span class="tag">template — HTML</span>
+        <pre>&lt;<span class="tok-tag">template</span>&gt;
+  &lt;div <span class="tok-fn">class</span>=<span class="tok-str">"greeting"</span>&gt;{{ msg }}&lt;/div&gt;
+&lt;/<span class="tok-tag">template</span>&gt;</pre>
+      </div>
+      <div class="sfc-block script">
+        <span class="tag">script — JavaScript</span>
+        <pre>&lt;<span class="tok-tag">script</span>&gt;
+<span class="tok-kw">export default</span> {
+  <span class="tok-fn">data</span>() { <span class="tok-kw">return</span> { msg: <span class="tok-str">'Hello Vue!'</span> } }
+}
+&lt;/<span class="tok-tag">script</span>&gt;</pre>
+      </div>
+      <div class="sfc-block style">
+        <span class="tag">style — CSS (scoped)</span>
+        <pre>&lt;<span class="tok-tag">style</span> <span class="tok-fn">scoped</span>&gt;
+.greeting { <span class="tok-fn">color</span>: teal; }
+&lt;/<span class="tok-tag">style</span>&gt;</pre>
+      </div>
+    </div>
+    <div class="sfc-caption">one file, <b>three languages</b>, one component</div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>Overview</h2></div>
+    <div class="card overview-card">
+      <p>Single File Components package a component's markup, logic, and styling into one <code style="font-family:var(--mono)">.vue</code> file. The Vue CLI, built on Node.js and npm, is the toolchain that turns these files into a running development server — and later, into a production-ready build.</p>
+    </div>
+  </section>
+
+  <!-- ================= SCOPED STYLES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>Why <code style="font-family:var(--mono); color:var(--amber);">scoped</code> Matters</h2></div>
+    <p class="lede">Without it, a class name in one component can quietly restyle another.</p>
+    <div class="scope-grid">
+      <div class="scope-card leak">
+        <h4><span class="dot coral"></span>Unscoped style</h4>
+        <div class="scope-comp">.title { color: red; } — Header.vue</div>
+        <div class="scope-comp">.title — Footer.vue (turns red too)</div>
+        <p>The rule leaks globally and silently restyles any element sharing that class name, anywhere in the app.</p>
+      </div>
+      <div class="scope-card contained">
+        <h4><span class="dot mint"></span>Scoped style</h4>
+        <div class="scope-comp affected">.title { color: red; } — Header.vue</div>
+        <div class="scope-comp safe">.title — Footer.vue (unaffected)</div>
+        <p>Vue attaches a unique data attribute to this component's markup, so the rule only ever matches here.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= VUE CLI COMMANDS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>The Vue CLI Workflow</h2></div>
+    <p class="lede">Two commands cover most of the day-to-day.</p>
+    <div class="card table-card">
+      <table>
+        <thead><tr><th>Command</th><th>What it does</th><th>Use it for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tool">vue serve file.vue</td>
+            <td class="what">Launches a local dev server for a single .vue file — no full project setup needed.</td>
+            <td class="analogy-cell">rapid prototyping</td>
+          </tr>
+          <tr>
+            <td class="tool">vue build file.vue</td>
+            <td class="what">Compiles the SFC into browser-ready static HTML, JS, and CSS in a dist/ folder.</td>
+            <td class="analogy-cell">production deployment</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= NODE / NPM ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>The Foundation: Node.js &amp; npm</h2></div>
+    <div class="char-grid">
+      <div class="char-card"><h3><span class="dot mint"></span>Node.js</h3><p>A runtime that executes JavaScript outside the browser — the engine the Vue CLI's build system runs on.</p></div>
+      <div class="char-card"><h3><span class="dot lilac"></span>npm</h3><p>Installs the Vue CLI and its dependencies. Plays the same role pip plays in the Python ecosystem.</p></div>
+      <div class="char-card"><h3><span class="dot amber"></span>-g flag</h3><p>Installs a package globally, so its command-line tool is available system-wide, not just in one project.</p></div>
+    </div>
+  </section>
+
+  <!-- ================= WORKFLOW SUMMARY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Workflow Summary</h2></div>
+    <div class="card timeline-card">
+      <div class="timeline">
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">Setup</div><div class="tl-cmd">node -v</div></div>
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">Installation</div><div class="tl-cmd">npm install -g @vue/cli</div></div>
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">Prototyping</div><div class="tl-cmd">vue serve file.vue</div></div>
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">Production</div><div class="tl-cmd">vue build → dist/</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CONSIDERATIONS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Important Considerations</h2></div>
+    <div class="warn-box">
+      <span class="icon">◆</span>
+      <p><b>Not mandatory for every project.</b> Small or simple apps can still work perfectly well with plain HTML, CSS, and JavaScript — SFCs and the CLI earn their complexity on larger builds.</p>
+    </div>
+    <div class="warn-box" style="margin-top:10px;">
+      <span class="icon">◆</span>
+      <p>Learning <b>Node.js</b> pays off beyond the basics — it unlocks plugins, CSS pre-compilation, and advanced deployment paths like building the app as a PWA.</p>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">06</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>One file, one component</h4>
+        <p>Template, script, and style together keep a component's logic and presentation modular and easy to find.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Scope your styles</h4>
+        <p>The scoped attribute is a small habit that prevents a whole category of hard-to-trace CSS bugs.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Right-size the tooling</h4>
+        <p>Vue CLI is powerful, but plain HTML/CSS/JS is still the right call for small, simple projects.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Screencast 7.2 — Single File Components in Vue CLI</footer>
+</div>
+</body>
+</html>

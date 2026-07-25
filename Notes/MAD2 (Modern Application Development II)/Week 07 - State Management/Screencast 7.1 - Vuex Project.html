@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>State Management using Vuex — Screencast 7.1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420; --bg-alt:#0F1A2B; --card:#132239; --card-2:#0F1D31;
+    --border:#22314C; --border-soft:#1A2740; --text:#E7EDF6; --muted:#8CA0C0;
+    --mint:#5EEAD4; --mint-dim:#3AA793; --amber:#F5C24C; --coral:#FB7C86; --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.4vw,44px);
+    line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: DEVTOOLS PANEL ---------- */
+  .devtools-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .devtools-bar{
+    display:flex; align-items:center; gap:10px; padding:12px 16px; background:var(--card);
+    border-bottom:1px solid var(--border);
+  }
+  .dt-dot{ width:8px; height:8px; border-radius:50%; background:var(--border-soft); }
+  .dt-label{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-left:4px; }
+  .devtools-body{ display:flex; }
+  .dt-log{ flex:1.3; padding:10px; border-right:1px solid var(--border); }
+  .dt-entry{
+    display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:8px; margin-bottom:3px;
+    font-family:var(--mono); font-size:12px; color:var(--muted); position:relative;
+  }
+  .dt-entry .idx{ color:#3d4f6e; width:16px; flex:none; }
+  .dt-entry.active{ background:rgba(94,234,212,0.1); color:var(--mint); animation:march 8s steps(1) infinite; }
+  .dt-entry .revert{ margin-left:auto; font-size:10px; color:var(--coral); opacity:0; }
+  .dt-entry.active .revert{ opacity:1; }
+  /* march the "active" highlight through 5 rows over 8s using animation-delay per row via nth-child offset trick */
+  .dt-entries{ position:relative; }
+  .dt-row{ padding:9px 10px; border-radius:8px; margin-bottom:3px; font-family:var(--mono); font-size:12px; color:var(--muted); display:flex; gap:10px; align-items:center; }
+  .dt-row .idx{ color:#3d4f6e; width:16px; flex:none; }
+  .dt-row .revert{ margin-left:auto; font-size:9.5px; color:var(--coral); opacity:0; }
+  .dt-row.r0{ animation:glowrow 8s ease infinite; animation-delay:0s; }
+  .dt-row.r1{ animation:glowrow 8s ease infinite; animation-delay:1.6s; }
+  .dt-row.r2{ animation:glowrow 8s ease infinite; animation-delay:3.2s; }
+  .dt-row.r3{ animation:glowrow 8s ease infinite; animation-delay:4.8s; }
+  .dt-row.r4{ animation:glowrow 8s ease infinite; animation-delay:6.4s; }
+  @keyframes glowrow{
+    0%, 6%, 100%{ background:transparent; color:var(--muted); }
+    2%{ background:rgba(94,234,212,0.12); color:var(--mint); }
+  }
+  .dt-row.r0 .revert, .dt-row.r1 .revert, .dt-row.r2 .revert, .dt-row.r3 .revert, .dt-row.r4 .revert{ animation:showrevert 8s ease infinite; }
+  .dt-row.r0 .revert{ animation-delay:0s; } .dt-row.r1 .revert{ animation-delay:1.6s; }
+  .dt-row.r2 .revert{ animation-delay:3.2s; } .dt-row.r3 .revert{ animation-delay:4.8s; } .dt-row.r4 .revert{ animation-delay:6.4s; }
+  @keyframes showrevert{ 0%,6%,100%{ opacity:0; } 2%{ opacity:1; } }
+  .dt-state{ flex:1; padding:16px; font-family:var(--mono); font-size:11.5px; color:var(--text); }
+  .dt-state .label{ color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px; }
+  .dt-state pre{ margin:0; white-space:pre-wrap; color:var(--mint); }
+  .devtools-caption{ text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:14px; }
+
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0; font-size:15.5px; }
+
+  /* ---------- CORE CONCEPTS ---------- */
+  .anatomy-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+  .anatomy-card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 14px;
+    display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease;
+  }
+  .anatomy-card:hover{ transform:translateY(-3px); border-color:var(--mint-dim); }
+  .anatomy-card h3{ font-family:var(--display); font-size:14.5px; margin:0; display:flex; align-items:center; }
+  .anatomy-card p{ margin:0; font-size:12.5px; color:var(--muted); }
+  .anatomy-card .tag{ font-family:var(--mono); font-size:10px; color:var(--card-2); background:var(--mint); display:inline-block; padding:2px 7px; border-radius:20px; align-self:flex-start; font-weight:600; }
+  .anatomy-card.async .tag{ background:var(--amber); }
+  .anatomy-card.sync .tag{ background:var(--coral); }
+  .anatomy-card.read .tag{ background:var(--lilac); }
+
+  /* ---------- GETTERS EXAMPLE ---------- */
+  .code-card{ padding:0; overflow:hidden; }
+  .code-head{ padding:14px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .code-head .fname{ font-family:var(--mono); font-size:13px; color:var(--text); }
+  .code-head .badge{ font-family:var(--mono); font-size:11px; color:var(--mint); border:1px solid var(--mint-dim); padding:2px 8px; border-radius:20px; }
+  .code-line{ display:flex; padding:9px 20px; border-bottom:1px solid var(--border-soft); align-items:flex-start; gap:14px; }
+  .code-line:last-child{ border-bottom:none; }
+  .code-line .ln{ font-family:var(--mono); font-size:11.5px; color:#3d4f6e; width:18px; flex:none; padding-top:2px; }
+  .code-line pre{ margin:0; font-family:var(--mono); font-size:13px; color:var(--text); white-space:pre-wrap; word-break:break-word; }
+  .code-line .note{ margin-left:auto; flex:none; max-width:210px; font-size:12px; color:var(--amber); font-family:var(--body); font-style:italic; padding-top:2px; text-align:right; }
+  .tok-kw{ color:var(--lilac); } .tok-str{ color:var(--mint); } .tok-fn{ color:#8bb9d6; }
+  .getter-demo{ display:flex; align-items:center; gap:14px; padding:16px 20px; font-family:var(--mono); font-size:14px; flex-wrap:wrap; }
+  .getter-demo .raw{ color:var(--muted); }
+  .getter-demo .arrow{ color:var(--muted); }
+  .getter-demo .formatted{ color:var(--mint); background:rgba(94,234,212,0.08); padding:4px 12px; border-radius:20px; border:1px solid var(--mint-dim); }
+
+  /* ---------- BEST PRACTICES ---------- */
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .compare-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .compare-card.local{ background:rgba(156,140,255,0.05); border-color:#5b4fa6; }
+  .compare-card.global{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .compare-card h3{ font-family:var(--display); font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+  .compare-card.local h3{ color:var(--lilac); }
+  .compare-card.global h3{ color:var(--mint); }
+  .compare-card ul{ margin:0; padding-left:18px; font-size:13.5px; color:var(--muted); }
+  .compare-card li{ margin-bottom:6px; }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  @media (max-width:760px){
+    .devtools-body{ flex-direction:column; }
+    .dt-log{ border-right:none; border-bottom:1px solid var(--border); }
+    .callout-grid{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .anatomy-grid{ grid-template-columns:repeat(2, 1fr); }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+    .code-line{ flex-direction:column; gap:4px; }
+    .code-line .note{ max-width:100%; text-align:left; margin-left:32px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    .anatomy-grid{ grid-template-columns:1fr 1fr; }
+    .getter-demo{ font-size:12.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Screencast 7.1</div>
+    <h1 class="title">State Management<br>using <span class="accent">Vuex</span></h1>
+    <p class="subtitle">Every commit gets logged — so you can watch your app's state evolve, and rewind it when something goes wrong.</p>
+
+    <div class="devtools-card">
+      <div class="devtools-bar">
+        <span class="dt-dot"></span><span class="dt-dot"></span><span class="dt-dot"></span>
+        <span class="dt-label">Vue Devtools — Vuex</span>
+      </div>
+      <div class="devtools-body">
+        <div class="dt-log">
+          <div class="dt-entries">
+            <div class="dt-row r0"><span class="idx">01</span>init<span class="revert">revert →</span></div>
+            <div class="dt-row r1"><span class="idx">02</span>setUser<span class="revert">revert →</span></div>
+            <div class="dt-row r2"><span class="idx">03</span>addToCart<span class="revert">revert →</span></div>
+            <div class="dt-row r3"><span class="idx">04</span>applyDiscount<span class="revert">revert →</span></div>
+            <div class="dt-row r4"><span class="idx">05</span>checkout<span class="revert">revert →</span></div>
+          </div>
+        </div>
+        <div class="dt-state">
+          <div class="label">state snapshot</div>
+          <pre>{ user, cart, total }</pre>
+        </div>
+      </div>
+    </div>
+    <div class="devtools-caption">every mutation, logged in order — click any entry to time-travel there</div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>Why the Store Pattern</h2></div>
+    <div class="card overview-card">
+      <p>As a Vue app grows, data scattered across components becomes hard to track and easy to break. The <strong>store pattern</strong> fixes this by centralizing state into one place — a single source of truth every component can read from and request changes to.</p>
+    </div>
+  </section>
+
+  <!-- ================= CORE CONCEPTS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>The Four Pieces</h2></div>
+    <p class="lede">Vuex plugs directly into Vue Devtools, which is what makes all of this inspectable.</p>
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <span class="tag">data</span>
+        <h3><span class="dot mint"></span>State</h3>
+        <p>The single source of truth — moved out of individual components so any of them can use it.</p>
+      </div>
+      <div class="anatomy-card sync">
+        <span class="tag">sync</span>
+        <h3><span class="dot coral"></span>Mutations</h3>
+        <p>The only functions allowed to change state. Always synchronous. Triggered with <code style="font-family:var(--mono)">commit()</code>.</p>
+      </div>
+      <div class="anatomy-card read">
+        <span class="tag">read</span>
+        <h3><span class="dot lilac"></span>Getters</h3>
+        <p>A cleaner way to read state — and they can transform or format the data before returning it.</p>
+      </div>
+      <div class="anatomy-card async">
+        <span class="tag">async</span>
+        <h3><span class="dot amber"></span>Actions</h3>
+        <p>Handle complex or async logic, then commit a mutation once it's done. Triggered with <code style="font-family:var(--mono)">dispatch()</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GETTERS EXAMPLE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>Getters Can Transform, Not Just Fetch</h2></div>
+    <p class="lede">A getter doesn't have to return the raw value — it can format it on the way out.</p>
+    <div class="card code-card">
+      <div class="code-head">
+        <span class="fname">store.js</span>
+        <span class="badge">getter</span>
+      </div>
+      <div class="code-line"><span class="ln">01</span><pre>getters: {</pre></div>
+      <div class="code-line">
+        <span class="ln">02</span>
+        <pre>&nbsp;&nbsp;<span class="tok-fn">formattedPrice</span>(state) {</pre>
+        <span class="note">reads raw state, returns a display-ready value</span>
+      </div>
+      <div class="code-line"><span class="ln">03</span><pre>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">return</span> state.price.<span class="tok-fn">toFixed</span>(<span class="tok-str">2</span>)</pre></div>
+      <div class="code-line"><span class="ln">04</span><pre>&nbsp;&nbsp;}</pre></div>
+      <div class="code-line"><span class="ln">05</span><pre>}</pre></div>
+      <div class="getter-demo">
+        <span class="raw">state.price = 5</span>
+        <span class="arrow">→ getter →</span>
+        <span class="formatted">$5.00</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BEST PRACTICES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>What Belongs in the Store?</h2></div>
+    <p class="lede">Not everything needs to be global — Vuex and local component data can coexist.</p>
+    <div class="compare-grid">
+      <div class="compare-card local">
+        <h3><span class="dot lilac"></span>Keep Local</h3>
+        <ul>
+          <li>Data only one component uses</li>
+          <li>UI-only state, like a dropdown's open/closed flag</li>
+          <li>Anything that doesn't need to survive outside that component</li>
+        </ul>
+      </div>
+      <div class="compare-card global">
+        <h3><span class="dot mint"></span>Move to Vuex</h3>
+        <ul>
+          <li>Data multiple components need to read or react to</li>
+          <li>Application-level state — logged-in user, cart contents</li>
+          <li>Anything async operations need to update via actions</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>One store, one truth</h4>
+        <p>Centralizing state keeps growing apps predictable instead of tangled.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Async → actions, only</h4>
+        <p>Keep asynchronous work out of mutations entirely — dispatch an action, and let it commit once it's ready.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Debugging is a side effect</h4>
+        <p>Because every change is an explicit, synchronous commit, Devtools can log — and reverse — the entire history for free.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Screencast 7.1 — State Management using Vuex</footer>
+</div>
+</body>
+</html>

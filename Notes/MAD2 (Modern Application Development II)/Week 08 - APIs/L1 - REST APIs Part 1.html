@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Designing APIs (Part 1) — Week 8, Lecture 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420; --bg-alt:#0F1A2B; --card:#132239; --card-2:#0F1D31;
+    --border:#22314C; --border-soft:#1A2740; --text:#E7EDF6; --muted:#8CA0C0;
+    --mint:#5EEAD4; --mint-dim:#3AA793; --amber:#F5C24C; --coral:#FB7C86; --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  /* ---------- HTTP VERB BADGES (used throughout) ---------- */
+  .verb{ font-family:var(--mono); font-weight:600; font-size:11.5px; padding:3px 9px; border-radius:5px; letter-spacing:0.02em; display:inline-block; }
+  .verb.get{ background:rgba(94,234,212,0.15); color:var(--mint); border:1px solid var(--mint-dim); }
+  .verb.post{ background:rgba(156,140,255,0.15); color:var(--lilac); border:1px solid #5b4fa6; }
+  .verb.patch{ background:rgba(245,194,76,0.15); color:var(--amber); border:1px solid #8a6d20; }
+  .verb.delete{ background:rgba(251,124,134,0.15); color:var(--coral); border:1px solid #7a3540; }
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.4vw,44px);
+    line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: REQUEST/RESPONSE EXCHANGE ---------- */
+  .exchange-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:28px 22px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .exchange-row{ display:flex; align-items:center; gap:14px; }
+  .exchange-box{
+    flex:1; background:var(--card); border:1px solid var(--border-soft); border-radius:12px; padding:16px 18px;
+  }
+  .exchange-box .who{ font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px; }
+  .exchange-box .line{ font-family:var(--mono); font-size:13px; color:var(--text); }
+  .exchange-box .line.url{ color:var(--mint); margin-left:8px; }
+  .exchange-box pre{ margin:8px 0 0; font-family:var(--mono); font-size:11.5px; color:var(--muted); white-space:pre-wrap; }
+  .exchange-box pre .k{ color:var(--lilac); }
+  .exchange-box pre .v{ color:var(--mint); }
+  .exchange-mid{ flex:none; width:64px; text-align:center; position:relative; height:40px; }
+  .exchange-arrow{ font-family:var(--mono); font-size:20px; color:var(--muted); position:absolute; left:0; right:0; animation:travel 4s ease infinite; }
+  @keyframes travel{
+    0%, 45%{ content:'→'; opacity:1; transform:translateX(0); }
+    50%{ opacity:0; }
+    55%, 95%{ opacity:1; }
+    100%{ opacity:1; }
+  }
+  .exchange-status{ margin-top:14px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .exchange-status b{ color:var(--mint); }
+
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0 0 12px; font-size:15.5px; }
+  .overview-card p:last-child{ margin-bottom:0; }
+
+  /* ---------- NOUNS VS VERBS ---------- */
+  .nv-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .nv-card{ border-radius:12px; padding:18px; border:1px solid; }
+  .nv-card.bad{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .nv-card.good{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .nv-card h4{ margin:0 0 12px; font-family:var(--display); font-size:14.5px; display:flex; align-items:center; gap:8px; }
+  .nv-card.bad h4{ color:var(--coral); }
+  .nv-card.good h4{ color:var(--mint); }
+  .nv-line{ font-family:var(--mono); font-size:12.5px; padding:7px 10px; border-radius:6px; margin-bottom:6px; }
+  .nv-card.bad .nv-line{ background:rgba(251,124,134,0.08); color:var(--coral); }
+  .nv-card.good .nv-line{ background:rgba(94,234,212,0.08); color:var(--mint); }
+
+  /* ---------- CRUD TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.what{ color:var(--text); }
+  td.path{ font-family:var(--mono); color:var(--text); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+
+  /* ---------- PATH HIERARCHY DIAGRAM ---------- */
+  .path-card{ overflow-x:auto; }
+  .path-chain{ display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-family:var(--mono); font-size:15px; min-width:480px; }
+  .path-seg{ padding:8px 14px; border-radius:8px; background:var(--card-2); border:1px solid var(--border-soft); }
+  .path-seg.resource{ color:var(--mint); border-color:var(--mint-dim); }
+  .path-seg.id{ color:var(--amber); border-color:#8a6d20; }
+  .path-sep{ color:var(--muted); }
+  .path-legend{ display:flex; gap:20px; margin-top:16px; font-family:var(--mono); font-size:12px; color:var(--muted); flex-wrap:wrap; }
+
+  /* ---------- PERMALINKS COMPARISON ---------- */
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .compare-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .compare-card.bad{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .compare-card.good{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .compare-card h3{ font-family:var(--display); font-size:16px; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+  .compare-card.bad h3{ color:var(--coral); }
+  .compare-card.good h3{ color:var(--mint); }
+  .compare-card .url-demo{ font-family:var(--mono); font-size:13px; padding:8px 12px; border-radius:6px; margin-bottom:10px; display:inline-block; }
+  .compare-card.bad .url-demo{ background:rgba(251,124,134,0.1); color:var(--coral); }
+  .compare-card.good .url-demo{ background:rgba(94,234,212,0.1); color:var(--mint); }
+  .compare-card p{ margin:0; font-size:13.5px; color:var(--muted); }
+
+  /* ---------- ABSTRACTION DIAGRAM ---------- */
+  .abstraction-flow{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .abs-node{ font-family:var(--mono); font-size:12.5px; padding:12px 18px; border-radius:10px; border:1px solid var(--border-soft); background:var(--card-2); text-align:center; }
+  .abs-node.client{ color:var(--lilac); border-color:var(--lilac); }
+  .abs-node.http{ color:var(--mint); border-color:var(--mint-dim); font-weight:600; }
+  .abs-arrow{ color:var(--muted); font-size:16px; }
+  .abs-backends{ display:flex; gap:8px; flex-wrap:wrap; }
+  .abs-node.backend{ color:var(--muted); border-style:dashed; font-size:11px; }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  @media (max-width:760px){
+    .exchange-row{ flex-direction:column; }
+    .exchange-mid{ width:100%; height:30px; }
+    .exchange-arrow{ transform:rotate(90deg); }
+    .nv-grid{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .callout-grid{ grid-template-columns:1fr; }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .path-chain{ font-size:13px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 8, Lecture 1</div>
+    <h1 class="title">Designing <span class="accent">APIs</span><br>Part 1</h1>
+    <p class="subtitle">A good API reads like a sentence: a verb, acting on a noun, over HTTP.</p>
+
+    <div class="exchange-card">
+      <div class="exchange-row">
+        <div class="exchange-box">
+          <div class="who">Client requests</div>
+          <div class="line"><span class="verb get">GET</span> <span class="line url">/students/123</span></div>
+        </div>
+        <div class="exchange-mid"><span class="exchange-arrow">⇄</span></div>
+        <div class="exchange-box">
+          <div class="who">Server responds — 200 OK</div>
+          <pre>{ <span class="k">"id"</span>: <span class="v">123</span>, <span class="k">"name"</span>: <span class="v">"A. Kumar"</span>, <span class="k">"gpa"</span>: <span class="v">8.7</span> }</pre>
+        </div>
+      </div>
+      <div class="exchange-status">no documentation needed to guess what this does — that's the point</div>
+    </div>
+  </div>
+
+  <!-- ================= 1. PURPOSE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>What an API Is For</h2></div>
+    <div class="card overview-card">
+      <p>An API is a set of functions built for <em>other developers</em> to use — its whole job is to be an interface onto a system's logic and data. Designing with the developer in mind is what makes an API easy to document, test, and integrate.</p>
+      <p>Web APIs descend from Remote Procedure Calls, which let a client invoke a function on a remote server. They settled on <strong>HTTP</strong> as the transport because it's text-based, simple, and flexible enough to carry arbitrary request and response bodies.</p>
+    </div>
+  </section>
+
+  <!-- ================= 2. DATA-ORIENTED DESIGN ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>Nouns and Verbs</h2></div>
+    <p class="lede">Model the system's data as entities, and manipulate them with a small, standard set of actions.</p>
+    <div class="card table-card">
+      <table>
+        <thead><tr><th>Action (CRUD)</th><th>HTTP Verb</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td class="what">Create a new entity</td><td><span class="verb post">POST</span></td><td class="path">/students</td></tr>
+          <tr><td class="what">Read an entity</td><td><span class="verb get">GET</span></td><td class="path">/students/123</td></tr>
+          <tr><td class="what">Update an entity</td><td><span class="verb patch">PATCH</span></td><td class="path">/students/123</td></tr>
+          <tr><td class="what">Delete an entity</td><td><span class="verb delete">DELETE</span></td><td class="path">/students/123</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="lede" style="margin-top:18px; margin-bottom:0;">Even a query like <em>"get this student's GPA"</em> should be modeled as a logical endpoint — for example <code style="font-family:var(--mono); color:var(--mint);">GET /students/123/gpa</code> — rather than a one-off script.</p>
+  </section>
+
+  <!-- ================= 3. URL CONVENTIONS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>URL Conventions</h2></div>
+    <p class="lede">Conventions work like elevator buttons — familiar enough that no one needs the manual.</p>
+    <div class="nv-grid">
+      <div class="nv-card bad">
+        <h4><span class="dot coral"></span>Avoid — verbs in the URL</h4>
+        <div class="nv-line">GET /getStudents</div>
+        <div class="nv-line">POST /createStudent</div>
+        <div class="nv-line">POST /deleteStudent?id=123</div>
+      </div>
+      <div class="nv-card good">
+        <h4><span class="dot mint"></span>Prefer — nouns + HTTP verbs</h4>
+        <div class="nv-line"><span class="verb get">GET</span> /students</div>
+        <div class="nv-line"><span class="verb post">POST</span> /students</div>
+        <div class="nv-line"><span class="verb delete">DELETE</span> /students/123</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PATH HIERARCHY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Logical Path Hierarchies</h2></div>
+    <p class="lede">A structured path reads naturally, top to bottom, left to right.</p>
+    <div class="card path-card">
+      <div class="path-chain">
+        <span class="path-seg resource">courses</span><span class="path-sep">/</span>
+        <span class="path-seg id">123</span><span class="path-sep">/</span>
+        <span class="path-seg resource">students</span>
+      </div>
+      <div class="path-legend">
+        <span><span class="dot mint"></span>resource collection</span>
+        <span><span class="dot amber"></span>a specific ID</span>
+        <span style="color:var(--muted)">→ "the students enrolled in course 123"</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= DISCOVERABILITY & PERMALINKS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Discoverability &amp; Permalinks</h2></div>
+    <p class="lede">Well-designed responses link onward, and the links they contain should never break.</p>
+    <div class="compare-grid">
+      <div class="compare-card bad">
+        <h3><span class="dot coral"></span>Fragile identifier</h3>
+        <div class="url-demo">/users/john_doe</div>
+        <p>Usernames can change. If they do, every bookmarked or shared link silently breaks.</p>
+      </div>
+      <div class="compare-card good">
+        <h3><span class="dot mint"></span>Permalink</h3>
+        <div class="url-demo">/users/123</div>
+        <p>A unique, unchanging ID keeps the link stable for as long as the resource exists.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= IMPLEMENTATION ABSTRACTION ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">06</span><h2>Implementation Abstraction</h2></div>
+    <p class="lede">The client only ever needs to know one language: HTTP.</p>
+    <div class="card">
+      <div class="abstraction-flow">
+        <div class="abs-node client">Client</div>
+        <span class="abs-arrow">→</span>
+        <div class="abs-node http">HTTP request</div>
+        <span class="abs-arrow">→</span>
+        <div class="abs-backends">
+          <div class="abs-node backend">Flask</div>
+          <div class="abs-node backend">Node.js</div>
+          <div class="abs-node backend">Go</div>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:12.5px; color:var(--muted); margin:18px 0 0;">any of these could sit behind the API — the client can't tell, and shouldn't need to</p>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">07</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>Nouns in URLs, verbs in HTTP</h4>
+        <p>Resources are addressed by path; actions are expressed through GET / POST / PATCH / DELETE.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>IDs outlive names</h4>
+        <p>Permalinks built on stable IDs won't break just because a display name changes later.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Design for the developer</h4>
+        <p>Conventions exist so another developer can guess how your API works before reading a single doc page.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Week 8, Lecture 1 — Designing APIs (Part 1)</footer>
+</div>
+</body>
+</html>

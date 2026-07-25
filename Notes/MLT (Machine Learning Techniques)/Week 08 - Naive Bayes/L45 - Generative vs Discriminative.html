@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 45 — Generative and Discriminative Models</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1020;
+    --bg-soft: #0d1426;
+    --panel: #131b30;
+    --panel-alt: #182140;
+    --border: #263153;
+    --border-soft: #1c2740;
+    --text: #e7ecf7;
+    --text-dim: #93a1c2;
+    --text-faint: #5f6d90;
+    --teal: #5eead4;
+    --teal-dim: #1f4a45;
+    --coral: #fb7d8b;
+    --coral-dim: #4a2530;
+    --gold: #fbbf5c;
+    --gold-dim: #4a3a1a;
+    --violet: #b8a6ff;
+    --violet-dim: #2c2650;
+    --radius: 10px;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:radial-gradient(ellipse 900px 500px at 15% -5%, rgba(94,234,212,0.07), transparent 60%),radial-gradient(ellipse 900px 600px at 90% 10%, rgba(251,125,139,0.06), transparent 55%),var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px 100px;}
+  .hero{padding:56px 20px 40px;max-width:980px;margin:0 auto;position:relative;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border);padding:5px 12px;border-radius:999px;background:var(--panel);}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  h1.title{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,5.2vw,48px);line-height:1.08;margin:18px 0 10px;letter-spacing:-0.01em;}
+  .title .accent{color:var(--teal);font-style:italic;font-weight:600;}
+  .title .accent2{color:var(--coral);font-style:italic;font-weight:600;}
+  .subtitle{color:var(--text-dim);font-size:17px;max-width:660px;margin:0 0 26px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .badge{font-family:var(--font-mono);font-size:11.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);background:var(--panel);white-space:nowrap;}
+  .badge.geo{color:var(--teal);border-color:var(--teal-dim);}
+  .badge.count{color:var(--gold);border-color:var(--gold-dim);}
+  .badge.pat{color:var(--violet);border-color:var(--violet-dim);}
+  .stage{margin:64px 0;}
+  .stage-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;border-bottom:1px solid var(--border-soft);padding-bottom:14px;}
+  .stage-num{font-family:var(--font-mono);font-size:13px;color:var(--bg);background:var(--teal);padding:3px 9px;border-radius:5px;font-weight:600;flex-shrink:0;}
+  .stage-num.alt{background:var(--gold);}
+  .stage-num.alt2{background:var(--violet);}
+  .stage-num.alt3{background:var(--coral);}
+  .stage-title{font-family:var(--font-display);font-size:clamp(21px,3vw,28px);font-weight:600;margin:0;}
+  .stage-sub{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-left:auto;text-align:right;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px;}
+  .card h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin:0 0 8px;color:var(--text);}
+  .card p{margin:0 0 10px;color:var(--text-dim);font-size:15px;}
+  .card p:last-child{margin-bottom:0;}
+  .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:680px){ .card-grid{grid-template-columns:1fr;} }
+  .card.gen{border-color:var(--teal-dim);background:linear-gradient(180deg, rgba(94,234,212,0.05), var(--panel));}
+  .card.disc{border-color:var(--coral-dim);background:linear-gradient(180deg, rgba(251,125,139,0.05), var(--panel));}
+  .card-tag{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+  .card-tag.gen{color:var(--teal);background:var(--teal-dim);}
+  .card-tag.disc{color:var(--coral);background:var(--coral-dim);}
+  .callout{border-left:3px solid var(--teal);background:linear-gradient(90deg, rgba(94,234,212,0.08), transparent 60%);padding:16px 20px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14.5px;color:var(--text-dim);}
+  .callout strong{color:var(--text);}
+  .callout.warn{border-color:var(--coral);background:linear-gradient(90deg, rgba(251,125,139,0.08), transparent 60%);}
+  .callout.tip{border-color:var(--gold);background:linear-gradient(90deg, rgba(251,191,92,0.09), transparent 60%);}
+  .callout.think{border-color:var(--violet);background:linear-gradient(90deg, rgba(184,166,255,0.09), transparent 60%);}
+  .callout-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;color:var(--text);font-weight:700;}
+  .story{display:flex;gap:14px;align-items:flex-start;background:var(--panel-alt);border:1px dashed var(--border);border-radius:var(--radius);padding:18px 20px;margin:18px 0;}
+  .story .icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:2px;}
+  .story-text b{color:var(--gold);}
+  .story-text{font-size:14.5px;color:var(--text-dim);}
+  .eq-panel{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:20px 0;text-align:center;position:relative;overflow-x:auto;}
+  .eq-tag{position:absolute;top:12px;left:16px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.1em;}
+  .eq{font-family:var(--font-display);font-size:clamp(16px,3.2vw,26px);color:var(--text);white-space:nowrap;}
+  .eq sub{font-size:0.6em;}
+  .sym-x{color:var(--teal);}
+  .sym-y{color:var(--coral);}
+  .sym-k{color:var(--gold);}
+  .sym-n{color:var(--violet);}
+  .sym-d{color:#8fb7ff;}
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-soft);text-align:left;}
+  .legend-item{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--text-dim);}
+  .legend-sym{font-family:var(--font-display);font-style:italic;font-weight:600;flex-shrink:0;width:38px;text-align:center;font-size:15px;}
+  .steps{position:relative;padding-left:28px;margin:20px 0;}
+  .steps::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--teal),var(--violet));opacity:0.35;}
+  .step{position:relative;margin-bottom:22px;}
+  .step:last-child{margin-bottom:0;}
+  .step::before{content:'';position:absolute;left:-28px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--teal);}
+  .step-label{font-family:var(--font-mono);font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .step-body{font-size:14.5px;color:var(--text-dim);}
+  .step-eq{font-family:var(--font-mono);font-size:14px;color:var(--text);background:var(--bg-soft);display:inline-block;padding:4px 10px;border-radius:5px;margin-top:6px;border:1px solid var(--border-soft);}
+  .table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+  thead th{background:var(--panel-alt);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  td.pos{color:var(--teal);font-weight:600;}
+  td.neg{color:var(--coral);font-weight:600;}
+  td.mono{font-family:var(--font-mono);font-size:13px;}
+  .fig{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:20px 0;}
+  .fig svg{width:100%;height:auto;display:block;}
+  .fig-caption{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:10px;letter-spacing:.02em;}
+  .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.fig-row{grid-template-columns:1fr;}}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0;}
+  .chip{font-family:var(--font-mono);font-size:13px;padding:7px 13px;border-radius:6px;background:var(--panel-alt);border:1px solid var(--border);color:var(--gold);}
+  ul.clean, ol.clean{margin:10px 0;padding-left:22px;color:var(--text-dim);font-size:15px;}
+  ul.clean li, ol.clean li{margin-bottom:8px;}
+  ul.clean li::marker{color:var(--teal);}
+  ol.clean li::marker{color:var(--gold);font-family:var(--font-mono);font-weight:600;}
+  .memory-card{background:linear-gradient(135deg, var(--panel-alt), var(--panel));border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+  .memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  @media(max-width:680px){.memory-grid{grid-template-columns:1fr;}}
+  .memory-tile{background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
+  .memory-tile .k{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .memory-tile .v{font-family:var(--font-display);font-size:19px;color:var(--teal);margin-top:4px;}
+  footer{text-align:center;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;padding:40px 20px 10px;}
+  code.inline{font-family:var(--font-mono);background:var(--bg-soft);border:1px solid var(--border-soft);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--teal);}
+  .bridge{background:var(--bg-soft);border:1px solid var(--violet-dim);border-radius:var(--radius);padding:22px 24px;position:relative;overflow:hidden;}
+  .bridge::before{content:'';position:absolute;top:-40%;right:-10%;width:220px;height:220px;background:radial-gradient(circle, rgba(184,166,255,0.18), transparent 70%);}
+  .vs-divider{display:flex;align-items:center;gap:12px;margin:6px 0 18px;}
+  .vs-divider .line{flex:1;height:1px;background:var(--border-soft);}
+  .vs-divider .vs{font-family:var(--font-mono);font-size:12px;color:var(--text-faint);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="eyebrow"><span class="dot"></span>Lecture 45 · Foundations of Classification</span>
+  <h1 class="title">Generative <span style="color:var(--text-faint);font-weight:400;">vs.</span> <span class="accent2">Discriminative</span> Models</h1>
+  <p class="subtitle">KNN and Decision Trees never asked where the data came from — they just drew a line through it. This lecture asks: what changes if a model tries to understand the data's origin story first?</p>
+  <div class="badge-row">
+    <span class="badge pat">◆ Probabilistic Reasoning</span>
+    <span class="badge geo">◆ Joint vs. Conditional Distributions</span>
+    <span class="badge count">◆ Modelling Assumptions</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STAGE -1 -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">−1</span>
+      <h3 class="stage-title">Cognitive Pattern</h3>
+      <span class="stage-sub">what kind of thinking is this?</span>
+    </div>
+    <div class="card">
+      <p>This lecture is a shift from <em>geometry</em> to <strong style="color:var(--violet)">probability</strong>. Instead of asking "how close is this point to other points?" or "which question best splits the data?", it asks a more basic question first: <strong>what process produced this data in the first place</strong> — and is it worth the effort to model that process explicitly, or better to skip straight to the boundary?</p>
+    </div>
+  </div>
+
+  <!-- LEARNING ASSUMPTION -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">0</span>
+      <h3 class="stage-title">The Learning Assumption</h3>
+      <span class="stage-sub">the idea every algorithm so far has quietly relied on</span>
+    </div>
+    <div class="card">
+      <p>Every algorithm in this course — KNN, decision trees, and everything coming next — secretly leans on the same assumption: there exists some <strong>fixed, unknown distribution <em>D</em></strong> over feature space <em>X</em> and label space <em>Y</em>. Both the training set and the test set are just independent samples drawn from that same <em>D</em>. Learning is the act of using the training sample to say something useful about <em>D</em> itself, so that predictions on the test sample — drawn from that same source — hold up.</p>
+    </div>
+    <div class="callout think">
+      <span class="callout-label">Why this has to be true</span>
+      If training and test data came from genuinely different distributions, nothing learned from one would say anything reliable about the other. Every guarantee a learning algorithm offers is really a guarantee <em>about D</em>, inherited by both sets because they share the same source.
+    </div>
+  </div>
+
+  <!-- TWO SCHOOLS -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">1</span>
+      <h3 class="stage-title">Two Schools of Modelling</h3>
+      <span class="stage-sub">what part of D does a model bother to learn?</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">Every classifier eventually needs to answer "given features <em>X</em>, what's the label <em>Y</em>?" — but algorithms differ sharply in <em>how much</em> of <em>D</em> they try to capture along the way.</p>
+
+    <div class="card-grid">
+      <div class="card gen">
+        <span class="card-tag gen">Generative</span>
+        <h4>Learns the joint distribution P(X, Y)</h4>
+        <p>Models how features <em>and</em> labels are produced together — effectively learning a recipe for generating entire new examples, features included. The classification boundary falls out as a side-effect once you know P(X, Y) for every class.</p>
+      </div>
+      <div class="card disc">
+        <span class="card-tag disc">Discriminative</span>
+        <h4>Learns the conditional P(Y | X)</h4>
+        <p>Never bothers modelling how <em>X</em> itself arose. It only learns the boundary needed to separate classes — nothing about what "generates" a typical member of one class versus another.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM: density vs boundary -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">2</span>
+      <h3 class="stage-title">The Same Data, Two Different Models</h3>
+      <span class="stage-sub">schoolyard, once more</span>
+    </div>
+    <div class="story">
+      <div class="icon">🎒</div>
+      <div class="story-text">
+        A <b style="color:var(--teal)">generative</b> model tries to understand <em>what a typical Chess Club kid looks like</em> and <em>what a typical Football kid looks like</em> — their whole spread of interests — then classifies the new kid by asking which "recipe" more plausibly produced them. A <b style="color:var(--coral)">discriminative</b> model skips all of that and just memorises where the dividing line between the two groups happens to sit.
+      </div>
+    </div>
+
+    <div class="fig-row">
+      <div class="fig">
+        <svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="280" height="220" fill="#0d1426" rx="8"/>
+          <circle cx="90" cy="100" r="70" fill="#5eead4" opacity="0.06"/>
+          <circle cx="90" cy="100" r="50" fill="#5eead4" opacity="0.09"/>
+          <circle cx="90" cy="100" r="30" fill="#5eead4" opacity="0.14"/>
+          <circle cx="200" cy="130" r="70" fill="#fb7d8b" opacity="0.06"/>
+          <circle cx="200" cy="130" r="50" fill="#fb7d8b" opacity="0.09"/>
+          <circle cx="200" cy="130" r="30" fill="#fb7d8b" opacity="0.14"/>
+          <circle cx="75" cy="85" r="5" fill="#5eead4"/><circle cx="105" cy="110" r="5" fill="#5eead4"/>
+          <circle cx="90" cy="70" r="5" fill="#5eead4"/><circle cx="65" cy="115" r="5" fill="#5eead4"/>
+          <circle cx="215" cy="115" r="5" fill="#fb7d8b"/><circle cx="185" cy="145" r="5" fill="#fb7d8b"/>
+          <circle cx="205" cy="150" r="5" fill="#fb7d8b"/><circle cx="230" cy="130" r="5" fill="#fb7d8b"/>
+          <path d="M148,10 C140,60 150,160 148,210" fill="none" stroke="#fbbf5c" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.7"/>
+          <text x="140" y="203" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="11">GENERATIVE — models both clouds</text>
+        </svg>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="280" height="220" fill="#0d1426" rx="8"/>
+          <circle cx="75" cy="85" r="5" fill="#5eead4"/><circle cx="105" cy="110" r="5" fill="#5eead4"/>
+          <circle cx="90" cy="70" r="5" fill="#5eead4"/><circle cx="65" cy="115" r="5" fill="#5eead4"/>
+          <circle cx="215" cy="115" r="5" fill="#fb7d8b"/><circle cx="185" cy="145" r="5" fill="#fb7d8b"/>
+          <circle cx="205" cy="150" r="5" fill="#fb7d8b"/><circle cx="230" cy="130" r="5" fill="#fb7d8b"/>
+          <line x1="148" y1="10" x2="148" y2="210" stroke="#fbbf5c" stroke-width="2.5"/>
+          <text x="140" y="203" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="11">DISCRIMINATIVE — models only the line</text>
+        </svg>
+      </div>
+    </div>
+    <div class="fig-caption" style="margin-top:-8px;">FIG. 1 — both diagrams end up with essentially the same gold boundary; only the left one bothered to learn <em>why</em> it sits there.</div>
+  </div>
+
+  <!-- FORMULA: bridging via Bayes -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">3</span>
+      <h3 class="stage-title">How a Generative Model Still Classifies</h3>
+      <span class="stage-sub">going from P(X, Y) back to a decision</span>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-label">Step 1 — decompose the joint</div>
+        <div class="step-body">The joint distribution can always be factored using the chain rule of probability: the chance of a class, times the chance of seeing those features given that class.</div>
+        <div class="step-eq">P(X, Y) = P(Y) · P(X | Y)</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 2 — this is exactly what a generative model estimates</div>
+        <div class="step-body">P(Y) is the overall class frequency (a prior — e.g. "60% of students are in Football Team"). P(X | Y) is the feature "recipe" for each class — what a typical member looks like.</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 3 — recover P(Y | X) when a prediction is actually needed</div>
+        <div class="step-body">Bayes' theorem converts the learned joint distribution back into exactly the conditional a discriminative model would have learned directly.</div>
+        <div class="step-eq">P(Y | X) = P(X | Y) · P(Y) / P(X)</div>
+      </div>
+    </div>
+
+    <div class="eq-panel">
+      <span class="eq-tag">Formula · Bayes' Bridge</span>
+      <div class="eq">
+        <span class="sym-y">P(Y|X)</span> &nbsp;=&nbsp;
+        <span style="display:inline-block;vertical-align:middle;">
+          <span style="display:block;border-bottom:2px solid var(--text);padding-bottom:2px;"><span class="sym-x">P(X|Y)</span> · <span class="sym-k">P(Y)</span></span>
+          <span style="display:block;padding-top:2px;"><span class="sym-n">P(X)</span></span>
+        </span>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-sym sym-x">P(X|Y)</span> the learned "recipe" for a class's features</div>
+        <div class="legend-item"><span class="legend-sym sym-k">P(Y)</span> the class prior — how common each class is</div>
+        <div class="legend-item"><span class="legend-sym sym-n">P(X)</span> the overall chance of seeing those features, any class</div>
+        <div class="legend-item"><span class="legend-sym sym-y">P(Y|X)</span> the actual prediction target — same as a discriminative model's</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-label">The key insight</span>
+      A generative model does strictly more work than it needs to for classification alone — it learns the full joint distribution, then derives the boundary as a byproduct. A discriminative model skips straight to the part that classification actually requires.
+    </div>
+  </div>
+
+  <!-- LANGUAGE EXAMPLE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt3">4</span>
+      <h3 class="stage-title">Worked Example — Is This Sentence Bengali?</h3>
+      <span class="stage-sub">the lecture's own case study</span>
+    </div>
+    <div class="card-grid">
+      <div class="card gen">
+        <span class="card-tag gen">Generative route</span>
+        <p>Build a model that understands Bengali deeply enough to actually <em>generate</em> plausible Bengali sentences — its grammar, its sound patterns, its structure. Once you can generate the language, telling it apart from anything else becomes almost automatic: whichever "recipe" more plausibly produced the sentence wins.</p>
+      </div>
+      <div class="card disc">
+        <span class="card-tag disc">Discriminative route</span>
+        <p>Skip language modelling entirely. Learn to recognise the specific audio patterns that separate Bengali speech from everything else — without ever learning how to construct a single Bengali sentence.</p>
+      </div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-label">The tradeoff, in one line</span>
+      The generative route only pays off if you actually have strong domain knowledge of how Bengali is structured. Get that generative model wrong, and the errors leak straight into your classifications — the discriminative route never has to be right about anything except the boundary.
+    </div>
+  </div>
+
+  <!-- REVISIT PREVIOUS ALGORITHMS -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">5</span>
+      <h3 class="stage-title">Revisiting Lectures 42–44</h3>
+      <span class="stage-sub">where KNN and Decision Trees actually sit</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Algorithm</th><th>Type</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>K-Nearest Neighbours</td><td class="neg">Discriminative</td><td>Makes zero assumptions about how X is generated — it only ever compares distances between points already given.</td></tr>
+          <tr><td>Decision Trees</td><td class="neg">Discriminative</td><td>Learns a rule chain mapping X directly to Y; never estimates a probability density over the features themselves.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      Neither algorithm you've learned so far has modelled P(X, Y) or even P(X | Y) — both go straight for the boundary. This lecture's generative branch is genuinely new territory for the course.
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">6</span>
+      <h3 class="stage-title">Head-to-Head Comparison</h3>
+      <span class="stage-sub">choosing a school of thought</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Property</th><th>Generative</th><th>Discriminative</th></tr></thead>
+        <tbody>
+          <tr><td>What's learned</td><td>P(X, Y)</td><td>P(Y | X)</td></tr>
+          <tr><td>Can generate new samples?</td><td class="pos">Yes</td><td class="neg">No</td></tr>
+          <tr><td>Needs domain knowledge of X?</td><td class="neg">Yes, and it matters a lot</td><td class="pos">Not really</td></tr>
+          <tr><td>Robust when assumptions are wrong?</td><td class="neg">No — errors propagate into the boundary</td><td class="pos">Generally yes</td></tr>
+          <tr><td>Effort relative to the classification task</td><td>More than strictly needed</td><td class="pos">Exactly what's needed</td></tr>
+          <tr><td>Examples</td><td>Naive Bayes, Gaussian Mixture Models</td><td>KNN, Decision Trees, Logistic Regression</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- HIDDEN TRIGGERS -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">7</span>
+      <h3 class="stage-title">Hidden Trigger Recognition</h3>
+      <span class="stage-sub">words that flag this distinction</span>
+    </div>
+    <div class="chips">
+      <span class="chip">"joint distribution"</span>
+      <span class="chip">"P(X, Y)"</span>
+      <span class="chip">"P(Y | X)"</span>
+      <span class="chip">"class-conditional"</span>
+      <span class="chip">"generate new samples"</span>
+      <span class="chip">"decision boundary only"</span>
+      <span class="chip">"domain knowledge of the data"</span>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt">✓</span>
+      <h3 class="stage-title">Quick Recall</h3>
+      <span class="stage-sub">the whole lecture in one glance</span>
+    </div>
+    <div class="memory-card">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">All learning assumes training and test data share one fixed distribution <em>D</em>. <strong style="color:var(--teal)">Generative</strong> models try to learn the full joint P(X, Y) — a recipe for the data itself — and derive the boundary from it via Bayes' theorem. <strong style="color:var(--coral)">Discriminative</strong> models skip straight to P(Y | X), learning only the boundary. Choose generative when you trust your understanding of how the features arise; choose discriminative when you don't.</p>
+      <div class="memory-grid">
+        <div class="memory-tile"><div class="k">Generative learns</div><div class="v">P(X, Y)</div></div>
+        <div class="memory-tile"><div class="k">Discriminative learns</div><div class="v">P(Y | X)</div></div>
+        <div class="memory-tile"><div class="k">Bridge</div><div class="v">Bayes' theorem</div></div>
+        <div class="memory-tile"><div class="k">KNN / Trees</div><div class="v">Both discriminative</div></div>
+        <div class="memory-tile"><div class="k">Generative bonus</div><div class="v">Can generate samples</div></div>
+        <div class="memory-tile"><div class="k">Generative risk</div><div class="v">Wrong assumptions hurt</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">→</span>
+      <h3 class="stage-title">Where This Leads</h3>
+      <span class="stage-sub">the first fully probabilistic algorithm</span>
+    </div>
+    <div class="bridge">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">With the generative/discriminative distinction in place, the course is ready to build its first genuinely generative classifier — one that explicitly estimates P(X | Y) for each class and combines it with a prior P(Y) to classify via Bayes' theorem, exactly as sketched above.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>Lecture 45 — Generative and Discriminative Models · study notes</footer>
+
+</body>
+</html>

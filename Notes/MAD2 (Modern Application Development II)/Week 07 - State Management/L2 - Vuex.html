@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to Vuex — Week 7, Lecture 2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420;
+    --bg-alt:#0F1A2B;
+    --card:#132239;
+    --card-2:#0F1D31;
+    --border:#22314C;
+    --border-soft:#1A2740;
+    --text:#E7EDF6;
+    --muted:#8CA0C0;
+    --mint:#5EEAD4;
+    --mint-dim:#3AA793;
+    --amber:#F5C24C;
+    --coral:#FB7C86;
+    --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace;
+    --display:'Space Grotesk', sans-serif;
+    --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(30px,4.6vw,46px);
+    line-height:1.1; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: VUEX FLOW ---------- */
+  .flow-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:30px 20px 24px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6); overflow-x:auto;
+  }
+  .flow-row{ display:flex; align-items:center; gap:6px; min-width:720px; justify-content:center; }
+  .flow-node{
+    flex:none; width:118px; padding:14px 10px; border-radius:11px; text-align:center;
+    font-family:var(--display); font-weight:600; font-size:13px; border:1px solid var(--border-soft);
+    background:var(--card); position:relative;
+  }
+  .flow-node .sub{ display:block; font-family:var(--mono); font-weight:400; font-size:10px; color:var(--muted); margin-top:4px; }
+  .flow-node.component{ animation:pulse 6s ease infinite; animation-delay:0s; }
+  .flow-node.action{ animation:pulse 6s ease infinite; animation-delay:1s; border-color:var(--amber); }
+  .flow-node.mutation{ animation:pulse 6s ease infinite; animation-delay:2.6s; border-color:var(--coral); }
+  .flow-node.state{ animation:pulse 6s ease infinite; animation-delay:3.4s; border-color:var(--mint); }
+  @keyframes pulse{
+    0%, 14%, 100%{ box-shadow:0 0 0 0 rgba(94,234,212,0); }
+    3%,9%{ box-shadow:0 0 20px -2px currentColor; }
+  }
+  .flow-node.component{ color:var(--lilac); }
+  .flow-node.action{ color:var(--amber); }
+  .flow-node.mutation{ color:var(--coral); }
+  .flow-node.state{ color:var(--mint); }
+  .flow-arrow{ flex:none; font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; width:74px; }
+  .flow-arrow .verb{ display:block; font-size:10px; margin-bottom:2px; }
+  .flow-loop-label{ text-align:center; font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:20px; }
+  .flow-legend{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; margin-top:14px; font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+
+  /* ---------- SECTIONS (shared) ---------- */
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0; font-size:15.5px; }
+
+  /* ---------- ANATOMY GRID ---------- */
+  .anatomy-grid{ display:grid; grid-template-columns:repeat(5, 1fr); gap:14px; }
+  .anatomy-card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 14px;
+    display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease;
+  }
+  .anatomy-card:hover{ transform:translateY(-3px); border-color:var(--mint-dim); }
+  .anatomy-card h3{ font-family:var(--display); font-size:14.5px; margin:0; display:flex; align-items:center; }
+  .anatomy-card p{ margin:0; font-size:12.5px; color:var(--muted); }
+  .anatomy-card .tag{ font-family:var(--mono); font-size:10px; color:var(--card-2); background:var(--mint); display:inline-block; padding:2px 7px; border-radius:20px; align-self:flex-start; font-weight:600; }
+  .anatomy-card.async .tag{ background:var(--amber); }
+  .anatomy-card.sync .tag{ background:var(--coral); }
+
+  /* ---------- SYNC VS ASYNC COMPARE ---------- */
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .compare-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .compare-card.mutation{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .compare-card.action{ background:rgba(245,194,76,0.05); border-color:#8a6d20; }
+  .compare-card h3{ font-family:var(--display); font-size:16px; margin:0 0 4px; display:flex; align-items:center; gap:8px; }
+  .compare-card.mutation h3{ color:var(--coral); }
+  .compare-card.action h3{ color:var(--amber); }
+  .compare-card .sig{ font-family:var(--mono); font-size:12.5px; color:var(--muted); margin-bottom:14px; display:block; }
+  .compare-card p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .timing-strip{ display:flex; align-items:center; gap:4px; margin:14px 0; height:22px; }
+  .timing-seg{ height:8px; border-radius:4px; }
+  .compare-card.mutation .timing-seg{ background:var(--coral); width:20px; }
+  .compare-card.action .timing-seg.wait{ background:var(--border-soft); width:70px; border:1px dashed var(--amber); }
+  .compare-card.action .timing-seg.go{ background:var(--amber); width:20px; }
+  .timing-label{ font-family:var(--mono); font-size:10.5px; color:var(--muted); }
+
+  /* ---------- TIME TRAVEL DIAGRAM ---------- */
+  .timeline-card{ overflow-x:auto; }
+  .timeline{ display:flex; align-items:center; gap:0; min-width:600px; padding:20px 4px 6px; position:relative; }
+  .timeline::before{ content:''; position:absolute; left:0; right:0; top:38px; height:1px; background:var(--border); }
+  .tl-step{ flex:1; display:flex; flex-direction:column; align-items:center; position:relative; }
+  .tl-dot{ width:14px; height:14px; border-radius:50%; background:var(--card-2); border:2px solid var(--mint-dim); z-index:1; margin-bottom:10px; }
+  .tl-step.current .tl-dot{ background:var(--mint); box-shadow:0 0 12px rgba(94,234,212,0.7); border-color:var(--mint); }
+  .tl-label{ font-family:var(--mono); font-size:11px; color:var(--muted); text-align:center; }
+  .tl-step.current .tl-label{ color:var(--mint); }
+  .tl-scrub{ position:absolute; top:-6px; font-family:var(--mono); font-size:10px; color:var(--lilac); }
+
+  /* ---------- WHEN TO USE ---------- */
+  .decision-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .decision-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .decision-card.yes{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .decision-card.no{ background:rgba(156,140,255,0.05); border-color:#5b4fa6; }
+  .decision-card h3{ font-family:var(--display); font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+  .decision-card.yes h3{ color:var(--mint); }
+  .decision-card.no h3{ color:var(--lilac); }
+  .decision-card ul{ margin:0; padding-left:18px; font-size:13.5px; color:var(--muted); }
+  .decision-card li{ margin-bottom:6px; }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:760px){
+    .callout-grid{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .decision-grid{ grid-template-columns:1fr; }
+    .anatomy-grid{ grid-template-columns:repeat(2, 1fr); }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    .anatomy-grid{ grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 7, Lecture 2</div>
+    <h1 class="title">Introduction<br>to <span class="accent">Vuex</span></h1>
+    <p class="subtitle">Vue's official answer to "who's allowed to change the state, and how do we prove it happened?"</p>
+
+    <div class="flow-card">
+      <div class="flow-row">
+        <div class="flow-node component">Component<span class="sub">this.$store</span></div>
+        <div class="flow-arrow"><span class="verb">dispatch()</span>→</div>
+        <div class="flow-node action">Action<span class="sub">async</span></div>
+        <div class="flow-arrow"><span class="verb">commit()</span>→</div>
+        <div class="flow-node mutation">Mutation<span class="sub">sync only</span></div>
+        <div class="flow-arrow"><span class="verb">updates</span>→</div>
+        <div class="flow-node state">State<span class="sub">source of truth</span></div>
+      </div>
+      <div class="flow-loop-label">State changes re-render the component through <b style="color:var(--text)">getters</b> — closing the loop</div>
+      <div class="flow-legend">
+        <span><span class="dot lilac"></span>triggers the request</span>
+        <span><span class="dot amber"></span>handles async work</span>
+        <span><span class="dot coral"></span>the only thing allowed to change state</span>
+        <span><span class="dot mint"></span>single source of truth</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>Overview</h2></div>
+    <div class="card overview-card">
+      <p>Vuex is Vue's official state management library. Instead of every component guarding its own slice of data, Vuex gives the whole app one centralized, global store — making data interactions predictable and easy to reason about, even as the app grows.</p>
+    </div>
+  </section>
+
+  <!-- ================= ANATOMY ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>Anatomy of a Store</h2></div>
+    <p class="lede">Five pieces, each with exactly one job.</p>
+    <div class="anatomy-grid">
+      <div class="anatomy-card">
+        <span class="tag">container</span>
+        <h3><span class="dot lilac"></span>Store</h3>
+        <p>The single shared container holding the app's entire state, reachable anywhere via <code style="font-family:var(--mono)">this.$store</code>.</p>
+      </div>
+      <div class="anatomy-card">
+        <span class="tag">data</span>
+        <h3><span class="dot mint"></span>State</h3>
+        <p>Replaces component-level <code style="font-family:var(--mono)">data()</code>. A tree that mirrors the component hierarchy.</p>
+      </div>
+      <div class="anatomy-card">
+        <span class="tag">read</span>
+        <h3><span class="dot lilac"></span>Getters</h3>
+        <p>Derive and access state values conveniently — like a computed property for the whole store.</p>
+      </div>
+      <div class="anatomy-card sync">
+        <span class="tag">sync</span>
+        <h3><span class="dot coral"></span>Mutations</h3>
+        <p>The <em>only</em> legal way to change state. Always synchronous. Triggered with <code style="font-family:var(--mono)">commit()</code>.</p>
+      </div>
+      <div class="anatomy-card async">
+        <span class="tag">async</span>
+        <h3><span class="dot amber"></span>Actions</h3>
+        <p>Handle async logic, then commit a mutation once it resolves. Triggered with <code style="font-family:var(--mono)">dispatch()</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MUTATIONS VS ACTIONS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>Mutations vs. Actions</h2></div>
+    <p class="lede">The split exists for one reason: keeping state changes traceable.</p>
+    <div class="compare-grid">
+      <div class="compare-card mutation">
+        <h3><span class="dot coral"></span>Mutations</h3>
+        <span class="sig">store.commit('setUser')</span>
+        <div class="timing-strip"><div class="timing-seg"></div><span class="timing-label">instant, synchronous</span></div>
+        <p>Change state directly and immediately. Because they're synchronous, dev tools can record each one in order — the foundation of time-travel debugging.</p>
+      </div>
+      <div class="compare-card action">
+        <h3><span class="dot amber"></span>Actions</h3>
+        <span class="sig">store.dispatch('fetchUser')</span>
+        <div class="timing-strip"><div class="timing-seg wait"></div><div class="timing-seg go"></div><span class="timing-label">waits, then commits</span></div>
+        <p>Wrap async work — API calls, timers — and only commit a mutation once that work resolves. They never touch state directly.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= TIME TRAVEL ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>Why Mutations Must Be Synchronous</h2></div>
+    <p class="lede">Every commit is recorded in order — so dev tools can scrub backward and forward through your app's history.</p>
+    <div class="card timeline-card">
+      <div class="timeline">
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">setUser</div></div>
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">addToCart</div></div>
+        <div class="tl-step current"><div class="tl-scrub">◄ scrub here</div><div class="tl-dot"></div><div class="tl-label">applyDiscount</div></div>
+        <div class="tl-step"><div class="tl-dot"></div><div class="tl-label">checkout</div></div>
+      </div>
+    </div>
+    <div class="sweep" style="margin-top:16px; padding:14px 16px; border:1px dashed var(--coral); border-radius:10px; background:rgba(251,124,134,0.06); display:flex; gap:12px; align-items:flex-start;">
+      <span style="font-family:var(--mono); color:var(--coral); font-size:18px;">⏱</span>
+      <p style="margin:0; font-size:13.5px; color:var(--muted);"><b style="color:var(--coral);">If a mutation were async</b>, its exact position in this timeline would be unpredictable — breaking the recording that time-travel debugging depends on. That's why the rule is strict, not stylistic.</p>
+    </div>
+  </section>
+
+  <!-- ================= WHEN TO USE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>When Should You Reach for Vuex?</h2></div>
+    <div class="decision-grid">
+      <div class="decision-card yes">
+        <h3><span class="dot mint"></span>Good fit</h3>
+        <ul>
+          <li>Large or complex applications</li>
+          <li>Deeply nested component data</li>
+          <li>Multiple, unrelated components needing the same state</li>
+        </ul>
+      </div>
+      <div class="decision-card no">
+        <h3><span class="dot lilac"></span>Skip it</h3>
+        <ul>
+          <li>Small, simple applications</li>
+          <li>State only used by one or two nearby components</li>
+          <li>Component-level state is already easy to manage</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>One store, one truth</h4>
+        <p>Vuex centralizes state so every component reads from — and requests changes to — the same shared source.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Async lives in actions</h4>
+        <p>Actions handle the waiting; mutations handle the change. Keeping them separate is what makes state changes traceable.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Complexity is a trade-off</h4>
+        <p>Vuex earns its keep in large apps with shared, nested state — not in every project by default.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Week 7, Lecture 2 — Introduction to Vuex</footer>
+</div>
+</body>
+</html>

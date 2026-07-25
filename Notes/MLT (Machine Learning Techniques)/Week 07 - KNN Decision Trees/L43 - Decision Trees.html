@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 43 — Decision Trees</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1020;
+    --bg-soft: #0d1426;
+    --panel: #131b30;
+    --panel-alt: #182140;
+    --border: #263153;
+    --border-soft: #1c2740;
+    --text: #e7ecf7;
+    --text-dim: #93a1c2;
+    --text-faint: #5f6d90;
+    --teal: #5eead4;
+    --teal-dim: #1f4a45;
+    --coral: #fb7d8b;
+    --coral-dim: #4a2530;
+    --gold: #fbbf5c;
+    --gold-dim: #4a3a1a;
+    --violet: #b8a6ff;
+    --violet-dim: #2c2650;
+    --radius: 10px;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(94,234,212,0.07), transparent 60%),
+      radial-gradient(ellipse 900px 600px at 90% 10%, rgba(251,125,139,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px 100px;}
+
+  .hero{padding:56px 20px 40px;max-width:980px;margin:0 auto;position:relative;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border);padding:5px 12px;border-radius:999px;background:var(--panel);}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  h1.title{font-family:var(--font-display);font-weight:700;font-size:clamp(32px,6vw,54px);line-height:1.05;margin:18px 0 10px;letter-spacing:-0.01em;}
+  .title .accent{color:var(--teal);font-style:italic;font-weight:600;}
+  .subtitle{color:var(--text-dim);font-size:17px;max-width:640px;margin:0 0 26px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .badge{font-family:var(--font-mono);font-size:11.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);background:var(--panel);white-space:nowrap;}
+  .badge.geo{color:var(--teal);border-color:var(--teal-dim);}
+  .badge.count{color:var(--gold);border-color:var(--gold-dim);}
+  .badge.pat{color:var(--violet);border-color:var(--violet-dim);}
+
+  .stage{margin:64px 0;}
+  .stage-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;border-bottom:1px solid var(--border-soft);padding-bottom:14px;}
+  .stage-num{font-family:var(--font-mono);font-size:13px;color:var(--bg);background:var(--teal);padding:3px 9px;border-radius:5px;font-weight:600;flex-shrink:0;}
+  .stage-num.alt{background:var(--gold);}
+  .stage-num.alt2{background:var(--violet);}
+  .stage-num.alt3{background:var(--coral);}
+  .stage-title{font-family:var(--font-display);font-size:clamp(21px,3vw,28px);font-weight:600;margin:0;}
+  .stage-sub{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-left:auto;text-align:right;}
+
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px;}
+  .card h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin:0 0 8px;color:var(--text);}
+  .card p{margin:0 0 10px;color:var(--text-dim);font-size:15px;}
+  .card p:last-child{margin-bottom:0;}
+  .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:680px){ .card-grid{grid-template-columns:1fr;} }
+
+  .callout{border-left:3px solid var(--teal);background:linear-gradient(90deg, rgba(94,234,212,0.08), transparent 60%);padding:16px 20px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14.5px;color:var(--text-dim);}
+  .callout strong{color:var(--text);}
+  .callout.warn{border-color:var(--coral);background:linear-gradient(90deg, rgba(251,125,139,0.08), transparent 60%);}
+  .callout.tip{border-color:var(--gold);background:linear-gradient(90deg, rgba(251,191,92,0.09), transparent 60%);}
+  .callout.think{border-color:var(--violet);background:linear-gradient(90deg, rgba(184,166,255,0.09), transparent 60%);}
+  .callout-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;color:var(--text);font-weight:700;}
+
+  .story{display:flex;gap:14px;align-items:flex-start;background:var(--panel-alt);border:1px dashed var(--border);border-radius:var(--radius);padding:18px 20px;margin:18px 0;}
+  .story .icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:2px;}
+  .story-text b{color:var(--gold);}
+  .story-text{font-size:14.5px;color:var(--text-dim);}
+
+  .eq-panel{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:20px 0;text-align:center;position:relative;overflow-x:auto;}
+  .eq-tag{position:absolute;top:12px;left:16px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.1em;}
+  .eq{font-family:var(--font-display);font-size:clamp(16px,3.2vw,26px);color:var(--text);white-space:nowrap;}
+  .eq sub{font-size:0.6em;}
+  .sym-x{color:var(--teal);}
+  .sym-y{color:var(--coral);}
+  .sym-k{color:var(--gold);}
+  .sym-n{color:var(--violet);}
+  .sym-d{color:#8fb7ff;}
+
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-soft);text-align:left;}
+  .legend-item{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--text-dim);}
+  .legend-sym{font-family:var(--font-display);font-style:italic;font-weight:600;flex-shrink:0;width:34px;text-align:center;font-size:16px;}
+
+  .steps{position:relative;padding-left:28px;margin:20px 0;}
+  .steps::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--teal),var(--violet));opacity:0.35;}
+  .step{position:relative;margin-bottom:22px;}
+  .step:last-child{margin-bottom:0;}
+  .step::before{content:'';position:absolute;left:-28px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--teal);}
+  .step-label{font-family:var(--font-mono);font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .step-body{font-size:14.5px;color:var(--text-dim);}
+  .step-eq{font-family:var(--font-mono);font-size:14px;color:var(--text);background:var(--bg-soft);display:inline-block;padding:4px 10px;border-radius:5px;margin-top:6px;border:1px solid var(--border-soft);}
+
+  .table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+  thead th{background:var(--panel-alt);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  td.pos{color:var(--teal);font-weight:600;}
+  td.neg{color:var(--coral);font-weight:600;}
+  td.mono{font-family:var(--font-mono);font-size:13px;}
+
+  .fig{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:20px 0;}
+  .fig svg{width:100%;height:auto;display:block;}
+  .fig-caption{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:10px;letter-spacing:.02em;}
+  .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.fig-row{grid-template-columns:1fr;}}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0;}
+  .chip{font-family:var(--font-mono);font-size:13px;padding:7px 13px;border-radius:6px;background:var(--panel-alt);border:1px solid var(--border);color:var(--gold);}
+
+  ul.clean, ol.clean{margin:10px 0;padding-left:22px;color:var(--text-dim);font-size:15px;}
+  ul.clean li, ol.clean li{margin-bottom:8px;}
+  ul.clean li::marker{color:var(--teal);}
+  ol.clean li::marker{color:var(--gold);font-family:var(--font-mono);font-weight:600;}
+
+  .memory-card{background:linear-gradient(135deg, var(--panel-alt), var(--panel));border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+  .memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  @media(max-width:680px){.memory-grid{grid-template-columns:1fr;}}
+  .memory-tile{background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
+  .memory-tile .k{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .memory-tile .v{font-family:var(--font-display);font-size:20px;color:var(--teal);margin-top:4px;}
+
+  footer{text-align:center;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;padding:40px 20px 10px;}
+  code.inline{font-family:var(--font-mono);background:var(--bg-soft);border:1px solid var(--border-soft);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--teal);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="eyebrow"><span class="dot"></span>Lecture 43 · Supervised Learning</span>
+  <h1 class="title">Decision <span class="accent">Trees</span></h1>
+  <p class="subtitle">KNN asks "who's nearby?" every single time. A decision tree asks a short series of yes/no questions once, in advance, and then never needs the training data again.</p>
+  <div class="badge-row">
+    <span class="badge geo">◆ Recursive Partitioning</span>
+    <span class="badge count">◆ Information Theory</span>
+    <span class="badge pat">◆ Greedy Optimization</span>
+    <span class="badge">◆ Model-Based Learning</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STAGE -1 -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">−1</span>
+      <h3 class="stage-title">Cognitive Pattern</h3>
+      <span class="stage-sub">what kind of thinking is this?</span>
+    </div>
+    <div class="card">
+      <p>Decision trees are built from three ways of thinking layered together. <strong style="color:var(--teal)">Recursive partitioning</strong> — repeatedly slicing a space into smaller, purer pieces. <strong style="color:var(--gold)">Information theory</strong> — measuring "uncertainty" with a real number so two possible questions can be compared. And <strong style="color:var(--violet)">greedy optimization</strong> — at every step, take the single best question available right now, without looking ahead.</p>
+    </div>
+  </div>
+
+  <!-- STAGE 0 -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">0</span>
+      <h3 class="stage-title">The Problem</h3>
+      <span class="stage-sub">why does this exist?</span>
+    </div>
+    <div class="story">
+      <div class="icon">🌳</div>
+      <div class="story-text">
+        <b>Same schoolyard, new problem:</b> the teacher got tired of re-scanning the entire yard every time a new kid showed up (that was KNN's whole weakness — see Lecture 42). She wants a <b style="color:var(--gold)">short checklist</b> she can pin to the office door: two or three quick yes/no questions that any substitute teacher could use to guess "Chess Club" or "Football Team" without knowing a single student personally.
+      </div>
+    </div>
+    <div class="card">
+      <p>This is what a decision tree buys you: <strong>a compact, reusable set of questions extracted once from the training data</strong>, instead of carrying the entire dataset around forever. Predictions become nearly instant — just answer a handful of questions and walk down the tree.</p>
+      <p>If you don't solve this, every prediction stays as expensive as KNN's: rescan everything, every time.</p>
+    </div>
+  </div>
+
+  <!-- STAGE 1 + 2 -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">1</span>
+      <h3 class="stage-title">History &amp; Engineering Thinking</h3>
+      <span class="stage-sub">motivation, before the maths</span>
+    </div>
+    <div class="card card-grid">
+      <div>
+        <h4>Why it was invented</h4>
+        <p>Decision trees grew out of 1960s–80s work on automated classification (ID3, later C4.5 and CART). The goal was to mimic how a person actually reasons through a diagnosis or a decision: a short chain of targeted questions, not a single global equation.</p>
+      </div>
+      <div>
+        <h4>Constraints before any maths</h4>
+        <ul class="clean">
+          <li>Each question must be simple: one feature, one threshold</li>
+          <li>Each question must have exactly two outcomes</li>
+          <li>Questions should be chosen to separate the classes as cleanly as possible</li>
+          <li>The whole checklist should stay short — the point was speed and clarity</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- STRUCTURE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">2</span>
+      <h3 class="stage-title">Structure of a Tree</h3>
+      <span class="stage-sub">three kinds of nodes</span>
+    </div>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="340" fill="#0d1426" rx="8"/>
+        <!-- edges -->
+        <line x1="320" y1="70" x2="180" y2="150" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="320" y1="70" x2="460" y2="150" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="180" y1="180" x2="100" y2="260" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="180" y1="180" x2="260" y2="260" stroke="#5f6d90" stroke-width="2"/>
+
+        <!-- edge labels -->
+        <text x="228" y="105" fill="#5eead4" font-family="JetBrains Mono" font-size="12">Yes</text>
+        <text x="405" y="105" fill="#fb7d8b" font-family="JetBrains Mono" font-size="12">No</text>
+        <text x="118" y="215" fill="#5eead4" font-family="JetBrains Mono" font-size="12">Yes</text>
+        <text x="230" y="215" fill="#fb7d8b" font-family="JetBrains Mono" font-size="12">No</text>
+
+        <!-- root -->
+        <rect x="230" y="30" width="180" height="46" rx="9" fill="#182140" stroke="#b8a6ff" stroke-width="1.6"/>
+        <text x="320" y="49" text-anchor="middle" fill="#b8a6ff" font-family="JetBrains Mono" font-size="10.5">ROOT NODE</text>
+        <text x="320" y="65" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12.5">Sports Interest ≤ 6?</text>
+
+        <!-- internal node -->
+        <rect x="90" y="150" width="180" height="46" rx="9" fill="#182140" stroke="#fbbf5c" stroke-width="1.6"/>
+        <text x="180" y="169" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="10.5">INTERNAL NODE</text>
+        <text x="180" y="185" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12.5">Music Interest ≤ 4?</text>
+
+        <!-- leaf: football (right of root) -->
+        <rect x="400" y="150" width="150" height="46" rx="23" fill="#4a2530" stroke="#fb7d8b" stroke-width="1.6"/>
+        <text x="475" y="169" text-anchor="middle" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10.5">LEAF</text>
+        <text x="475" y="185" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12.5">Football Team</text>
+
+        <!-- leaf: chess (left-left) -->
+        <rect x="30" y="260" width="140" height="46" rx="23" fill="#1f4a45" stroke="#5eead4" stroke-width="1.6"/>
+        <text x="100" y="279" text-anchor="middle" fill="#5eead4" font-family="JetBrains Mono" font-size="10.5">LEAF</text>
+        <text x="100" y="295" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12.5">Chess Club</text>
+
+        <!-- leaf: football (left-right) -->
+        <rect x="190" y="260" width="150" height="46" rx="23" fill="#4a2530" stroke="#fb7d8b" stroke-width="1.6"/>
+        <text x="265" y="279" text-anchor="middle" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10.5">LEAF</text>
+        <text x="265" y="295" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12.5">Football Team</text>
+      </svg>
+      <div class="fig-caption">FIG. 1 — the whole "model" is this tiny checklist. No training points are stored anywhere.</div>
+    </div>
+
+    <div class="card card-grid">
+      <div>
+        <h4 style="color:var(--violet)">Root &amp; Internal Nodes</h4>
+        <p>Every non-leaf node holds one question — a feature compared against a threshold — with exactly two children, one per answer.</p>
+      </div>
+      <div>
+        <h4 style="color:var(--coral)">Leaf Nodes</h4>
+        <p>Terminal nodes carry no further questions, only a final predicted label (here, +1 for Football or 0 for Chess).</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h4>Prediction — walking the tree</h4>
+      <ol class="clean">
+        <li>Start at the root. Apply its question to <code class="inline">X_test</code>.</li>
+        <li>Follow the Yes or No edge to the matching child.</li>
+        <li>Repeat at every internal node reached.</li>
+        <li>Stop at a leaf — its label <em>is</em> the prediction. No further computation happens.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- STAGE 3-4: entropy formula -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">3–4</span>
+      <h3 class="stage-title">Measuring "Goodness" — Entropy</h3>
+      <span class="stage-sub">from words to a number</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">A good question should split the yard into groups that are as "pure" as possible — ideally, all-Chess on one side and all-Football on the other. To compare candidate questions, impurity needs a number.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-label">Step 1 — a pure group needs 0</div>
+        <div class="step-body">If a subset is all one class, there's no uncertainty left — the impurity score should be exactly zero.</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 2 — a 50/50 split needs the maximum</div>
+        <div class="step-body">If a subset is split evenly, a coin-flip is the best you can do — this should be the highest possible impurity.</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 3 — borrow from information theory</div>
+        <div class="step-body">Shannon's entropy formula already has exactly this shape: it's 0 at the extremes and peaks in the middle.</div>
+        <div class="step-eq">Entropy(p) = − p·log(p) − (1−p)·log(1−p)</div>
+      </div>
+    </div>
+
+    <div class="eq-panel">
+      <span class="eq-tag">Formula · Entropy</span>
+      <div class="eq">
+        Entropy(<span class="sym-k">p</span>) &nbsp;=&nbsp; − <span class="sym-k">p</span> log(<span class="sym-k">p</span>) − (1−<span class="sym-k">p</span>) log(1−<span class="sym-k">p</span>)
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-sym sym-k">p</span> fraction of positive labels (+1) in the set</div>
+        <div class="legend-item"><span class="legend-sym sym-y">1−p</span> fraction of negative labels (0) in the set</div>
+        <div class="legend-item"><span class="legend-sym sym-d">log</span> typically base-2, so entropy is measured in bits</div>
+      </div>
+    </div>
+
+    <div class="fig">
+      <svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="200" fill="#0d1426" rx="8"/>
+        <!-- axes -->
+        <line x1="10" y1="180" x2="390" y2="180" stroke="#263153" stroke-width="1.5"/>
+        <line x1="10" y1="180" x2="10" y2="10" stroke="#263153" stroke-width="1.5"/>
+        <text x="390" y="196" text-anchor="end" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">p (fraction positive) → 1.0</text>
+        <text x="14" y="22" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">Entropy = 1</text>
+        <!-- curve -->
+        <polyline points="10,180 48,105 86,65 124,39 162,25 200,20 238,25 276,39 314,65 352,105 390,180"
+          fill="none" stroke="#fbbf5c" stroke-width="2.5"/>
+        <circle cx="200" cy="20" r="4" fill="#fbbf5c"/>
+        <circle cx="10" cy="180" r="4" fill="#5eead4"/>
+        <circle cx="390" cy="180" r="4" fill="#fb7d8b"/>
+        <text x="200" y="12" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="10">max uncertainty (p=0.5)</text>
+        <text x="10" y="195" text-anchor="start" fill="#5eead4" font-family="JetBrains Mono" font-size="10">pure (all Chess)</text>
+        <text x="390" y="195" text-anchor="end" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10">pure (all Football)</text>
+      </svg>
+      <div class="fig-caption">FIG. 2 — entropy is 0 at both pure extremes and peaks exactly at p = 0.5.</div>
+    </div>
+
+    <div class="callout think">
+      <span class="callout-label">Stage 6 · Why this exact shape</span>
+      The logarithm makes rare, surprising outcomes count for more than common ones — this is the same core idea used for measuring "information" more generally. Weighting each term by its own probability (<code class="inline">p</code> and <code class="inline">1−p</code>) means the formula naturally averages the surprise you'd expect to encounter, which is exactly what "uncertainty" means.
+    </div>
+  </div>
+
+  <!-- STAGE 4b: Information Gain -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">5</span>
+      <h3 class="stage-title">Information Gain</h3>
+      <span class="stage-sub">comparing candidate questions</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">Entropy scores one group. To pick the best <em>question</em>, compare the entropy before the split against the combined entropy of the two resulting groups — the drop is the "gain."</p>
+
+    <div class="eq-panel">
+      <span class="eq-tag">Formula · Information Gain</span>
+      <div class="eq" style="font-size:clamp(14px,2.6vw,21px);">
+        IG &nbsp;=&nbsp; Entropy(<span class="sym-d">D</span>) − [ <span class="sym-k">γ</span>·Entropy(<span class="sym-x">D<sub>Yes</sub></span>) + (1−<span class="sym-k">γ</span>)·Entropy(<span class="sym-y">D<sub>No</sub></span>) ]
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-sym sym-d">D</span> the full dataset arriving at this node</div>
+        <div class="legend-item"><span class="legend-sym sym-x">D_Yes</span> subset that answered "Yes" to the question</div>
+        <div class="legend-item"><span class="legend-sym sym-y">D_No</span> subset that answered "No"</div>
+        <div class="legend-item"><span class="legend-sym sym-k">γ</span> fraction of D that went down the "Yes" branch</div>
+      </div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-label">Worked example — 8 students, two candidate questions</span>
+      Dataset: 4 Chess Club (label 0), 4 Football Team (label +1). Entropy(D) = 1 bit (perfectly balanced).
+      <br><br>
+      <strong style="color:var(--coral)">Candidate A — "Sports Interest ≤ 5?"</strong><br>
+      Yes: 3 Chess, 1 Football → p=0.25 → Entropy ≈ 0.811<br>
+      No: 1 Chess, 3 Football → p=0.75 → Entropy ≈ 0.811<br>
+      γ = 0.5 → weighted entropy = 0.5(0.811) + 0.5(0.811) = 0.811<br>
+      <strong>IG = 1 − 0.811 = 0.189</strong>
+      <br><br>
+      <strong style="color:var(--teal)">Candidate B — "Sports Interest ≤ 6?"</strong><br>
+      Yes: 4 Chess, 0 Football → Entropy = 0 (pure)<br>
+      No: 0 Chess, 4 Football → Entropy = 0 (pure)<br>
+      weighted entropy = 0<br>
+      <strong>IG = 1 − 0 = 1.0</strong>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Question</th><th>Weighted entropy after split</th><th>Information Gain</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Sports Interest ≤ 5?</td><td class="mono">0.811</td><td class="mono">0.189</td><td class="neg">Weak split — groups still mixed</td></tr>
+          <tr><td>Sports Interest ≤ 6?</td><td class="mono">0.000</td><td class="mono">1.000</td><td class="pos">Perfect split — chosen as the root</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--text-dim);font-size:14px;">Candidate B wins outright — maximum possible Information Gain means the split fully separates the two classes, so the algorithm picks it for the root question.</p>
+  </div>
+
+  <!-- STAGE 7: Algorithm -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">7</span>
+      <h3 class="stage-title">The Algorithm</h3>
+      <span class="stage-sub">greedy, recursive tree-building</span>
+    </div>
+    <div class="card">
+      <h4>Pseudocode</h4>
+      <div style="font-family:var(--font-mono);font-size:13.5px;color:var(--text-dim);background:var(--bg-soft);padding:16px 18px;border-radius:8px;border:1px solid var(--border-soft);overflow-x:auto;">
+function build_tree(D):<br>
+&nbsp;&nbsp;if D is pure (or stopping rule met):<br>
+&nbsp;&nbsp;&nbsp;&nbsp;return Leaf(majority_label(D))<br>
+&nbsp;&nbsp;best_question = question maximizing InformationGain(D)<br>
+&nbsp;&nbsp;D_yes, D_no = split(D, best_question)<br>
+&nbsp;&nbsp;left &nbsp;= build_tree(D_yes)<br>
+&nbsp;&nbsp;right = build_tree(D_no)<br>
+&nbsp;&nbsp;return Node(best_question, left, right)
+      </div>
+    </div>
+    <div class="callout warn">
+      <span class="callout-label">"Greedy" — the catch</span>
+      At every node, the algorithm takes whichever single question gives the highest Information Gain <em>right now</em> — it never looks two questions ahead. This is fast, but it can miss a pair of questions that together would have split the data better than either does alone.
+    </div>
+  </div>
+
+  <!-- STAGE 8: optimization -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">8</span>
+      <h3 class="stage-title">Optimisation &amp; Practical Details</h3>
+      <span class="stage-sub">keeping the tree useful</span>
+    </div>
+    <div class="card card-grid">
+      <div>
+        <h4>Stopping rules</h4>
+        <ul class="clean">
+          <li>Stop when a node is already pure</li>
+          <li>Stop at a maximum depth</li>
+          <li>Stop when a node holds too few points to split further</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Pruning &amp; alternatives</h4>
+        <ul class="clean">
+          <li>Prune back branches that don't generalise past training data</li>
+          <li>Gini impurity is a cheaper, similarly-shaped alternative to entropy</li>
+          <li>Ensembles (Random Forests) average many trees to fix greediness</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 9: limitations -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt3">9</span>
+      <h3 class="stage-title">Limitations &amp; Edge Cases</h3>
+      <span class="stage-sub">where trees break</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Limitation</th><th>What goes wrong</th><th>Schoolyard version</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Overfitting</strong></td><td>A tree grown too deep memorises individual training points instead of general patterns.</td><td>A 15-question checklist that perfectly nails every current student — but fails on the next new kid.</td></tr>
+          <tr><td><strong>Greedy suboptimality</strong></td><td>The best single question at each step isn't always part of the globally best tree.</td><td>The most useful first question might not be the one that looks best in isolation.</td></tr>
+          <tr><td><strong>Unstable to small changes</strong></td><td>A slightly different training set can produce a very different tree structure.</td><td>Swap out two students and the whole checklist might get rewritten from the root down.</td></tr>
+          <tr><td><strong>Threshold-only splits</strong></td><td>Each question only compares one feature to one number — diagonal or curved boundaries need many small steps to approximate.</td><td>"Is Sports ≤ 6?" can't express "is Sports+Music roughly balanced?" in one question.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STAGE 10: triggers -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">10</span>
+      <h3 class="stage-title">Hidden Trigger Recognition</h3>
+      <span class="stage-sub">words that should make you think "decision tree"</span>
+    </div>
+    <div class="chips">
+      <span class="chip">"impurity"</span>
+      <span class="chip">"entropy"</span>
+      <span class="chip">"information gain"</span>
+      <span class="chip">"greedy split"</span>
+      <span class="chip">"root / leaf / internal node"</span>
+      <span class="chip">"threshold question"</span>
+      <span class="chip">"compact model"</span>
+      <span class="chip">"pruning"</span>
+    </div>
+  </div>
+
+  <!-- STAGE 11: when to use -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">11</span>
+      <h3 class="stage-title">Pattern Recognition — When To Reach For This</h3>
+      <span class="stage-sub">real-world identification</span>
+    </div>
+    <div class="card card-grid">
+      <div>
+        <h4>Good fit</h4>
+        <ul class="clean">
+          <li>You need predictions to be fast, at the cost of a slower one-time training step</li>
+          <li>Interpretability matters — the tree can be read like a flowchart</li>
+          <li>Features naturally suggest threshold-style questions</li>
+        </ul>
+      </div>
+      <div>
+        <h4>Poor fit</h4>
+        <ul class="clean">
+          <li>Boundaries that are naturally diagonal or curved</li>
+          <li>Very noisy data with a single tree (consider an ensemble instead)</li>
+          <li>Situations demanding a guaranteed globally-optimal split</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 12: formula shape recognition -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">12</span>
+      <h3 class="stage-title">Formula Shape Recognition</h3>
+      <span class="stage-sub">same idea, different notation</span>
+    </div>
+    <div class="card">
+      <p>Entropy is sometimes written with a sum over all classes rather than the two-term positive/negative form used above — for binary labels these are identical: <code class="inline">Entropy = −Σ p_c log(p_c)</code> collapses to the two-term version once there are only two classes. Some texts also swap entropy for <strong>Gini impurity</strong>, <code class="inline">Gini(p) = 1 − p² − (1−p)²</code> — a cheaper, similarly-shaped stand-in that skips the logarithm entirely but still hits 0 at the pure extremes and peaks at p = 0.5.</p>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt">✓</span>
+      <h3 class="stage-title">Quick Recall</h3>
+      <span class="stage-sub">the whole lecture in one glance</span>
+    </div>
+    <div class="memory-card">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">A decision tree greedily picks, at every node, the yes/no question that yields the highest <strong style="color:var(--text)">Information Gain</strong> — the drop in <strong style="color:var(--text)">entropy</strong> from splitting the data. Unlike KNN, the result is a small reusable model; the training data can be discarded once the tree is built.</p>
+      <div class="memory-grid">
+        <div class="memory-tile"><div class="k">Type</div><div class="v">Eager / model-based</div></div>
+        <div class="memory-tile"><div class="k">Core measure</div><div class="v">Entropy</div></div>
+        <div class="memory-tile"><div class="k">Split rule</div><div class="v">Max Information Gain</div></div>
+        <div class="memory-tile"><div class="k">Search strategy</div><div class="v">Greedy, no lookahead</div></div>
+        <div class="memory-tile"><div class="k">Deep-tree risk</div><div class="v">Overfitting</div></div>
+        <div class="memory-tile"><div class="k">Main cost</div><div class="v">Training-time compute</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Lecture 43 — Decision Trees · study notes</footer>
+
+</body>
+</html>

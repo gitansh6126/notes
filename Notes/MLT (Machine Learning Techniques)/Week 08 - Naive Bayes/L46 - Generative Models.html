@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 46 — Generative Model-Based Algorithm (Spam Detection)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1020;
+    --bg-soft: #0d1426;
+    --panel: #131b30;
+    --panel-alt: #182140;
+    --border: #263153;
+    --border-soft: #1c2740;
+    --text: #e7ecf7;
+    --text-dim: #93a1c2;
+    --text-faint: #5f6d90;
+    --teal: #5eead4;
+    --teal-dim: #1f4a45;
+    --coral: #fb7d8b;
+    --coral-dim: #4a2530;
+    --gold: #fbbf5c;
+    --gold-dim: #4a3a1a;
+    --violet: #b8a6ff;
+    --violet-dim: #2c2650;
+    --radius: 10px;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:radial-gradient(ellipse 900px 500px at 15% -5%, rgba(94,234,212,0.07), transparent 60%),radial-gradient(ellipse 900px 600px at 90% 10%, rgba(251,125,139,0.06), transparent 55%),var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px 100px;}
+  .hero{padding:56px 20px 40px;max-width:980px;margin:0 auto;position:relative;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border);padding:5px 12px;border-radius:999px;background:var(--panel);}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  h1.title{font-family:var(--font-display);font-weight:700;font-size:clamp(28px,5.2vw,48px);line-height:1.08;margin:18px 0 10px;letter-spacing:-0.01em;}
+  .title .accent{color:var(--teal);font-style:italic;font-weight:600;}
+  .subtitle{color:var(--text-dim);font-size:17px;max-width:660px;margin:0 0 26px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .badge{font-family:var(--font-mono);font-size:11.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);background:var(--panel);white-space:nowrap;}
+  .badge.geo{color:var(--teal);border-color:var(--teal-dim);}
+  .badge.count{color:var(--gold);border-color:var(--gold-dim);}
+  .badge.pat{color:var(--violet);border-color:var(--violet-dim);}
+  .stage{margin:64px 0;}
+  .stage-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;border-bottom:1px solid var(--border-soft);padding-bottom:14px;}
+  .stage-num{font-family:var(--font-mono);font-size:13px;color:var(--bg);background:var(--teal);padding:3px 9px;border-radius:5px;font-weight:600;flex-shrink:0;}
+  .stage-num.alt{background:var(--gold);}
+  .stage-num.alt2{background:var(--violet);}
+  .stage-num.alt3{background:var(--coral);}
+  .stage-title{font-family:var(--font-display);font-size:clamp(21px,3vw,28px);font-weight:600;margin:0;}
+  .stage-sub{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-left:auto;text-align:right;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px;}
+  .card h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin:0 0 8px;color:var(--text);}
+  .card p{margin:0 0 10px;color:var(--text-dim);font-size:15px;}
+  .card p:last-child{margin-bottom:0;}
+  .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:680px){ .card-grid{grid-template-columns:1fr;} }
+  .card.gen{border-color:var(--teal-dim);background:linear-gradient(180deg, rgba(94,234,212,0.05), var(--panel));}
+  .card.disc{border-color:var(--coral-dim);background:linear-gradient(180deg, rgba(251,125,139,0.05), var(--panel));}
+  .card-tag{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;padding:3px 8px;border-radius:4px;display:inline-block;margin-bottom:10px;}
+  .card-tag.gen{color:var(--teal);background:var(--teal-dim);}
+  .card-tag.disc{color:var(--coral);background:var(--coral-dim);}
+  .callout{border-left:3px solid var(--teal);background:linear-gradient(90deg, rgba(94,234,212,0.08), transparent 60%);padding:16px 20px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14.5px;color:var(--text-dim);}
+  .callout strong{color:var(--text);}
+  .callout.warn{border-color:var(--coral);background:linear-gradient(90deg, rgba(251,125,139,0.08), transparent 60%);}
+  .callout.tip{border-color:var(--gold);background:linear-gradient(90deg, rgba(251,191,92,0.09), transparent 60%);}
+  .callout.think{border-color:var(--violet);background:linear-gradient(90deg, rgba(184,166,255,0.09), transparent 60%);}
+  .callout-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;color:var(--text);font-weight:700;}
+  .story{display:flex;gap:14px;align-items:flex-start;background:var(--panel-alt);border:1px dashed var(--border);border-radius:var(--radius);padding:18px 20px;margin:18px 0;}
+  .story .icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:2px;}
+  .story-text b{color:var(--gold);}
+  .story-text{font-size:14.5px;color:var(--text-dim);}
+  .eq-panel{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;margin:20px 0;text-align:center;position:relative;overflow-x:auto;}
+  .eq-tag{position:absolute;top:12px;left:16px;font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.1em;}
+  .eq{font-family:var(--font-display);font-size:clamp(16px,3.2vw,26px);color:var(--text);white-space:nowrap;}
+  .eq sub{font-size:0.6em;}
+  .sym-x{color:var(--teal);}
+  .sym-y{color:var(--coral);}
+  .sym-k{color:var(--gold);}
+  .sym-n{color:var(--violet);}
+  .sym-d{color:#8fb7ff;}
+  .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px 18px;margin-top:18px;padding-top:16px;border-top:1px solid var(--border-soft);text-align:left;}
+  .legend-item{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--text-dim);}
+  .legend-sym{font-family:var(--font-display);font-style:italic;font-weight:600;flex-shrink:0;width:44px;text-align:center;font-size:15px;}
+  .steps{position:relative;padding-left:28px;margin:20px 0;}
+  .steps::before{content:'';position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--teal),var(--coral));opacity:0.35;}
+  .step{position:relative;margin-bottom:22px;}
+  .step:last-child{margin-bottom:0;}
+  .step::before{content:'';position:absolute;left:-28px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--bg);border:2px solid var(--teal);}
+  .step-label{font-family:var(--font-mono);font-size:11px;color:var(--teal);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;}
+  .step-body{font-size:14.5px;color:var(--text-dim);}
+  .step-eq{font-family:var(--font-mono);font-size:14px;color:var(--text);background:var(--bg-soft);display:inline-block;padding:4px 10px;border-radius:5px;margin-top:6px;border:1px solid var(--border-soft);}
+  .table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+  thead th{background:var(--panel-alt);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  td.pos{color:var(--teal);font-weight:600;}
+  td.neg{color:var(--coral);font-weight:600;}
+  td.mono{font-family:var(--font-mono);font-size:13px;}
+  .fig{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:20px 0;}
+  .fig svg{width:100%;height:auto;display:block;}
+  .fig-caption{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:10px;letter-spacing:.02em;}
+  .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.fig-row{grid-template-columns:1fr;}}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0;}
+  .chip{font-family:var(--font-mono);font-size:13px;padding:7px 13px;border-radius:6px;background:var(--panel-alt);border:1px solid var(--border);color:var(--gold);}
+  ul.clean, ol.clean{margin:10px 0;padding-left:22px;color:var(--text-dim);font-size:15px;}
+  ul.clean li, ol.clean li{margin-bottom:8px;}
+  ul.clean li::marker{color:var(--teal);}
+  ol.clean li::marker{color:var(--gold);font-family:var(--font-mono);font-weight:600;}
+  .memory-card{background:linear-gradient(135deg, var(--panel-alt), var(--panel));border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+  .memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  @media(max-width:680px){.memory-grid{grid-template-columns:1fr;}}
+  .memory-tile{background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
+  .memory-tile .k{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .memory-tile .v{font-family:var(--font-display);font-size:19px;color:var(--teal);margin-top:4px;}
+  footer{text-align:center;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;padding:40px 20px 10px;}
+  code.inline{font-family:var(--font-mono);background:var(--bg-soft);border:1px solid var(--border-soft);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--teal);}
+  .bridge{background:var(--bg-soft);border:1px solid var(--violet-dim);border-radius:var(--radius);padding:22px 24px;position:relative;overflow:hidden;}
+  .bridge::before{content:'';position:absolute;top:-40%;right:-10%;width:220px;height:220px;background:radial-gradient(circle, rgba(184,166,255,0.18), transparent 70%);}
+  .word-box{display:inline-flex;align-items:center;justify-content:center;width:56px;height:30px;border-radius:5px;font-family:var(--font-mono);font-size:11px;margin:3px;border:1px solid var(--border);}
+  .word-box.on{background:var(--teal-dim);color:var(--teal);border-color:var(--teal);}
+  .word-box.off{background:var(--bg-soft);color:var(--text-faint);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="eyebrow"><span class="dot"></span>Lecture 46 · Generative Classification</span>
+  <h1 class="title">A Generative Model for <span class="accent">Spam Detection</span></h1>
+  <p class="subtitle">Lecture 45 promised a fully generative classifier. This lecture tries to build the most literal one possible — and walks straight into a wall worth understanding in detail.</p>
+  <div class="badge-row">
+    <span class="badge pat">◆ Generative Storytelling</span>
+    <span class="badge count">◆ Parameter Counting</span>
+    <span class="badge geo">◆ Combinatorial Explosion</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- STAGE -1 -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">−1</span>
+      <h3 class="stage-title">Cognitive Pattern</h3>
+      <span class="stage-sub">what kind of thinking is this?</span>
+    </div>
+    <div class="card">
+      <p>This lecture is built on <strong style="color:var(--violet)">generative storytelling</strong> — literally imagining the random process (coin flips, dice rolls) that could have produced the data — paired with blunt <strong style="color:var(--gold)">counting</strong>. The punchline isn't a formula; it's an arithmetic gut-check that turns out to be devastating.</p>
+    </div>
+  </div>
+
+  <!-- PROBLEM SETUP -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">0</span>
+      <h3 class="stage-title">Problem Setup</h3>
+      <span class="stage-sub">turning an email into numbers</span>
+    </div>
+    <div class="card">
+      <p>Binary classification: is an email <strong style="color:var(--coral)">Spam</strong> (Y = 1) or <strong style="color:var(--teal)">Not Spam</strong> (Y = 0)? To feed this to any algorithm, every email is converted into a <strong>fixed-length binary vector</strong> of dimension <em>D</em> — one entry per word in a predefined dictionary. Entry <em>j</em> is 1 if word <em>j</em> appears anywhere in the email, 0 if it doesn't.</p>
+    </div>
+    <div class="fig">
+      <svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="180" fill="#0d1426" rx="8"/>
+        <rect x="20" y="55" width="120" height="70" rx="8" fill="#182140" stroke="#263153"/>
+        <text x="80" y="85" text-anchor="middle" fill="#e7ecf7" font-family="Inter" font-size="12">✉️ incoming</text>
+        <text x="80" y="102" text-anchor="middle" fill="#93a1c2" font-family="Inter" font-size="11">email</text>
+        <line x1="140" y1="90" x2="180" y2="90" stroke="#5f6d90" stroke-width="2"/>
+        <polygon points="180,90 172,85 172,95" fill="#5f6d90"/>
+        <text x="330" y="30" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="10.5">dictionary word → feature</text>
+      </svg>
+      <div style="text-align:center;margin-top:-10px;">
+        <span class="word-box on">free</span>
+        <span class="word-box off">invoice</span>
+        <span class="word-box on">win</span>
+        <span class="word-box off">meeting</span>
+        <span class="word-box off">agenda</span>
+        <span class="word-box on">click</span>
+        <span class="word-box off">project</span>
+        <span class="word-box off">lunch</span>
+        <span style="color:var(--text-faint);font-family:var(--font-mono);font-size:12px;">… × D words</span>
+      </div>
+      <div class="fig-caption">FIG. 1 — X = [1, 0, 1, 0, 0, 1, 0, 0, …] — a length-D binary "bag of words" vector.</div>
+    </div>
+  </div>
+
+  <!-- MODELING CHOICES -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">1</span>
+      <h3 class="stage-title">Modelling Choices</h3>
+      <span class="stage-sub">two ways to factor P(X, Y)</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">Any joint distribution can be factored in two directions using the chain rule. Only one of them is actually generative.</p>
+    <div class="card-grid">
+      <div class="card disc">
+        <span class="card-tag disc">Option A</span>
+        <h4>P(X, Y) = P(X)·P(Y | X)</h4>
+        <p>Requires modelling P(Y | X) directly — this is just the discriminative approach wearing a joint-distribution costume. It doesn't actually explain how spam differs from non-spam at the feature level.</p>
+      </div>
+      <div class="card gen">
+        <span class="card-tag gen">Option B — chosen</span>
+        <h4>P(X, Y) = P(Y)·P(X | Y)</h4>
+        <p>Model the class prior P(Y) and, separately, the feature "recipe" P(X | Y) for each class. This is intuitive: it directly encodes <em>what a typical spam email's words look like</em> versus a typical legitimate one.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATIVE STORY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">2</span>
+      <h3 class="stage-title">The Generative Story</h3>
+      <span class="stage-sub">an imaginary two-step machine that "produces" each email</span>
+    </div>
+    <div class="fig">
+      <svg viewBox="0 0 640 190" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="190" fill="#0d1426" rx="8"/>
+        <!-- coin -->
+        <circle cx="90" cy="90" r="42" fill="#182140" stroke="#fbbf5c" stroke-width="2"/>
+        <text x="90" y="85" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="11">coin</text>
+        <text x="90" y="100" text-anchor="middle" fill="#e7ecf7" font-family="JetBrains Mono" font-size="11">P(Y)</text>
+        <line x1="132" y1="90" x2="185" y2="55" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="132" y1="90" x2="185" y2="125" stroke="#5f6d90" stroke-width="2"/>
+        <text x="150" y="60" fill="#5eead4" font-family="JetBrains Mono" font-size="10">Y=0</text>
+        <text x="150" y="135" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10">Y=1</text>
+
+        <!-- Y=0 box -->
+        <rect x="190" y="30" width="130" height="46" rx="8" fill="#1f4a45" stroke="#5eead4"/>
+        <text x="255" y="58" text-anchor="middle" fill="#5eead4" font-family="Inter" font-size="12">Not Spam</text>
+        <!-- Y=1 box -->
+        <rect x="190" y="104" width="130" height="46" rx="8" fill="#4a2530" stroke="#fb7d8b"/>
+        <text x="255" y="132" text-anchor="middle" fill="#fb7d8b" font-family="Inter" font-size="12">Spam</text>
+
+        <line x1="320" y1="53" x2="370" y2="53" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="320" y1="127" x2="370" y2="127" stroke="#5f6d90" stroke-width="2"/>
+
+        <!-- dice for each -->
+        <rect x="375" y="25" width="120" height="56" rx="8" fill="#182140" stroke="#5eead4" stroke-dasharray="4 3"/>
+        <text x="435" y="48" text-anchor="middle" fill="#5eead4" font-family="JetBrains Mono" font-size="10.5">dice</text>
+        <text x="435" y="64" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="10">P(X|Y=0)</text>
+
+        <rect x="375" y="99" width="120" height="56" rx="8" fill="#182140" stroke="#fb7d8b" stroke-dasharray="4 3"/>
+        <text x="435" y="122" text-anchor="middle" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10.5">dice</text>
+        <text x="435" y="138" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="10">P(X|Y=1)</text>
+
+        <line x1="495" y1="53" x2="540" y2="90" stroke="#5f6d90" stroke-width="2"/>
+        <line x1="495" y1="127" x2="540" y2="90" stroke="#5f6d90" stroke-width="2"/>
+
+        <rect x="545" y="65" width="80" height="50" rx="8" fill="#182140" stroke="#b8a6ff"/>
+        <text x="585" y="87" text-anchor="middle" fill="#b8a6ff" font-family="JetBrains Mono" font-size="10.5">X</text>
+        <text x="585" y="102" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="9.5">feature vec.</text>
+      </svg>
+      <div class="fig-caption">FIG. 2 — flip a biased coin for the label, then roll a class-specific 2^D-sided die for the exact word pattern.</div>
+    </div>
+    <div class="card">
+      <ol class="clean">
+        <li><strong>Label generation:</strong> toss a biased coin with probability <em>p</em> to decide Spam (Y=1) or Not Spam (Y=0).</li>
+        <li><strong>Feature generation:</strong> given that label, roll an imaginary die with <em>2<sup>D</sup></em> faces — one face for every possible binary word-pattern — where the class determines how the die is weighted.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- PARAMETER PROBLEM -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt3">3</span>
+      <h3 class="stage-title">The Parameter Problem</h3>
+      <span class="stage-sub">counting what this story actually costs</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">A story is only useful if it can be learned from data — and learning it means estimating every free parameter it implies.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-label">Step 1 — the coin</div>
+        <div class="step-body">A single biased coin has exactly one free parameter: its bias <em>p</em>.</div>
+        <div class="step-eq">1 parameter</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 2 — one die per class</div>
+        <div class="step-body">A die with 2<sup>D</sup> faces needs 2<sup>D</sup> probabilities that sum to 1 — so only 2<sup>D</sup> − 1 are actually free. There are two such dice (spam, not spam).</div>
+        <div class="step-eq">2 × (2<sup>D</sup> − 1) parameters</div>
+      </div>
+      <div class="step">
+        <div class="step-label">Step 3 — total</div>
+        <div class="step-body">Add the coin's one parameter to both dice.</div>
+        <div class="step-eq">Total = 1 + 2(2<sup>D</sup> − 1) = 2<sup>D+1</sup> − 1</div>
+      </div>
+    </div>
+
+    <div class="eq-panel">
+      <span class="eq-tag">Formula · Total Parameter Count</span>
+      <div class="eq">
+        Total &nbsp;=&nbsp; 2<sup style="font-size:0.65em;"><span class="sym-n">D</span>+1</sup> − 1
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="legend-sym sym-n">D</span> number of words in the dictionary</div>
+        <div class="legend-item"><span class="legend-sym sym-k">2<sup style="font-size:0.7em;">D</sup></span> number of distinct binary word-patterns possible</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Dictionary size D</th><th>Distinct patterns 2<sup>D</sup></th><th>Total parameters 2<sup>D+1</sup> − 1</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td class="mono">2</td><td class="mono">3</td></tr>
+          <tr><td class="mono">2</td><td class="mono">4</td><td class="mono">7</td></tr>
+          <tr><td class="mono">5</td><td class="mono">32</td><td class="mono">63</td></tr>
+          <tr><td class="mono">10</td><td class="mono">1,024</td><td class="mono">2,047</td></tr>
+          <tr><td class="mono">20</td><td class="mono">≈1.05 million</td><td class="mono">≈2.1 million</td></tr>
+          <tr><td class="mono neg">10,000 (realistic)</td><td class="mono neg">2<sup>10,000</sup></td><td class="mono neg">≈2<sup>10,001</sup></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="210" fill="#0d1426" rx="8"/>
+        <line x1="40" y1="180" x2="620" y2="180" stroke="#263153" stroke-width="1.5"/>
+        <!-- bars, log-scaled heights for D=1..10 -->
+        <rect x="55" y="176" width="30" height="4" fill="#5eead4"/>
+        <rect x="105" y="172" width="30" height="8" fill="#5eead4"/>
+        <rect x="155" y="163" width="30" height="17" fill="#5eead4"/>
+        <rect x="205" y="150" width="30" height="30" fill="#5eead4"/>
+        <rect x="255" y="133" width="30" height="47" fill="#5eead4"/>
+        <rect x="305" y="112" width="30" height="68" fill="#5eead4"/>
+        <rect x="355" y="88" width="30" height="92" fill="#5eead4"/>
+        <rect x="405" y="60" width="30" height="120" fill="#5eead4"/>
+        <rect x="455" y="30" width="30" height="150" fill="#5eead4"/>
+        <rect x="505" y="10" width="30" height="170" fill="#fbbf5c"/>
+        <text x="520" y="25" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="9">D=10</text>
+        <text x="70" y="196" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="9">D=1</text>
+        <text x="520" y="196" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="9"></text>
+        <rect x="555" y="10" width="55" height="170" fill="#fb7d8b" opacity="0.15" stroke="#fb7d8b" stroke-dasharray="4 4"/>
+        <text x="582" y="95" text-anchor="middle" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10" transform="rotate(-90 582 95)">D=10,000 →</text>
+        <text x="320" y="20" text-anchor="middle" fill="#93a1c2" font-family="Inter" font-size="11.5">Parameter count explodes — even D=10 already needs 2,047</text>
+      </svg>
+      <div class="fig-caption">FIG. 3 — the growth is doubling with every single new word; a real dictionary is off any chart that could ever be drawn.</div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-label">How big is 2<sup>10,000</sup>, really?</span>
+      The number of atoms in the observable universe is roughly 10<sup>80</sup>. 2<sup>10,000</sup> is roughly 10<sup>3,010</sup> — larger than the atom count by about <strong>2,930 orders of magnitude</strong>. There is no computer, and no amount of training data, that could ever estimate this many parameters.
+    </div>
+  </div>
+
+  <!-- CONCLUSION -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt3">✗</span>
+      <h3 class="stage-title">Conclusion — A Correct but Useless Model</h3>
+      <span class="stage-sub">theoretically sound, practically dead</span>
+    </div>
+    <div class="card">
+      <p>Nothing about this generative story is <em>wrong</em>. Modelling P(X | Y) with a fully general distribution over every possible word-pattern is a completely valid description of how spam and non-spam emails could be generated. The problem is purely practical: the number of free parameters grows exponentially in the number of features, and no realistic dataset could ever supply enough examples to estimate them.</p>
+    </div>
+    <div class="callout think">
+      <span class="callout-label">Where the fix has to come from</span>
+      The only way forward is to give up on modelling every possible word-pattern independently, and instead make a simplifying assumption about how the words in a class relate to one another — trading a small amount of accuracy for an enormous reduction in parameters.
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt">✓</span>
+      <h3 class="stage-title">Quick Recall</h3>
+      <span class="stage-sub">the whole lecture in one glance</span>
+    </div>
+    <div class="memory-card">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">Modelling P(X, Y) = P(Y)·P(X|Y) for spam detection means imagining a coin toss for the label and a 2<sup>D</sup>-sided die roll for the feature vector. That story requires 2<sup>D+1</sup> − 1 parameters — for a realistic D = 10,000-word dictionary, an astronomically impossible number. The fully general generative model is correct in theory and unusable in practice.</p>
+      <div class="memory-grid">
+        <div class="memory-tile"><div class="k">Chosen factoring</div><div class="v">P(Y)·P(X|Y)</div></div>
+        <div class="memory-tile"><div class="k">Label params</div><div class="v">1</div></div>
+        <div class="memory-tile"><div class="k">Feature params / class</div><div class="v">2<sup>D</sup> − 1</div></div>
+        <div class="memory-tile"><div class="k">Total params</div><div class="v">2<sup>D+1</sup> − 1</div></div>
+        <div class="memory-tile"><div class="k">At D=10,000</div><div class="v">Computationally impossible</div></div>
+        <div class="memory-tile"><div class="k">Fix needed</div><div class="v">A simplifying assumption</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BRIDGE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">→</span>
+      <h3 class="stage-title">Where This Leads</h3>
+      <span class="stage-sub">rescuing the generative approach</span>
+    </div>
+    <div class="bridge">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">The next lecture introduces <strong style="color:var(--violet)">Naive Bayes</strong> — the same P(Y)·P(X|Y) story, rescued by assuming each word's presence is independent of every other word given the class. That single assumption collapses the parameter count from exponential to linear in D, turning an impossible model into one of the most practical classifiers in the course.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>Lecture 46 — Generative Model-Based Algorithm · study notes</footer>
+
+</body>
+</html>

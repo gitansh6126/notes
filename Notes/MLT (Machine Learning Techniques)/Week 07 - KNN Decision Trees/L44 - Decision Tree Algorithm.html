@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 44 — The Decision Tree Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0a1020;
+    --bg-soft: #0d1426;
+    --panel: #131b30;
+    --panel-alt: #182140;
+    --border: #263153;
+    --border-soft: #1c2740;
+    --text: #e7ecf7;
+    --text-dim: #93a1c2;
+    --text-faint: #5f6d90;
+    --teal: #5eead4;
+    --teal-dim: #1f4a45;
+    --coral: #fb7d8b;
+    --coral-dim: #4a2530;
+    --gold: #fbbf5c;
+    --gold-dim: #4a3a1a;
+    --violet: #b8a6ff;
+    --violet-dim: #2c2650;
+    --radius: 10px;
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:radial-gradient(ellipse 900px 500px at 15% -5%, rgba(94,234,212,0.07), transparent 60%),radial-gradient(ellipse 900px 600px at 90% 10%, rgba(251,125,139,0.06), transparent 55%),var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:980px;margin:0 auto;padding:0 20px 100px;}
+  .hero{padding:56px 20px 40px;max-width:980px;margin:0 auto;position:relative;}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-faint);border:1px solid var(--border);padding:5px 12px;border-radius:999px;background:var(--panel);}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--gold);}
+  h1.title{font-family:var(--font-display);font-weight:700;font-size:clamp(30px,5.6vw,50px);line-height:1.08;margin:18px 0 10px;letter-spacing:-0.01em;}
+  .title .accent{color:var(--teal);font-style:italic;font-weight:600;}
+  .subtitle{color:var(--text-dim);font-size:17px;max-width:660px;margin:0 0 26px;}
+  .badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+  .badge{font-family:var(--font-mono);font-size:11.5px;padding:6px 11px;border-radius:6px;border:1px solid var(--border);color:var(--text-dim);background:var(--panel);white-space:nowrap;}
+  .badge.geo{color:var(--teal);border-color:var(--teal-dim);}
+  .badge.count{color:var(--gold);border-color:var(--gold-dim);}
+  .badge.pat{color:var(--violet);border-color:var(--violet-dim);}
+  .stage{margin:64px 0;}
+  .stage-head{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;border-bottom:1px solid var(--border-soft);padding-bottom:14px;}
+  .stage-num{font-family:var(--font-mono);font-size:13px;color:var(--bg);background:var(--teal);padding:3px 9px;border-radius:5px;font-weight:600;flex-shrink:0;}
+  .stage-num.alt{background:var(--gold);}
+  .stage-num.alt2{background:var(--violet);}
+  .stage-num.alt3{background:var(--coral);}
+  .stage-title{font-family:var(--font-display);font-size:clamp(21px,3vw,28px);font-weight:600;margin:0;}
+  .stage-sub{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;margin-left:auto;text-align:right;}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;margin-bottom:18px;}
+  .card h4{font-family:var(--font-body);font-weight:700;font-size:14.5px;margin:0 0 8px;color:var(--text);}
+  .card p{margin:0 0 10px;color:var(--text-dim);font-size:15px;}
+  .card p:last-child{margin-bottom:0;}
+  .card-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;}
+  @media(max-width:680px){ .card-grid{grid-template-columns:1fr;} }
+  .callout{border-left:3px solid var(--teal);background:linear-gradient(90deg, rgba(94,234,212,0.08), transparent 60%);padding:16px 20px;border-radius:0 8px 8px 0;margin:18px 0;font-size:14.5px;color:var(--text-dim);}
+  .callout strong{color:var(--text);}
+  .callout.warn{border-color:var(--coral);background:linear-gradient(90deg, rgba(251,125,139,0.08), transparent 60%);}
+  .callout.tip{border-color:var(--gold);background:linear-gradient(90deg, rgba(251,191,92,0.09), transparent 60%);}
+  .callout.think{border-color:var(--violet);background:linear-gradient(90deg, rgba(184,166,255,0.09), transparent 60%);}
+  .callout-label{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:6px;color:var(--text);font-weight:700;}
+  .story{display:flex;gap:14px;align-items:flex-start;background:var(--panel-alt);border:1px dashed var(--border);border-radius:var(--radius);padding:18px 20px;margin:18px 0;}
+  .story .icon{font-size:22px;line-height:1;flex-shrink:0;margin-top:2px;}
+  .story-text b{color:var(--gold);}
+  .story-text{font-size:14.5px;color:var(--text-dim);}
+  .table-wrap{overflow-x:auto;margin:18px 0;border:1px solid var(--border);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:480px;}
+  thead th{background:var(--panel-alt);font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-faint);text-align:left;padding:12px 16px;border-bottom:1px solid var(--border);}
+  tbody td{padding:11px 16px;border-bottom:1px solid var(--border-soft);color:var(--text-dim);}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  td.pos{color:var(--teal);font-weight:600;}
+  td.neg{color:var(--coral);font-weight:600;}
+  td.mono{font-family:var(--font-mono);font-size:13px;}
+  .fig{background:var(--bg-soft);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin:20px 0;}
+  .fig svg{width:100%;height:auto;display:block;}
+  .fig-caption{font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);text-align:center;margin-top:10px;letter-spacing:.02em;}
+  .fig-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:680px){.fig-row{grid-template-columns:1fr;}}
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0;}
+  .chip{font-family:var(--font-mono);font-size:13px;padding:7px 13px;border-radius:6px;background:var(--panel-alt);border:1px solid var(--border);color:var(--gold);}
+  ul.clean, ol.clean{margin:10px 0;padding-left:22px;color:var(--text-dim);font-size:15px;}
+  ul.clean li, ol.clean li{margin-bottom:8px;}
+  ul.clean li::marker{color:var(--teal);}
+  ol.clean li::marker{color:var(--gold);font-family:var(--font-mono);font-weight:600;}
+  .memory-card{background:linear-gradient(135deg, var(--panel-alt), var(--panel));border:1px solid var(--border);border-radius:var(--radius);padding:26px;}
+  .memory-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px;}
+  @media(max-width:680px){.memory-grid{grid-template-columns:1fr;}}
+  .memory-tile{background:var(--bg-soft);border:1px solid var(--border-soft);border-radius:8px;padding:14px 16px;}
+  .memory-tile .k{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);text-transform:uppercase;letter-spacing:.08em;}
+  .memory-tile .v{font-family:var(--font-display);font-size:19px;color:var(--teal);margin-top:4px;}
+  footer{text-align:center;color:var(--text-faint);font-family:var(--font-mono);font-size:12px;padding:40px 20px 10px;}
+  code.inline{font-family:var(--font-mono);background:var(--bg-soft);border:1px solid var(--border-soft);padding:2px 6px;border-radius:4px;font-size:0.9em;color:var(--teal);}
+  .bridge{background:var(--bg-soft);border:1px solid var(--violet-dim);border-radius:var(--radius);padding:22px 24px;position:relative;overflow:hidden;}
+  .bridge::before{content:'';position:absolute;top:-40%;right:-10%;width:220px;height:220px;background:radial-gradient(circle, rgba(184,166,255,0.18), transparent 70%);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="eyebrow"><span class="dot"></span>Lecture 44 · Supervised Learning</span>
+  <h1 class="title">Inside the <span class="accent">Decision Tree</span> Algorithm</h1>
+  <p class="subtitle">Lecture 43 defined entropy and information gain. This lecture asks the practical question: how does the algorithm actually turn a spreadsheet of real numbers into that tidy little checklist?</p>
+  <div class="badge-row">
+    <span class="badge geo">◆ Axis-Parallel Geometry</span>
+    <span class="badge count">◆ Search over Thresholds</span>
+    <span class="badge pat">◆ Bias–Variance Tradeoff</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <!-- FEATURE DISCRETIZATION -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">1</span>
+      <h3 class="stage-title">Feature Discretization</h3>
+      <span class="stage-sub">where do candidate questions come from?</span>
+    </div>
+    <div class="story">
+      <div class="icon">📏</div>
+      <div class="story-text">
+        Lecture 43 assumed a question like <b style="color:var(--gold)">"Sports Interest ≤ 6?"</b> just appeared out of nowhere. It doesn't. <b>Sports Interest</b> is really a continuous score from 0 to 10 — the algorithm has to invent that threshold of 6 itself, by trying a spread of candidate cut points.
+      </div>
+    </div>
+    <div class="card">
+      <p>For each continuous feature, the range from its minimum to its maximum observed value is sliced into a fixed number of partitions — commonly around 10. Every partition boundary becomes one candidate question. Information Gain (Lecture 43) is computed for <em>every</em> candidate across <em>every</em> feature, and the single best one is chosen.</p>
+    </div>
+
+    <div class="fig">
+      <svg viewBox="0 0 640 130" xmlns="http://www.w3.org/2000/svg">
+        <rect width="640" height="130" fill="#0d1426" rx="8"/>
+        <line x1="40" y1="60" x2="600" y2="60" stroke="#263153" stroke-width="2"/>
+        <text x="40" y="100" fill="#5f6d90" font-family="JetBrains Mono" font-size="11">0</text>
+        <text x="600" y="100" text-anchor="end" fill="#5f6d90" font-family="JetBrains Mono" font-size="11">10</text>
+        <text x="320" y="24" text-anchor="middle" fill="#93a1c2" font-family="Inter" font-size="12.5">Sports Interest score — sliced into 10 candidate thresholds</text>
+        <!-- ticks -->
+        <g id="ticks">
+          <!-- 10 ticks at x = 40 + i*56 -->
+        </g>
+        <circle cx="40" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="96" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="152" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="208" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="264" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="320" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="376" cy="60" r="7" fill="#fbbf5c" stroke="#fff" stroke-width="1.5"/>
+        <text x="376" y="88" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="10.5">≤6 → IG=1.0 (best)</text>
+        <circle cx="432" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="488" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="544" cy="60" r="4" fill="#5f6d90"/>
+        <circle cx="600" cy="60" r="4" fill="#5f6d90"/>
+        <text x="152" y="88" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">≤2 → IG=0.05</text>
+        <text x="544" y="88" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">≤9 → IG=0.02</text>
+      </svg>
+      <div class="fig-caption">FIG. 1 — every gray dot is one candidate question tested; the gold dot wins the Information Gain comparison from Lecture 43.</div>
+    </div>
+
+    <div class="callout tip">
+      <span class="callout-label">Practical note</span>
+      More partitions mean finer, potentially better thresholds — but also more Information Gain calculations per node. Ten is a common default balance between resolution and speed; it isn't a fixed law.
+    </div>
+  </div>
+
+  <!-- RECURSIVE SPLITTING -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">2</span>
+      <h3 class="stage-title">Recursive Splitting</h3>
+      <span class="stage-sub">the same trick, applied again and again</span>
+    </div>
+    <div class="card">
+      <p>Once the root question is chosen, the two resulting groups — <code class="inline">D_Yes</code> and <code class="inline">D_No</code> — are each treated as a brand-new, smaller dataset. The exact same procedure (discretize → score every candidate → pick the best) runs again, independently, inside each group. This is what makes the algorithm <strong>recursive</strong>: the whole tree is built from one repeated rule, applied at every node.</p>
+      <p>As splits accumulate, some later candidate questions become <strong>redundant</strong> — for instance, re-testing "Sports Interest ≤ 6?" inside a branch that already only contains students with Sports Interest ≤ 6 can no longer separate anyone. These redundant questions contribute zero Information Gain and are naturally skipped.</p>
+    </div>
+  </div>
+
+  <!-- STOPPING / OVERFITTING / DEPTH -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt">3</span>
+      <h3 class="stage-title">Depth — The Hyperparameter</h3>
+      <span class="stage-sub">the tree's version of K</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">Just as Lecture 42's K controlled how "rugged" a KNN boundary could get, <strong>tree depth</strong> — the longest root-to-leaf path — controls how complex a tree is allowed to become. It is chosen, not learned.</p>
+
+    <div class="card card-grid">
+      <div>
+        <h4>Stopping early — purity thresholds</h4>
+        <p>A node can stop splitting once it's "pure enough" — commonly once more than 90% (or fewer than 10%) of its labels belong to one class, even if it isn't perfectly pure.</p>
+      </div>
+      <div>
+        <h4>The extreme case</h4>
+        <p>If nothing stops it, a tree can keep splitting until every leaf holds exactly one training point. Training accuracy hits 100% — but the tree has simply memorised the dataset, one student at a time.</p>
+      </div>
+    </div>
+
+    <div class="fig">
+      <svg viewBox="0 0 400 210" xmlns="http://www.w3.org/2000/svg">
+        <rect width="400" height="210" fill="#0d1426" rx="8"/>
+        <line x1="20" y1="190" x2="390" y2="190" stroke="#263153" stroke-width="1.5"/>
+        <line x1="20" y1="190" x2="20" y2="10" stroke="#263153" stroke-width="1.5"/>
+        <text x="200" y="205" text-anchor="middle" fill="#5f6d90" font-family="JetBrains Mono" font-size="10.5">tree depth →</text>
+        <!-- train line -->
+        <polyline points="40,153 120,84 200,47 280,31 360,20" fill="none" stroke="#5eead4" stroke-width="2.5"/>
+        <!-- val line -->
+        <polyline points="40,159 120,100 200,73 280,89 360,132" fill="none" stroke="#fb7d8b" stroke-width="2.5"/>
+        <circle cx="200" cy="73" r="6" fill="#fbbf5c" stroke="#0d1426" stroke-width="2"/>
+        <text x="200" y="60" text-anchor="middle" fill="#fbbf5c" font-family="JetBrains Mono" font-size="10">sweet spot</text>
+        <text x="365" y="15" fill="#5eead4" font-family="JetBrains Mono" font-size="10">train acc</text>
+        <text x="270" y="145" fill="#fb7d8b" font-family="JetBrains Mono" font-size="10">validation acc</text>
+        <text x="24" y="24" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">100%</text>
+        <text x="24" y="196" fill="#5f6d90" font-family="JetBrains Mono" font-size="10">70%</text>
+      </svg>
+      <div class="fig-caption">FIG. 2 — training accuracy keeps climbing with depth; validation accuracy peaks, then falls as the tree overfits.</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Depth</th><th>Train accuracy</th><th>Validation accuracy</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">1</td><td class="mono">75%</td><td class="mono">74%</td><td>Underfit — too few questions asked</td></tr>
+          <tr><td class="mono">2</td><td class="mono">88%</td><td class="mono">85%</td><td>Improving</td></tr>
+          <tr><td class="mono">3</td><td class="mono">95%</td><td class="mono">90%</td><td class="pos">Best generalisation</td></tr>
+          <tr><td class="mono">4</td><td class="mono">98%</td><td class="mono">87%</td><td>Starting to overfit</td></tr>
+          <tr><td class="mono">5 (full)</td><td class="mono">100%</td><td class="mono">79%</td><td class="neg">Memorised the training set</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-label">Overfitting, concretely</span>
+      A fully-grown tree that isolates every single training point is the tree equivalent of KNN's K = 1: perfect on data it has already seen, and needlessly fragile on anything new.
+    </div>
+    <div class="callout tip">
+      <span class="callout-label">Tuning depth</span>
+      Exactly like K, depth is tuned by trying several values and checking each against a <strong>held-out validation set</strong> via cross-validation — keeping whichever depth maximises validation accuracy, not training accuracy.
+    </div>
+  </div>
+
+  <!-- IMPURITY MEASURES -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">4</span>
+      <h3 class="stage-title">Impurity Measures, Revisited</h3>
+      <span class="stage-sub">entropy isn't the only option</span>
+    </div>
+    <div class="card">
+      <p>Lecture 43 built <strong>Entropy</strong> from information theory — zero at pure nodes, peaking at a 50/50 split. The <strong>Gini Index</strong> is the other widely-used impurity measure, shaped the same way (0 at the extremes, maximum at p = 0.5) but computed without a logarithm, which makes it slightly cheaper to evaluate at every candidate threshold. In practice, both measures tend to select very similar splits.</p>
+    </div>
+  </div>
+
+  <!-- DECISION BOUNDARIES: AXIS-PARALLEL -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num">5</span>
+      <h3 class="stage-title">Decision Boundaries — Axis-Parallel Splits</h3>
+      <span class="stage-sub">why trees draw rectangles, not curves</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:15px;">Every question in a tree compares <em>one</em> feature to <em>one</em> threshold — geometrically, that's a straight line running parallel to that feature's axis. Stack enough of these lines and the tree partitions the whole space into rectangles.</p>
+
+    <div class="fig-row">
+      <div class="fig">
+        <svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="280" height="220" fill="#0d1426" rx="8"/>
+          <rect x="0" y="0" width="150" height="110" fill="#1f4a45" opacity="0.35"/>
+          <rect x="150" y="0" width="130" height="110" fill="#4a2530" opacity="0.35"/>
+          <rect x="0" y="110" width="90" height="110" fill="#4a2530" opacity="0.35"/>
+          <rect x="90" y="110" width="190" height="110" fill="#1f4a45" opacity="0.2"/>
+          <line x1="150" y1="0" x2="150" y2="110" stroke="#e7ecf7" stroke-width="1.5"/>
+          <line x1="0" y1="110" x2="280" y2="110" stroke="#e7ecf7" stroke-width="1.5"/>
+          <line x1="90" y1="110" x2="90" y2="220" stroke="#e7ecf7" stroke-width="1.5"/>
+          <circle cx="45" cy="35" r="5" fill="#5eead4"/><circle cx="85" cy="55" r="5" fill="#5eead4"/>
+          <circle cx="110" cy="30" r="5" fill="#5eead4"/><circle cx="60" cy="80" r="5" fill="#5eead4"/>
+          <circle cx="195" cy="45" r="5" fill="#fb7d8b"/><circle cx="230" cy="70" r="5" fill="#fb7d8b"/>
+          <circle cx="30" cy="160" r="5" fill="#fb7d8b"/><circle cx="55" cy="190" r="5" fill="#fb7d8b"/>
+          <circle cx="160" cy="160" r="5" fill="#5eead4"/><circle cx="220" cy="180" r="5" fill="#5eead4"/>
+          <text x="140" y="210" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="11">DECISION TREE — rectangular regions</text>
+        </svg>
+      </div>
+      <div class="fig">
+        <svg viewBox="0 0 280 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="280" height="220" fill="#0d1426" rx="8"/>
+          <path d="M0,90 C60,95 120,80 190,105 C230,115 260,110 280,105 L280,0 L0,0 Z" fill="#5eead4" opacity="0.2"/>
+          <path d="M0,220 L0,90 C60,95 120,80 190,105 C230,115 260,110 280,105 L280,220 Z" fill="#fb7d8b" opacity="0.2"/>
+          <path d="M0,90 C60,95 120,80 190,105 C230,115 260,110 280,105" fill="none" stroke="#e7ecf7" stroke-width="2"/>
+          <circle cx="45" cy="35" r="5" fill="#5eead4"/><circle cx="85" cy="45" r="5" fill="#5eead4"/>
+          <circle cx="120" cy="30" r="5" fill="#5eead4"/><circle cx="60" cy="75" r="5" fill="#5eead4"/>
+          <circle cx="200" cy="60" r="5" fill="#5eead4"/>
+          <circle cx="90" cy="150" r="5" fill="#fb7d8b"/><circle cx="140" cy="175" r="5" fill="#fb7d8b"/>
+          <circle cx="200" cy="150" r="5" fill="#fb7d8b"/><circle cx="240" cy="190" r="5" fill="#fb7d8b"/>
+          <text x="140" y="210" text-anchor="middle" fill="#93a1c2" font-family="JetBrains Mono" font-size="11">KNN (LEC. 42) — smooth, curved</text>
+        </svg>
+      </div>
+    </div>
+    <div class="fig-caption" style="margin-top:-8px;">FIG. 3 — same idea of "separating two classes," two entirely different geometries.</div>
+
+    <div class="callout think">
+      <span class="callout-label">Why this matters</span>
+      A pattern that genuinely requires a diagonal or curved boundary needs a decision tree to approximate it with many small rectangular steps — sometimes far more splits than the underlying pattern would seem to require.
+    </div>
+  </div>
+
+  <!-- INTERPRETABILITY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt3">6</span>
+      <h3 class="stage-title">Interpretability</h3>
+      <span class="stage-sub">the tree's biggest practical selling point</span>
+    </div>
+    <div class="card">
+      <p>Once trained, a tree's prediction can always be explained as a short, plain-language chain: <em>"predicted Football because Sports Interest &gt; 6."</em> This matters enormously outside the classroom — a doctor, loan officer, or judge can be shown the exact rule path behind a decision, something a KNN vote or a dense neural network usually cannot offer nearly as directly.</p>
+    </div>
+  </div>
+
+  <!-- COMPARISON WITH KNN -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">7</span>
+      <h3 class="stage-title">Comparison — Decision Tree vs. K-Nearest Neighbours</h3>
+      <span class="stage-sub">closing the loop on Lecture 42</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Property</th><th>K-Nearest Neighbours</th><th>Decision Tree</th></tr></thead>
+        <tbody>
+          <tr><td>Learning style</td><td>Lazy — no training phase</td><td>Eager — builds a model upfront</td></tr>
+          <tr><td>After training, keep the data?</td><td class="neg">Yes, required for every prediction</td><td class="pos">No, the tree alone is enough</td></tr>
+          <tr><td>Prediction cost</td><td class="neg">O(N·d) every query</td><td class="pos">O(depth) every query</td></tr>
+          <tr><td>Decision boundary shape</td><td>Smooth, any shape</td><td>Rectangular, axis-parallel</td></tr>
+          <tr><td>Hyperparameter</td><td>K (neighbours)</td><td>Depth</td></tr>
+          <tr><td>Prone to overfitting noise?</td><td class="neg">Yes, at small K</td><td class="neg">Yes, at large depth</td></tr>
+          <tr><td>Interpretability</td><td>Low — a vote among many points</td><td class="pos">High — a short rule chain</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="callout-label">The one thing they share</span>
+      Both algorithms can fit noise if their hyperparameter (K, or depth) is left unchecked — the fix in both cases is the same tool: cross-validation against a held-out validation set.
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt">✓</span>
+      <h3 class="stage-title">Quick Recall</h3>
+      <span class="stage-sub">the whole lecture in one glance</span>
+    </div>
+    <div class="memory-card">
+      <p style="margin:0;color:var(--text-dim);font-size:15px;">Continuous features get <strong style="color:var(--text)">discretized</strong> into candidate thresholds; the algorithm greedily picks whichever candidate gives the highest Information Gain, then <strong style="color:var(--text)">recurses</strong> on each resulting subset. Growth stops via a purity threshold or a maximum <strong style="color:var(--text)">depth</strong>, tuned by cross-validation to avoid overfitting. The result is a set of <strong style="color:var(--text)">axis-parallel, rectangular</strong> decision regions that are easy for a human to read.</p>
+      <div class="memory-grid">
+        <div class="memory-tile"><div class="k">Candidate questions</div><div class="v">via discretization</div></div>
+        <div class="memory-tile"><div class="k">Split rule</div><div class="v">Max Information Gain</div></div>
+        <div class="memory-tile"><div class="k">Hyperparameter</div><div class="v">Tree depth</div></div>
+        <div class="memory-tile"><div class="k">Boundary shape</div><div class="v">Axis-parallel rectangles</div></div>
+        <div class="memory-tile"><div class="k">Overfit signal</div><div class="v">Train ↑, validation ↓</div></div>
+        <div class="memory-tile"><div class="k">Superpower</div><div class="v">Interpretability</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCLUSION / BRIDGE -->
+  <div class="stage">
+    <div class="stage-head">
+      <span class="stage-num alt2">→</span>
+      <h3 class="stage-title">Where This Leads</h3>
+      <span class="stage-sub">end of non-probabilistic classification</span>
+    </div>
+    <div class="bridge">
+      <p style="margin:0 0 8px;color:var(--text-dim);font-size:15px;">KNN and Decision Trees both classify using <strong style="color:var(--text)">geometry and counting</strong> — distances, votes, splits — with no assumption about <em>how</em> the data was generated in the first place. The next lecture turns that around: by assuming a probabilistic story for how each class produces its data, we can build classifiers that reason in terms of likelihood rather than proximity or purity — the start of <strong style="color:var(--violet)">probabilistic modelling</strong>.</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>Lecture 44 — The Decision Tree Algorithm · study notes</footer>
+
+</body>
+</html>

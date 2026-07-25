@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Routing in Vue.js — Week 7, Lecture 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420; --bg-alt:#0F1A2B; --card:#132239; --card-2:#0F1D31;
+    --border:#22314C; --border-soft:#1A2740; --text:#E7EDF6; --muted:#8CA0C0;
+    --mint:#5EEAD4; --mint-dim:#3AA793; --amber:#F5C24C; --coral:#FB7C86; --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(30px,4.6vw,46px);
+    line-height:1.1; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: BROWSER COMPARISON ---------- */
+  .browser-pair{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .browser{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .browser-bar{ display:flex; align-items:center; gap:8px; padding:10px 14px; background:var(--card); border-bottom:1px solid var(--border); }
+  .bb-dot{ width:8px; height:8px; border-radius:50%; background:var(--border-soft); }
+  .browser-url{
+    flex:1; font-family:var(--mono); font-size:10.5px; color:var(--muted); background:var(--card-2);
+    border-radius:20px; padding:4px 10px; margin-left:6px; overflow:hidden; white-space:nowrap;
+  }
+  .browser-body{ padding:18px 16px; min-height:150px; display:flex; flex-direction:column; }
+  .browser-nav{ display:flex; gap:10px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border-soft); }
+  .browser-nav span{ font-family:var(--mono); font-size:10.5px; color:var(--muted); }
+  .browser-content{
+    flex:1; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:11.5px; color:var(--text);
+  }
+  /* traditional: full flash reload */
+  .browser.trad .browser-content{ background:var(--card); animation:flash 4s ease infinite; }
+  @keyframes flash{
+    0%, 40%{ background:var(--card); color:var(--text); }
+    46%{ background:#fff; color:#fff; }
+    52%, 100%{ background:var(--card); color:var(--text); }
+  }
+  .browser.trad .browser-url{ animation:urlchange 4s ease infinite; }
+  @keyframes urlchange{ 0%,40%{ opacity:1; } 46%{ opacity:0.3; } 52%,100%{ opacity:1; } }
+  .browser.trad .browser-nav{ animation:navflash 4s ease infinite; }
+  @keyframes navflash{ 0%,40%{ opacity:1; } 46%{ opacity:0; } 52%,100%{ opacity:1; } }
+  .browser-label{ text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:10px; }
+  /* spa: only content swaps */
+  .browser.spa .browser-content{ animation:swap 4s ease infinite; }
+  @keyframes swap{
+    0%,40%{ background:var(--card); border:1px dashed var(--border-soft); }
+    46%,52%{ background:rgba(94,234,212,0.12); border:1px dashed var(--mint); color:var(--mint); }
+    58%,100%{ background:var(--card); border:1px dashed var(--border-soft); color:var(--text); }
+  }
+
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0; font-size:15.5px; }
+
+  /* ---------- ROUTER-LINK / ROUTER-VIEW DIAGRAM ---------- */
+  .rv-card{ display:flex; flex-direction:column; gap:0; }
+  .rv-nav{ display:flex; gap:10px; padding-bottom:16px; margin-bottom:16px; border-bottom:1px dashed var(--border-soft); flex-wrap:wrap; }
+  .rv-link{
+    font-family:var(--mono); font-size:12.5px; padding:7px 14px; border-radius:20px;
+    border:1px solid var(--lilac); color:var(--lilac); background:rgba(156,140,255,0.08);
+  }
+  .rv-link.active{ background:var(--lilac); color:#160f33; }
+  .rv-view{
+    border:2px dashed var(--mint-dim); border-radius:10px; padding:20px; text-align:center;
+    font-family:var(--mono); font-size:13px; color:var(--mint); background:rgba(94,234,212,0.05);
+  }
+  .rv-view .tag{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:6px; font-family:var(--body); font-style:italic; }
+  .rv-note{ margin-top:14px; font-size:13px; color:var(--muted); }
+  .rv-note code{ font-family:var(--mono); color:var(--mint); }
+
+  /* ---------- ROUTE TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.tool{ font-family:var(--mono); font-weight:600; color:var(--mint); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+  td.what{ color:var(--text); }
+
+  /* ---------- DYNAMIC ROUTING ---------- */
+  .dyn-flow{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-family:var(--mono); font-size:13px; margin-bottom:18px; }
+  .dyn-pill{ padding:8px 14px; border-radius:20px; border:1px solid var(--border-soft); background:var(--card-2); }
+  .dyn-pill.path{ color:var(--lilac); border-color:var(--lilac); }
+  .dyn-pill.param{ color:var(--amber); border-color:var(--amber); }
+  .dyn-pill.access{ color:var(--mint); border-color:var(--mint-dim); }
+  .dyn-arrow{ color:var(--muted); }
+  .warn-box{
+    margin-top:8px; padding:14px 16px; border:1px dashed var(--coral); border-radius:10px;
+    background:rgba(251,124,134,0.06); display:flex; gap:12px; align-items:flex-start;
+  }
+  .warn-box .icon{ font-family:var(--mono); color:var(--coral); font-size:18px; flex:none; }
+  .warn-box p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .warn-box b{ color:var(--coral); }
+
+  /* ---------- ADVANCED FEATURES GRID ---------- */
+  .feat-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+  .feat-card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 16px;
+    display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease;
+  }
+  .feat-card:hover{ transform:translateY(-3px); border-color:var(--mint-dim); }
+  .feat-card h3{ font-family:var(--display); font-size:14px; margin:0; display:flex; align-items:center; }
+  .feat-card p{ margin:0; font-size:12.5px; color:var(--muted); }
+
+  /* ---------- BENEFITS / TRADEOFFS ---------- */
+  .compare-grid{ display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+  .compare-card{ border-radius:var(--radius); padding:22px; border:1px solid; }
+  .compare-card.good{ background:rgba(94,234,212,0.05); border-color:var(--mint-dim); }
+  .compare-card.bad{ background:rgba(251,124,134,0.05); border-color:#7a3540; }
+  .compare-card h3{ font-family:var(--display); font-size:16px; margin:0 0 12px; display:flex; align-items:center; gap:8px; }
+  .compare-card.good h3{ color:var(--mint); }
+  .compare-card.bad h3{ color:var(--coral); }
+  .compare-card ul{ margin:0; padding-left:18px; font-size:13.5px; color:var(--muted); }
+  .compare-card li{ margin-bottom:6px; }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  @media (max-width:760px){
+    .browser-pair{ grid-template-columns:1fr; }
+    .callout-grid{ grid-template-columns:1fr; }
+    .compare-grid{ grid-template-columns:1fr; }
+    .feat-grid{ grid-template-columns:repeat(2, 1fr); }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .dyn-flow{ font-size:11.5px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 7, Lecture 3</div>
+    <h1 class="title">Routing in <span class="accent">Vue.js</span></h1>
+    <p class="subtitle">Two ways to answer "what should be on screen right now" — reload everything, or swap just the piece that changed.</p>
+
+    <div class="browser-pair">
+      <div class="browser trad">
+        <div class="browser-bar"><span class="bb-dot"></span><span class="bb-dot"></span><span class="bb-dot"></span><span class="browser-url">yoursite.com/about</span></div>
+        <div class="browser-body">
+          <div class="browser-nav"><span>Home</span><span>About</span><span>Contact</span></div>
+          <div class="browser-content">entire page re-fetched</div>
+        </div>
+      </div>
+      <div class="browser spa">
+        <div class="browser-bar"><span class="bb-dot"></span><span class="bb-dot"></span><span class="bb-dot"></span><span class="browser-url">yoursite.com/about</span></div>
+        <div class="browser-body">
+          <div class="browser-nav"><span>Home</span><span>About</span><span>Contact</span></div>
+          <div class="browser-content">&lt;router-view&gt; swaps</div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex; gap:0; margin-top:10px;">
+      <div style="flex:1; text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted);">traditional — full page reload</div>
+      <div style="flex:1; text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted);">Vue Router — nav bar stays, content swaps</div>
+    </div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>From Pages to Components</h2></div>
+    <div class="card overview-card">
+      <p>On the traditional web, the browser fetches a brand-new HTML page from the server for every click — and reloads everything. In a Vue app, the page is built from components: navigating doesn't reload the page, it just swaps which component is rendered. This is the foundation of a <strong>Single Page Application (SPA)</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ================= ROUTER-LINK / ROUTER-VIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>The Two Building Blocks</h2></div>
+    <p class="lede">Vue Router runs entirely in the browser — no server round-trip needed for every link click.</p>
+    <div class="card rv-card">
+      <div class="rv-nav">
+        <span class="rv-link">&lt;router-link to="/"&gt;</span>
+        <span class="rv-link active">&lt;router-link to="/about"&gt;</span>
+        <span class="rv-link">&lt;router-link to="/contact"&gt;</span>
+      </div>
+      <div class="rv-view">
+        <span class="tag">&lt;router-view&gt; — renders whatever matches the active path</span>
+        &lt;About /&gt;
+      </div>
+      <p class="rv-note"><code>&lt;router-link&gt;</code> renders as an <code>&lt;a&gt;</code> tag but intercepts the click — it updates the route state instead of reloading. <code>&lt;router-view&gt;</code> is the placeholder that reacts to that state and renders the matching component.</p>
+    </div>
+  </section>
+
+  <!-- ================= ROUTE CONFIG TABLE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>Route Configuration</h2></div>
+    <p class="lede">A route config is just a map — path in, component out.</p>
+    <div class="card table-card">
+      <table>
+        <thead><tr><th>Path</th><th>Component</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="tool">/</td><td class="what">Home</td><td class="analogy-cell">the default view</td></tr>
+          <tr><td class="tool">/foo</td><td class="what">Foo</td><td class="analogy-cell">a static route</td></tr>
+          <tr><td class="tool">/user/:id</td><td class="what">User</td><td class="analogy-cell">dynamic — id becomes a param</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= DYNAMIC ROUTING ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>Dynamic Routing</h2></div>
+    <p class="lede">Part of the path can be a variable, captured for the component to use.</p>
+    <div class="card">
+      <div class="dyn-flow">
+        <span class="dyn-pill path">/user/:id</span>
+        <span class="dyn-arrow">→ navigate to</span>
+        <span class="dyn-pill param">/user/42</span>
+        <span class="dyn-arrow">→ read via</span>
+        <span class="dyn-pill access">$route.params.id</span>
+      </div>
+      <div class="warn-box">
+        <span class="icon">⚠</span>
+        <p><b>Reactivity gotcha:</b> going from <code style="font-family:var(--mono)">/user/1</code> to <code style="font-family:var(--mono)">/user/2</code> often reuses the same component instance instead of recreating it. If the UI doesn't update, add a <b style="color:var(--text)">watcher</b> on <code style="font-family:var(--mono)">$route</code> to detect the change and refresh manually.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ADVANCED FEATURES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Advanced Features</h2></div>
+    <div class="feat-grid">
+      <div class="feat-card">
+        <h3><span class="dot mint"></span>Nested Routes</h3>
+        <p>A <code style="font-family:var(--mono)">&lt;router-view&gt;</code> inside another component, enabling sub-navigation.</p>
+      </div>
+      <div class="feat-card">
+        <h3><span class="dot lilac"></span>Named Routes</h3>
+        <p>Reference routes by name instead of hardcoded paths — easier to read and maintain.</p>
+      </div>
+      <div class="feat-card">
+        <h3><span class="dot amber"></span>Named Views</h3>
+        <p>Render multiple components into different <code style="font-family:var(--mono)">&lt;router-view&gt;</code> elements at once.</p>
+      </div>
+      <div class="feat-card">
+        <h3><span class="dot coral"></span>History Mode</h3>
+        <p>Uses the browser's History API so the back button works like a native app, despite being an SPA.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= BENEFITS / TRADEOFFS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Benefits &amp; Trade-offs</h2></div>
+    <div class="compare-grid">
+      <div class="compare-card good">
+        <h3><span class="dot mint"></span>Benefits</h3>
+        <ul>
+          <li>Smoother, desktop-like user experience</li>
+          <li>Only the changed part of the page updates</li>
+          <li>Fewer full fetches — more efficient overall</li>
+        </ul>
+      </div>
+      <div class="compare-card bad">
+        <h3><span class="dot coral"></span>Trade-offs</h3>
+        <ul>
+          <li>The server has no idea client-side navigation happened</li>
+          <li>Browser history management gets more complex</li>
+          <li>Component reuse can cause reactivity bugs</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">06</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>Swap, don't reload</h4>
+        <p>SPAs replace components in place instead of asking the server for a whole new page.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Params aren't automatic</h4>
+        <p>Dynamic segments land in <code style="font-family:var(--mono)">$route.params</code> — but reused components may need a watcher to react to them changing.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Client-side ≠ server-blind by choice</h4>
+        <p>The smoother UX comes with a real trade-off: the server no longer knows what page the user thinks they're on.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Week 7, Lecture 3 — Routing in Vue.js</footer>
+</div>
+</body>
+</html>

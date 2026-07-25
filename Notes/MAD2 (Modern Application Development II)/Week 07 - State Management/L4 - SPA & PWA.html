@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPAs & PWA Architectures — Week 7, Lecture 4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420; --bg-alt:#0F1A2B; --card:#132239; --card-2:#0F1D31;
+    --border:#22314C; --border-soft:#1A2740; --text:#E7EDF6; --muted:#8CA0C0;
+    --mint:#5EEAD4; --mint-dim:#3AA793; --amber:#F5C24C; --coral:#FB7C86; --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace; --display:'Space Grotesk', sans-serif; --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:var(--body); line-height:1.6; padding-bottom:80px;
+  }
+  ::selection{ background:var(--mint); color:#06251f; }
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{ content:''; width:22px; height:1px; background:var(--mint); opacity:0.6; }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4.4vw,44px);
+    line-height:1.12; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:600px; margin:0 0 40px; }
+
+  /* ---------- HERO: TAB -> INSTALLED APP ---------- */
+  .install-card{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    padding:36px 20px; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+    display:flex; justify-content:center;
+  }
+  .install-window{
+    width:280px; border-radius:12px; overflow:hidden; border:1px solid var(--border-soft);
+    background:var(--card); animation:cycle 6s ease infinite;
+  }
+  .install-chrome{
+    display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--card-2);
+    border-bottom:1px solid var(--border-soft); overflow:hidden;
+    animation:chrome 6s ease infinite;
+  }
+  @keyframes chrome{
+    0%, 40%{ max-height:40px; opacity:1; padding:8px 12px; }
+    50%, 100%{ max-height:0; opacity:0; padding:0 12px; border-bottom-width:0; }
+  }
+  .ic-dot{ width:7px; height:7px; border-radius:50%; background:var(--border-soft); }
+  .ic-url{ flex:1; font-family:var(--mono); font-size:9.5px; color:var(--muted); background:var(--card); border-radius:20px; padding:3px 8px; }
+  .install-titlebar{
+    display:flex; align-items:center; gap:8px; padding:0; max-height:0; opacity:0; overflow:hidden;
+    animation:titlebar 6s ease infinite;
+  }
+  @keyframes titlebar{
+    0%, 40%{ max-height:0; opacity:0; padding:0; }
+    50%, 100%{ max-height:34px; opacity:1; padding:8px 12px; }
+  }
+  .install-icon{ width:16px; height:16px; border-radius:4px; background:linear-gradient(135deg, var(--mint), var(--lilac)); flex:none; }
+  .install-titlebar span{ font-family:var(--mono); font-size:11px; color:var(--text); }
+  .install-body{ padding:26px 18px; text-align:center; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  @keyframes cycle{ 0%{ transform:scale(1); } }
+  .install-caption{ text-align:center; font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:16px; }
+  .install-caption b{ color:var(--mint); }
+
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{ font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em; }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
+
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+  .overview-card p{ margin:0; font-size:15.5px; }
+
+  /* ---------- SPA CHARACTERISTICS ---------- */
+  .char-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; margin-bottom:22px; }
+  .char-card{ background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; }
+  .char-card h3{ font-family:var(--display); font-size:14.5px; margin:0 0 6px; display:flex; align-items:center; }
+  .char-card p{ margin:0; font-size:13px; color:var(--muted); }
+
+  /* implementation spectrum */
+  .impl-spectrum{ display:flex; gap:10px; align-items:stretch; flex-wrap:wrap; }
+  .impl-tier{ flex:1; min-width:150px; border-radius:10px; padding:16px 14px; border:1px solid var(--border-soft); background:var(--card-2); }
+  .impl-tier h4{ margin:0 0 6px; font-family:var(--display); font-size:13.5px; }
+  .impl-tier p{ margin:0; font-size:12px; color:var(--muted); }
+  .impl-tier .badge{ font-family:var(--mono); font-size:9.5px; padding:2px 8px; border-radius:20px; display:inline-block; margin-bottom:8px; }
+  .impl-tier.css .badge{ background:rgba(94,234,212,0.15); color:var(--mint); }
+  .impl-tier.plugin .badge{ background:rgba(251,124,134,0.15); color:var(--coral); }
+  .impl-tier.framework .badge{ background:rgba(156,140,255,0.15); color:var(--lilac); }
+  .impl-tier.plugin{ opacity:0.75; }
+  .impl-tier.plugin::after{ content:'✕ deprecated'; display:block; margin-top:8px; font-family:var(--mono); font-size:10px; color:var(--coral); }
+
+  /* challenges callouts */
+  .challenge-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:22px; }
+  .challenge-card{
+    border-radius:12px; padding:18px; border:1px dashed var(--coral); background:rgba(251,124,134,0.05);
+  }
+  .challenge-card h4{ margin:0 0 6px; font-family:var(--display); font-size:14px; color:var(--coral); display:flex; align-items:center; gap:8px; }
+  .challenge-card p{ margin:0; font-size:13px; color:var(--muted); }
+
+  /* ---------- SERVER ARCHITECTURE TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.tool{ font-family:var(--mono); font-weight:600; color:var(--mint); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+  td.what{ color:var(--text); }
+
+  /* ---------- WEB WORKER FLOW ---------- */
+  .worker-flow{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:center; font-family:var(--mono); font-size:12px; }
+  .wf-node{ padding:12px 16px; border-radius:10px; border:1px solid var(--border-soft); background:var(--card-2); text-align:center; min-width:110px; }
+  .wf-node.request{ border-color:var(--lilac); color:var(--lilac); }
+  .wf-node.worker{ border-color:var(--amber); color:var(--amber); }
+  .wf-node.hit{ border-color:var(--mint-dim); color:var(--mint); }
+  .wf-node.miss{ border-color:var(--coral); color:var(--coral); }
+  .wf-arrow{ color:var(--muted); font-size:16px; }
+  .wf-branch{ display:flex; flex-direction:column; gap:8px; }
+
+  /* ---------- PWA ANATOMY ---------- */
+  .anatomy-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+  .anatomy-card{
+    background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 14px;
+    display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease;
+  }
+  .anatomy-card:hover{ transform:translateY(-3px); border-color:var(--mint-dim); }
+  .anatomy-card h3{ font-family:var(--display); font-size:14px; margin:0; display:flex; align-items:center; }
+  .anatomy-card p{ margin:0; font-size:12px; color:var(--muted); }
+
+  .example-box{
+    margin-top:18px; padding:16px 18px; border-radius:10px; border:1px solid var(--mint-dim);
+    background:rgba(94,234,212,0.06); display:flex; gap:12px; align-items:flex-start;
+  }
+  .example-box .icon{ font-family:var(--mono); color:var(--mint); font-size:18px; }
+  .example-box p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .example-box b{ color:var(--mint); font-family:var(--mono); }
+
+  /* ---------- CALLOUTS ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{ border-radius:12px; padding:20px; border:1px solid; }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  @media (max-width:760px){
+    .char-grid{ grid-template-columns:1fr; }
+    .challenge-grid{ grid-template-columns:1fr; }
+    .callout-grid{ grid-template-columns:1fr; }
+    .anatomy-grid{ grid-template-columns:repeat(2, 1fr); }
+    .hero{ padding:44px 0 30px; }
+    section{ margin-top:50px; }
+    .worker-flow{ flex-direction:column; }
+    .wf-arrow{ transform:rotate(90deg); }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .anatomy-grid{ grid-template-columns:1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Week 7, Lecture 4</div>
+    <h1 class="title">SPAs &amp; <span class="accent">PWA</span> Architectures</h1>
+    <p class="subtitle">The web's slow campaign to stop feeling like a website and start feeling like an app.</p>
+
+    <div class="install-card">
+      <div class="install-window">
+        <div class="install-chrome">
+          <span class="ic-dot"></span><span class="ic-dot"></span><span class="ic-dot"></span>
+          <span class="ic-url">app.diagrams.net</span>
+        </div>
+        <div class="install-titlebar">
+          <div class="install-icon"></div><span>draw.io</span>
+        </div>
+        <div class="install-body">rendered content, either way</div>
+      </div>
+    </div>
+    <div class="install-caption">a browser tab, <b>installed</b> — same app, no more URL bar</div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>From Full Reloads to Native-Like</h2></div>
+    <div class="card overview-card">
+      <p>Traditional apps re-fetched an entire HTML page from the server for every click or form submission — a round trip that made the experience feel slow. Modern architectures push navigation and data handling to the client, chasing a smoother, more native feel.</p>
+    </div>
+  </section>
+
+  <!-- ================= SPAs ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>Single Page Applications</h2></div>
+    <p class="lede">An SPA updates the current page by fetching only what changed — never the whole document.</p>
+    <div class="char-grid">
+      <div class="char-card"><h3><span class="dot mint"></span>Smooth UX</h3><p>Transitions happen in place, without the blank-page flash of a reload.</p></div>
+      <div class="char-card"><h3><span class="dot amber"></span>Async fetching</h3><p>Data arrives via AJAX / the Fetch API, independent of full-page navigation.</p></div>
+      <div class="char-card"><h3><span class="dot lilac"></span>JS-based routing</h3><p>JavaScript manages history and state instead of the server.</p></div>
+    </div>
+
+    <p class="lede" style="margin-top:6px;">Three ways developers have built this over time:</p>
+    <div class="impl-spectrum">
+      <div class="impl-tier css">
+        <span class="badge">simplest</span>
+        <h4>CSS-only</h4>
+        <p>Toggle visibility with display classes. Easy, but limited interactivity.</p>
+      </div>
+      <div class="impl-tier plugin">
+        <span class="badge">historical</span>
+        <h4>Browser Plugins</h4>
+        <p>Java Applets, Flash. Heavy performance overhead — mostly abandoned.</p>
+      </div>
+      <div class="impl-tier framework">
+        <span class="badge">modern</span>
+        <h4>Frameworks</h4>
+        <p>Vue, React, Angular — manage components and state directly.</p>
+      </div>
+    </div>
+
+    <div class="challenge-grid">
+      <div class="challenge-card">
+        <h4><span class="dot coral"></span>SEO</h4>
+        <p>Search crawlers don't always execute JavaScript, which can make SPA content harder to discover.</p>
+      </div>
+      <div class="challenge-card">
+        <h4><span class="dot coral"></span>Analytics</h4>
+        <p>Traditional page-load analytics miss component-level state changes that never trigger a "new page."</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SERVER ARCHITECTURES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>Where Does the Work Happen?</h2></div>
+    <p class="lede">SPAs can still be built on very different server architectures.</p>
+    <div class="card table-card">
+      <table>
+        <thead><tr><th>Architecture</th><th>Who does the work</th><th>Think of it as…</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tool">Thin Server</td>
+            <td class="what">Server is just an API. The browser handles logic, navigation, and rendering.</td>
+            <td class="analogy-cell">server hands you ingredients, you cook</td>
+          </tr>
+          <tr>
+            <td class="tool">Thick Stateful</td>
+            <td class="what">Server holds the full system + client state, computes updates, pushes them in-place. Still an SPA.</td>
+            <td class="analogy-cell">a chef who remembers your usual order</td>
+          </tr>
+          <tr>
+            <td class="tool">Thick Stateless</td>
+            <td class="what">Server does the heavy computing but keeps no memory — the client resends its current state every request.</td>
+            <td class="analogy-cell">a chef with amnesia; you repeat your order each time</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= PWA: WEB WORKER FLOW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>Progressive Web Apps</h2></div>
+    <p class="lede">PWAs close the gap to native — offline access, installability, and system integration, on top of a normal SPA.</p>
+
+    <div class="card">
+      <div class="worker-flow">
+        <div class="wf-node request">Browser<br>request</div>
+        <span class="wf-arrow">→</span>
+        <div class="wf-node worker">Web Worker<br>(network proxy)</div>
+        <span class="wf-arrow">→</span>
+        <div class="wf-branch">
+          <div class="wf-node hit">cache hit → serve cached</div>
+          <div class="wf-node miss">cache miss → hit network</div>
+        </div>
+      </div>
+      <p style="text-align:center; font-size:12.5px; color:var(--muted); margin:18px 0 0;">this is what makes offline access possible</p>
+    </div>
+
+    <div class="anatomy-grid" style="margin-top:18px;">
+      <div class="anatomy-card">
+        <h3><span class="dot amber"></span>Web Workers</h3>
+        <p>Background scripts that proxy network requests and serve cached content when offline.</p>
+      </div>
+      <div class="anatomy-card">
+        <h3><span class="dot lilac"></span>Web Manifest</h3>
+        <p>A JSON file describing the app so the OS can identify and install it.</p>
+      </div>
+      <div class="anatomy-card">
+        <h3><span class="dot mint"></span>Installation</h3>
+        <p>Runs windowed, without browser chrome — no URL bar, no tabs.</p>
+      </div>
+      <div class="anatomy-card">
+        <h3><span class="dot coral"></span>WebAssembly</h3>
+        <p>A compiled format enabling near-native speed for compute-heavy tasks in the browser.</p>
+      </div>
+    </div>
+
+    <div class="example-box">
+      <span class="icon">◆</span>
+      <p><b>app.diagrams.net</b> is a working example — installable locally, works offline via caching, and behaves like a native desktop app despite running entirely in the browser.</p>
+    </div>
+  </section>
+
+  <!-- ================= WEB VS NATIVE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>Web Apps vs. Native Apps</h2></div>
+    <div class="card table-card">
+      <table>
+        <thead><tr><th>Dimension</th><th>Web Apps</th><th>Native Apps</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="tool">Entry barrier</td>
+            <td class="what">Low — open a link, no install required</td>
+            <td class="what">Higher — build with platform SDKs (Swift, Flutter)</td>
+          </tr>
+          <tr>
+            <td class="tool">Reach</td>
+            <td class="what">Cross-platform by default</td>
+            <td class="what">Write once per platform, at best</td>
+          </tr>
+          <tr>
+            <td class="tool">Updates</td>
+            <td class="what">Incremental, deployed instantly</td>
+            <td class="what">Shipped through app-store review cycles</td>
+          </tr>
+          <tr>
+            <td class="tool">OS / hardware access</td>
+            <td class="what">Limited by browser standards</td>
+            <td class="what">Best-in-class integration</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>Fetch less, feel faster</h4>
+        <p>SPAs trade full-page reloads for targeted async updates — that's most of the perceived speed gain.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Offline is a worker's job</h4>
+        <p>PWAs get offline access by proxying requests through a web worker that can serve from cache.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>A spectrum, not a switch</h4>
+        <p>Web vs. native isn't binary — thin/thick server choices and PWA features let web apps creep steadily closer to native.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Week 7, Lecture 4 — SPAs &amp; PWA Architectures</footer>
+</div>
+</body>
+</html>

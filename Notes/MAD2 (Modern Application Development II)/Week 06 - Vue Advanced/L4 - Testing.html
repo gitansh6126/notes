@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue.js Testing Strategies — MAD2 Lecture 6.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B1420;
+    --bg-alt:#0F1A2B;
+    --card:#132239;
+    --card-2:#0F1D31;
+    --border:#22314C;
+    --border-soft:#1A2740;
+    --text:#E7EDF6;
+    --muted:#8CA0C0;
+    --mint:#5EEAD4;
+    --mint-dim:#3AA793;
+    --amber:#F5C24C;
+    --coral:#FB7C86;
+    --lilac:#9C8CFF;
+    --mono:'JetBrains Mono', monospace;
+    --display:'Space Grotesk', sans-serif;
+    --body:'Inter', sans-serif;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 15% -10%, rgba(94,234,212,0.08), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(156,140,255,0.07), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    padding-bottom:80px;
+  }
+
+  ::selection{ background:var(--mint); color:#06251f; }
+
+  .wrap{ max-width:1040px; margin:0 auto; padding:0 24px; }
+
+  /* ---------- STATUS DOTS ---------- */
+  .dot{ display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:8px; flex:none; }
+  .dot.mint{ background:var(--mint); box-shadow:0 0 8px rgba(94,234,212,0.6);}
+  .dot.amber{ background:var(--amber); box-shadow:0 0 8px rgba(245,194,76,0.5);}
+  .dot.coral{ background:var(--coral); box-shadow:0 0 8px rgba(251,124,134,0.5);}
+  .dot.lilac{ background:var(--lilac); box-shadow:0 0 8px rgba(156,140,255,0.5);}
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:64px 0 40px; }
+  .eyebrow{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:0.14em; text-transform:uppercase;
+    color:var(--mint); display:flex; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .eyebrow::before{
+    content:''; width:22px; height:1px; background:var(--mint); opacity:0.6;
+  }
+  h1.title{
+    font-family:var(--display); font-weight:700; font-size:clamp(32px,5vw,50px);
+    line-height:1.08; margin:0 0 14px; letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--mint); }
+  .subtitle{ color:var(--muted); font-size:17px; max-width:560px; margin:0 0 36px; }
+
+  /* terminal */
+  .terminal{
+    background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius);
+    overflow:hidden; box-shadow:0 30px 60px -30px rgba(0,0,0,0.6);
+  }
+  .terminal-bar{
+    display:flex; align-items:center; gap:8px; padding:12px 16px;
+    background:var(--card); border-bottom:1px solid var(--border);
+  }
+  .tb-dot{ width:10px; height:10px; border-radius:50%; }
+  .tb-dot.r{ background:#fb7c86; } .tb-dot.y{ background:#f5c24c; } .tb-dot.g{ background:#5eead4; }
+  .tb-label{ margin-left:10px; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .terminal-body{ padding:22px 24px 26px; font-family:var(--mono); font-size:13.5px; }
+  .term-line{ color:var(--muted); margin-bottom:4px; }
+  .term-line .prompt{ color:var(--lilac); }
+  .term-line .cmd{ color:var(--text); }
+  .term-suite{ color:var(--text); margin:14px 0 8px; }
+  .term-suite b{ color:var(--mint); font-weight:600; }
+  .term-check{
+    opacity:0; transform:translateX(-6px);
+    animation:pop 0.35s ease forwards;
+    color:var(--text); margin:3px 0 3px 16px; display:block;
+  }
+  .term-check .mark{ color:var(--mint); margin-right:8px; }
+  .term-check.c1{ animation-delay:0.5s; }
+  .term-check.c2{ animation-delay:0.95s; }
+  .term-check.c3{ animation-delay:1.4s; }
+  @keyframes pop{ to{ opacity:1; transform:translateX(0); } }
+  .term-summary{ margin-top:16px; padding-top:14px; border-top:1px dashed var(--border-soft); color:var(--muted); }
+  .term-summary b{ color:var(--mint); }
+  .cursor{
+    display:inline-block; width:7px; height:14px; background:var(--mint);
+    margin-left:6px; vertical-align:middle; animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  /* ---------- SECTION HEADERS ---------- */
+  section{ margin-top:66px; }
+  .sec-head{ display:flex; align-items:baseline; gap:12px; margin-bottom:22px; }
+  .sec-tag{
+    font-family:var(--mono); font-size:12px; color:var(--muted); border:1px solid var(--border);
+    padding:3px 9px; border-radius:20px; flex:none;
+  }
+  h2{
+    font-family:var(--display); font-size:clamp(22px,3vw,28px); margin:0; font-weight:600; letter-spacing:-0.005em;
+  }
+  .lede{ color:var(--muted); font-size:15.5px; max-width:680px; margin:-8px 0 26px; }
+
+  /* ---------- GENERIC CARD ---------- */
+  .card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:24px;
+  }
+
+  /* ---------- OVERVIEW ---------- */
+  .overview-card p{ margin:0; color:var(--text); font-size:15.5px; }
+  .overview-card{ position:relative; padding-left:28px; }
+  .overview-card::before{
+    content:''; position:absolute; left:0; top:24px; bottom:24px; width:3px;
+    background:linear-gradient(var(--mint), var(--lilac)); border-radius:3px;
+  }
+
+  /* ---------- TYPE CARDS ---------- */
+  .type-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; }
+  .type-card{
+    background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    padding:22px; display:flex; flex-direction:column; gap:12px;
+    transition:transform .2s ease, border-color .2s ease;
+  }
+  .type-card:hover{ transform:translateY(-3px); border-color:var(--mint-dim); }
+  .type-icon{
+    width:42px; height:42px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+    background:var(--card-2); border:1px solid var(--border-soft); flex:none;
+  }
+  .type-card h3{ font-family:var(--display); font-size:17px; margin:0; font-weight:600; display:flex; align-items:center; }
+  .type-card .analogy{
+    font-size:13.5px; color:var(--amber); font-style:italic; border-left:2px solid var(--amber);
+    padding-left:10px; opacity:0.95;
+  }
+  .type-card p.desc{ margin:0; font-size:14px; color:var(--muted); }
+
+  /* icons drawn in css */
+  .icon-unit{ position:relative; }
+  .icon-unit::before{ content:''; width:16px; height:16px; border:2px solid var(--mint); border-radius:4px; }
+  .icon-e2e{ position:relative; }
+  .icon-e2e::before{ content:''; width:20px; height:8px; border:2px solid var(--lilac); border-radius:9px 9px 0 0; border-bottom:none; }
+  .icon-e2e::after{ content:''; position:absolute; width:20px; height:2px; background:var(--lilac); bottom:14px; }
+  .icon-cross{ position:relative; }
+  .icon-cross span{ position:absolute; width:12px; height:12px; border-radius:50%; border:2px solid var(--coral); }
+  .icon-cross span:nth-child(1){ left:5px; top:5px; }
+  .icon-cross span:nth-child(2){ left:12px; top:12px; border-color:var(--amber); }
+
+  /* ---------- PYRAMID DIAGRAM ---------- */
+  .diagram-card{ padding:34px 24px 28px; }
+  .pyramid-wrap{ display:flex; flex-direction:column; align-items:center; gap:6px; margin:10px 0 26px; }
+  .pyramid-tier{
+    height:52px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono); font-size:13px; letter-spacing:0.02em; color:#06251f; font-weight:600;
+    box-shadow:inset 0 -14px 22px -14px rgba(0,0,0,0.25);
+  }
+  .pyramid-tier.t1{ width:38%; background:linear-gradient(180deg, #b8a6ff, var(--lilac)); color:#1a1030; }
+  .pyramid-tier.t2{ width:68%; background:linear-gradient(180deg, #c8e6f5, #8bb9d6); color:#0b2434; }
+  .pyramid-tier.t3{ width:100%; background:linear-gradient(180deg, #86f0dd, var(--mint)); }
+  .pyramid-caption{ font-size:12.5px; color:var(--muted); text-align:center; }
+  .sweep{
+    position:relative; margin-top:8px; padding:14px 16px; border:1px dashed var(--coral);
+    border-radius:10px; background:rgba(251,124,134,0.06); display:flex; gap:12px; align-items:flex-start;
+  }
+  .sweep .sweep-icon{ font-family:var(--mono); color:var(--coral); font-size:18px; flex:none; }
+  .sweep p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .sweep b{ color:var(--coral); }
+
+  /* ---------- TABLE ---------- */
+  .table-card{ padding:0; overflow:hidden; }
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11.5px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--muted); background:var(--card-2); padding:14px 18px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:16px 18px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:rgba(94,234,212,0.03); }
+  td.tool{ font-family:var(--mono); font-weight:600; color:var(--mint); white-space:nowrap; }
+  td.analogy-cell{ color:var(--amber); font-style:italic; font-size:13.5px; }
+  td.what{ color:var(--text); }
+
+  /* ---------- MOUNT DIAGRAM ---------- */
+  .mount-diagram{ display:flex; gap:18px; align-items:stretch; margin:8px 0 4px; flex-wrap:wrap; }
+  .mount-col{ flex:1; min-width:220px; background:var(--card-2); border:1px solid var(--border-soft); border-radius:12px; padding:16px; }
+  .mount-col h4{ margin:0 0 12px; font-family:var(--mono); font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;}
+  .node{ border-radius:8px; padding:10px 12px; font-family:var(--mono); font-size:12.5px; margin-bottom:8px; }
+  .node.real{ background:rgba(94,234,212,0.12); border:1px solid var(--mint-dim); color:var(--mint); }
+  .node.stub{ background:rgba(140,160,192,0.08); border:1px dashed var(--border); color:var(--muted); }
+  .node.child{ margin-left:20px; }
+  .mount-vs{ display:flex; align-items:center; justify-content:center; font-family:var(--mono); color:var(--muted); font-size:12px; padding:0 4px; }
+
+  /* ---------- CODE WALKTHROUGH ---------- */
+  .code-card{ padding:0; overflow:hidden; }
+  .code-head{ padding:14px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+  .code-head .fname{ font-family:var(--mono); font-size:13px; color:var(--text); }
+  .code-head .badge{ font-family:var(--mono); font-size:11px; color:var(--mint); border:1px solid var(--mint-dim); padding:2px 8px; border-radius:20px; }
+  .code-row{ display:grid; grid-template-columns:1fr; }
+  .code-line{
+    display:flex; padding:9px 20px; border-bottom:1px solid var(--border-soft); align-items:flex-start; gap:14px;
+  }
+  .code-line:last-child{ border-bottom:none; }
+  .code-line .ln{ font-family:var(--mono); font-size:11.5px; color:#3d4f6e; width:18px; flex:none; padding-top:2px; }
+  .code-line pre{ margin:0; font-family:var(--mono); font-size:13px; color:var(--text); white-space:pre-wrap; word-break:break-word; }
+  .code-line .note{ margin-left:auto; flex:none; max-width:230px; font-size:12px; color:var(--amber); font-family:var(--body); font-style:italic; padding-top:2px; text-align:right; }
+  .tok-kw{ color:var(--lilac); } .tok-str{ color:var(--mint); } .tok-fn{ color:#8bb9d6; } .tok-com{ color:#3d4f6e; }
+
+  /* ---------- CALLOUT BOXES ---------- */
+  .callout-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .callout{
+    border-radius:12px; padding:20px; border:1px solid; position:relative;
+  }
+  .callout h4{ margin:0 0 8px; font-family:var(--display); font-size:15px; display:flex; align-items:center; gap:8px; }
+  .callout p{ margin:0; font-size:13.5px; color:var(--muted); }
+  .callout.mint{ background:rgba(94,234,212,0.06); border-color:var(--mint-dim); }
+  .callout.mint h4{ color:var(--mint); }
+  .callout.amber{ background:rgba(245,194,76,0.06); border-color:#8a6d20; }
+  .callout.amber h4{ color:var(--amber); }
+  .callout.lilac{ background:rgba(156,140,255,0.06); border-color:#5b4fa6; }
+  .callout.lilac h4{ color:var(--lilac); }
+
+  footer{ margin-top:70px; padding-top:24px; border-top:1px solid var(--border-soft); color:var(--muted); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width:760px){
+    .type-grid{ grid-template-columns:1fr; }
+    .callout-grid{ grid-template-columns:1fr; }
+    .hero{ padding:44px 0 30px; }
+    .mount-diagram{ flex-direction:column; }
+    .mount-vs{ padding:6px 0; }
+    .code-line{ flex-direction:column; gap:4px; }
+    .code-line .note{ max-width:100%; text-align:left; margin-left:32px; }
+    .terminal-body{ font-size:12px; padding:18px; }
+    section{ margin-top:50px; }
+  }
+  @media (max-width:480px){
+    .wrap{ padding:0 16px; }
+    thead th, tbody td{ padding:12px; }
+    table{ font-size:12.5px; }
+    .pyramid-tier.t1{ width:60%; }
+    .pyramid-tier.t2{ width:82%; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ================= HERO ================= -->
+  <div class="hero">
+    <div class="eyebrow">MAD2 · Lecture 6.4</div>
+    <h1 class="title">Vue.js Testing<br><span class="accent">Strategies</span></h1>
+    <p class="subtitle">How to prove a component works — before your users find out it doesn't.</p>
+
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="tb-dot r"></span><span class="tb-dot y"></span><span class="tb-dot g"></span>
+        <span class="tb-label">Hello.spec.js</span>
+      </div>
+      <div class="terminal-body">
+        <div class="term-line"><span class="prompt">$</span> <span class="cmd">npm run test:unit</span></div>
+        <div class="term-suite"><b>PASS</b> &nbsp;src/components/Hello.spec.js</div>
+        <span class="term-check c1"><span class="mark">✓</span>renders the username input <span style="color:#3d4f6e">(12 ms)</span></span>
+        <span class="term-check c2"><span class="mark">✓</span>shows .error when username &lt; 7 chars <span style="color:#3d4f6e">(8 ms)</span></span>
+        <span class="term-check c3"><span class="mark">✓</span>hides .error once username is valid <span style="color:#3d4f6e">(5 ms)</span><span class="cursor"></span></span>
+        <div class="term-summary">Test Suites: <b>1 passed</b>, 1 total &nbsp;·&nbsp; Tests: <b>3 passed</b>, 3 total</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= OVERVIEW ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">00</span><h2>Overview</h2></div>
+    <div class="card overview-card">
+      <p>Testing is how you check a Vue component's behavior <em>on purpose</em>, instead of finding out by accident when a user files a bug report. Good tests confirm that components render the right thing, react correctly to input, and keep working when the app around them changes.</p>
+    </div>
+  </section>
+
+  <!-- ================= CORE TESTING TYPES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">01</span><h2>Core Testing Types</h2></div>
+    <p class="lede">Three questions, three kinds of tests. Each one checks a different layer of "does this actually work?"</p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="type-icon icon-unit"></div>
+        <h3><span class="dot mint"></span>Unit Testing</h3>
+        <div class="analogy">Like inspecting a single Lego brick before it ever goes into the set.</div>
+        <p class="desc">Tests one component in isolation — its logic and behavior — without worrying about the rest of the app around it.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon icon-e2e"></div>
+        <h3><span class="dot lilac"></span>End-to-End (E2E)</h3>
+        <div class="analogy">Like test-driving the whole car, not just admiring the engine on a bench.</div>
+        <p class="desc">Runs the full application flow — UI, backend, database — simulating what a real user actually does.</p>
+      </div>
+      <div class="type-card">
+        <div class="type-icon icon-cross"><span></span><span></span></div>
+        <h3><span class="dot coral"></span>Cross-Browser</h3>
+        <div class="analogy">Like trying the same pair of shoes in five different stores to make sure they always fit.</div>
+        <p class="desc">Confirms the app looks and works consistently across Chrome, Firefox, Safari, and Edge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PYRAMID DIAGRAM ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">02</span><h2>How the Three Fit Together</h2></div>
+    <div class="card diagram-card">
+      <div class="pyramid-wrap">
+        <div class="pyramid-tier t1">E2E — few, slow, whole app</div>
+        <div class="pyramid-tier t2">Component-level checks</div>
+        <div class="pyramid-tier t3">Unit — many, fast, isolated</div>
+      </div>
+      <div class="pyramid-caption">Write lots of cheap unit tests, fewer expensive end-to-end tests.</div>
+      <div class="sweep">
+        <span class="sweep-icon">⇄</span>
+        <p><b>Cross-browser testing isn't a layer in the pyramid</b> — it's a sweep across every layer, checking that whatever you built also behaves the same way on someone else's browser.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KEY CONCEPTS TABLE ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">03</span><h2>Key Concepts &amp; Tools</h2></div>
+    <p class="lede">The cast of characters in a typical Vue test suite.</p>
+    <div class="card table-card">
+      <table>
+        <thead>
+          <tr><th>Tool / Concept</th><th>What it does</th><th>Think of it as…</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="tool">Virtual Testing DOM</td>
+            <td class="what">Mounts a component into an in-memory DOM so you can inject data and simulate interaction without a real browser.</td>
+            <td class="analogy-cell">a crash-test lab, not a real road</td>
+          </tr>
+          <tr>
+            <td class="tool">Vue Test Utils</td>
+            <td class="what">The official testing library — <code>shallowMount</code> renders a component, <code>setData</code> changes its state for testing.</td>
+            <td class="analogy-cell">the manufacturer's own wrench set</td>
+          </tr>
+          <tr>
+            <td class="tool">Mocha</td>
+            <td class="what">Organizes tests into <code>describe</code> / <code>it</code> blocks and runs the suite.</td>
+            <td class="analogy-cell">the stage manager calling each scene</td>
+          </tr>
+          <tr>
+            <td class="tool">Chai</td>
+            <td class="what">Assertion library — phrases like <code>expect(x).to.equal(y)</code>.</td>
+            <td class="analogy-cell">the referee deciding if it counts</td>
+          </tr>
+          <tr>
+            <td class="tool">Jest</td>
+            <td class="what">Combines a test runner, assertions, and mocking in one package.</td>
+            <td class="analogy-cell">a Swiss Army knife for testing</td>
+          </tr>
+          <tr>
+            <td class="tool">Babel</td>
+            <td class="what">Transpiles modern JavaScript into a form older browsers can run, supporting cross-browser compatibility.</td>
+            <td class="analogy-cell">a translator for browsers stuck in the past</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= SHALLOWMOUNT DIAGRAM ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">04</span><h2>What <code style="font-family:var(--mono); color:var(--mint);">shallowMount</code> Actually Does</h2></div>
+    <p class="lede">It renders the component you're testing for real, but stubs out its children — so a bug in a child component can't make your test lie to you.</p>
+    <div class="card">
+      <div class="mount-diagram">
+        <div class="mount-col">
+          <h4>mount() — full render</h4>
+          <div class="node real">&lt;Hello&gt; — fully rendered</div>
+          <div class="node real child">&lt;UsernameInput&gt; — fully rendered</div>
+          <div class="node real child">&lt;ErrorBanner&gt; — fully rendered</div>
+        </div>
+        <div class="mount-vs">vs</div>
+        <div class="mount-col">
+          <h4>shallowMount() — isolated</h4>
+          <div class="node real">&lt;Hello&gt; — fully rendered</div>
+          <div class="node stub child">&lt;UsernameInput-stub&gt;</div>
+          <div class="node stub child">&lt;ErrorBanner-stub&gt;</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= CODE WALKTHROUGH ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">05</span><h2>Worked Example: Testing "Hello"</h2></div>
+    <p class="lede">Goal: a username under 7 characters shows a <code style="font-family:var(--mono); color:var(--coral);">.error</code> element; a valid one hides it.</p>
+
+    <div class="card code-card">
+      <div class="code-head">
+        <span class="fname">Hello.spec.js</span>
+        <span class="badge">Vue Test Utils + Jest</span>
+      </div>
+      <div class="code-row">
+        <div class="code-line"><span class="ln">01</span><pre><span class="tok-kw">import</span> { shallowMount } <span class="tok-kw">from</span> <span class="tok-str">'@vue/test-utils'</span></pre></div>
+        <div class="code-line"><span class="ln">02</span><pre><span class="tok-kw">import</span> Hello <span class="tok-kw">from</span> <span class="tok-str">'./Hello.vue'</span></pre></div>
+        <div class="code-line"><span class="ln">03</span><pre></pre></div>
+        <div class="code-line"><span class="ln">04</span><pre><span class="tok-fn">describe</span>(<span class="tok-str">'Hello.vue'</span>, () => {</pre></div>
+        <div class="code-line"><span class="ln">05</span><pre>&nbsp;&nbsp;<span class="tok-fn">it</span>(<span class="tok-str">'shows error for short username'</span>, () => {</pre></div>
+        <div class="code-line">
+          <span class="ln">06</span>
+          <pre>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">const</span> wrapper = <span class="tok-fn">shallowMount</span>(Hello)</pre>
+          <span class="note">mount into the isolated test DOM</span>
+        </div>
+        <div class="code-line">
+          <span class="ln">07</span>
+          <pre>&nbsp;&nbsp;&nbsp;&nbsp;wrapper.<span class="tok-fn">setData</span>({ username: <span class="tok-str">'abc'</span> })</pre>
+          <span class="note">simulate typing a too-short name</span>
+        </div>
+        <div class="code-line">
+          <span class="ln">08</span>
+          <pre>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-fn">expect</span>(wrapper.find(<span class="tok-str">'.error'</span>).exists()).toBe(<span class="tok-kw">true</span>)</pre>
+          <span class="note">error banner should now exist</span>
+        </div>
+        <div class="code-line"><span class="ln">09</span><pre>&nbsp;&nbsp;})</pre></div>
+        <div class="code-line"><span class="ln">10</span><pre></pre></div>
+        <div class="code-line"><span class="ln">11</span><pre>&nbsp;&nbsp;<span class="tok-fn">it</span>(<span class="tok-str">'hides error for valid username'</span>, () => {</pre></div>
+        <div class="code-line"><span class="ln">12</span><pre>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-kw">const</span> wrapper = <span class="tok-fn">shallowMount</span>(Hello)</pre></div>
+        <div class="code-line">
+          <span class="ln">13</span>
+          <pre>&nbsp;&nbsp;&nbsp;&nbsp;wrapper.<span class="tok-fn">setData</span>({ username: <span class="tok-str">'abcdefgh'</span> })</pre>
+          <span class="note">8 chars — meets the 7+ rule</span>
+        </div>
+        <div class="code-line">
+          <span class="ln">14</span>
+          <pre>&nbsp;&nbsp;&nbsp;&nbsp;<span class="tok-fn">expect</span>(wrapper.find(<span class="tok-str">'.error'</span>).exists()).toBe(<span class="tok-kw">false</span>)</pre>
+          <span class="note">error banner should be gone</span>
+        </div>
+        <div class="code-line"><span class="ln">15</span><pre>&nbsp;&nbsp;})</pre></div>
+        <div class="code-line"><span class="ln">16</span><pre>})</pre></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= KEY TAKEAWAYS ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-tag">06</span><h2>Key Takeaways</h2></div>
+    <div class="callout-grid">
+      <div class="callout mint">
+        <h4><span class="dot mint"></span>Automate it</h4>
+        <p>Manual click-through testing doesn't scale and isn't repeatable. Automated tests give consistent, reliable results every run.</p>
+      </div>
+      <div class="callout amber">
+        <h4><span class="dot amber"></span>Test both layers</h4>
+        <p>Check the DOM output <em>and</em> the underlying JS logic — a component can look right while its logic is broken, or vice versa.</p>
+      </div>
+      <div class="callout lilac">
+        <h4><span class="dot lilac"></span>Suites scale apps</h4>
+        <p>In large apps, one state change can ripple across many components. A robust test suite is what makes that safe to build on.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>MAD2 · Lecture 6.4 — Vue.js Testing Strategies</footer>
+</div>
+</body>
+</html>
