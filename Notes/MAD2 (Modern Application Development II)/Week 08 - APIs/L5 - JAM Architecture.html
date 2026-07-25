@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The JAM Approach (JAMstack) — MAD2 Learning OS</title>
+<style>
+:root{
+  --bg:#0D1117;
+  --bg-soft:#0A0D12;
+  --card:#161B22;
+  --card-hi:#1C232C;
+  --border:#2A313C;
+  --border-hi:#3D4552;
+  --text:#E6EDF3;
+  --muted:#8B949E;
+  --faint:#5B6472;
+  --get:#3FB950;
+  --post:#58A6FF;
+  --put:#D2A8FF;
+  --delete:#F85149;
+  --pink:#E754A8;
+  --amber:#D29922;
+  --cyan:#2DD4BF;
+  --cyan-bg:rgba(45,212,191,.10);
+  --font-display:'Space Grotesk',system-ui,sans-serif;
+  --font-body:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(45,212,191,.10), transparent 60%),
+    radial-gradient(ellipse 900px 500px at 90% 10%, rgba(88,166,255,.06), transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  line-height:1.6;
+  padding-bottom:80px;
+}
+@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--bg-soft);}
+::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px;}
+
+a{color:var(--post);}
+code, .mono{font-family:var(--font-mono);}
+
+/* ---------- Layout shell ---------- */
+.shell{
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 20px;
+  display:grid;
+  grid-template-columns:230px 1fr;
+  gap:36px;
+}
+@media (max-width:980px){
+  .shell{grid-template-columns:1fr; padding:0 14px;}
+}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
+  margin-bottom:28px;
+}
+.topbar-inner{
+  max-width:1180px;margin:0 auto;padding:14px 20px;
+  display:flex;align-items:center;gap:10px;
+}
+.dot{width:11px;height:11px;border-radius:50%;}
+.dot.r{background:#F85149;} .dot.y{background:#D29922;} .dot.g{background:#3FB950;}
+.addr{
+  flex:1;margin-left:8px;
+  background:var(--bg-soft);
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:6px 12px;
+  font-family:var(--font-mono);
+  font-size:12.5px;
+  color:var(--muted);
+  overflow-x:auto;
+  white-space:nowrap;
+}
+.addr .verb{color:var(--cyan);font-weight:700;}
+.addr .path{color:var(--text);}
+
+/* ---------- Sidebar nav ---------- */
+.sidenav{position:sticky; top:20px; align-self:start; max-height:calc(100vh - 40px); overflow-y:auto;}
+.sidenav h4{
+  font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;
+  font-size:11px;color:var(--faint);margin-bottom:10px;
+}
+.sidenav ol{list-style:none;counter-reset:mod;}
+.sidenav li{counter-increment:mod;}
+.sidenav a{
+  display:flex;gap:8px;align-items:baseline;
+  font-size:12.5px;color:var(--muted);
+  text-decoration:none;padding:6px 8px;border-radius:6px;
+  border-left:2px solid transparent;
+}
+.sidenav a::before{
+  content:counter(mod,decimal-leading-zero);
+  font-family:var(--font-mono);color:var(--faint);font-size:10.5px;
+}
+.sidenav a:hover{color:var(--text);background:var(--card);border-left-color:var(--cyan);}
+@media (max-width:980px){
+  .sidenav{position:static;max-height:none;margin-bottom:8px;}
+  .sidenav ol{display:flex;flex-wrap:wrap;gap:4px;}
+  .sidenav a{border-left:none;border:1px solid var(--border);background:var(--card);}
+}
+
+/* ---------- Header / hero ---------- */
+.hero{margin-bottom:34px;}
+.eyebrow{
+  font-family:var(--font-mono);font-size:12px;color:var(--cyan);
+  text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;
+}
+.hero h1{
+  font-family:var(--font-display);font-weight:700;
+  font-size:clamp(28px,4.2vw,44px);
+  line-height:1.1;letter-spacing:-.01em;
+  margin-bottom:12px;
+}
+.hero h1 .accent{color:var(--cyan);}
+.hero p.lede{color:var(--muted);font-size:16px;max-width:64ch;}
+
+/* ---------- Module wrapper ---------- */
+.module{
+  scroll-margin-top:20px;
+  margin-bottom:26px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  overflow:hidden;
+}
+.module-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 22px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
+}
+.module-num{
+  font-family:var(--font-mono);font-size:12px;color:var(--bg);
+  background:var(--cyan);
+  width:26px;height:26px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;
+}
+.module-head h2{
+  font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.01em;
+}
+.module-head .tag{
+  margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);
+  border:1px solid var(--border-hi);padding:3px 8px;border-radius:20px;white-space:nowrap;
+}
+.module-body{padding:22px;}
+@media (max-width:600px){ .module-body{padding:16px;} .module-head{padding:13px 16px;} }
+
+/* ---------- Topic card ---------- */
+.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
+.topic-cell{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.topic-cell .k{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
+.topic-cell .v{font-size:14.5px;font-weight:600;}
+.stars{color:var(--amber);letter-spacing:1px;}
+
+/* ---------- Analogy ---------- */
+.analogy{
+  display:flex;gap:14px;background:linear-gradient(135deg, rgba(45,212,191,.10), rgba(88,166,255,.05));
+  border:1px solid var(--border-hi);border-radius:12px;padding:16px 18px;
+}
+.analogy .ic{font-size:24px;line-height:1;flex-shrink:0;}
+.analogy p{font-size:15px;color:var(--text);}
+.analogy .label{font-family:var(--font-mono);font-size:11px;color:var(--cyan);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+
+.analogy-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
+@media(max-width:640px){.analogy-pair{grid-template-columns:1fr;}}
+.mini-analogy{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.mini-analogy .label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.mini-analogy.a1 .label{color:var(--post);}
+.mini-analogy.a2 .label{color:var(--cyan);}
+.mini-analogy p{font-size:13.5px;color:var(--muted);}
+
+/* ---------- Diagrams ---------- */
+.diagram{
+  background:var(--bg-soft);border:1px dashed var(--border-hi);border-radius:12px;
+  padding:24px 18px; display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.flow-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
+.flow-node{
+  font-family:var(--font-mono);font-size:12.5px;font-weight:600;
+  padding:9px 14px;border-radius:8px;border:1px solid var(--border-hi);
+  background:var(--card-hi); white-space:nowrap;
+}
+.flow-node.a{border-color:var(--get);color:var(--get);}
+.flow-node.b{border-color:var(--post);color:var(--post);}
+.flow-node.c{border-color:var(--put);color:var(--put);}
+.flow-node.d{border-color:var(--amber);color:var(--amber);}
+.flow-node.e{border-color:var(--delete);color:var(--delete);}
+.flow-node.f{border-color:var(--cyan);color:var(--cyan);}
+.flow-arrow{color:var(--faint);font-size:16px;}
+.flow-caption{font-family:var(--font-mono);font-size:11px;color:var(--faint);margin-top:8px;text-align:center;}
+
+/* three-pillar diagram (signature element) */
+.pillars{width:100%;max-width:620px;display:flex;flex-direction:column;align-items:center;gap:16px;}
+.pillar-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.pillar{
+  width:150px;border-radius:10px;border:1px solid var(--border-hi);background:var(--card-hi);
+  padding:16px 12px;text-align:center;
+}
+.pillar .letter{font-family:var(--font-display);font-size:28px;font-weight:700;}
+.pillar .word{font-family:var(--font-mono);font-size:11px;color:var(--muted);margin:4px 0 6px;}
+.pillar .desc{font-size:11.5px;color:var(--faint);}
+.pillar.j{border-color:var(--amber);} .pillar.j .letter{color:var(--amber);}
+.pillar.a{border-color:var(--post);} .pillar.a .letter{color:var(--post);}
+.pillar.m{border-color:var(--cyan);} .pillar.m .letter{color:var(--cyan);}
+.pillar-plus{font-family:var(--font-mono);font-size:20px;color:var(--faint);align-self:center;}
+.pillar-result{
+  font-family:var(--font-mono);font-weight:700;font-size:14px;color:var(--text);
+  background:var(--bg-soft);border:1px solid var(--border-hi);border-radius:20px;padding:8px 18px;
+}
+@media(max-width:600px){.pillar-plus{display:none;} .pillar-row{gap:8px;}}
+
+/* build vs runtime split */
+.split{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:620px;margin-top:6px;}
+@media(max-width:600px){.split{grid-template-columns:1fr;}}
+.split-col{border:1px solid var(--border-hi);border-radius:10px;padding:12px;}
+.split-col .sh{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.split-col.build{background:rgba(210,153,34,.06);} .split-col.build .sh{color:var(--amber);}
+.split-col.run{background:rgba(45,212,191,.06);} .split-col.run .sh{color:var(--cyan);}
+.split-col .si{font-family:var(--font-mono);font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+
+/* ---------- Pattern recognition ---------- */
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.chip{
+  font-family:var(--font-mono);font-size:12px;background:var(--bg-soft);
+  border:1px solid var(--border-hi);border-radius:20px;padding:5px 12px;color:var(--muted);
+}
+.shortcut-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+.shortcut-table th, .shortcut-table td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;}
+.shortcut-table th{color:var(--faint);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
+.shortcut-table td.arrow{color:var(--cyan);font-family:var(--font-mono);}
+
+/* ---------- Q&A ---------- */
+.qa{border-left:2px solid var(--border-hi);padding-left:16px;margin-bottom:16px;}
+.qa:last-child{margin-bottom:0;}
+.qa .q{font-weight:600;font-size:14.5px;margin-bottom:4px;color:var(--text);}
+.qa .q::before{content:"Q — ";color:var(--cyan);font-family:var(--font-mono);}
+.qa .a{color:var(--muted);font-size:14px;}
+
+/* ---------- Syntax anatomy ---------- */
+.anatomy-block{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;overflow-x:auto;}
+.anatomy-line{font-family:var(--font-mono);font-size:13.5px;white-space:pre;}
+.anno-list{margin-top:14px;display:grid;gap:8px;}
+.anno-item{display:flex;gap:10px;font-size:13.5px;align-items:flex-start;}
+.anno-item .tok{
+  font-family:var(--font-mono);background:var(--card-hi);border:1px solid var(--border-hi);
+  border-radius:6px;padding:2px 8px;color:var(--cyan);flex-shrink:0;
+}
+.anno-item .desc{color:var(--muted);}
+
+/* ---------- Code block ---------- */
+.codeblock{
+  background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;
+  overflow:hidden;margin-bottom:16px;
+}
+.codeblock .cb-head{
+  display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);
+  font-family:var(--font-mono);font-size:11px;color:var(--faint);
+}
+.codeblock pre{padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
+.codeblock .c-key{color:var(--put);}
+.codeblock .c-str{color:var(--get);}
+.codeblock .c-com{color:var(--faint);font-style:italic;}
+.codeblock .c-fn{color:var(--post);}
+.codeblock .c-prop{color:#79C0FF;}
+.codeblock .c-tag{color:var(--cyan);}
+
+/* step flow */
+.step-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;}
+.step{font-family:var(--font-mono);font-size:12px;background:var(--card-hi);border:1px solid var(--border-hi);padding:6px 10px;border-radius:7px;}
+.step-arrow{color:var(--faint);}
+.step.build{border-color:var(--amber);color:var(--amber);}
+.step.run{border-color:var(--cyan);color:var(--cyan);}
+
+/* ---------- Real project usage ---------- */
+.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.proj-card{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.proj-card .name{font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+.proj-card .swatch{width:9px;height:9px;border-radius:50%;background:var(--cyan);}
+.proj-card p{font-size:13.5px;color:var(--muted);}
+
+/* ---------- Mistakes ---------- */
+.mistake-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+@media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
+.mrow{border-radius:10px;padding:12px 14px;font-size:13.5px;border:1px solid var(--border);}
+.mrow.wrong{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.35);}
+.mrow.right{background:rgba(63,185,80,.08);border-color:rgba(63,185,80,.35);}
+.mrow .lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;display:block;}
+.mrow.wrong .lbl{color:var(--delete);}
+.mrow.right .lbl{color:var(--get);}
+
+/* ---------- Debug flow ---------- */
+.debug-case{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
+.debug-case .title{font-weight:600;font-size:14px;margin-bottom:8px;}
+.debug-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--font-mono);font-size:11.5px;}
+.debug-steps span.s{background:var(--card-hi);border:1px solid var(--border-hi);padding:4px 9px;border-radius:6px;}
+.debug-steps span.s.fix{border-color:var(--get);color:var(--get);}
+.debug-steps .a{color:var(--faint);}
+
+/* ---------- Callout boxes ---------- */
+.callout{border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid; font-size:14px;}
+.callout .c-lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.callout.warn{background:var(--cyan-bg);border-color:rgba(45,212,191,.4);}
+.callout.warn .c-lbl{color:var(--cyan);}
+.callout.trap{background:rgba(248,81,73,.07);border-color:rgba(248,81,73,.3);}
+.callout.trap .c-lbl{color:var(--delete);}
+.callout.tip{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.3);}
+.callout.tip .c-lbl{color:var(--post);}
+
+/* ---------- Exam pattern grid ---------- */
+.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:640px){.exam-grid{grid-template-columns:1fr;}}
+.exam-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+.exam-box h4{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;}
+.exam-box ul{list-style:none;display:grid;gap:7px;}
+.exam-box li{font-size:13.5px;color:var(--text);padding-left:14px;position:relative;}
+.exam-box li::before{content:"›";position:absolute;left:0;color:var(--cyan);}
+
+/* ---------- Interview tiers ---------- */
+.tier{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+.tier-head{padding:9px 16px;font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
+.tier.easy .tier-head{background:rgba(63,185,80,.12);color:var(--get);}
+.tier.med .tier-head{background:rgba(210,153,34,.12);color:var(--amber);}
+.tier.hard .tier-head{background:rgba(45,212,191,.14);color:var(--cyan);}
+.tier-body{padding:12px 16px;background:var(--bg-soft);}
+.tier-body .item{margin-bottom:10px;font-size:13.5px;}
+.tier-body .item:last-child{margin-bottom:0;}
+.tier-body .item .q{font-weight:600;color:var(--text);}
+.tier-body .item .a{color:var(--muted);margin-top:2px;}
+
+/* ---------- One-page brain ---------- */
+.remember-chain{display:grid;gap:8px;margin-top:14px;}
+.rc-row{
+  display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;
+  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:9px 14px;
+}
+.rc-row .key{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--cyan);}
+.rc-row .val{font-size:13px;color:var(--muted);}
+@media(max-width:560px){.rc-row{grid-template-columns:1fr;gap:2px;}}
+
+/* ---------- Revision table ---------- */
+.rev-table-wrap{overflow-x:auto;}
+table.rev{width:100%;border-collapse:collapse;font-size:13.5px;min-width:600px;}
+table.rev th{
+  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hi);
+}
+table.rev td{padding:10px 12px;border-bottom:1px solid var(--border);}
+table.rev tr:last-child td{border-bottom:none;}
+.verb-pill{font-family:var(--font-mono);font-weight:700;padding:2px 9px;border-radius:5px;font-size:12px;display:inline-block;}
+.verb-pill.j{background:rgba(210,153,34,.15);color:var(--amber);}
+.verb-pill.a{background:rgba(88,166,255,.15);color:var(--post);}
+.verb-pill.m{background:rgba(45,212,191,.15);color:var(--cyan);}
+
+/* ---------- Practice ladder ---------- */
+.ladder{display:flex;flex-direction:column;gap:8px;}
+.rung{
+  display:grid;grid-template-columns:auto 110px 1fr;gap:12px;align-items:center;
+  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:11px 14px;
+  position:relative;
+}
+.rung .lvl{
+  font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--bg);
+  background:var(--get);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+}
+.rung:nth-child(2) .lvl{background:#57C15F;}
+.rung:nth-child(3) .lvl{background:var(--post);}
+.rung:nth-child(4) .lvl{background:var(--put);}
+.rung:nth-child(5) .lvl{background:var(--amber);}
+.rung:nth-child(6) .lvl{background:#FF9F5A;}
+.rung:nth-child(7) .lvl{background:var(--cyan);}
+.rung .tag2{font-family:var(--font-mono);font-size:11px;color:var(--faint);}
+.rung .desc{font-size:13.5px;color:var(--text);}
+@media(max-width:560px){.rung{grid-template-columns:auto 1fr;} .rung .tag2{grid-column:2;font-size:10px;}}
+
+/* ---------- Memory palace ---------- */
+.palace-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:760px){.palace-grid{grid-template-columns:1fr;}}
+.palace-card{background:var(--bg-soft);border:1px solid var(--border-hi);border-radius:10px;padding:16px;text-align:center;}
+.palace-card .ic{font-size:26px;margin-bottom:8px;}
+.palace-card h5{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--cyan);margin-bottom:8px;}
+.palace-card p{font-size:13.5px;color:var(--text);}
+.ascii{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:pre;text-align:left;margin-top:8px;background:var(--card-hi);border-radius:6px;padding:8px;overflow-x:auto;}
+
+/* ---------- Footer ---------- */
+.footer-note{text-align:center;color:var(--faint);font-size:12px;font-family:var(--font-mono);margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+    <div class="addr"><span class="verb">BUILD</span> <span class="path">next build → static/ → deployed to CDN</span> · pre-rendered</div>
+  </div>
+</div>
+
+<div class="shell">
+
+  <nav class="sidenav">
+    <h4>18 Modules</h4>
+    <ol>
+      <li><a href="#m1">Topic Card</a></li>
+      <li><a href="#m2">Core Intuition</a></li>
+      <li><a href="#m3">Visual Model</a></li>
+      <li><a href="#m4">Pattern Recognition</a></li>
+      <li><a href="#m5">Deep Fundamentals</a></li>
+      <li><a href="#m6">Execution Flow</a></li>
+      <li><a href="#m7">Syntax Anatomy</a></li>
+      <li><a href="#m8">Code Walkthrough</a></li>
+      <li><a href="#m9">Behind the Scenes</a></li>
+      <li><a href="#m10">Real Project Usage</a></li>
+      <li><a href="#m11">Common Mistakes</a></li>
+      <li><a href="#m12">Debugging Mindset</a></li>
+      <li><a href="#m13">IITM Exam Pattern</a></li>
+      <li><a href="#m14">Interview Questions</a></li>
+      <li><a href="#m15">One-Page Brain</a></li>
+      <li><a href="#m16">Revision Table</a></li>
+      <li><a href="#m17">Practice Ladder</a></li>
+      <li><a href="#m18">Memory Palace</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">W8 · Lecture 5 · MAD2 Learning OS</div>
+      <h1>The <span class="accent">JAM</span> Approach</h1>
+      <p class="lede">JavaScript, APIs, and Markup — how modern web apps pre-build what they can, fetch what they can't, and ship most of the page before the user even asks for it.</p>
+    </header>
+
+    <!-- MODULE 1 -->
+    <section class="module" id="m1">
+      <div class="module-head"><div class="module-num">1</div><h2>Topic Card</h2><span class="tag">30 seconds</span></div>
+      <div class="module-body">
+        <div class="topic-grid">
+          <div class="topic-cell"><div class="k">Topic</div><div class="v">The JAM Approach (JAMstack)</div></div>
+          <div class="topic-cell"><div class="k">Category</div><div class="v">Web Architecture · Frontend-Backend Design</div></div>
+          <div class="topic-cell"><div class="k">Difficulty</div><div class="v stars">★★★☆☆</div></div>
+          <div class="topic-cell"><div class="k">Prerequisites</div><div class="v">HTML/CSS/JS basics, REST/GraphQL, CMS concepts</div></div>
+          <div class="topic-cell"><div class="k">Importance</div><div class="v stars">★★★★☆</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 2 -->
+    <section class="module" id="m2">
+      <div class="module-head"><div class="module-num">2</div><h2>Core Intuition (WHY)</h2></div>
+      <div class="module-body">
+        <div class="analogy">
+          <div class="ic">🥐</div>
+          <div>
+            <div class="label">Analogy — the bakery, not the made-to-order kitchen</div>
+            <p>A traditional server-rendered app is a restaurant kitchen that cooks every dish from scratch the moment you sit down — every request rebuilds the whole page on the backend. JAMstack is a bakery: the bread (markup) is baked in bulk every morning, before anyone arrives, and sits ready on the shelf. When you order, the baker only handles the fresh part — spreading butter, adding toppings (JavaScript calling APIs) — because most of the work was already done ahead of time.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 3 -->
+    <section class="module" id="m3">
+      <div class="module-head"><div class="module-num">3</div><h2>Visual Mental Model</h2></div>
+      <div class="module-body">
+        <div class="diagram">
+          <div class="pillars">
+            <div class="pillar-row">
+              <div class="pillar j"><div class="letter">J</div><div class="word">JavaScript</div><div class="desc">interactivity, client logic</div></div>
+              <span class="pillar-plus">+</span>
+              <div class="pillar a"><div class="letter">A</div><div class="word">APIs</div><div class="desc">data & backend services</div></div>
+              <span class="pillar-plus">+</span>
+              <div class="pillar m"><div class="letter">M</div><div class="word">Markup</div><div class="desc">pre-built static HTML</div></div>
+            </div>
+            <div class="pillar-result">= JAMstack</div>
+            <div class="split">
+              <div class="split-col build">
+                <div class="sh">Build Time</div>
+                <div class="si">SSG fetches data</div>
+                <div class="si">Generates static HTML</div>
+              </div>
+              <div class="split-col run">
+                <div class="sh">Run Time</div>
+                <div class="si">Browser loads HTML instantly</div>
+                <div class="si">JS hydrates + calls APIs</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 4 -->
+    <section class="module" id="m4">
+      <div class="module-head"><div class="module-num">4</div><h2>Pattern Recognition</h2></div>
+      <div class="module-body">
+        <p style="color:var(--muted);font-size:13.5px;margin-bottom:10px;">Trigger words — spot these and you know JAMstack is being tested:</p>
+        <div class="chip-row">
+          <span class="chip">decoupled frontend/backend</span><span class="chip">static HTML</span><span class="chip">build time</span>
+          <span class="chip">hydration</span><span class="chip">headless CMS</span><span class="chip">CDN</span>
+          <span class="chip">First Contentful Paint</span><span class="chip">SSG</span><span class="chip">WASM</span>
+        </div>
+        <table class="shortcut-table">
+          <tr><th>Trigger</th><th></th><th>Recognition shortcut</th></tr>
+          <tr><td>"pages built before any user visits"</td><td class="arrow">→</td><td>Static Site Generation (build time)</td></tr>
+          <tr><td>"static page becomes interactive after load"</td><td class="arrow">→</td><td>Hydration</td></tr>
+          <tr><td>"CMS with no fixed frontend"</td><td class="arrow">→</td><td>Headless CMS</td></tr>
+          <tr><td>"served from edge locations near the user"</td><td class="arrow">→</td><td>CDN delivery</td></tr>
+          <tr><td>"logic runs in the browser instead of the server"</td><td class="arrow">→</td><td>JavaScript / WASM on the frontend</td></tr>
+        </table>
+      </div>
+    </section>
+
+    <!-- MODULE 5 -->
+    <section class="module" id="m5">
+      <div class="module-head"><div class="module-num">5</div><h2>Deep Fundamentals</h2></div>
+      <div class="module-body">
+        <div class="qa">
+          <div class="q">Why was the JAMstack approach created?</div>
+          <div class="a">Every application needs a data store, a UI, and business logic. Traditionally all three were tangled together on one server, rebuilding the same HTML on every single request — even when the underlying content rarely changed.</div>
+        </div>
+        <div class="qa">
+          <div class="q">What problem does it solve?</div>
+          <div class="a">It decouples the frontend from backend data management: markup can be pre-built once and served instantly from a CDN, while only the genuinely dynamic parts are fetched live through APIs.</div>
+        </div>
+        <div class="qa">
+          <div class="q">What happens internally at build time vs. run time?</div>
+          <div class="a">At build time, a static site generator pulls data (often from a headless CMS or API) and renders complete HTML pages. At run time, the browser receives that finished HTML immediately, then JavaScript "hydrates" it and calls APIs for anything that still needs to be dynamic.</div>
+        </div>
+        <div class="qa">
+          <div class="q">How does this get executed in practice?</div>
+          <div class="a">A tool like Next.js, Gatsby, or Hugo runs a build script that fetches content and outputs static files; these are deployed to a CDN, so every visitor gets a pre-built page with minimal backend load per request.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 6 -->
+    <section class="module" id="m6">
+      <div class="module-head"><div class="module-num">6</div><h2>Execution Flow</h2></div>
+      <div class="module-body">
+        <div class="diagram">
+          <div class="flow-row"><div class="flow-node d">Developer writes markup + fetches build-time data</div><div class="flow-arrow">↓</div></div>
+          <div class="flow-row"><div class="flow-node f">SSG tool generates static HTML at build time</div><div class="flow-arrow">↓</div></div>
+          <div class="flow-row"><div class="flow-node c">Static files deployed to a CDN</div><div class="flow-arrow">↓</div></div>
+          <div class="flow-row"><div class="flow-node a">Browser requests page → gets static HTML instantly</div><div class="flow-arrow">↓</div></div>
+          <div class="flow-row"><div class="flow-node b">JS bundle loads → hydrates the page</div><div class="flow-arrow">↓</div></div>
+          <div class="flow-row"><div class="flow-node d">Further data fetched live via APIs as needed</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 7 -->
+    <section class="module" id="m7">
+      <div class="module-head"><div class="module-num">7</div><h2>Syntax Anatomy</h2></div>
+      <div class="module-body">
+        <div class="anatomy-block">
+          <div class="anatomy-line">export async function getStaticProps() {
+  const res = await fetch('https://api.example.com/posts');
+  const posts = await res.json();
+  return { props: { posts } };
+}</div>
+        </div>
+        <div class="anno-list">
+          <div class="anno-item"><span class="tok">getStaticProps</span><span class="desc">a special function name Next.js recognizes and runs only at build time, never in the browser</span></div>
+          <div class="anno-item"><span class="tok">await fetch(...)</span><span class="desc">calls the API once, while the page is being built — not on every visitor's request</span></div>
+          <div class="anno-item"><span class="tok">return &#123; props &#123; posts &#125; &#125;</span><span class="desc">passes the fetched data into the page component as ready-made props</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 8 -->
+    <section class="module" id="m8">
+      <div class="module-head"><div class="module-num">8</div><h2>Code Walkthrough</h2></div>
+      <div class="module-body">
+        <div class="codeblock">
+          <div class="cb-head">Blog.jsx — page component consuming build-time props</div>
+          <pre><span class="c-key">export default function</span> <span class="c-fn">Blog</span>({ posts }) {
+  <span class="c-key">return</span> (
+    <span class="c-tag">&lt;ul&gt;</span>
+      {posts.map(p =&gt; (
+        <span class="c-tag">&lt;li</span> key={p.id}<span class="c-tag">&gt;</span>{p.title}<span class="c-tag">&lt;/li&gt;</span>  <span class="c-com">// rendered ahead of time</span>
+      ))}
+    <span class="c-tag">&lt;/ul&gt;</span>
+  );
+}</pre>
+        </div>
+        <p style="font-size:13.5px;color:var(--muted);">Call sequence, split by when each step runs:</p>
+        <div class="step-flow">
+          <span class="step build">buildTime: fetchData()</span><span class="step-arrow">→</span>
+          <span class="step build">generateStaticHTML()</span><span class="step-arrow">→</span>
+          <span class="step build">deployToCDN()</span><span class="step-arrow">→</span>
+          <span class="step run">runtime: downloadHTML()</span><span class="step-arrow">→</span>
+          <span class="step run">hydrate()</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 9 -->
+    <section class="module" id="m9">
+      <div class="module-head"><div class="module-num">9</div><h2>Behind the Scenes</h2></div>
+      <div class="module-body">
+        <div class="diagram">
+          <div class="flow-row">
+            <div class="flow-node d">Build triggered</div><div class="flow-arrow">→</div>
+            <div class="flow-node f">SSG calls headless CMS/API</div><div class="flow-arrow">→</div>
+            <div class="flow-node c">Pages pre-rendered to static HTML/CSS/JS</div>
+          </div>
+          <div class="flow-arrow" style="margin:6px 0;">↓</div>
+          <div class="flow-row">
+            <div class="flow-node a">Deployed to CDN edge nodes</div><div class="flow-arrow">→</div>
+            <div class="flow-node b">Nearest edge serves HTML instantly</div><div class="flow-arrow">→</div>
+            <div class="flow-node d">React/Vue hydrates DOM → interactive</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 10 -->
+    <section class="module" id="m10">
+      <div class="module-head"><div class="module-num">10</div><h2>Real Project Usage</h2></div>
+      <div class="module-body">
+        <div class="proj-grid">
+          <div class="proj-card"><div class="name"><span class="swatch"></span>Vercel + Next.js sites</div><p>Marketing and blog sites deploy through Vercel, which builds static pages via Next.js and serves them from a global CDN for near-instant load times.</p></div>
+          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--post)"></span>Headless CMS + Gatsby</div><p>E-commerce storefronts pull product data from a headless CMS like Contentful, then pre-render pages with Gatsby so browsing feels instant.</p></div>
+          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--amber)"></span>GitHub Pages + Jekyll</div><p>Countless project and documentation sites are built with Jekyll and hosted as pure static files directly from a GitHub repository.</p></div>
+          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--put)"></span>Hugo documentation sites</div><p>Large open-source projects use Hugo to generate thousands of documentation pages as static HTML in seconds at build time.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 11 -->
+    <section class="module" id="m11">
+      <div class="module-head"><div class="module-num">11</div><h2>Common Mistakes</h2></div>
+      <div class="module-body">
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Assuming JAMstack means "no backend at all"</div>
+          <div class="mrow right"><span class="lbl">✅ Correct</span>Backend logic moves to APIs/serverless functions — it isn't eliminated</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Treating hydration as instant/free</div>
+          <div class="mrow right"><span class="lbl">✅ Correct</span>A large JS bundle can delay time-to-interactive even though content paints fast</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Using plain SSG for highly dynamic, frequently changing data with no rebuild plan</div>
+          <div class="mrow right"><span class="lbl">✅ Correct</span>Use rebuild webhooks or incremental static regeneration for that content</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Assuming a headless CMS forces one specific frontend framework</div>
+          <div class="mrow right"><span class="lbl">✅ Correct</span>A headless CMS explicitly lets you swap in any frontend technology</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 12 -->
+    <section class="module" id="m12">
+      <div class="module-head"><div class="module-num">12</div><h2>Debugging Mindset</h2></div>
+      <div class="module-body">
+        <div class="debug-case">
+          <div class="title">"Page content shows but buttons don't respond at first"</div>
+          <div class="debug-steps">
+            <span class="s">Problem: static content visible, no interactivity</span><span class="a">→</span>
+            <span class="s">Observe: JS bundle still downloading</span><span class="a">→</span>
+            <span class="s">Find stage: hydration hasn't completed yet</span><span class="a">→</span>
+            <span class="s fix">Fix: reduce bundle size or add a loading indicator</span>
+          </div>
+        </div>
+        <div class="debug-case">
+          <div class="title">"Content editor updates the CMS but the live site doesn't change"</div>
+          <div class="debug-steps">
+            <span class="s">Problem: stale content on production</span><span class="a">→</span>
+            <span class="s">Observe: page was rendered at last build, not now</span><span class="a">→</span>
+            <span class="s">Find stage: no rebuild was triggered after the CMS edit</span><span class="a">→</span>
+            <span class="s fix">Fix: wire a rebuild webhook or use incremental static regeneration</span>
+          </div>
+        </div>
+        <div class="debug-case">
+          <div class="title">"Live chat / real-time updates don't work on the JAMstack site"</div>
+          <div class="debug-steps">
+            <span class="s">Problem: no live data pushed to the page</span><span class="a">→</span>
+            <span class="s">Observe: architecture is static + request/response only</span><span class="a">→</span>
+            <span class="s">Find stage: no persistent connection layer</span><span class="a">→</span>
+            <span class="s fix">Fix: add WebSockets or WebRTC alongside the static architecture</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 13 -->
+    <section class="module" id="m13">
+      <div class="module-head"><div class="module-num">13</div><h2>IITM Exam Pattern</h2></div>
+      <div class="module-body">
+        <div class="exam-grid">
+          <div class="exam-box"><h4>Trigger Words</h4><ul>
+            <li>"pre-built at build time" → SSG / static markup</li>
+            <li>"CMS exposes data, no frontend opinion" → headless CMS</li>
+            <li>"page becomes interactive after JS loads" → hydration</li>
+            <li>"served from edge locations" → CDN</li>
+          </ul></div>
+          <div class="exam-box"><h4>Trap Words</h4><ul>
+            <li>"JAMstack has no backend" — false, backend moves to APIs</li>
+            <li>"JAMstack can't do real-time" — true historically, now handled via WebSockets/WebRTC</li>
+            <li>"static = never updates" — rebuilds/ISR keep it current</li>
+          </ul></div>
+          <div class="exam-box"><h4>MCQ Tricks</h4><ul>
+            <li>Option claiming JS/business logic never runs server-side → too absolute</li>
+            <li>Option describing hydration as happening before HTML loads → order is reversed</li>
+          </ul></div>
+          <div class="exam-box"><h4>PYQ Pattern &amp; Elimination</h4><ul>
+            <li>Identify whether the scenario describes build time or run time first</li>
+            <li>Eliminate options that treat JAMstack as backend-free</li>
+            <li>Prefer options that separate "what's pre-built" from "what's fetched live"</li>
+          </ul></div>
+        </div>
+        <div class="callout trap" style="margin-top:14px;"><div class="c-lbl">🪤 Classic trap</div>A question may ask whether JAMstack sites can be interactive immediately on load. Content paints fast (good First Contentful Paint), but interactivity depends on hydration finishing — the two aren't the same moment. Don't conflate "visible" with "usable."</div>
+      </div>
+    </section>
+
+    <!-- MODULE 14 -->
+    <section class="module" id="m14">
+      <div class="module-head"><div class="module-num">14</div><h2>Interview Questions</h2></div>
+      <div class="module-body">
+        <div class="tier easy">
+          <div class="tier-head">Easy</div>
+          <div class="tier-body">
+            <div class="item"><div class="q">What do the letters in JAMstack stand for?</div><div class="a">JavaScript for interactivity, APIs for data and backend services, and Markup for pre-built static HTML.</div></div>
+            <div class="item"><div class="q">What is a headless CMS?</div><div class="a">A content management system that exposes its data through APIs without dictating any specific frontend, letting developers use any technology to display it.</div></div>
+          </div>
+        </div>
+        <div class="tier med">
+          <div class="tier-head">Medium</div>
+          <div class="tier-body">
+            <div class="item"><div class="q">What is hydration and why is it needed?</div><div class="a">It's the process of attaching JavaScript behavior to already-rendered static HTML once the browser loads the client-side bundle — needed because the initial HTML has no interactivity on its own.</div></div>
+            <div class="item"><div class="q">Why does JAMstack improve First Contentful Paint?</div><div class="a">Because the server (or CDN) just serves a pre-built static file instead of computing the page on every request, so content appears much sooner.</div></div>
+          </div>
+        </div>
+        <div class="tier hard">
+          <div class="tier-head">Advanced</div>
+          <div class="tier-body">
+            <div class="item"><div class="q">How does JAMstack, originally static-focused, support real-time features?</div><div class="a">By layering technologies like WebSockets or WebRTC alongside the static architecture, giving persistent, bidirectional connections for the specific features that need them, while the rest of the site stays pre-built.</div></div>
+            <div class="item"><div class="q">Where does business logic live in a JAMstack app, and how has that shifted?</div><div class="a">Historically on a backend server (Python, Node.js); modern JAMstack apps increasingly push logic to the frontend via JavaScript or even WebAssembly, in addition to logic exposed by backend APIs.</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 15 -->
+    <section class="module" id="m15">
+      <div class="module-head"><div class="module-num">15</div><h2>One-Page Brain</h2></div>
+      <div class="module-body">
+        <div class="diagram" style="padding:16px;">
+          <div class="flow-caption" style="margin:0;font-size:12px;">Build: fetch data → generate static HTML → deploy to CDN &nbsp;|&nbsp; Run: serve instantly → hydrate → call APIs</div>
+        </div>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="key">J — JavaScript</span><span class="val">interactivity, business logic on frontend</span></div>
+          <div class="rc-row"><span class="key">A — APIs</span><span class="val">data + backend services, replace tight coupling</span></div>
+          <div class="rc-row"><span class="key">M — Markup</span><span class="val">pre-built static HTML for speed</span></div>
+          <div class="rc-row"><span class="key">Hydration</span><span class="val">static HTML gains interactivity after JS loads</span></div>
+          <div class="rc-row"><span class="key">Headless CMS</span><span class="val">data via API, any frontend</span></div>
+          <div class="rc-row"><span class="key">Limits</span><span class="val">real-time needs WebSockets/WebRTC layered on top</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 16 -->
+    <section class="module" id="m16">
+      <div class="module-head"><div class="module-num">16</div><h2>Quick Revision Table</h2></div>
+      <div class="module-body">
+        <div class="rev-table-wrap">
+        <table class="rev">
+          <tr><th>Component</th><th>Role</th><th>Example Tech</th></tr>
+          <tr><td><span class="verb-pill j">JavaScript</span></td><td>Frontend interactivity & logic</td><td>React, Vue, WASM</td></tr>
+          <tr><td><span class="verb-pill a">APIs</span></td><td>Connect frontend to data/backend services</td><td>REST, GraphQL, serverless functions</td></tr>
+          <tr><td><span class="verb-pill m">Markup</span></td><td>Pre-built static presentation layer</td><td>Next.js, Gatsby, Jekyll, Hugo output</td></tr>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 17 -->
+    <section class="module" id="m17">
+      <div class="module-head"><div class="module-num">17</div><h2>Practice Ladder</h2></div>
+      <div class="module-body">
+        <div class="ladder">
+          <div class="rung"><div class="lvl">1</div><div class="tag2">Concept</div><div class="desc">Explain the difference between build time and run time in a JAMstack app.</div></div>
+          <div class="rung"><div class="lvl">2</div><div class="tag2">Predict Output</div><div class="desc">Given a <code>getStaticProps</code> function, predict what data the page component receives.</div></div>
+          <div class="rung"><div class="lvl">3</div><div class="tag2">Find Bug</div><div class="desc">Spot the flaw: a site uses plain SSG for a live stock-price ticker with no rebuild strategy.</div></div>
+          <div class="rung"><div class="lvl">4</div><div class="tag2">MCQ</div><div class="desc">Which claim is false — "JAMstack has no backend" or "JAMstack moves logic to APIs"? Eliminate carefully.</div></div>
+          <div class="rung"><div class="lvl">5</div><div class="tag2">Coding</div><div class="desc">Write a static page component that fetches posts at build time and renders a list.</div></div>
+          <div class="rung"><div class="lvl">6</div><div class="tag2">Mini Project</div><div class="desc">Connect a headless CMS to an SSG tool and deploy the output to a CDN-backed host.</div></div>
+          <div class="rung"><div class="lvl">7</div><div class="tag2">Interview</div><div class="desc">Defend, out loud, how you'd add real-time chat to an otherwise static JAMstack site.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 18 -->
+    <section class="module" id="m18">
+      <div class="module-head"><div class="module-num">18</div><h2>Memory Palace</h2></div>
+      <div class="module-body">
+        <div class="palace-grid">
+          <div class="palace-card">
+            <div class="ic">📏</div>
+            <h5>Rule</h5>
+            <p>Pre-build everything you can; fetch live only what you truly must.</p>
+          </div>
+          <div class="palace-card">
+            <div class="ic">🥐</div>
+            <h5>Mnemonic</h5>
+            <p>"Bake it, then top it" — Markup is baked at build time, JS+APIs add the fresh toppings.</p>
+          </div>
+          <div class="palace-card">
+            <div class="ic">🧭</div>
+            <h5>Visual</h5>
+            <p class="ascii">Build: Data → SSG → Static HTML
+                    │
+                    ▼
+Deploy: CDN edge nodes
+                    │
+                    ▼
+Run: Serve → Hydrate → API calls</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer-note">MAD2 Learning OS · The JAM Approach (JAMstack) · 18/18 modules complete</div>
+  </main>
+</div>
+
+</body>
+</html>
