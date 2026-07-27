@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Servers, Concurrency &amp; Task Queues — MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1117;
+    --surface: #131a22;
+    --surface-2: #1a232d;
+    --surface-3: #202b37;
+    --border: #29343f;
+    --border-soft: #1f2830;
+    --text: #e8eef4;
+    --text-muted: #90a0ae;
+    --text-faint: #5c6b78;
+
+    --teal: #43d9c0;
+    --teal-dim: #1c3833;
+    --amber: #f2b84b;
+    --amber-dim: #3a2f18;
+    --coral: #f0685f;
+    --coral-dim: #3a1f1e;
+    --violet: #9b8cff;
+    --violet-dim: #241f3d;
+
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(67,217,192,0.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(155,140,255,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--teal); color:#04140f; }
+
+  a{ color:inherit; text-decoration:none; }
+
+  /* ---------- layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns:250px minmax(0,1fr);
+    max-width:1320px;
+    margin:0 auto;
+  }
+
+  /* ---------- sidebar ---------- */
+  .sidebar{
+    position:sticky;
+    top:0;
+    align-self:start;
+    height:100vh;
+    overflow-y:auto;
+    padding:28px 14px 40px 22px;
+    border-right:1px solid var(--border-soft);
+    scrollbar-width:thin;
+    scrollbar-color:var(--surface-3) transparent;
+  }
+  .sidebar::-webkit-scrollbar{ width:6px; }
+  .sidebar::-webkit-scrollbar-thumb{ background:var(--surface-3); border-radius:4px; }
+
+  .brand{
+    display:flex; align-items:center; gap:9px;
+    font-family:var(--mono); font-size:12px; letter-spacing:.06em;
+    color:var(--teal); margin-bottom:26px; text-transform:uppercase;
+  }
+  .brand .dot{ width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); }
+
+  .navlist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px; }
+  .navlist a{
+    display:flex; gap:9px; align-items:baseline;
+    padding:7px 10px; border-radius:8px;
+    font-size:13px; color:var(--text-muted);
+    transition:background .15s ease, color .15s ease;
+  }
+  .navlist a:hover{ background:var(--surface-2); color:var(--text); }
+  .navlist .num{ font-family:var(--mono); font-size:11px; color:var(--text-faint); min-width:18px; }
+  .navlist a.active{ background:var(--surface-2); color:var(--teal); }
+
+  /* mobile nav toggle */
+  .mobile-bar{ display:none; }
+
+  /* ---------- main ---------- */
+  main{ padding:36px 40px 100px; min-width:0; }
+
+  .hero{
+    border:1px solid var(--border);
+    background:linear-gradient(160deg, var(--surface-2), var(--surface) 70%);
+    border-radius:20px;
+    padding:34px 34px 30px;
+    margin-bottom:34px;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::after{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, transparent 0 24px, var(--border-soft) 24px 25px, transparent 25px) 0 0/26px 100%,
+      linear-gradient(0deg, transparent 0 24px, var(--border-soft) 24px 25px, transparent 25px) 0 0/100% 26px;
+    opacity:.35; pointer-events:none;
+  }
+  .hero-eyebrow{
+    font-family:var(--mono); font-size:12px; color:var(--teal);
+    text-transform:uppercase; letter-spacing:.08em; margin-bottom:14px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .hero h1{
+    font-family:var(--display); font-size:clamp(28px,4vw,42px); line-height:1.1;
+    margin:0 0 14px; letter-spacing:-.01em;
+  }
+  .hero p.lede{ color:var(--text-muted); max-width:640px; margin:0; font-size:16px; }
+
+  /* ---------- section wrapper ---------- */
+  section.module{ margin-bottom:38px; scroll-margin-top:20px; }
+
+  .module-head{
+    display:flex; align-items:baseline; gap:14px; margin-bottom:16px;
+    padding-bottom:12px; border-bottom:1px solid var(--border-soft);
+  }
+  .module-head .mnum{
+    font-family:var(--mono); font-size:13px; color:var(--text-faint);
+  }
+  .module-head h2{
+    font-family:var(--display); font-size:22px; margin:0; font-weight:600;
+    letter-spacing:-.01em;
+  }
+  .module-head .msub{
+    margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint);
+    text-transform:uppercase; letter-spacing:.05em; white-space:nowrap;
+  }
+
+  /* ---------- generic card ---------- */
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:22px 24px;
+  }
+  .card + .card{ margin-top:14px; }
+
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+
+  @media (max-width:820px){
+    .grid-2, .grid-3{ grid-template-columns:1fr; }
+  }
+
+  /* ---------- topic card (module 1) ---------- */
+  .topic-card{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0;
+    border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;
+  }
+  .topic-cell{ padding:18px 20px; border-right:1px solid var(--border-soft); background:var(--surface); }
+  .topic-cell:last-child{ border-right:none; }
+  .topic-cell .tlabel{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
+  .topic-cell .tval{ font-size:15px; font-weight:600; }
+  .stars{ letter-spacing:2px; color:var(--amber); font-size:15px; }
+  .stars.imp{ color:var(--coral); }
+  @media (max-width:820px){ .topic-card{ grid-template-columns:1fr 1fr; } .topic-cell{ border-bottom:1px solid var(--border-soft);} }
+
+  /* ---------- intuition / analogy box ---------- */
+  .analogy{
+    background:linear-gradient(160deg, var(--violet-dim), var(--surface) 75%);
+    border:1px solid #33305a;
+    border-radius:var(--radius);
+    padding:22px 24px;
+    display:flex; gap:16px;
+  }
+  .analogy .glyph{
+    font-size:26px; flex:0 0 auto; line-height:1;
+  }
+  .analogy p{ margin:0; font-size:15.5px; color:#dbd6ff; }
+  .analogy strong{ color:#fff; }
+
+  /* ---------- callout boxes ---------- */
+  .callout{
+    border-radius:var(--radius-sm);
+    padding:14px 16px;
+    border:1px solid var(--border);
+    display:flex; gap:12px; align-items:flex-start;
+    font-size:14.5px;
+  }
+  .callout .icon{ font-size:17px; line-height:1.4; }
+  .callout.info{ background:var(--teal-dim); border-color:#1f5a51; }
+  .callout.warn{ background:var(--amber-dim); border-color:#5a4620; }
+  .callout.danger{ background:var(--coral-dim); border-color:#5c2a28; }
+  .callout.tip{ background:var(--violet-dim); border-color:#3a3466; }
+
+  /* ---------- diagrams (pure CSS) ---------- */
+  .diagram{
+    border:1px solid var(--border);
+    background:
+      radial-gradient(circle at 1px 1px, var(--border-soft) 1px, transparent 1px) 0 0/18px 18px,
+      var(--surface);
+    border-radius:var(--radius);
+    padding:28px 22px;
+    overflow-x:auto;
+  }
+  .flow-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:nowrap; min-width:max-content;
+    justify-content:center;
+  }
+  .flow-col{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .node{
+    font-family:var(--mono); font-size:12.5px; text-align:center;
+    padding:11px 15px; border-radius:10px; border:1px solid var(--border);
+    background:var(--surface-2); white-space:nowrap; color:var(--text);
+  }
+  .node.server{ border-color:#2b5e56; background:var(--teal-dim); color:#a7f3e8; }
+  .node.worker{ border-color:#3a3466; background:var(--violet-dim); color:#d6cfff; }
+  .node.client{ border-color:var(--border); background:var(--surface-3); }
+  .node.warn{ border-color:#5a4620; background:var(--amber-dim); color:#ffe1a3; }
+  .arrow{ color:var(--text-faint); font-family:var(--mono); font-size:16px; }
+  .arrow.down{ transform:rotate(90deg); }
+  .vflow{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+
+  @media (max-width:640px){
+    .flow-row{ flex-direction:column; }
+    .arrow{ transform:rotate(90deg); }
+  }
+
+  /* signature diagram: reception desk vs kitchen */
+  .signature{
+    border:1px solid var(--border); border-radius:var(--radius);
+    padding:26px 22px 22px; background:var(--surface); position:relative;
+  }
+  .sig-lane{ display:flex; align-items:center; gap:0; flex-wrap:wrap; justify-content:space-between; }
+  .sig-stage{
+    flex:1 1 150px; text-align:center; padding:16px 10px; position:relative;
+  }
+  .sig-stage .box{
+    border:1.5px solid var(--border); border-radius:12px; padding:16px 10px;
+    background:var(--surface-2); font-family:var(--mono); font-size:12px;
+  }
+  .sig-stage.desk .box{ border-color:#2b5e56; background:var(--teal-dim); }
+  .sig-stage.queue .box{ border-color:#5a4620; background:var(--amber-dim); }
+  .sig-stage.kitchen .box{ border-color:#3a3466; background:var(--violet-dim); }
+  .sig-stage .icon{ font-size:22px; margin-bottom:6px; display:block; }
+  .sig-stage .cap{ margin-top:8px; font-size:11.5px; color:var(--text-muted); font-family:var(--body); }
+  .sig-connector{
+    flex:0 0 34px; height:2px; background:repeating-linear-gradient(90deg, var(--teal) 0 6px, transparent 6px 11px);
+    position:relative; top:-16px;
+  }
+  @media (max-width:700px){
+    .sig-lane{ flex-direction:column; }
+    .sig-connector{ width:2px; height:24px; top:0;
+      background:repeating-linear-gradient(180deg, var(--teal) 0 6px, transparent 6px 11px); }
+  }
+
+  /* ---------- tables ---------- */
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{
+    text-align:left; font-family:var(--mono); font-size:11px; text-transform:uppercase;
+    letter-spacing:.05em; color:var(--text-faint); padding:10px 12px; border-bottom:1px solid var(--border);
+  }
+  tbody td{ padding:11px 12px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--surface-2); }
+  td.center, th.center{ text-align:center; }
+
+  /* ---------- code blocks ---------- */
+  .code-block{
+    background:#0a0f14; border:1px solid var(--border); border-radius:var(--radius-sm);
+    overflow:hidden; margin:14px 0;
+  }
+  .code-head{
+    display:flex; align-items:center; gap:8px; padding:9px 14px;
+    border-bottom:1px solid var(--border); font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  }
+  .code-head .d{ width:9px; height:9px; border-radius:50%; background:var(--surface-3); }
+  .code-block pre{ margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.65; }
+  .code-block code{ color:#c9d6de; }
+  .tok-kw{ color:var(--violet); }
+  .tok-fn{ color:var(--teal); }
+  .tok-str{ color:var(--amber); }
+  .tok-cm{ color:var(--text-faint); font-style:italic; }
+  .tok-dec{ color:#f0685f; }
+
+  .anno-list{ list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .anno-list li{
+    display:flex; gap:10px; font-size:13.5px; padding:8px 12px; background:var(--surface-2);
+    border-left:3px solid var(--teal); border-radius:6px;
+  }
+  .anno-list code{ font-family:var(--mono); color:var(--teal); font-size:12.5px; flex:0 0 auto; }
+
+  /* ---------- mistake pairs ---------- */
+  .mistake-pair{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:700px){ .mistake-pair{ grid-template-columns:1fr; } }
+  .mrow{ border-radius:var(--radius-sm); padding:13px 15px; font-size:14px; border:1px solid; }
+  .mrow.wrong{ background:var(--coral-dim); border-color:#5c2a28; }
+  .mrow.right{ background:var(--teal-dim); border-color:#1f5a51; }
+  .mrow .tag{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
+  .mrow.wrong .tag{ color:#ff9b95; }
+  .mrow.right .tag{ color:#8be8d8; }
+
+  /* ---------- real project usage ---------- */
+  .usecase{ display:flex; gap:14px; padding:14px 4px; border-bottom:1px solid var(--border-soft); }
+  .usecase:last-child{ border-bottom:none; }
+  .usecase .logo{
+    flex:0 0 46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center;
+    background:var(--surface-2); border:1px solid var(--border); font-size:19px;
+  }
+  .usecase .name{ font-weight:600; margin-bottom:3px; }
+  .usecase .desc{ color:var(--text-muted); font-size:14px; }
+
+  /* ---------- debugging flow ---------- */
+  .debug-chain{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+  .debug-chip{
+    font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:20px;
+    background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted);
+  }
+  .debug-chip.now{ color:var(--teal); border-color:#2b5e56; background:var(--teal-dim); }
+
+  /* ---------- accordion (mobile-friendly interactive) ---------- */
+  details.acc{ border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); overflow:hidden; }
+  details.acc + details.acc{ margin-top:10px; }
+  details.acc summary{
+    cursor:pointer; padding:13px 16px; font-weight:600; font-size:14.5px;
+    display:flex; justify-content:space-between; align-items:center; list-style:none;
+  }
+  details.acc summary::-webkit-details-marker{ display:none; }
+  details.acc summary::after{ content:"+"; font-family:var(--mono); color:var(--text-faint); font-size:18px; }
+  details.acc[open] summary::after{ content:"–"; }
+  details.acc .acc-body{ padding:0 16px 16px; color:var(--text-muted); font-size:14px; }
+  details.acc .acc-body .a{ color:var(--teal); font-weight:600; }
+
+  /* ---------- tier tabs (interview questions) ---------- */
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .tab-btn{
+    font-family:var(--mono); font-size:12px; padding:8px 14px; border-radius:20px;
+    border:1px solid var(--border); background:var(--surface-2); color:var(--text-muted); cursor:pointer;
+  }
+  .tab-btn.active{ background:var(--teal-dim); border-color:#2b5e56; color:var(--teal); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  .qa{ padding:14px 0; border-bottom:1px solid var(--border-soft); }
+  .qa:last-child{ border-bottom:none; }
+  .qa .q{ font-weight:600; margin-bottom:6px; }
+  .qa .a{ color:var(--text-muted); font-size:14px; }
+
+  /* ---------- one page brain ---------- */
+  .brain-flow{
+    display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-family:var(--mono);
+    font-size:13px; margin-bottom:18px;
+  }
+  .brain-node{ padding:8px 13px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border); }
+  .remember-chain{ display:flex; flex-direction:column; gap:0; }
+  .rc-row{ display:grid; grid-template-columns:170px 1fr; gap:14px; padding:10px 0; border-bottom:1px solid var(--border-soft); align-items:center; }
+  .rc-row:last-child{ border-bottom:none; }
+  .rc-key{ font-family:var(--mono); color:var(--teal); font-size:13.5px; }
+  .rc-arrow{ color:var(--text-faint); }
+  @media (max-width:600px){ .rc-row{ grid-template-columns:1fr; gap:2px; } }
+
+  /* ---------- practice ladder ---------- */
+  .ladder{ display:flex; flex-direction:column; gap:10px; }
+  .rung{ display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); }
+  .rung .lvl{
+    flex:0 0 auto; font-family:var(--mono); font-size:11px; padding:5px 9px; border-radius:6px;
+    background:var(--surface-3); color:var(--text-faint); white-space:nowrap; margin-top:2px;
+  }
+  .rung .lbody .ltitle{ font-weight:600; font-size:14px; margin-bottom:3px; }
+  .rung .lbody .ldesc{ font-size:13.5px; color:var(--text-muted); }
+  .rung:nth-child(5) .lvl, .rung:nth-child(6) .lvl, .rung:nth-child(7) .lvl{ background:var(--violet-dim); color:var(--violet); }
+
+  /* ---------- memory palace ---------- */
+  .palace-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .palace-grid{ grid-template-columns:1fr; } }
+  .palace-card{ border:1px solid var(--border); border-radius:var(--radius); padding:20px; background:var(--surface); text-align:center; }
+  .palace-card .picon{ font-size:26px; margin-bottom:10px; }
+  .palace-card .ptitle{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px; }
+  .palace-card .pbody{ font-size:14.5px; }
+  .palace-card.rule{ border-color:#2b5e56; }
+  .palace-card.mnemonic{ border-color:#5a4620; }
+  .palace-card.visual{ border-color:#3a3466; }
+
+  h3.subhead{ font-family:var(--display); font-size:15.5px; margin:0 0 10px; color:var(--text); }
+  p.p-muted{ color:var(--text-muted); margin:0 0 10px; font-size:14.5px; }
+
+  footer{ padding:30px 40px 60px; color:var(--text-faint); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  /* skip-link a11y */
+  .skip{ position:absolute; left:-9999px; }
+  .skip:focus{ left:16px; top:16px; background:var(--teal); color:#04140f; padding:10px 14px; border-radius:8px; z-index:100; }
+
+  :focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ scroll-behavior:auto !important; animation:none !important; transition:none !important; }
+  }
+
+  /* ---------- responsive shell ---------- */
+  @media (max-width:920px){
+    .shell{ grid-template-columns:1fr; }
+    .sidebar{ position:relative; height:auto; display:none; border-right:none; border-bottom:1px solid var(--border-soft); }
+    .sidebar.open{ display:block; }
+    .mobile-bar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px; border-bottom:1px solid var(--border-soft);
+      position:sticky; top:0; background:rgba(13,17,23,0.92); backdrop-filter:blur(6px); z-index:20;
+    }
+    .mobile-bar button{
+      font-family:var(--mono); font-size:12px; background:var(--surface-2); color:var(--text);
+      border:1px solid var(--border); padding:8px 12px; border-radius:8px;
+    }
+    main{ padding:24px 18px 80px; }
+    .topic-card{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#topic" class="skip">Skip to content</a>
+
+<div class="mobile-bar">
+  <span class="brand" style="margin:0;"><span class="dot"></span>MAD2 · W9_L1</span>
+  <button id="navToggle" aria-expanded="false" aria-controls="sidebarNav">Modules ▾</button>
+</div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebarNav">
+    <div class="brand"><span class="dot"></span>MAD2 Learning OS</div>
+    <ul class="navlist">
+      <li><a href="#topic"><span class="num">01</span>Topic Card</a></li>
+      <li><a href="#intuition"><span class="num">02</span>Core Intuition</a></li>
+      <li><a href="#mentalmodel"><span class="num">03</span>Visual Mental Model</a></li>
+      <li><a href="#pattern"><span class="num">04</span>Pattern Recognition</a></li>
+      <li><a href="#fundamentals"><span class="num">05</span>Deep Fundamentals</a></li>
+      <li><a href="#execflow"><span class="num">06</span>Execution Flow</a></li>
+      <li><a href="#syntax"><span class="num">07</span>Syntax Anatomy</a></li>
+      <li><a href="#walkthrough"><span class="num">08</span>Code Walkthrough</a></li>
+      <li><a href="#behindscenes"><span class="num">09</span>Behind the Scenes</a></li>
+      <li><a href="#realworld"><span class="num">10</span>Real Project Usage</a></li>
+      <li><a href="#mistakes"><span class="num">11</span>Common Mistakes</a></li>
+      <li><a href="#debugging"><span class="num">12</span>Debugging Mindset</a></li>
+      <li><a href="#exampattern"><span class="num">13</span>IITM Exam Pattern</a></li>
+      <li><a href="#interview"><span class="num">14</span>Interview Questions</a></li>
+      <li><a href="#onepage"><span class="num">15</span>One-Page Brain</a></li>
+      <li><a href="#revtable"><span class="num">16</span>Revision Table</a></li>
+      <li><a href="#ladder"><span class="num">17</span>Practice Ladder</a></li>
+      <li><a href="#palace"><span class="num">18</span>Memory Palace</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <div class="hero">
+      <div class="hero-eyebrow"><span>●</span> W9_L1 &nbsp;·&nbsp; Backend Fundamentals</div>
+      <h1>Web Servers, Concurrency &amp; Asynchronous Task Queues</h1>
+      <p class="lede">How a server goes from "listening on a port" to "handing heavy work off to a kitchen full of background workers" — without ever making the client wait.</p>
+    </div>
+
+    <!-- MODULE 1 -->
+    <section class="module" id="topic">
+      <div class="module-head"><span class="mnum">01</span><h2>Topic Card</h2><span class="msub">30 seconds</span></div>
+      <div class="topic-card">
+        <div class="topic-cell"><div class="tlabel">Topic</div><div class="tval">Web Servers, Concurrency &amp; Task Queues</div></div>
+        <div class="topic-cell"><div class="tlabel">Category</div><div class="tval">Backend Architecture</div></div>
+        <div class="topic-cell"><div class="tlabel">Difficulty</div><div class="tval stars">★★★☆☆</div></div>
+        <div class="topic-cell"><div class="tlabel">Importance</div><div class="tval stars imp">★★★★★</div></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div class="tlabel" style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:8px;">Prerequisites</div>
+        <p style="margin:0;color:var(--text-muted);font-size:14.5px;">The HTTP request/response cycle, what a TCP connection is, basic familiarity with Python functions, and a rough idea of what a "process" and a "thread" are.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 2 -->
+    <section class="module" id="intuition">
+      <div class="module-head"><span class="mnum">02</span><h2>Core Intuition</h2><span class="msub">Why</span></div>
+      <div class="analogy">
+        <div class="glyph">🛎️</div>
+        <p>A web server is like a hotel <strong>receptionist</strong>: it listens for guests (requests), checks them in, and sends a response. If the receptionist stops to personally cook a guest's dinner — a slow, heavy task — before checking in the next guest, the whole lobby backs up. <strong>Concurrency</strong> and <strong>task queues</strong> exist so the receptionist can say <em>"order placed, we'll notify you"</em> and immediately serve the next guest, while a separate kitchen staff (workers) prepares the food in the background.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 3 -->
+    <section class="module" id="mentalmodel">
+      <div class="module-head"><span class="mnum">03</span><h2>Visual Mental Model</h2><span class="msub">One picture, whole topic</span></div>
+
+      <div class="diagram" style="margin-bottom:14px;">
+        <div class="flow-row">
+          <div class="node client">Client</div>
+          <span class="arrow">→</span>
+          <div class="node server">Listen</div>
+          <span class="arrow">→</span>
+          <div class="node server">Interpret</div>
+          <span class="arrow">→</span>
+          <div class="node server">Respond</div>
+        </div>
+      </div>
+
+      <div class="signature">
+        <h3 class="subhead" style="margin-bottom:16px;">The Receptionist &amp; The Kitchen</h3>
+        <div class="sig-lane">
+          <div class="sig-stage desk">
+            <div class="box"><span class="icon">🛎️</span>Front Desk<br><span style="color:var(--text-faint);">(Web Server)</span></div>
+            <div class="cap">Takes the request instantly</div>
+          </div>
+          <div class="sig-connector"></div>
+          <div class="sig-stage queue">
+            <div class="box"><span class="icon">🎟️</span>Order Ticket<br><span style="color:var(--text-faint);">(Message Queue)</span></div>
+            <div class="cap">Holds the job until free hands</div>
+          </div>
+          <div class="sig-connector"></div>
+          <div class="sig-stage kitchen">
+            <div class="box"><span class="icon">👩‍🍳</span>Kitchen<br><span style="color:var(--text-faint);">(Worker / Celery)</span></div>
+            <div class="cap">Does the heavy cooking, off to the side</div>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--text-faint);font-family:var(--mono);font-size:11.5px;margin:18px 0 0;">the front desk never touches the stove — that's the whole architecture</p>
+      </div>
+    </section>
+
+    <!-- MODULE 4 -->
+    <section class="module" id="pattern">
+      <div class="module-head"><span class="mnum">04</span><h2>Pattern Recognition</h2><span class="msub">Spot it instantly</span></div>
+      <div class="card">
+        <h3 class="subhead">Trigger words</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+          <span class="debug-chip">TCP / port</span>
+          <span class="debug-chip">blocking</span>
+          <span class="debug-chip">time.sleep</span>
+          <span class="debug-chip">thread pool</span>
+          <span class="debug-chip">concurrency</span>
+          <span class="debug-chip">parallelism</span>
+          <span class="debug-chip">message broker</span>
+          <span class="debug-chip">Celery</span>
+          <span class="debug-chip">worker</span>
+          <span class="debug-chip">offload</span>
+          <span class="debug-chip">background task</span>
+        </div>
+        <h3 class="subhead">Recognition shortcut</h3>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">"long task"</span><span><span class="rc-arrow">→</span> offload it to a task queue</span></div>
+          <div class="rc-row"><span class="rc-key">"many users at once"</span><span><span class="rc-arrow">→</span> think threading / concurrency</span></div>
+          <div class="rc-row"><span class="rc-key">"multiple CPU cores"</span><span><span class="rc-arrow">→</span> think parallelism</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 5 -->
+    <section class="module" id="fundamentals">
+      <div class="module-head"><span class="mnum">05</span><h2>Deep Fundamentals</h2><span class="msub">No memorization</span></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="subhead">Why was this created?</h3>
+          <p class="p-muted">Early web servers handled one connection at a time — simple to build, but the moment one request took long, every other user waited in line.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">What problem does it solve?</h3>
+          <p class="p-muted">Two problems: a bad user experience (blocked browsers, endless loading screens) and resource exhaustion (many heavy tasks at once can crash the server).</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">What happens internally?</h3>
+          <p class="p-muted">A socket accepts the TCP connection, the request is parsed, and the server either handles it directly or hands it to a message broker that a separate worker is watching.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">How does it get executed?</h3>
+          <p class="p-muted">The OS scheduler juggles threads for concurrency; a broker like Redis or RabbitMQ queues the job; a worker process (e.g. Celery) pops it off and runs it independently.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 6 -->
+    <section class="module" id="execflow">
+      <div class="module-head"><span class="mnum">06</span><h2>Execution Flow</h2><span class="msub">Internal sequence</span></div>
+      <div class="diagram">
+        <div class="vflow">
+          <div class="node client">Client sends HTTP request</div>
+          <span class="arrow down">→</span>
+          <div class="node server">Server socket accepts connection</div>
+          <span class="arrow down">→</span>
+          <div class="node server">Server reads &amp; parses the request</div>
+          <span class="arrow down">→</span>
+          <div class="node warn">Is this task light or heavy?</div>
+          <span class="arrow down">→</span>
+          <div class="flow-row" style="gap:26px;">
+            <div class="flow-col">
+              <div class="node">Light → handle inline</div>
+              <span class="arrow down">→</span>
+              <div class="node server">Respond immediately</div>
+            </div>
+            <div class="flow-col">
+              <div class="node">Heavy → push to Message Queue</div>
+              <span class="arrow down">→</span>
+              <div class="node worker">Worker picks up &amp; executes job</div>
+              <span class="arrow down">→</span>
+              <div class="node worker">Result stored / client notified</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 7 -->
+    <section class="module" id="syntax">
+      <div class="module-head"><span class="mnum">07</span><h2>Syntax Anatomy</h2><span class="msub">Every keyword explained</span></div>
+      <div class="card">
+        <div class="code-block">
+          <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; tasks.py</div>
+          <pre><code><span class="tok-dec">@app.task</span>
+<span class="tok-kw">def</span> <span class="tok-fn">send_email</span>(user_id):
+    <span class="tok-cm"># ... heavy work happens here, off the main server ...</span>
+    email.send(user_id)</code></pre>
+        </div>
+        <ul class="anno-list">
+          <li><code>@app.task</code> a decorator that registers this function as a background job Celery knows how to run</li>
+          <li><code>app</code> the Celery application instance, wired up to a broker (e.g. Redis)</li>
+          <li><code>def send_email(user_id):</code> an ordinary Python function — nothing special about the body itself</li>
+          <li><code>send_email.delay(user_id)</code> <em style="color:var(--text-muted);font-style:normal;">(called elsewhere)</em> — enqueues the job instead of running it inline; returns instantly</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MODULE 8 -->
+    <section class="module" id="walkthrough">
+      <div class="module-head"><span class="mnum">08</span><h2>Code Walkthrough</h2><span class="msub">Tiny example, line by line</span></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="subhead" style="color:var(--coral);">❌ Blocking — inline in the view</h3>
+          <div class="code-block">
+            <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; views.py</div>
+            <pre><code><span class="tok-kw">def</span> <span class="tok-fn">upload</span>(request):
+    file = request.FILES[<span class="tok-str">'video'</span>]
+    transcode(file)  <span class="tok-cm"># takes 3 minutes</span>
+    <span class="tok-kw">return</span> Response(<span class="tok-str">"done"</span>)</code></pre>
+          </div>
+          <p class="p-muted" style="margin-top:10px;">The browser hangs for 3 minutes on this single request.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead" style="color:var(--teal);">✅ Offloaded — queued as a task</h3>
+          <div class="code-block">
+            <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; views.py</div>
+            <pre><code><span class="tok-kw">def</span> <span class="tok-fn">upload</span>(request):
+    file = request.FILES[<span class="tok-str">'video'</span>]
+    transcode.delay(file.id)
+    <span class="tok-kw">return</span> Response(<span class="tok-str">"processing"</span>)</code></pre>
+          </div>
+          <p class="p-muted" style="margin-top:10px;">The view returns in milliseconds; a worker transcodes in the background.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3 class="subhead">Call sequence</h3>
+        <div class="brain-flow">
+          <span class="brain-node">view()</span><span class="arrow">→</span>
+          <span class="brain-node">task.delay()</span><span class="arrow">→</span>
+          <span class="brain-node">broker.enqueue()</span><span class="arrow">→</span>
+          <span class="brain-node">worker.dequeue()</span><span class="arrow">→</span>
+          <span class="brain-node">task.run()</span><span class="arrow">→</span>
+          <span class="brain-node">result.store()</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 9 -->
+    <section class="module" id="behindscenes">
+      <div class="module-head"><span class="mnum">09</span><h2>Behind the Scenes</h2><span class="msub">What's really happening</span></div>
+      <div class="diagram">
+        <div class="vflow">
+          <div class="node">Request arrives → OS assigns a socket</div>
+          <span class="arrow down">→</span>
+          <div class="node">Threaded mode: a free thread from the pool picks it up</div>
+          <span class="arrow down">→</span>
+          <div class="node warn">Heavy task detected: arguments get serialized</div>
+          <span class="arrow down">→</span>
+          <div class="node">A message is published to the broker (e.g. a Redis list / RabbitMQ exchange)</div>
+          <span class="arrow down">→</span>
+          <div class="node worker">Broker persists the message until a worker is free</div>
+          <span class="arrow down">→</span>
+          <div class="node worker">An idle Celery worker polls, dequeues, and deserializes it</div>
+          <span class="arrow down">→</span>
+          <div class="node worker">Worker executes the function and writes the result to a result backend</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 10 -->
+    <section class="module" id="realworld">
+      <div class="module-head"><span class="mnum">10</span><h2>Real Project Usage</h2><span class="msub">Where this actually runs</span></div>
+      <div class="card">
+        <div class="usecase">
+          <div class="logo">📸</div>
+          <div><div class="name">Instagram</div><div class="desc">A photo upload returns instantly, while face-tagging and recommendation-model jobs run afterward as background tasks.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">📧</div>
+          <div><div class="name">Gmail</div><div class="desc">Bulk email delivery and spam/malware scanning are dispatched to background workers, not run inside the request that sends a message.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">🛵</div>
+          <div><div class="name">Swiggy / Zomato</div><div class="desc">Order confirmation feels instant while restaurant- and delivery-partner matching algorithms run asynchronously behind it.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">🎬</div>
+          <div><div class="name">Netflix</div><div class="desc">After a video is uploaded, transcoding it into multiple resolutions is queued as a set of background jobs, not done in the upload request.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 11 -->
+    <section class="module" id="mistakes">
+      <div class="module-head"><span class="mnum">11</span><h2>Common Mistakes</h2><span class="msub">❌ / ✅</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Running face-recognition or bulk email directly inside the request handler.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Enqueue it as a Celery task and return <code>"processing"</code> immediately.</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Assuming Python threading gives true parallelism for CPU-bound work.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Use worker processes (multiprocessing / separate Celery workers) for CPU-bound parallel work — the GIL limits threads.</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Letting the web server call the task function directly, with no broker between them.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Put a broker (Redis / RabbitMQ) in between so the server and workers stay decoupled and independently scalable.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 12 -->
+    <section class="module" id="debugging">
+      <div class="module-head"><span class="mnum">12</span><h2>Debugging Mindset</h2><span class="msub">Problem → Fix</span></div>
+      <div class="card">
+        <h3 class="subhead">"Server hangs / times out under load"</h3>
+        <div class="debug-chain">
+          <span class="debug-chip now">Observe: timeouts under concurrent load</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Find stage: check handler for blocking calls (sleep, sync I/O, heavy loops)</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Fix: move the task to a queue; keep the handler light</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">"Task queue backlog keeps growing"</h3>
+        <div class="debug-chain">
+          <span class="debug-chip now">Observe: rising queue length in broker logs</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Find stage: worker capacity vs. incoming request rate</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Fix: scale the number of background workers horizontally</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 13 -->
+    <section class="module" id="exampattern">
+      <div class="module-head"><span class="mnum">13</span><h2>IITM Exam Pattern</h2><span class="msub">MCQ survival kit</span></div>
+      <details class="acc" open>
+        <summary>Trigger &amp; Trap Words</summary>
+        <div class="acc-body">
+          <p><span class="a">Trigger words:</span> "blocking", "thread", "concurrency vs parallelism", "task queue", "Celery", "message broker".</p>
+          <p><span class="a">Trap words:</span> options that describe a threaded server as running requests "in parallel" — that conflates concurrency with parallelism.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>MCQ Tricks</summary>
+        <div class="acc-body">Watch for statements claiming a single-core, threaded server achieves true parallel execution — a single core can only time-slice (concurrency), never truly parallelize.</div>
+      </details>
+      <details class="acc">
+        <summary>PYQ Pattern</summary>
+        <div class="acc-body">Expect definition-matching MCQs on concurrency vs. parallelism, and questions asking you to order the correct architecture: web server → message queue → worker.</div>
+      </details>
+      <details class="acc">
+        <summary>Elimination Technique</summary>
+        <div class="acc-body">If the question describes single-core time-slicing, eliminate any option using the word "parallelism" — and vice versa for multi-core execution.</div>
+      </details>
+    </section>
+
+    <!-- MODULE 14 -->
+    <section class="module" id="interview">
+      <div class="module-head"><span class="mnum">14</span><h2>Interview Questions</h2><span class="msub">Three tiers</span></div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="easy">Easy</button>
+          <button class="tab-btn" data-tab="medium">Medium</button>
+          <button class="tab-btn" data-tab="advanced">Advanced</button>
+        </div>
+        <div class="tab-panel active" id="easy">
+          <div class="qa"><div class="q">What's the difference between a threaded and a non-threaded server?</div><div class="a">A non-threaded server handles one request at a time; a threaded server spawns a new thread per request so it can keep listening while one request is still being processed.</div></div>
+        </div>
+        <div class="tab-panel" id="medium">
+          <div class="qa"><div class="q">Why can't you just run a 2-minute video-processing job directly inside a Flask/Django view?</div><div class="a">It would block that worker thread/process for the whole duration, degrading responsiveness for other users and risking resource exhaustion if several such jobs run at once — so it should be offloaded to a task queue instead.</div></div>
+        </div>
+        <div class="tab-panel" id="advanced">
+          <div class="qa"><div class="q">Design the architecture for a system where users upload videos that need transcoding, with progress tracking.</div><div class="a">Web server accepts the upload and returns a job ID immediately; the transcoding task is pushed to a broker; a pool of workers pulls jobs and updates progress in a result store (e.g. Redis); the client polls or subscribes for status using the job ID.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 15 -->
+    <section class="module" id="onepage">
+      <div class="module-head"><span class="mnum">15</span><h2>One-Page Brain</h2><span class="msub">Compressed revision</span></div>
+      <div class="card">
+        <div class="brain-flow">
+          <span class="brain-node">Request</span><span class="arrow">→</span>
+          <span class="brain-node">Listen</span><span class="arrow">→</span>
+          <span class="brain-node">Interpret</span><span class="arrow">→</span>
+          <span class="brain-node">Light? Respond</span><span class="arrow">|</span>
+          <span class="brain-node">Heavy? Enqueue</span><span class="arrow">→</span>
+          <span class="brain-node">Worker</span><span class="arrow">→</span>
+          <span class="brain-node">Result</span>
+        </div>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">Listening</span><span><span class="rc-arrow">→</span> Port / socket</span></div>
+          <div class="rc-row"><span class="rc-key">Threaded</span><span><span class="rc-arrow">→</span> Responsiveness</span></div>
+          <div class="rc-row"><span class="rc-key">Concurrency</span><span><span class="rc-arrow">→</span> Time-slicing, one core is enough</span></div>
+          <div class="rc-row"><span class="rc-key">Parallelism</span><span><span class="rc-arrow">→</span> Needs multiple cores</span></div>
+          <div class="rc-row"><span class="rc-key">Task Queue</span><span><span class="rc-arrow">→</span> Decouples server from heavy work</span></div>
+          <div class="rc-row"><span class="rc-key">Broker</span><span><span class="rc-arrow">→</span> The middleman / mailbox</span></div>
+          <div class="rc-row"><span class="rc-key">Celery</span><span><span class="rc-arrow">→</span> Manages Python background jobs</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 16 -->
+    <section class="module" id="revtable">
+      <div class="module-head"><span class="mnum">16</span><h2>Quick Revision Table</h2><span class="msub">Scannable</span></div>
+      <div class="card" style="padding:8px 10px;overflow-x:auto;">
+        <table>
+          <thead><tr><th>Concept</th><th>Definition</th><th>Analogy</th><th>Example Tool</th></tr></thead>
+          <tbody>
+            <tr><td>Blocking Server</td><td>Handles one request at a time; nothing else moves until it's done</td><td>A cashier with only one register open</td><td>Single-threaded dev server</td></tr>
+            <tr><td>Threaded Server</td><td>Spawns a thread per request so others aren't blocked</td><td>Receptionist calling in extra front-desk staff</td><td>Threaded Flask / Gunicorn workers</td></tr>
+            <tr><td>Concurrency</td><td>Logically handling multiple tasks via time-slicing</td><td>One chef stirring three pots, switching between them</td><td>Python's <code>asyncio</code></td></tr>
+            <tr><td>Parallelism</td><td>Physically running multiple tasks at once on separate cores</td><td>Three chefs, three stoves, same time</td><td>Multiprocessing</td></tr>
+            <tr><td>Message Queue</td><td>Broker that holds jobs between producer and consumer</td><td>The order ticket rail in a kitchen</td><td>Redis, RabbitMQ</td></tr>
+            <tr><td>Task Worker</td><td>A separate process that executes queued jobs</td><td>The kitchen staff</td><td>Celery worker</td></tr>
+            <tr><td>Celery</td><td>Python framework that manages task queues &amp; background jobs</td><td>The kitchen's whole management system</td><td>Celery + broker + backend</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MODULE 17 -->
+    <section class="module" id="ladder">
+      <div class="module-head"><span class="mnum">17</span><h2>Practice Ladder</h2><span class="msub">7 levels</span></div>
+      <div class="ladder">
+        <div class="rung"><span class="lvl">LV.1 Concept</span><div class="lbody"><div class="ltitle">What does a server do when it "listens" on a port?</div><div class="ldesc">Explain in your own words what opening a socket on port 80 actually means.</div></div></div>
+        <div class="rung"><span class="lvl">LV.2 Predict Output</span><div class="lbody"><div class="ltitle">A non-threaded server has <code>time.sleep(10)</code> in one route</div><div class="ldesc">What happens to a second request that arrives during those 10 seconds?</div></div></div>
+        <div class="rung"><span class="lvl">LV.3 Find Bug</span><div class="lbody"><div class="ltitle">Spot the architectural bug</div><div class="ldesc">A Flask route calls a machine-learning inference function directly before returning a response. What's wrong, architecturally?</div></div></div>
+        <div class="rung"><span class="lvl">LV.4 MCQ</span><div class="lbody"><div class="ltitle">Concurrency vs. parallelism</div><div class="ldesc">Pick the correct definition pairing from four close-sounding options.</div></div></div>
+        <div class="rung"><span class="lvl">LV.5 Coding</span><div class="lbody"><div class="ltitle">Convert a blocking route into a Celery task</div><div class="ldesc">Take a Flask email-sending route and rewrite it using <code>@app.task</code> and <code>.delay()</code>.</div></div></div>
+        <div class="rung"><span class="lvl">LV.6 Mini Project</span><div class="lbody"><div class="ltitle">Design an image-upload service</div><div class="ldesc">Sketch the architecture for background thumbnail generation using a queue and workers.</div></div></div>
+        <div class="rung"><span class="lvl">LV.7 Interview</span><div class="lbody"><div class="ltitle">Scale to 10x traffic</div><div class="ldesc">How would you scale this system without slowing down the main web server?</div></div></div>
+      </div>
+    </section>
+
+    <!-- MODULE 18 -->
+    <section class="module" id="palace">
+      <div class="module-head"><span class="mnum">18</span><h2>Memory Palace</h2><span class="msub">Three anchors</span></div>
+      <div class="palace-grid">
+        <div class="palace-card rule">
+          <div class="picon">📏</div>
+          <div class="ptitle">Rule</div>
+          <div class="pbody">Never let the receptionist cook dinner — heavy tasks never run inside the request cycle.</div>
+        </div>
+        <div class="palace-card mnemonic">
+          <div class="picon">🔤</div>
+          <div class="ptitle">Mnemonic</div>
+          <div class="pbody"><strong>L.I.R.</strong> — Listen → Interpret → Respond<br><br><strong>Q.W.R.</strong> — Queue → Worker → Result</div>
+        </div>
+        <div class="palace-card visual">
+          <div class="picon">🧭</div>
+          <div class="ptitle">Visual</div>
+          <div class="pbody" style="font-family:var(--mono);font-size:12.5px;">Client → Server(desk)<br>→ [Queue]<br>→ Worker(kitchen)<br>→ Result</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>MAD2 LEARNING OS &nbsp;·&nbsp; W9_L1 &nbsp;·&nbsp; Web Servers, Concurrency &amp; Task Queues</footer>
+
+<script>
+  // mobile nav toggle
+  const toggle = document.getElementById('navToggle');
+  const nav = document.getElementById('sidebarNav');
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+    toggle.textContent = isOpen ? 'Modules ▴' : 'Modules ▾';
+  });
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    if (window.innerWidth <= 920) { nav.classList.remove('open'); toggle.textContent = 'Modules ▾'; toggle.setAttribute('aria-expanded', 'false'); }
+  }));
+
+  // active nav highlight on scroll
+  const sections = document.querySelectorAll('section.module');
+  const navLinks = document.querySelectorAll('.navlist a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  // interview question tabs
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const panelParent = btn.closest('.card');
+      panelParent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      panelParent.querySelector('#' + tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

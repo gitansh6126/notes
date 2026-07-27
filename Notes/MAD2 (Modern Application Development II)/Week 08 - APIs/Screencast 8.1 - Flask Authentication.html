@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flask Token Authentication — MAD2 Learning OS</title>
+<style>
+  :root{
+    --bg: #0f1220;
+    --panel: #171a2b;
+    --panel-2: #1d2136;
+    --border: #2a2f4a;
+    --text: #e8e9f3;
+    --muted: #9ba0c0;
+    --accent: #7c9eff;
+    --accent-2: #ff9d6c;
+    --good: #52d68a;
+    --bad: #ff6b6b;
+    --warn: #ffd166;
+    --code-bg: #0b0d18;
+    --cookie: #ff9d6c;
+    --token: #52d68a;
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background: radial-gradient(circle at 10% 0%, #1a1e33 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 24px;
+  }
+
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  /* ===== HERO / TOPIC CARD ===== */
+  .hero{
+    background: linear-gradient(135deg, #1d2140 0%, #232a52 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; top:-60px; right:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(124,158,255,0.25), transparent 70%);
+  }
+  .hero h1{
+    margin:0 0 6px 0;
+    font-size: 1.7rem;
+    background: linear-gradient(90deg, var(--accent), #b8c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero .subtitle{ color: var(--muted); margin-bottom: 18px; font-size: 0.95rem;}
+  .topic-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 12px;
+  }
+  .topic-chip{
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .topic-chip .label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;}
+  .topic-chip .value{ font-size:0.95rem; font-weight:600; margin-top:2px;}
+  .stars{ color: var(--warn); letter-spacing: 2px;}
+
+  /* ===== MODULE SECTION ===== */
+  .module{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .module-tag{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background: rgba(124,158,255,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(124,158,255,0.3);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .module h2{
+    margin: 0 0 14px 0;
+    font-size: 1.25rem;
+    color: var(--text);
+  }
+  .module h3{
+    font-size: 1rem;
+    color: var(--accent);
+    margin: 18px 0 8px 0;
+  }
+  .module p{ color: #d3d5ea; }
+
+  /* ===== ANALOGY / CALLOUT BOXES ===== */
+  .callout{
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-left: 4px solid var(--accent);
+    background: rgba(124,158,255,0.08);
+  }
+  .callout.analogy{ border-left-color: var(--accent-2); background: rgba(255,157,108,0.08); }
+  .callout.warn{ border-left-color: var(--warn); background: rgba(255,209,102,0.08); }
+  .callout.good{ border-left-color: var(--good); background: rgba(82,214,138,0.08); }
+  .callout.bad{ border-left-color: var(--bad); background: rgba(255,107,107,0.08); }
+  .callout .ctitle{ font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; display:flex; align-items:center; gap:6px;}
+
+  /* ===== DIAGRAM FLOW ===== */
+  .flow{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap:10px;
+    justify-content:center;
+    padding: 18px 10px;
+    margin: 14px 0;
+    background: var(--code-bg);
+    border-radius: 12px;
+    border: 1px dashed var(--border);
+  }
+  .flow .node{
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .flow .arrow{ color: var(--accent); font-size: 1.1rem; }
+  .flow .node.hot{ border-color: var(--token); color: var(--token); }
+  .flow .node.cold{ border-color: var(--cookie); color: var(--cookie); }
+
+  /* ===== SIDE BY SIDE COMPARISON (Cookie vs Token) ===== */
+  .vs-grid{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px){ .vs-grid{ grid-template-columns: 1fr; } }
+  .vs-card{
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid var(--border);
+  }
+  .vs-card.cookie{ background: linear-gradient(180deg, rgba(255,157,108,0.1), transparent); border-color: rgba(255,157,108,0.35); }
+  .vs-card.token{ background: linear-gradient(180deg, rgba(82,214,138,0.1), transparent); border-color: rgba(82,214,138,0.35); }
+  .vs-card h4{ margin:0 0 10px 0; display:flex; align-items:center; gap:8px; }
+  .vs-card ul{ margin:0; padding-left: 18px; font-size: 0.9rem; color:#d3d5ea;}
+  .vs-card li{ margin-bottom:6px; }
+
+  /* ===== CODE BLOCK ===== */
+  .code-block{
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 14px 0;
+  }
+  .code-block .code-title{
+    background: var(--panel-2);
+    padding: 8px 14px;
+    font-size: 0.78rem;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Consolas', monospace;
+  }
+  pre{
+    margin:0;
+    padding: 16px;
+    overflow-x:auto;
+    font-family: 'Consolas', 'SF Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .code-block code .c1{ color: var(--muted); font-style: italic; } /* comment */
+  .code-block code .kw{ color: #c792ea; } /* keyword */
+  .code-block code .fn{ color: var(--accent); } /* function/decorator */
+  .code-block code .str{ color: var(--good); } /* string */
+  .code-block code .num{ color: var(--warn); }
+
+  .annot-list{ margin: 10px 0 0 0; padding:0; list-style:none; }
+  .annot-list li{
+    display:flex; gap:10px; padding: 6px 0; border-top: 1px dashed var(--border); font-size:0.87rem;
+  }
+  .annot-list li:first-child{ border-top:none; }
+  .annot-list code.key{
+    background: rgba(124,158,255,0.15); color: var(--accent);
+    padding: 2px 8px; border-radius:6px; font-size:0.82rem; white-space:nowrap; height: fit-content;
+  }
+
+  /* ===== TABLES ===== */
+  table{ width:100%; border-collapse: collapse; margin: 14px 0; font-size:0.88rem; }
+  th, td{ padding: 10px 12px; border: 1px solid var(--border); text-align:left; }
+  th{ background: var(--panel-2); color: var(--accent); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;}
+  tr:nth-child(even) td{ background: rgba(255,255,255,0.02); }
+
+  /* ===== TRIGGER WORDS ===== */
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0;}
+  .chip{ background: var(--panel-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:0.82rem; }
+  .chip.trap{ border-color: var(--bad); color: var(--bad); }
+  .chip.trigger{ border-color: var(--accent); color: var(--accent); }
+
+  /* ===== INTERVIEW TIERS ===== */
+  .tier{ margin-bottom:12px; padding:12px 14px; border-radius:10px; background: rgba(255,255,255,0.03); border:1px solid var(--border); }
+  .tier .badge{ font-size:0.7rem; padding:2px 10px; border-radius:999px; font-weight:700; margin-right:8px;}
+  .tier.easy .badge{ background: rgba(82,214,138,0.2); color: var(--good); }
+  .tier.medium .badge{ background: rgba(255,209,102,0.2); color: var(--warn); }
+  .tier.advanced .badge{ background: rgba(255,107,107,0.2); color: var(--bad); }
+  .tier ul{ margin: 8px 0 0 0; padding-left: 18px; }
+
+  /* ===== ONE PAGE BRAIN ===== */
+  .remember-chain{
+    display:flex; flex-direction:column; gap:6px; margin-top:10px;
+  }
+  .remember-row{
+    display:grid; grid-template-columns: 140px 1fr; gap:10px; align-items:center;
+    background: var(--code-bg); border-radius:8px; padding:8px 12px; border:1px solid var(--border);
+  }
+  .remember-row .k{ color: var(--accent); font-weight:700; font-size:0.85rem; }
+  .remember-row .v{ font-size:0.85rem; color:#d3d5ea; }
+
+  /* ===== PRACTICE LADDER ===== */
+  .ladder{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .rung{
+    display:flex; align-items:center; gap:12px;
+    background: var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 14px;
+  }
+  .rung .num{
+    width:28px; height:28px; border-radius:50%; background: var(--accent); color:#0f1220;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0;
+  }
+
+  /* ===== MEMORY PALACE ===== */
+  .palace-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-top:10px;}
+  @media (max-width:640px){ .palace-grid{ grid-template-columns:1fr; } }
+  .palace-card{ background: var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .palace-card .icon{ font-size:1.6rem; margin-bottom:6px;}
+  .palace-card .ptitle{ font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;}
+
+  .toc{
+    display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 28px 0;
+    background: var(--panel); border:1px solid var(--border); border-radius: var(--radius); padding:16px;
+  }
+  .toc a{
+    color: var(--muted); text-decoration:none; font-size:0.78rem; background: rgba(255,255,255,0.03);
+    padding:6px 10px; border-radius:8px; border:1px solid var(--border);
+  }
+  .toc a:hover{ color: var(--accent); border-color: var(--accent); }
+
+  .footer-note{ text-align:center; color:var(--muted); font-size:0.8rem; margin-top: 20px; padding: 20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ MODULE 1: TOPIC CARD ============ -->
+  <div class="hero">
+    <h1>🔐 Flask API — Token-Based Authentication</h1>
+    <div class="subtitle">Lecture 8.1 · MAD2 Learning OS · From Cookies to Tokens</div>
+    <div class="topic-grid">
+      <div class="topic-chip">
+        <div class="label">Category</div>
+        <div class="value">Backend Dev — Flask Security</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Difficulty</div>
+        <div class="value stars">⭐⭐⭐☆☆</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Importance</div>
+        <div class="value stars">★★★★★</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Prerequisites</div>
+        <div class="value">Flask-Security-Too basics, @login_required, User model</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <a href="#m2">2. Core Intuition</a>
+    <a href="#m3">3. Mental Model</a>
+    <a href="#m4">4. Pattern Recognition</a>
+    <a href="#m5">5. Deep Fundamentals</a>
+    <a href="#m6">6. Execution Flow</a>
+    <a href="#m7">7. Syntax Anatomy</a>
+    <a href="#m8">8. Code Walkthrough</a>
+    <a href="#m9">9. Behind the Scenes</a>
+    <a href="#m10">10. Real Project Usage</a>
+    <a href="#m11">11. Common Mistakes</a>
+    <a href="#m12">12. Debugging Mindset</a>
+    <a href="#m13">13. Exam Pattern</a>
+    <a href="#m14">14. Interview Qs</a>
+    <a href="#m15">15. One-Page Brain</a>
+    <a href="#m16">16. Revision Table</a>
+    <a href="#m17">17. Practice Ladder</a>
+    <a href="#m18">18. Memory Palace</a>
+  </div>
+
+  <!-- ============ MODULE 2: CORE INTUITION ============ -->
+  <div class="module" id="m2">
+    <span class="module-tag">Module 2 · Core Intuition</span>
+    <h2>Why does this exist?</h2>
+    <p>A cookie is like a <strong>wristband stamped at a nightclub door</strong> — the club (browser) remembers it for you, and only works if you keep going back through that same door. A token is like a <strong>physical membership card</strong> you carry yourself — you can hand it to any counter (any client: mobile app, JS frontend, Postman) and they just check the card, no wristband, no club needed.</p>
+    <div class="callout analogy">
+      <div class="ctitle">🎫 Analogy</div>
+      APIs serve many kinds of clients — web apps, mobile apps, third-party scripts. A cookie only makes sense in a browser. A token works everywhere, because it's just a string you send in a header, like showing an ID card at any counter regardless of which building you're in.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 3: VISUAL MENTAL MODEL ============ -->
+  <div class="module" id="m3">
+    <span class="module-tag">Module 3 · Visual Mental Model</span>
+    <h2>One picture, two worlds</h2>
+    <div class="vs-grid">
+      <div class="vs-card cookie">
+        <h4>🍪 Cookie World</h4>
+        <div class="flow" style="background:transparent;border:none;padding:8px 0;">
+          <div class="node cold">Browser</div>
+          <div class="arrow">⇄</div>
+          <div class="node cold">Session Cookie</div>
+          <div class="arrow">⇄</div>
+          <div class="node cold">Server</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-top:4px;">Browser auto-attaches the cookie. Server tracks a session. Expired? → redirect to login page.</p>
+      </div>
+      <div class="vs-card token">
+        <h4>🎟️ Token World</h4>
+        <div class="flow" style="background:transparent;border:none;padding:8px 0;">
+          <div class="node hot">Any Client</div>
+          <div class="arrow">⇄</div>
+          <div class="node hot">Auth Token (header)</div>
+          <div class="arrow">⇄</div>
+          <div class="node hot">Server</div>
+        </div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-top:4px;">Client manually attaches token in header. Server checks token. Invalid? → returns 401, no redirect.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 4: PATTERN RECOGNITION ============ -->
+  <div class="module" id="m4">
+    <span class="module-tag">Module 4 · Pattern Recognition</span>
+    <h2>Spot it instantly</h2>
+    <p>Trigger words that should make you think "token auth":</p>
+    <div class="chip-row">
+      <span class="chip trigger">AJAX</span>
+      <span class="chip trigger">SPA</span>
+      <span class="chip trigger">Authentication-Token</span>
+      <span class="chip trigger">fs_uniquifier</span>
+      <span class="chip trigger">401 Unauthorized</span>
+      <span class="chip trigger">auth_token_required</span>
+      <span class="chip trigger">Local Storage</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">⚡ Recognition Shortcut</div>
+      "API + no redirect wanted" → Token Auth &nbsp;|&nbsp; "Browser + login page redirect" → Cookie Auth &nbsp;|&nbsp; "Header called Authentication-Token" → Flask-Security-Too default.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 5: DEEP FUNDAMENTALS ============ -->
+  <div class="module" id="m5">
+    <span class="module-tag">Module 5 · Deep Fundamentals</span>
+    <h2>The four core questions</h2>
+    <h3>1. Why was this feature created?</h3>
+    <p>Because <code>@login_required</code> + session cookies assume a browser. Modern apps talk to APIs from JS fetch calls, mobile apps, and scripts — none of which want to babysit cookies or handle surprise redirects.</p>
+    <h3>2. What problem does it solve?</h3>
+    <p>It decouples "who are you" from "which browser session are you in." A token is portable proof of identity that any client can carry and present.</p>
+    <h3>3. What happens internally?</h3>
+    <p>Flask-Security-Too derives the token from the user's <code>fs_uniquifier</code> column using a signed serializer. The token is not stored raw in the DB — it is computed on demand from the uniquifier + a secret key, and validated the same way on every request.</p>
+    <h3>4. How does the framework execute it?</h3>
+    <p>On login with <code>include_auth_token</code>, Flask-Security-Too signs a payload derived from the user's id + <code>fs_uniquifier</code>. On each API call, <code>auth_token_required</code> reverses that signing to look up the user — no session, no cookie, no server-side session store needed.</p>
+  </div>
+
+  <!-- ============ MODULE 6: EXECUTION FLOW ============ -->
+  <div class="module" id="m6">
+    <span class="module-tag">Module 6 · Execution Flow</span>
+    <h2>The full request lifecycle</h2>
+    <div class="flow">
+      <div class="node">POST /login?include_auth_token</div>
+      <div class="arrow">→</div>
+      <div class="node">{email, password}</div>
+      <div class="arrow">→</div>
+      <div class="node hot">Server verifies credentials</div>
+      <div class="arrow">→</div>
+      <div class="node hot">authentication_token returned</div>
+    </div>
+    <div class="flow">
+      <div class="node">Client stores token</div>
+      <div class="arrow">→</div>
+      <div class="node">Local Storage</div>
+    </div>
+    <div class="flow">
+      <div class="node">GET /api/resource</div>
+      <div class="arrow">→</div>
+      <div class="node">Header: Authentication-Token</div>
+      <div class="arrow">→</div>
+      <div class="node hot">auth_token_required validates</div>
+      <div class="arrow">→</div>
+      <div class="node hot">200 OK or 401</div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 7: SYNTAX ANATOMY ============ -->
+  <div class="module" id="m7">
+    <span class="module-tag">Module 7 · Syntax Anatomy</span>
+    <h2>Breaking down the pieces</h2>
+    <div class="code-block">
+      <div class="code-title">User model — required column</div>
+      <pre><code><span class="kw">class</span> <span class="fn">User</span>(db.Model, UserMixin):
+    <span class="c1"># ...existing fields...</span>
+    fs_uniquifier = db.Column(db.String(<span class="num">255</span>), unique=<span class="kw">True</span>, nullable=<span class="kw">False</span>)</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">fs_uniquifier</code> a random, unique seed string per user — Flask-Security-Too uses it to derive that user's token</li>
+      <li><code class="key">unique=True</code> guarantees no two users can ever produce colliding tokens</li>
+      <li><code class="key">nullable=False</code> every user must have one, or token generation breaks</li>
+      <li><strong>Reset trick:</strong> changing this value instantly invalidates the user's existing token — a built-in "log out everywhere" switch</li>
+    </ul>
+  </div>
+
+  <!-- ============ MODULE 8: CODE WALKTHROUGH ============ -->
+  <div class="module" id="m8">
+    <span class="module-tag">Module 8 · Code Walkthrough</span>
+    <h2>Step by step, with annotations</h2>
+
+    <h3>Step 1 — Configure the header name (optional)</h3>
+    <div class="code-block">
+      <div class="code-title">config.py</div>
+      <pre><code>SECURITY_TOKEN_AUTHENTICATION_HEADER = <span class="str">"Authentication-Token"</span>  <span class="c1"># default; can rename</span></code></pre>
+    </div>
+
+    <h3>Step 2 — Request a token</h3>
+    <div class="code-block">
+      <div class="code-title">Client → POST /login?include_auth_token</div>
+      <pre><code><span class="fn">fetch</span>(<span class="str">"/login?include_auth_token"</span>, {
+  method: <span class="str">"POST"</span>,
+  headers: { <span class="str">"Content-Type"</span>: <span class="str">"application/json"</span> },
+  body: JSON.<span class="fn">stringify</span>({
+    email: <span class="str">"user@example.com"</span>,
+    password: <span class="str">"secret123"</span>
+  })
+})</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">?include_auth_token</code> tells Flask-Security-Too "also give me a token, not just a cookie"</li>
+      <li><code class="key">JSON body</code> must contain <code>email</code> and <code>password</code> — this is a normal login call, just with the extra flag</li>
+    </ul>
+
+    <h3>Step 3 — Protect an API endpoint with the token</h3>
+    <div class="code-block">
+      <div class="code-title">resources.py</div>
+      <pre><code><span class="kw">from</span> flask_security <span class="kw">import</span> auth_required
+
+<span class="fn">@app.route</span>(<span class="str">"/api/items"</span>)
+<span class="fn">@auth_required</span>(<span class="str">"token"</span>)
+<span class="kw">def</span> <span class="fn">get_items</span>():
+    <span class="kw">return</span> jsonify(items=[...])</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">auth_required</code> the modern generalized decorator — replaces the older cookie-only <code>login_required</code></li>
+      <li><code class="key">"token"</code> tells it to validate via the header, not a session cookie</li>
+      <li>Missing/invalid token → returns <strong>401</strong> JSON error, never a redirect</li>
+    </ul>
+
+    <h3>Step 4 — Call the protected endpoint</h3>
+    <div class="code-block">
+      <div class="code-title">Client → GET /api/items</div>
+      <pre><code><span class="fn">fetch</span>(<span class="str">"/api/items"</span>, {
+  headers: { <span class="str">"Authentication-Token"</span>: token }
+})</code></pre>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 9: BEHIND THE SCENES ============ -->
+  <div class="module" id="m9">
+    <span class="module-tag">Module 9 · Behind the Scenes</span>
+    <h2>What the framework actually does</h2>
+    <div class="flow">
+      <div class="node">User row: id + fs_uniquifier</div>
+      <div class="arrow">→</div>
+      <div class="node">Signed with SECRET_KEY</div>
+      <div class="arrow">→</div>
+      <div class="node hot">authentication_token string</div>
+      <div class="arrow">→</div>
+      <div class="node">Sent back on future requests</div>
+      <div class="arrow">→</div>
+      <div class="node hot">Server re-derives + verifies signature</div>
+    </div>
+    <p>No token table, no server-side session store required for basic auth-token mode — the token is <em>self-verifying</em>: it's cryptographically signed data, not a random lookup key stored somewhere.</p>
+    <div class="callout warn">
+      <div class="ctitle">⚠️ Why changing fs_uniquifier resets the token</div>
+      Since the token is derived from <code>fs_uniquifier</code>, changing that column changes what a "valid" signature looks like for that user — every old token instantly fails verification.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 10: REAL PROJECT USAGE ============ -->
+  <div class="module" id="m10">
+    <span class="module-tag">Module 10 · Real Project Usage</span>
+    <h2>Where you've already seen this</h2>
+    <table>
+      <tr><th>Product</th><th>How token auth shows up</th></tr>
+      <tr><td>Gmail (web + mobile app)</td><td>Mobile app doesn't share browser cookies with Gmail.com, so it authenticates via tokens sent in API request headers</td></tr>
+      <tr><td>Swiggy / Zomato apps</td><td>The app stores a token after login and attaches it to every order/cart API call, no cookies involved</td></tr>
+      <tr><td>Postman API testing</td><td>Developers manually paste a token into headers to test protected endpoints — impossible with cookie-only auth</td></tr>
+      <tr><td>Netflix (SPA frontend)</td><td>Single-page app fetches recommendations via background AJAX calls using a stored auth token, avoiding full-page reload/redirect flows</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 11: COMMON MISTAKES ============ -->
+  <div class="module" id="m11">
+    <span class="module-tag">Module 11 · Common Mistakes</span>
+    <h2>Wrong vs Right</h2>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Using <code>@login_required</code> on an API endpoint meant for AJAX/mobile clients → causes unwanted redirects to a login HTML page instead of clean JSON 401 errors.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Use <code>@auth_required("token")</code> (or the older <code>auth_token_required</code>) for API endpoints so failures return proper 401 JSON responses.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Forgetting to add <code>fs_uniquifier</code> to the User model — token generation fails or throws errors at login.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Add the <code>fs_uniquifier</code> column before enabling token features; migrate existing users to have a value.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Sending the token in the wrong header name (default is <code>Authentication-Token</code>, easy to confuse with <code>Authorization</code>).
+    </div>
+  </div>
+
+  <!-- ============ MODULE 12: DEBUGGING MINDSET ============ -->
+  <div class="module" id="m12">
+    <span class="module-tag">Module 12 · Debugging Mindset</span>
+    <h2>Problem → Fix flow</h2>
+    <div class="flow">
+      <div class="node">Getting 401 unexpectedly?</div>
+      <div class="arrow">→</div>
+      <div class="node">Check header name</div>
+      <div class="arrow">→</div>
+      <div class="node">Check token wasn't reset</div>
+      <div class="arrow">→</div>
+      <div class="node hot">Fix + retest</div>
+    </div>
+    <table>
+      <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+      <tr><td>Redirected to /login instead of 401</td><td>Endpoint still uses <code>login_required</code></td><td>Switch to <code>auth_required("token")</code></td></tr>
+      <tr><td>Token generation fails at login</td><td>Missing <code>fs_uniquifier</code> column</td><td>Add column + migrate existing users</td></tr>
+      <tr><td>Token stops working suddenly</td><td><code>fs_uniquifier</code> was regenerated/changed</td><td>Re-login to obtain a fresh token</td></tr>
+      <tr><td>Header not recognized</td><td>Wrong header name used by client</td><td>Confirm <code>SECURITY_TOKEN_AUTHENTICATION_HEADER</code> value</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 13: EXAM PATTERN ============ -->
+  <div class="module" id="m13">
+    <span class="module-tag">Module 13 · IITM Exam Pattern</span>
+    <h2>What to watch for in MCQs</h2>
+    <div class="chip-row">
+      <span class="chip trigger">Trigger: "AJAX", "SPA", "401"</span>
+      <span class="chip trap">Trap: "redirects to login" (that's cookie, not token!)</span>
+      <span class="chip trap">Trap: confusing Flask-Security with Flask-Security-Too</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">🎯 Elimination Technique</div>
+      If a question mentions redirect-to-login behavior, eliminate any "token-based" answer choices — tokens return 401, they never redirect.
+    </div>
+    <div class="callout">
+      <div class="ctitle">📝 PYQ Pattern</div>
+      Past questions often ask: "Which column must be added to enable token auth?" → Answer: <code>fs_uniquifier</code>. Or: "Which decorator validates a token instead of a session?" → <code>auth_token_required</code> / <code>auth_required("token")</code>.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 14: INTERVIEW QUESTIONS ============ -->
+  <div class="module" id="m14">
+    <span class="module-tag">Module 14 · Interview Questions</span>
+    <h2>Three tiers</h2>
+    <div class="tier easy">
+      <span class="badge">EASY</span>
+      <ul>
+        <li>What's the difference between cookie-based and token-based authentication?</li>
+        <li>What HTTP status code does token auth return on failure?</li>
+      </ul>
+    </div>
+    <div class="tier medium">
+      <span class="badge">MEDIUM</span>
+      <ul>
+        <li>Why does Flask-Security-Too need an <code>fs_uniquifier</code> column?</li>
+        <li>How would you invalidate a specific user's token without deleting their account?</li>
+      </ul>
+    </div>
+    <div class="tier advanced">
+      <span class="badge">ADVANCED</span>
+      <ul>
+        <li>Why might you choose JWTs over Flask-Security-Too's built-in tokens in a distributed/microservices system?</li>
+        <li>How would you add 2FA (TOTP/SMS) on top of an existing token-auth flow without breaking existing clients?</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 15: ONE-PAGE BRAIN ============ -->
+  <div class="module" id="m15">
+    <span class="module-tag">Module 15 · One-Page Brain</span>
+    <h2>Compressed revision flow</h2>
+    <div class="flow">
+      <div class="node">Login + include_auth_token</div>
+      <div class="arrow">→</div>
+      <div class="node">Get authentication_token</div>
+      <div class="arrow">→</div>
+      <div class="node">Store client-side</div>
+      <div class="arrow">→</div>
+      <div class="node hot">Send in header on every API call</div>
+    </div>
+    <div class="remember-chain">
+      <div class="remember-row"><div class="k">fs_uniquifier</div><div class="v">seed column → required for token generation, changing it resets the token</div></div>
+      <div class="remember-row"><div class="k">include_auth_token</div><div class="v">query param on login → asks server to also return a token</div></div>
+      <div class="remember-row"><div class="k">Authentication-Token</div><div class="v">default header name for sending the token back</div></div>
+      <div class="remember-row"><div class="k">auth_required("token")</div><div class="v">decorator → validates token, returns 401 not redirect</div></div>
+      <div class="remember-row"><div class="k">Local Storage</div><div class="v">where the client persists the token across refreshes</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 16: QUICK REVISION TABLE ============ -->
+  <div class="module" id="m16">
+    <span class="module-tag">Module 16 · Quick Revision Table</span>
+    <h2>Cookie vs Token, side by side</h2>
+    <table>
+      <tr><th>Aspect</th><th>Cookie Auth</th><th>Token Auth</th></tr>
+      <tr><td>Storage location</td><td>Browser cookie jar</td><td>Client-managed (e.g. Local Storage)</td></tr>
+      <tr><td>Decorator</td><td><code>login_required</code></td><td><code>auth_token_required</code> / <code>auth_required("token")</code></td></tr>
+      <tr><td>On failure</td><td>❌ Redirects to login page</td><td>✅ Returns 401</td></tr>
+      <tr><td>Best for</td><td>Server-rendered browser pages</td><td>AJAX, SPAs, mobile apps</td></tr>
+      <tr><td>Depends on</td><td>Browser session mechanics</td><td><code>fs_uniquifier</code> + signed token</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 17: PRACTICE LADDER ============ -->
+  <div class="module" id="m17">
+    <span class="module-tag">Module 17 · Practice Ladder</span>
+    <h2>Climb from concept to interview-ready</h2>
+    <div class="ladder">
+      <div class="rung"><div class="num">1</div><div>Explain in your own words why cookies are awkward for AJAX clients</div></div>
+      <div class="rung"><div class="num">2</div><div>Predict the output/response of a login call with <code>include_auth_token</code></div></div>
+      <div class="rung"><div class="num">3</div><div>Find the bug: an API route still using <code>login_required</code> and redirecting unexpectedly</div></div>
+      <div class="rung"><div class="num">4</div><div>MCQ: identify which column is required for Flask-Security-Too tokens</div></div>
+      <div class="rung"><div class="num">5</div><div>Write code: protect a Flask API resource using token auth</div></div>
+      <div class="rung"><div class="num">6</div><div>Mini project: build a login form that stores the token and calls a protected endpoint</div></div>
+      <div class="rung"><div class="num">7</div><div>Interview: justify JWT vs built-in tokens for a multi-service architecture</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 18: MEMORY PALACE ============ -->
+  <div class="module" id="m18">
+    <span class="module-tag">Module 18 · Memory Palace</span>
+    <h2>Lock it in</h2>
+    <div class="palace-grid">
+      <div class="palace-card">
+        <div class="icon">📏</div>
+        <div class="ptitle">Rule</div>
+        <div>"Cookies redirect. Tokens respond with 401."</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🔑</div>
+        <div class="ptitle">Mnemonic</div>
+        <div>"F.I.T. — <strong>f</strong>s_uniquifier, <strong>i</strong>nclude_auth_token, <strong>t</strong>oken header"</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🧭</div>
+        <div class="ptitle">Visual</div>
+        <div>Login → Token → Header → 401 or 200</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px;">
+      <div class="ctitle">🚀 Beyond this lecture</div>
+      For distributed systems (multiple services validating the same identity), look toward <strong>JWT</strong>. For stronger security, layer on <strong>2FA</strong> (TOTP or SMS) on top of this token flow.
+    </div>
+  </div>
+
+  <div class="footer-note">Flask API Token Authentication · MAD2 Learning OS · Lecture 8.1</div>
+
+</div>
+</body>
+</html>

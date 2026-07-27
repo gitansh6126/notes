@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L48 — Naive Bayes Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d14;
+    --panel-bg:#12141f;
+    --panel-bg-2:#151827;
+    --panel-border: rgba(255,255,255,0.08);
+    --text:#e7e9f2;
+    --text-dim:#9aa0b4;
+    --gold:#e0b24d;
+    --blue:#5aa3f0;
+    --green:#57c785;
+    --purple:#b18aef;
+    --red:#f0685a;
+    --teal:#3ecfc0;
+    --serif-math-font:"Fraunces", "STIX Two Math", serif;
+    --mono-font:"JetBrains Mono", monospace;
+    --sans-font:"Inter", sans-serif;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(90,163,240,0.08), transparent 45%),
+      radial-gradient(ellipse at bottom right, rgba(177,138,239,0.08), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans-font);
+    line-height:1.6;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding: 0 1.25rem;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding: 3.5rem 1.25rem 2.5rem;
+    text-align:center;
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 2.5rem;
+    background: linear-gradient(180deg, rgba(224,178,77,0.06), transparent);
+  }
+  .kicker{
+    font-family: var(--mono-font);
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+  .hero h1{
+    font-family: var(--serif-math-font);
+    font-weight:600;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    margin: 0.5rem 0 0.75rem;
+    background: linear-gradient(90deg, #fff, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p{color:var(--text-dim); max-width:640px; margin:0 auto; font-size:1.05rem;}
+  .tags{display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:1.25rem;}
+  .tag{
+    font-family: var(--mono-font); font-size:0.75rem; padding:0.3rem 0.7rem;
+    border-radius:999px; border:1px solid var(--panel-border); color:var(--text-dim);
+  }
+
+  /* ---------- SECTION SCAFFOLDING ---------- */
+  .stage{
+    margin: 2.75rem 0;
+  }
+  .stage-head{
+    display:flex; align-items:baseline; gap:0.75rem; margin-bottom:1rem;
+  }
+  .stage-num{
+    font-family: var(--mono-font); color: var(--bg); background: var(--teal);
+    font-weight:700; font-size:0.85rem; padding: 0.15rem 0.55rem; border-radius:6px;
+    flex-shrink:0;
+  }
+  .stage-title{
+    font-family: var(--serif-math-font); font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight:600; margin:0;
+  }
+  .stage-sub{color:var(--text-dim); font-size:0.9rem; margin: -0.5rem 0 1rem 2.6rem;}
+
+  /* ---------- BOX CARD ---------- */
+  .card{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .card h3{margin-top:0; font-family:var(--serif-math-font); font-weight:600; font-size:1.1rem;}
+  .card-grid{
+    display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem;
+  }
+  .card.accent-blue{border-left:3px solid var(--blue);}
+  .card.accent-gold{border-left:3px solid var(--gold);}
+  .card.accent-green{border-left:3px solid var(--green);}
+  .card.accent-purple{border-left:3px solid var(--purple);}
+  .card.accent-red{border-left:3px solid var(--red);}
+  .card.accent-teal{border-left:3px solid var(--teal);}
+
+  /* ---------- CALLOUTS ---------- */
+  .callout{
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin: 1.25rem 0;
+    border: 1px solid;
+    display:flex; gap:0.75rem; align-items:flex-start;
+  }
+  .callout .icon{font-size:1.3rem; line-height:1;}
+  .callout.info{background:rgba(90,163,240,0.08); border-color:rgba(90,163,240,0.3);}
+  .callout.warn{background:rgba(240,104,90,0.08); border-color:rgba(240,104,90,0.3);}
+  .callout.tip{background:rgba(87,199,133,0.08); border-color:rgba(87,199,133,0.3);}
+  .callout.trap{background:rgba(177,138,239,0.08); border-color:rgba(177,138,239,0.3);}
+  .callout b{color:#fff;}
+
+  /* ---------- EQUATION PANELS ---------- */
+  .eq-panel{
+    background: var(--panel-bg-2);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 2.2rem 1.5rem 1.8rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    text-align:center;
+    position:relative;
+    overflow-x:auto;
+  }
+  .eq-panel .eq-label{
+    position:absolute; top:0.9rem; left:1.25rem;
+    font-family:var(--mono-font); font-size:0.72rem; color:var(--text-dim);
+    letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .eq-panel .eq-number{
+    position:absolute; bottom:0.75rem; right:1.25rem;
+    font-size:0.78rem; opacity:0.5; font-family: var(--mono-font);
+  }
+  .eq-main{
+    font-family: var(--serif-math-font);
+    font-size: clamp(1.15rem, 3vw, 1.9rem);
+    margin-top:0.5rem;
+  }
+  .eq-line{margin:0.6rem 0;}
+  .sym-var{color:var(--blue); font-style:italic;}
+  .sym-param{color:var(--gold); font-style:italic;}
+  .sym-const{color:var(--green);}
+  .sym-fn{color:var(--purple); font-style:normal;}
+  .sym-op{color:var(--red); font-size:1.25em; font-weight:700;}
+  .op-big{font-size:1.6em; vertical-align:-0.15em; display:inline-block; margin:0 0.15em;}
+  sub, sup{font-size:0.68em;}
+
+  .legend{
+    margin: 0.75rem 0 1.5rem;
+    font-size:0.88rem;
+    display:grid; gap:0.4rem;
+  }
+  .legend-row{display:flex; gap:0.6rem; align-items:baseline;}
+  .legend-sym{font-family:var(--serif-math-font); min-width:2.2rem; font-size:1.05rem;}
+  .legend-text{color:var(--text-dim);}
+
+  /* ---------- STEP TIMELINE ---------- */
+  .timeline{position:relative; margin:1.5rem 0; padding-left:2.4rem;}
+  .timeline::before{
+    content:""; position:absolute; left:1.05rem; top:0.4rem; bottom:0.4rem;
+    width:2px; background: linear-gradient(180deg, var(--teal), var(--purple));
+  }
+  .tl-step{position:relative; margin-bottom:1.4rem;}
+  .tl-badge{
+    position:absolute; left:-2.4rem; top:0; width:2.1rem; height:2.1rem;
+    border-radius:50%; background:var(--panel-bg-2); border:2px solid var(--teal);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono-font); font-weight:700; font-size:0.85rem; color:var(--teal);
+  }
+  .tl-content{
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:12px; padding:0.9rem 1.1rem;
+  }
+  .tl-title{font-weight:700; margin-bottom:0.3rem; font-size:0.95rem;}
+  .tl-expr{font-family:var(--serif-math-font); font-size:1.05rem; color:var(--text);}
+
+  /* ---------- TABLES ---------- */
+  table{width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.92rem;}
+  th, td{padding:0.6rem 0.75rem; text-align:left; border-bottom:1px solid var(--panel-border);}
+  th{color:var(--teal); font-family:var(--mono-font); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .table-wrap{overflow-x:auto;}
+
+  /* ---------- CODE ---------- */
+  pre{
+    background:#0d0f18; border:1px solid var(--panel-border); border-radius:12px;
+    padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono-font); font-size:0.85rem;
+    line-height:1.55;
+  }
+  code{font-family:var(--mono-font);}
+  .cmt{color:var(--text-dim);}
+  .kw{color:var(--purple);}
+  .fn{color:var(--blue);}
+  .str{color:var(--green);}
+  .num{color:var(--gold);}
+
+  /* ---------- SVG DIAGRAM WRAPPER ---------- */
+  .diagram{
+    background:var(--panel-bg-2); border:1px solid var(--panel-border); border-radius:16px;
+    padding:1.25rem; margin:1.5rem 0; overflow-x:auto;
+  }
+  .diagram svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+
+  /* ---------- COIN / VISUAL METAPHOR BLOCKS ---------- */
+  .flow-row{display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap; margin:1rem 0;}
+  .flow-box{
+    background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:10px;
+    padding:0.6rem 0.9rem; font-size:0.85rem; text-align:center; min-width:110px;
+  }
+  .flow-arrow{color:var(--text-dim); font-size:1.2rem;}
+
+  /* ---------- ONE PAGE BRAIN ---------- */
+  .brain-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:1rem;}
+  .brain-card h4{margin:0 0 0.5rem; color:var(--teal); font-family:var(--mono-font); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;}
+
+  hr.divider{border:none; border-top:1px solid var(--panel-border); margin:3rem 0;}
+
+  ul, ol{padding-left:1.3rem;}
+  li{margin:0.35rem 0;}
+
+  @media (max-width:640px){
+    .stage-sub{margin-left:0;}
+    .stage-head{flex-wrap:wrap;}
+    .card{padding:1.1rem;}
+    .eq-panel{padding:1.8rem 1rem 1.5rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">Lecture 48 · Probabilistic Machine Learning</div>
+  <h1>The Naive Bayes Algorithm</h1>
+  <p>How a spam filter learns to think in coin flips — a generative model built on one bold, "naive," and surprisingly effective assumption.</p>
+  <div class="tags">
+    <span class="tag">Generative Model</span>
+    <span class="tag">MLE</span>
+    <span class="tag">Bayes' Theorem</span>
+    <span class="tag">Binary Classification</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1: COGNITIVE PATTERN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">-1</span><h2 class="stage-title">Cognitive Pattern</h2></div>
+  <div class="stage-sub">What kind of thinking does this topic actually demand?</div>
+  <div class="card accent-teal">
+    <p>Naive Bayes lives at the intersection of three modes of thought:</p>
+    <div class="card-grid">
+      <div><b style="color:var(--blue)">🎲 Probability</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Everything is a coin toss — labels and features alike are generated by chance.</span></div>
+      <div><b style="color:var(--gold)">🧮 Counting</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Every parameter estimate reduces to "count this, divide by that."</span></div>
+      <div><b style="color:var(--purple)">🔎 Inference</b><br><span style="color:var(--text-dim); font-size:0.9rem;">We observe an email (evidence) and infer the hidden cause (spam or not).</span></div>
+    </div>
+    <p style="margin-bottom:0;">If you can think in terms of <i>"what story of coin-tosses would generate the data I see?"</i> — you already understand Naive Bayes at a conceptual level.</p>
+  </div>
+</div>
+
+<!-- STAGE 0: PROBLEM -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">0</span><h2 class="stage-title">The Real-World Problem</h2></div>
+  <div class="card accent-blue">
+    <p>Your inbox receives thousands of emails. Some are legitimate; many are spam ("You've won a lottery!", "Cheap meds now!"). A human can't read every email to sort them — we need a machine that looks at an email's <b>words</b> and instantly decides: <b>spam</b> or <b>not spam</b>.</p>
+    <div class="callout warn">
+      <span class="icon">⚠️</span>
+      <div><b>What happens if we don't solve this?</b> Inboxes drown in junk, phishing attacks succeed more often, and genuine emails get buried. We need a classifier that is fast, works with very little data per word, and scales to <b>tens of thousands</b> of possible words (dimensions) without collapsing under its own complexity.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 1: HISTORY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">1</span><h2 class="stage-title">Why Was This Invented?</h2></div>
+  <div class="card accent-purple">
+    <p>Before Naive Bayes, modeling <span class="sym-fn">P</span>(label | features) directly, or modeling the <i>full joint</i> probability of every feature combination, required estimating a parameter for every possible <b>combination</b> of word-presence patterns. With just <span class="sym-var">D</span> = 30 words, that's <span class="sym-const">2<sup>30</sup></span> combinations — over a billion parameters, from a training set of maybe a few thousand emails. That's an impossible amount of data to estimate reliably.</p>
+    <p style="margin-bottom:0;">The fix: assume features don't interact <i>given the class</i>. This single simplifying assumption is what turns an intractable counting problem into one that a laptop from the 1990s could solve — which is exactly when Naive Bayes became the workhorse of early spam filters.</p>
+  </div>
+</div>
+
+<!-- STAGE 2: ENGINEERING THINKING -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">2</span><h2 class="stage-title">Engineering Thinking — Before the Math</h2></div>
+  <div class="stage-sub">What should a solution satisfy, practically?</div>
+  <div class="card-grid">
+    <div class="card accent-green"><h3>✅ Few parameters</h3><p style="color:var(--text-dim); margin-bottom:0;">Must scale linearly, not exponentially, with the number of features (words).</p></div>
+    <div class="card accent-green"><h3>✅ Learnable by counting</h3><p style="color:var(--text-dim); margin-bottom:0;">Estimation should be closed-form — no iterative optimization needed.</p></div>
+    <div class="card accent-green"><h3>✅ Works with sparse data</h3><p style="color:var(--text-dim); margin-bottom:0;">Even rare words should get a usable probability estimate.</p></div>
+  </div>
+</div>
+
+<!-- STAGE 3: MATHEMATICAL TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">3</span><h2 class="stage-title">Mathematical Translation</h2></div>
+  <div class="card accent-blue">
+    <p>Translate the engineering requirement <i>"features shouldn't multiply parameters exponentially"</i> into probability language:</p>
+    <ul>
+      <li>Treat the label <span class="sym-var">Y</span> as generated by a single biased coin.</li>
+      <li>Treat each feature <span class="sym-var">F<sub>j</sub></span> as generated by its own coin — but the bias of that coin is allowed to depend on <span class="sym-var">Y</span>.</li>
+      <li><b>Assume</b> that once you know <span class="sym-var">Y</span>, the coins for <span class="sym-var">F<sub>1</sub></span>, <span class="sym-var">F<sub>2</sub></span>, …, <span class="sym-var">F<sub>D</sub></span> are flipped <b>independently</b>.</li>
+    </ul>
+    <p style="margin-bottom:0;">This is the <b>class conditional independence</b> assumption — the entire trick that makes Naive Bayes "naive."</p>
+  </div>
+</div>
+
+<!-- STAGE 4: FORMULA CONSTRUCTION — THE GENERATIVE MODEL -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">4</span><h2 class="stage-title">Formula Construction — The Generative Story</h2></div>
+  <div class="stage-sub">Building the model as a two-step coin-tossing process</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg">
+      <!-- Step 1: label coin -->
+      <circle cx="90" cy="90" r="46" fill="none" stroke="#e0b24d" stroke-width="3"/>
+      <text x="90" y="84" text-anchor="middle" fill="#e0b24d" font-family="JetBrains Mono" font-size="13" font-weight="700">Coin P</text>
+      <text x="90" y="102" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">bias P</text>
+      <text x="90" y="150" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">Step 1: toss for label</text>
+
+      <line x1="140" y1="90" x2="200" y2="90" stroke="#9aa0b4" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <rect x="205" y="60" width="90" height="60" rx="10" fill="#151827" stroke="#5aa3f0" stroke-width="2"/>
+      <text x="250" y="95" text-anchor="middle" fill="#5aa3f0" font-family="Fraunces" font-size="18" font-style="italic">Y</text>
+      <text x="250" y="150" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">spam / not spam</text>
+
+      <line x1="300" y1="90" x2="360" y2="90" stroke="#9aa0b4" stroke-width="2" marker-end="url(#arrow)"/>
+
+      <!-- Step 2: D feature coins -->
+      <g>
+        <circle cx="430" cy="60" r="26" fill="none" stroke="#b18aef" stroke-width="2.5"/>
+        <text x="430" y="65" text-anchor="middle" fill="#b18aef" font-family="JetBrains Mono" font-size="11">F₁|Y</text>
+        <circle cx="500" cy="90" r="26" fill="none" stroke="#b18aef" stroke-width="2.5"/>
+        <text x="500" y="95" text-anchor="middle" fill="#b18aef" font-family="JetBrains Mono" font-size="11">F₂|Y</text>
+        <circle cx="430" cy="120" r="26" fill="none" stroke="#b18aef" stroke-width="2.5"/>
+        <text x="430" y="125" text-anchor="middle" fill="#b18aef" font-family="JetBrains Mono" font-size="11">…</text>
+        <circle cx="570" cy="60" r="26" fill="none" stroke="#b18aef" stroke-width="2.5"/>
+        <text x="570" y="65" text-anchor="middle" fill="#b18aef" font-family="JetBrains Mono" font-size="10">F_D|Y</text>
+      </g>
+      <text x="500" y="170" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">Step 2: D independent coins, conditioned on Y</text>
+      <text x="500" y="188" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">each word gets its own coin, but its bias depends on the label drawn above</text>
+
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#9aa0b4"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="callout info">
+    <span class="icon">💡</span>
+    <div><b>Analogy:</b> imagine a factory with one master coin that decides "spam batch" or "clean batch." Once that decision is made, a rack of D independent, differently-weighted coins — one per word — gets flipped to decide whether each word shows up in the email. The rack of coins used for a "spam batch" is weighted differently than the rack used for a "clean batch," but within a batch, no coin looks at any other coin before flipping.</div>
+  </div>
+</div>
+
+<!-- STAGE 5: FORMULA ANATOMY — CLASS COND. INDEPENDENCE -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">5</span><h2 class="stage-title">Formula Anatomy — Class Conditional Independence</h2></div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Independence Assumption</div>
+    <div class="eq-main">
+      <div class="eq-line"><span class="sym-fn">P</span>(<span class="sym-var">F<sub>1</sub></span>, <span class="sym-var">F<sub>2</sub></span>, …, <span class="sym-var">F<sub>D</sub></span> &nbsp;|&nbsp; <span class="sym-var">Y</span>) &nbsp;=&nbsp;</div>
+      <div class="eq-line"><span class="op-big sym-op">∏</span><sub style="font-size:0.5em;">j=1</sub><sup style="font-size:0.5em;">D</sup> &nbsp; <span class="sym-fn">P</span>(<span class="sym-var">F<sub>j</sub></span> | <span class="sym-var">Y</span>)</div>
+    </div>
+    <div class="eq-number">Eq. 4.1</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-var">Y</span><span class="legend-text">— the class label (0 = not spam, 1 = spam)</span></div>
+    <div class="legend-row"><span class="legend-sym sym-var">F<sub>j</sub></span><span class="legend-text">— the j-th binary feature (does word j appear? 0 or 1)</span></div>
+    <div class="legend-row"><span class="legend-sym sym-const">D</span><span class="legend-text">— total number of features (vocabulary size)</span></div>
+    <div class="legend-row"><span class="legend-sym sym-op">∏</span><span class="legend-text">— product over all D features (the "AND-multiply-them-all" operator)</span></div>
+  </div>
+
+  <div class="card accent-red">
+    <h3>Why this collapses the parameter count</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Model</th><th>Parameters needed</th><th>At D = 30</th></tr>
+      <tr><td>Full joint (no independence)</td><td><span class="sym-const">2<sup>D</sup></span> + 1</td><td style="color:var(--red)">≈ 1.07 billion</td></tr>
+      <tr><td>Naive Bayes (class cond. independence)</td><td><span class="sym-const">2D</span> + 1</td><td style="color:var(--green)">61</td></tr>
+    </table>
+    </div>
+    <p style="margin-bottom:0; color:var(--text-dim); font-size:0.9rem;">The "+1" in both counts is the single parameter <span class="sym-param">P</span> for the label coin. The <span class="sym-const">2D</span> comes from needing one probability per feature per class (D features × 2 classes).</p>
+  </div>
+</div>
+
+<!-- STAGE 6: DERIVATION — MLE -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">6</span><h2 class="stage-title">Derivation — Getting to the MLE Estimates</h2></div>
+  <div class="stage-sub">From "maximize the likelihood" to "just count and divide"</div>
+
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-badge">1</div>
+      <div class="tl-content">
+        <div class="tl-title">Write the likelihood of the training data</div>
+        <div class="tl-expr">Each email i contributes <span class="sym-fn">P</span>(<span class="sym-var">Y<sub>i</sub></span>) · <span class="sym-fn">P</span>(<span class="sym-var">X<sub>i</sub></span> | <span class="sym-var">Y<sub>i</sub></span>), multiplied across all N emails (they're assumed independent draws).</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-badge">2</div>
+      <div class="tl-content">
+        <div class="tl-title">Take the log</div>
+        <div class="tl-expr">Products become sums — turning a nasty product-of-products into a sum-of-logs that's easy to differentiate term by term.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-badge">3</div>
+      <div class="tl-content">
+        <div class="tl-title">Separate the label term from the feature terms</div>
+        <div class="tl-expr">Because of independence, the log-likelihood splits cleanly into a piece involving only <span class="sym-param">P</span> and separate pieces involving only each <span class="sym-param">P<sub>Y,j</sub></span>. Each piece can be maximized <b>on its own</b>.</div>
+      </div>
+    </div>
+    <div class="tl-step">
+      <div class="tl-badge">4</div>
+      <div class="tl-content">
+        <div class="tl-title">Differentiate & set to zero</div>
+        <div class="tl-expr">Each piece is a standard Bernoulli log-likelihood. Setting its derivative to zero always yields the same familiar shape: <i>count of successes ÷ count of trials.</i></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="icon">🧠</span>
+    <div><b>Intuition:</b> because independence let the giant log-likelihood fall apart into separate, unrelated pieces, maximizing "the whole model" is really just maximizing D+1 tiny, independent coin-bias estimation problems — each with the textbook answer "fraction of heads."</div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Class Probability Estimate</div>
+    <div class="eq-main">
+      <span class="sym-param">P̂</span> &nbsp;=&nbsp; <span class="op-big sym-op">1</span>⁄<span class="sym-const">N</span> &nbsp;<span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i=1</sub><sup style="font-size:0.5em;">N</sup>&nbsp; <span class="sym-var">Y<sub>i</sub></span>
+    </div>
+    <div class="eq-number">Eq. 6.1</div>
+  </div>
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-param">P̂</span><span class="legend-text">— estimated probability that any given email is spam</span></div>
+    <div class="legend-row"><span class="legend-sym sym-const">N</span><span class="legend-text">— total number of training emails</span></div>
+    <div class="legend-row"><span class="legend-sym sym-op">Σ</span><span class="legend-text">— sum over all training examples</span></div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Feature Probability Estimate</div>
+    <div class="eq-main">
+      <div class="eq-line">
+        <span class="sym-param">P̂<sub>Y,J</sub></span> &nbsp;=&nbsp;
+      </div>
+      <div class="eq-line" style="font-size:0.85em;">
+        <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i=1</sub><sup style="font-size:0.5em;">N</sup> <span class="sym-fn">𝕀</span>(<span class="sym-var">F<sub>i,j</sub></span>=1 ∧ <span class="sym-var">Y<sub>i</sub></span>=<span class="sym-var">Y</span>)
+      </div>
+      <div class="eq-line" style="border-top:1px solid var(--panel-border); width:fit-content; margin:0.3rem auto; padding-top:0.3rem; font-size:0.85em;">
+        <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i=1</sub><sup style="font-size:0.5em;">N</sup> <span class="sym-fn">𝕀</span>(<span class="sym-var">Y<sub>i</sub></span>=<span class="sym-var">Y</span>)
+      </div>
+    </div>
+    <div class="eq-number">Eq. 6.2</div>
+  </div>
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-fn">𝕀</span><span class="legend-text">— indicator function: 1 if the condition inside is true, else 0</span></div>
+    <div class="legend-row"><span class="legend-sym sym-param">P̂<sub>Y,J</sub></span><span class="legend-text">— estimated probability that word j appears, given the email's class is Y</span></div>
+  </div>
+  <div class="callout info">
+    <span class="icon">📩</span>
+    <div><b>Plain English:</b> "Numerator = how many spam emails contain word j. Denominator = how many spam emails there are, total." It's literally: <i>of all the spam emails, what fraction mention 'lottery'?</i></div>
+  </div>
+
+  <div class="card accent-gold">
+    <h3>Worked numerical example</h3>
+    <p>Suppose your training set has <b>N = 200</b> emails, of which <b>60</b> are spam. Of those 60 spam emails, <b>42</b> contain the word "lottery."</p>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Quantity</th><th>Computation</th><th>Value</th></tr>
+      <tr><td><span class="sym-param">P̂</span> (spam prior)</td><td>60 / 200</td><td style="color:var(--gold)">0.30</td></tr>
+      <tr><td><span class="sym-param">P̂<sub>1,lottery</sub></span></td><td>42 / 60</td><td style="color:var(--gold)">0.70</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 7: ALGORITHM -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">7</span><h2 class="stage-title">Algorithm — Turning Math into Steps</h2></div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="200" height="50" rx="10" fill="#151827" stroke="#5aa3f0" stroke-width="2"/>
+      <text x="120" y="50" text-anchor="middle" fill="#5aa3f0" font-family="Inter" font-size="13">New email X_test</text>
+
+      <line x1="220" y1="45" x2="270" y2="45" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+
+      <rect x="275" y="10" width="200" height="60" rx="10" fill="#151827" stroke="#b18aef" stroke-width="2"/>
+      <text x="375" y="35" text-anchor="middle" fill="#b18aef" font-family="Inter" font-size="12">Compute P(X|Y=1)·P(Y=1)</text>
+      <text x="375" y="55" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">spam likelihood</text>
+
+      <rect x="275" y="90" width="200" height="60" rx="10" fill="#151827" stroke="#e0b24d" stroke-width="2"/>
+      <text x="375" y="115" text-anchor="middle" fill="#e0b24d" font-family="Inter" font-size="12">Compute P(X|Y=0)·P(Y=0)</text>
+      <text x="375" y="135" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">not-spam likelihood</text>
+
+      <line x1="120" y1="70" x2="120" y2="120" stroke="#9aa0b4" stroke-width="2"/>
+      <line x1="120" y1="120" x2="275" y2="40" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+      <line x1="120" y1="120" x2="275" y2="120" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+
+      <line x1="475" y1="40" x2="530" y2="80" stroke="#9aa0b4" stroke-width="2"/>
+      <line x1="475" y1="120" x2="530" y2="80" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+
+      <polygon points="530,55 585,80 530,105 475,80" fill="#151827" stroke="#3ecfc0" stroke-width="2"/>
+      <text x="530" y="84" text-anchor="middle" fill="#3ecfc0" font-family="Inter" font-size="11">compare</text>
+
+      <line x1="585" y1="80" x2="620" y2="80" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+
+      <rect x="500" y="160" width="180" height="70" rx="10" fill="#151827" stroke="#57c785" stroke-width="2"/>
+      <text x="590" y="188" text-anchor="middle" fill="#57c785" font-family="Inter" font-size="12">Ŷ = argmax</text>
+      <text x="590" y="208" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="11">predicted class</text>
+
+      <line x1="590" y1="105" x2="590" y2="155" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a2)"/>
+
+      <defs>
+        <marker id="a2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#9aa0b4"/>
+        </marker>
+      </defs>
+    </svg>
+  </div>
+
+  <pre><span class="cmt">// Pseudocode — Naive Bayes prediction</span>
+<span class="kw">function</span> <span class="fn">predict</span>(X_test, P_hat, P_YJ):
+    <span class="cmt">// P_hat: prior P(Y=1); P_YJ[y][j]: P(F_j=1 | Y=y)</span>
+    <span class="kw">for</span> Y <span class="kw">in</span> [<span class="num">0</span>, <span class="num">1</span>]:
+        score[Y] = (Y == <span class="num">1</span>) ? P_hat : (<span class="num">1</span> - P_hat)
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="num">1</span>..D:
+            <span class="kw">if</span> X_test[j] == <span class="num">1</span>:
+                score[Y] *= P_YJ[Y][j]
+            <span class="kw">else</span>:
+                score[Y] *= (<span class="num">1</span> - P_YJ[Y][j])
+
+    <span class="kw">return</span> argmax(score[<span class="num">0</span>], score[<span class="num">1</span>])</pre>
+
+  <div class="callout warn">
+    <span class="icon">⚠️</span>
+    <div><b>Note:</b> we never need <span class="sym-fn">P</span>(<span class="sym-var">X</span>) — the raw probability of seeing that exact combination of words — because it's the <b>same constant</b> for both classes and cancels out during comparison. We only need scores <b>proportional</b> to the true posterior.</div>
+  </div>
+</div>
+
+<!-- STAGE 8: OPTIMIZATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">8</span><h2 class="stage-title">Optimization — Making it Numerically Solid</h2></div>
+  <div class="card accent-teal">
+    <h3>Work in log-space</h3>
+    <p>Multiplying dozens of probabilities (each &lt;1) causes <b>numerical underflow</b> — the product silently rounds to 0 on real hardware. The fix: take logs and <b>add</b> instead of multiply.</p>
+    <div class="eq-panel" style="margin-top:0.5rem;">
+      <div class="eq-main" style="font-size:1.1rem;">
+        log <span class="sym-fn">P</span>(<span class="sym-var">X</span>|<span class="sym-var">Y</span>) &nbsp;=&nbsp; <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">j=1</sub><sup style="font-size:0.5em;">D</sup> log <span class="sym-fn">P</span>(<span class="sym-var">F<sub>j</sub></span>|<span class="sym-var">Y</span>)
+      </div>
+      <div class="eq-number">Eq. 8.1</div>
+    </div>
+    <p style="margin-bottom:0;">Time complexity per prediction: <b>O(D)</b> — a single pass over the features, which is why Naive Bayes scales gracefully to huge vocabularies.</p>
+  </div>
+</div>
+
+<!-- STAGE 9: EDGE CASES -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">9</span><h2 class="stage-title">Edge Cases & Failure Modes</h2></div>
+  <div class="card-grid">
+    <div class="card accent-red">
+      <h3>🕳️ The Zero-Frequency Problem</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">If a word never appeared in spam training emails, <span class="sym-param">P̂<sub>1,j</sub></span> = 0. One matching word then forces the <b>entire</b> product to zero — regardless of every other word's evidence. Fixed in practice with <b>Laplace (add-one) smoothing</b>.</p>
+    </div>
+    <div class="card accent-red">
+      <h3>🔗 Correlated Features</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">The independence assumption is violated whenever words co-occur non-randomly (e.g. "lottery" and "money"). The model still works, but its probability estimates become <b>overconfident</b> / poorly calibrated.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 10: HIDDEN TRIGGER -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">10</span><h2 class="stage-title">Hidden Trigger Recognition ⭐</h2></div>
+  <div class="stage-sub">Words in a question that should make you think "Naive Bayes"</div>
+  <div class="flow-row">
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"conditionally independent"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"generative model"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"class conditional"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"spam / ham classification"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"bag of words"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"2D + 1 parameters"</span>
+  </div>
+</div>
+
+<!-- STAGE 11: PATTERN RECOGNITION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">11</span><h2 class="stage-title">Pattern Recognition — When to Use This</h2></div>
+  <div class="card accent-green">
+    <p>Reach for Naive Bayes when:</p>
+    <ul style="margin-bottom:0;">
+      <li>Features are high-dimensional and mostly binary/categorical (text, presence/absence flags).</li>
+      <li>You have limited training data relative to the number of features.</li>
+      <li>You need a fast, interpretable baseline before trying something heavier.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STAGE 12: FORMULA SHAPE RECOGNITION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">12</span><h2 class="stage-title">Formula Shape Recognition</h2></div>
+  <div class="card accent-purple">
+    <p>Any of the following notations describe the <b>same</b> Naive Bayes decision rule — don't be thrown by symbol swaps:</p>
+    <div class="table-wrap">
+    <table>
+      <tr><th>You may see it written as…</th><th>It means</th></tr>
+      <tr><td><span class="sym-fn">P</span>(y|x) ∝ <span class="sym-fn">P</span>(y) ∏<sub>j</sub> <span class="sym-fn">P</span>(x<sub>j</sub>|y)</td><td>Standard posterior-proportional-to-prior-times-likelihood form</td></tr>
+      <tr><td>argmax<sub>y</sub> [log <span class="sym-fn">P</span>(y) + Σ<sub>j</sub> log <span class="sym-fn">P</span>(x<sub>j</sub>|y)]</td><td>Log-space decision rule (numerically stable version)</td></tr>
+      <tr><td>θ<sub>y,j</sub> = P(F<sub>j</sub>=1|Y=y)</td><td>Same as <span class="sym-param">P̂<sub>Y,J</sub></span>, just using θ notation</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 13: SYMBOL TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">13</span><h2 class="stage-title">Symbol Translation ⭐</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Notation</th><th>Meaning</th><th>Intuition</th><th>In code</th></tr>
+    <tr><td><span class="sym-var">Y</span></td><td>class label</td><td>the "coin toss" outcome</td><td><code>y</code></td></tr>
+    <tr><td><span class="sym-var">F<sub>j</sub></span></td><td>j-th binary feature</td><td>does word j appear?</td><td><code>X[j]</code></td></tr>
+    <tr><td><span class="sym-param">P</span></td><td>class prior</td><td>overall spam rate</td><td><code>p_hat</code></td></tr>
+    <tr><td><span class="sym-param">P<sub>Y,J</sub></span></td><td>conditional feature prob.</td><td>word rate within a class</td><td><code>p_yj[y][j]</code></td></tr>
+    <tr><td><span class="sym-op">∏</span></td><td>product</td><td>multiply across all features</td><td><code>np.prod(...)</code></td></tr>
+    <tr><td><span class="sym-fn">𝕀</span>(·)</td><td>indicator</td><td>1 if true, else 0</td><td><code>int(cond)</code></td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- STAGE 14: COMPUTATIONAL FLOW -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">14</span><h2 class="stage-title">Computational Flow ⭐</h2></div>
+  <div class="flow-row">
+    <div class="flow-box" style="border-color:var(--blue);">Raw Emails</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--purple);">Bag-of-Words<br>(binary features)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--gold);">MLE Counting<br>(Eq. 6.1, 6.2)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--teal);">Stored<br>Parameters</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--green);">Bayes Rule<br>at Test Time</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--red);">Predicted<br>Label</div>
+  </div>
+</div>
+
+<!-- STAGE 15: PROBLEM FAMILIES -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">15</span><h2 class="stage-title">Problem Families — Related Algorithms</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Model</th><th>Relation to Naive Bayes</th></tr>
+    <tr><td>Gaussian Naive Bayes</td><td>Same independence assumption, but features are continuous, modeled with a Gaussian per class.</td></tr>
+    <tr><td>Logistic Regression</td><td>The "discriminative twin" — models <span class="sym-fn">P</span>(Y|X) directly instead of via Bayes' rule; often more accurate when independence is badly violated.</td></tr>
+    <tr><td>Bayesian Networks</td><td>Generalizes Naive Bayes by allowing a learned dependency structure between features instead of assuming full independence.</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- STAGE 16: INVARIANT LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">16</span><h2 class="stage-title">Invariant Library ⭐</h2></div>
+  <div class="card-grid">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim); margin-bottom:0;">Parameter count is exactly 2D + 1 under the independence assumption.</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim); margin-bottom:0;">Naive Bayes outperforms more complex models — typically when data is scarce or features are near-independent.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim); margin-bottom:0;">Features are never <i>actually</i> perfectly independent given Y in real text data — the assumption is a useful fiction, not a fact.</p></div>
+  </div>
+</div>
+
+<!-- STAGE 17: EXPERT THINKING -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">17</span><h2 class="stage-title">Expert Thinking</h2></div>
+  <div class="callout tip">
+    <span class="icon">🎯</span>
+    <div>An expert doesn't re-derive Naive Bayes each time — they instantly recognize: <i>"binary/categorical features, need speed, need interpretability → count word frequencies per class, done."</i> The mental shortcut is treating classification as competing generative stories and picking whichever story better "explains" the observed words.</div>
+  </div>
+</div>
+
+<!-- STAGE 18: EXAMINER TRAP LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">18</span><h2 class="stage-title">Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 1:</b> confusing <span class="sym-fn">P</span>(<span class="sym-var">F<sub>j</sub></span>|<span class="sym-var">Y</span>) with <span class="sym-fn">P</span>(<span class="sym-var">Y</span>|<span class="sym-var">F<sub>j</sub></span>). Naive Bayes estimates the <b>former</b> directly from counts; the latter is what we ultimately want, obtained via Bayes' rule.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 2:</b> assuming independence means <span class="sym-var">F<sub>j</sub></span> and <span class="sym-var">F<sub>k</sub></span> are unconditionally independent. They are only assumed independent <b>given</b> <span class="sym-var">Y</span> — unconditionally, they can be (and usually are) correlated.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 3:</b> forgetting that the parameter count is <span class="sym-const">2D+1</span>, not <span class="sym-const">D+1</span> — each feature needs a separate probability estimate <b>per class</b>.</div>
+  </div>
+</div>
+
+<!-- STAGE 19: EXAM SHORTCUTS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">19</span><h2 class="stage-title">Exam Shortcuts</h2></div>
+  <div class="card accent-teal">
+    <ul style="margin-bottom:0;">
+      <li>If asked for parameter count: <b>2D + 1</b>, always.</li>
+      <li>If asked to estimate any probability: it's a <b>fraction</b> — count the numerator condition, count the denominator condition, divide.</li>
+      <li>If asked "why naive": always answer <b>class conditional independence</b>, not "because it's simple to code."</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STAGE 20: INDUSTRY IMPLEMENTATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">20</span><h2 class="stage-title">Industry Implementation</h2></div>
+  <pre><span class="kw">from</span> sklearn.naive_bayes <span class="kw">import</span> BernoulliNB
+
+model = BernoulliNB()
+model.fit(X_train, y_train)      <span class="cmt"># learns P_hat and P_YJ via counting</span>
+preds = model.predict(X_test)    <span class="cmt"># applies Bayes rule per email</span></pre>
+  <div class="callout info">
+    <span class="icon">🏭</span>
+    <div><code>BernoulliNB</code> is the sklearn class matching this exact binary-feature model. <code>MultinomialNB</code> is used instead when features are word <b>counts</b> rather than presence/absence, and <code>GaussianNB</code> for continuous features.</div>
+  </div>
+</div>
+
+<!-- STAGE 21: CONNECTIONS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">21</span><h2 class="stage-title">Connections</h2></div>
+  <div class="flow-row">
+    <div class="flow-box" style="border-color:var(--blue);">MLE<br>(prior lecture)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--teal);">Naive Bayes<br>(this lecture)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--purple);">Logistic Regression<br>(discriminative counterpart)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--gold);">Bayesian Networks<br>(relaxes independence)</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">22</span><h2 class="stage-title">One-Page Brain ⭐</h2></div>
+  <div class="card accent-gold" style="background:linear-gradient(160deg, var(--panel-bg), var(--panel-bg-2));">
+    <div class="brain-grid">
+      <div class="brain-card">
+        <h4>Core Intuition</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Label is one coin toss; each feature is its own coin, biased by the label, flipped independently.</p>
+      </div>
+      <div class="brain-card">
+        <h4>5 Formulas</h4>
+        <p style="margin:0; font-size:0.85rem; color:var(--text-dim);">
+          1. <span class="sym-fn">P</span>(X|Y)=∏<span class="sym-fn">P</span>(F<sub>j</sub>|Y)<br>
+          2. <span class="sym-param">P̂</span>=mean(Y)<br>
+          3. <span class="sym-param">P̂<sub>Y,J</sub></span>=count/count<br>
+          4. <span class="sym-fn">P</span>(Y|X)∝<span class="sym-fn">P</span>(X|Y)<span class="sym-fn">P</span>(Y)<br>
+          5. params = 2D+1
+        </p>
+      </div>
+      <div class="brain-card">
+        <h4>3 Diagrams</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Coin-toss generative story · prediction flowchart · pipeline flow</p>
+      </div>
+      <div class="brain-card">
+        <h4>5 Triggers</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">"conditionally independent," "generative," "spam/ham," "bag of words," "2D+1"</p>
+      </div>
+      <div class="brain-card">
+        <h4>5 Traps</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">P(F|Y) ≠ P(Y|F) · unconditional ≠ conditional independence · zero-frequency · wrong param count · ignoring the prior</p>
+      </div>
+      <div class="brain-card">
+        <h4>Dependencies</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Requires: Bayes' theorem, MLE, Bernoulli distribution</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="card accent-blue">
+    <h3>🧾 Cheat Sheet</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><td>Assumption</td><td>Class conditional independence of features</td></tr>
+      <tr><td>Parameters</td><td>2D + 1</td></tr>
+      <tr><td>Estimation</td><td>Maximum Likelihood → simple counting</td></tr>
+      <tr><td>Prediction rule</td><td>argmax<sub>Y</sub> P(Y) · ∏<sub>j</sub> P(F<sub>j</sub>|Y)</td></tr>
+      <tr><td>Weakness</td><td>Assumption violated in practice; zero-frequency problem</td></tr>
+      <tr><td>Strength</td><td>Fast, scalable, works well in high dimensions</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

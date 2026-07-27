@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L50 — Decision Function of Naive Bayes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d14;
+    --panel-bg:#12141f;
+    --panel-bg-2:#151827;
+    --panel-border: rgba(255,255,255,0.08);
+    --text:#e7e9f2;
+    --text-dim:#9aa0b4;
+    --gold:#e0b24d;
+    --blue:#5aa3f0;
+    --green:#57c785;
+    --purple:#b18aef;
+    --red:#f0685a;
+    --teal:#3ecfc0;
+    --serif-math-font:"Fraunces", "STIX Two Math", serif;
+    --mono-font:"JetBrains Mono", monospace;
+    --sans-font:"Inter", sans-serif;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(177,138,239,0.08), transparent 45%),
+      radial-gradient(ellipse at bottom right, rgba(62,207,192,0.08), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans-font);
+    line-height:1.6;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding: 0 1.25rem;}
+
+  .hero{
+    padding: 3.5rem 1.25rem 2.5rem;
+    text-align:center;
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 2.5rem;
+    background: linear-gradient(180deg, rgba(177,138,239,0.06), transparent);
+  }
+  .kicker{
+    font-family: var(--mono-font);
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+  .hero h1{
+    font-family: var(--serif-math-font);
+    font-weight:600;
+    font-size: clamp(1.7rem, 5vw, 2.8rem);
+    margin: 0.5rem 0 0.75rem;
+    background: linear-gradient(90deg, #fff, var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p{color:var(--text-dim); max-width:660px; margin:0 auto; font-size:1.05rem;}
+  .tags{display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:1.25rem;}
+  .tag{
+    font-family: var(--mono-font); font-size:0.75rem; padding:0.3rem 0.7rem;
+    border-radius:999px; border:1px solid var(--panel-border); color:var(--text-dim);
+  }
+
+  .stage{margin: 2.75rem 0;}
+  .stage-head{display:flex; align-items:baseline; gap:0.75rem; margin-bottom:1rem;}
+  .stage-num{
+    font-family: var(--mono-font); color: var(--bg); background: var(--teal);
+    font-weight:700; font-size:0.85rem; padding: 0.15rem 0.55rem; border-radius:6px;
+    flex-shrink:0;
+  }
+  .stage-title{
+    font-family: var(--serif-math-font); font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight:600; margin:0;
+  }
+  .stage-sub{color:var(--text-dim); font-size:0.9rem; margin: -0.5rem 0 1rem 2.6rem;}
+
+  .card{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .card h3{margin-top:0; font-family:var(--serif-math-font); font-weight:600; font-size:1.1rem;}
+  .card-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem;}
+  .card.accent-blue{border-left:3px solid var(--blue);}
+  .card.accent-gold{border-left:3px solid var(--gold);}
+  .card.accent-green{border-left:3px solid var(--green);}
+  .card.accent-purple{border-left:3px solid var(--purple);}
+  .card.accent-red{border-left:3px solid var(--red);}
+  .card.accent-teal{border-left:3px solid var(--teal);}
+
+  .callout{
+    border-radius: 12px; padding: 1rem 1.2rem; margin: 1.25rem 0;
+    border: 1px solid; display:flex; gap:0.75rem; align-items:flex-start;
+  }
+  .callout .icon{font-size:1.3rem; line-height:1;}
+  .callout.info{background:rgba(90,163,240,0.08); border-color:rgba(90,163,240,0.3);}
+  .callout.warn{background:rgba(240,104,90,0.08); border-color:rgba(240,104,90,0.3);}
+  .callout.tip{background:rgba(87,199,133,0.08); border-color:rgba(87,199,133,0.3);}
+  .callout.trap{background:rgba(177,138,239,0.08); border-color:rgba(177,138,239,0.3);}
+  .callout b{color:#fff;}
+
+  .eq-panel{
+    background: var(--panel-bg-2);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 2.2rem 1.5rem 1.8rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    text-align:center;
+    position:relative;
+    overflow-x:auto;
+  }
+  .eq-panel .eq-label{
+    position:absolute; top:0.9rem; left:1.25rem;
+    font-family:var(--mono-font); font-size:0.72rem; color:var(--text-dim);
+    letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .eq-panel .eq-number{
+    position:absolute; bottom:0.75rem; right:1.25rem;
+    font-size:0.78rem; opacity:0.5; font-family: var(--mono-font);
+  }
+  .eq-main{font-family: var(--serif-math-font); font-size: clamp(1.05rem, 2.6vw, 1.75rem); margin-top:0.5rem;}
+  .eq-line{margin:0.6rem 0;}
+  .sym-var{color:var(--blue); font-style:italic;}
+  .sym-param{color:var(--gold); font-style:italic;}
+  .sym-const{color:var(--green);}
+  .sym-fn{color:var(--purple); font-style:normal;}
+  .sym-op{color:var(--red); font-size:1.25em; font-weight:700;}
+  .op-big{font-size:1.6em; vertical-align:-0.15em; display:inline-block; margin:0 0.15em;}
+  sub, sup{font-size:0.68em;}
+
+  .legend{margin: 0.75rem 0 1.5rem; font-size:0.88rem; display:grid; gap:0.4rem;}
+  .legend-row{display:flex; gap:0.6rem; align-items:baseline;}
+  .legend-sym{font-family:var(--serif-math-font); min-width:2.6rem; font-size:1.0rem;}
+  .legend-text{color:var(--text-dim);}
+
+  .timeline{position:relative; margin:1.5rem 0; padding-left:2.4rem;}
+  .timeline::before{
+    content:""; position:absolute; left:1.05rem; top:0.4rem; bottom:0.4rem;
+    width:2px; background: linear-gradient(180deg, var(--teal), var(--purple));
+  }
+  .tl-step{position:relative; margin-bottom:1.4rem;}
+  .tl-badge{
+    position:absolute; left:-2.4rem; top:0; width:2.1rem; height:2.1rem;
+    border-radius:50%; background:var(--panel-bg-2); border:2px solid var(--teal);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono-font); font-weight:700; font-size:0.85rem; color:var(--teal);
+  }
+  .tl-content{
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:12px; padding:0.9rem 1.1rem;
+  }
+  .tl-title{font-weight:700; margin-bottom:0.3rem; font-size:0.95rem;}
+  .tl-expr{font-family:var(--serif-math-font); font-size:1.02rem; color:var(--text); overflow-x:auto;}
+  .tl-why{font-size:0.82rem; color:var(--text-dim); margin-top:0.4rem;}
+
+  table{width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.92rem;}
+  th, td{padding:0.6rem 0.75rem; text-align:left; border-bottom:1px solid var(--panel-border);}
+  th{color:var(--teal); font-family:var(--mono-font); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .table-wrap{overflow-x:auto;}
+
+  pre{
+    background:#0d0f18; border:1px solid var(--panel-border); border-radius:12px;
+    padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono-font); font-size:0.85rem;
+    line-height:1.55;
+  }
+  code{font-family:var(--mono-font);}
+  .cmt{color:var(--text-dim);}
+  .kw{color:var(--purple);}
+  .fn{color:var(--blue);}
+  .str{color:var(--green);}
+  .num{color:var(--gold);}
+
+  .diagram{
+    background:var(--panel-bg-2); border:1px solid var(--panel-border); border-radius:16px;
+    padding:1.25rem; margin:1.5rem 0; overflow-x:auto;
+  }
+  .diagram svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+
+  .flow-row{display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap; margin:1rem 0;}
+  .flow-box{
+    background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:10px;
+    padding:0.6rem 0.9rem; font-size:0.85rem; text-align:center; min-width:110px;
+  }
+  .flow-arrow{color:var(--text-dim); font-size:1.2rem;}
+
+  .brain-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:1rem;}
+  .brain-card h4{margin:0 0 0.5rem; color:var(--teal); font-family:var(--mono-font); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;}
+
+  hr.divider{border:none; border-top:1px solid var(--panel-border); margin:3rem 0;}
+  ul, ol{padding-left:1.3rem;}
+  li{margin:0.35rem 0;}
+
+  @media (max-width:640px){
+    .stage-sub{margin-left:0;}
+    .stage-head{flex-wrap:wrap;}
+    .card{padding:1.1rem;}
+    .eq-panel{padding:1.8rem 1rem 1.5rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">Lecture 54 · Probabilistic Machine Learning</div>
+  <h1>The Decision Function of Naive Bayes</h1>
+  <p>Naive Bayes was built as a generative model — but underneath the products and probabilities, it's secretly drawing a straight line. This lecture uncovers that line algebraically.</p>
+  <div class="tags">
+    <span class="tag">Log-Odds</span>
+    <span class="tag">Linear Classifier</span>
+    <span class="tag">Generative vs Discriminative</span>
+    <span class="tag">Hyperplane</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1: COGNITIVE PATTERN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">-1</span><h2 class="stage-title">Cognitive Pattern</h2></div>
+  <div class="stage-sub">What kind of thinking does uncovering the decision function require?</div>
+  <div class="card accent-teal">
+    <div class="card-grid">
+      <div><b style="color:var(--blue)">📐 Algebraic transformation</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Rearranging a product-of-ratios into a sum of weighted terms.</span></div>
+      <div><b style="color:var(--purple)">🌉 Bridging / proof</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Showing two seemingly different model families are secretly the same shape.</span></div>
+      <div><b style="color:var(--gold)">📏 Geometry</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Recognizing w<sup>T</sup>X + b ≥ 0 as "which side of a hyperplane."</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 0: PROBLEM -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">0</span><h2 class="stage-title">The Real-World Problem</h2></div>
+  <div class="card accent-blue">
+    <p>Every prediction in L48 required us to recompute two full products of probabilities — one per class — and compare them. That's correct, but it hides a deeper question: <b>what does the decision boundary actually look like</b> in feature space? Is it curved, jagged, or something simple?</p>
+    <div class="callout warn" style="margin-bottom:0; margin-top:1rem;">
+      <span class="icon">⚠️</span>
+      <div><b>Why this matters:</b> if we can show Naive Bayes draws a <i>straight line</i> (a hyperplane) between spam and non-spam, we gain a much cheaper way to classify — just one dot product — and a direct comparison point against discriminative linear models like logistic regression.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 1: THE DECISION RULE -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">1</span><h2 class="stage-title">Starting Point — The Decision Rule</h2></div>
+  <div class="eq-panel">
+    <div class="eq-label">Naive Bayes Prediction Rule</div>
+    <div class="eq-main">
+      <span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1 | <span class="sym-var">X<sub>test</sub></span>) &nbsp;≥&nbsp; <span class="sym-fn">P</span>(<span class="sym-var">Y</span>=0 | <span class="sym-var">X<sub>test</sub></span>) &nbsp;&nbsp;⟹&nbsp;&nbsp; predict <span class="sym-var">Y</span>=1
+    </div>
+    <div class="eq-number">Eq. 1.1</div>
+  </div>
+  <div class="callout info">
+    <span class="icon">💡</span>
+    <div>Instead of comparing two numbers directly, we'll study their <b>ratio</b>. A ratio ≥ 1 says the same thing as "left side ≥ right side" — and a ratio is much easier to simplify with logs, because a product's log becomes a sum.</div>
+  </div>
+</div>
+
+<!-- STAGE 3: MATH TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">3</span><h2 class="stage-title">Mathematical Translation — Log-Odds</h2></div>
+  <div class="eq-panel">
+    <div class="eq-label">Log-Odds Form of the Decision Rule</div>
+    <div class="eq-main">
+      log <span style="display:inline-block; vertical-align:middle;">
+        <div class="eq-line" style="font-size:0.75em; border-bottom:1px solid var(--panel-border); padding-bottom:0.2rem;"><span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1|<span class="sym-var">X</span>)</div>
+        <div class="eq-line" style="font-size:0.75em;"><span class="sym-fn">P</span>(<span class="sym-var">Y</span>=0|<span class="sym-var">X</span>)</div>
+      </span>
+      &nbsp;≥&nbsp; <span class="sym-const">0</span>
+    </div>
+    <div class="eq-number">Eq. 3.1</div>
+  </div>
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-fn">log-odds</span><span class="legend-text">— the log of the ratio of posteriors. Positive → class 1 is more likely; negative → class 0 is more likely; exactly 0 is the tie-breaking boundary.</span></div>
+  </div>
+  <div class="callout tip">
+    <span class="icon">🧠</span>
+    <div><b>Why "≥ 0" instead of "ratio ≥ 1":</b> log is monotonically increasing, so log(ratio) ≥ log(1) = 0 says exactly the same thing as ratio ≥ 1 — but now we're working with a sum instead of a product, which is what we actually want to simplify.</div>
+  </div>
+</div>
+
+<!-- STAGE 4/6: FULL DERIVATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">6</span><h2 class="stage-title">Full Derivation — From Log-Odds to a Straight Line</h2></div>
+  <div class="stage-sub">Every step, and why it happens</div>
+
+  <div class="timeline">
+    <div class="tl-step">
+      <div class="tl-badge">1</div>
+      <div class="tl-content">
+        <div class="tl-title">Apply Bayes' Rule to both posteriors</div>
+        <div class="tl-expr">log-odds = log <span class="sym-fn">P</span>(<span class="sym-var">X</span>|<span class="sym-var">Y</span>=1) − log <span class="sym-fn">P</span>(<span class="sym-var">X</span>|<span class="sym-var">Y</span>=0) &nbsp;+&nbsp; log <span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1) − log <span class="sym-fn">P</span>(<span class="sym-var">Y</span>=0)</div>
+        <div class="tl-why">P(Y|X) = P(X|Y)P(Y) / P(X). The P(X) in the denominator is identical for both classes, so it cancels the moment we take a ratio.</div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-badge">2</div>
+      <div class="tl-content">
+        <div class="tl-title">Substitute class conditional independence</div>
+        <div class="tl-expr">log <span class="sym-fn">P</span>(<span class="sym-var">X</span>|<span class="sym-var">Y</span>) = <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> [ <span class="sym-var">f<sub>i</sub></span> log <span class="sym-param">P<sub>Y,i</sub></span> + (1−<span class="sym-var">f<sub>i</sub></span>) log(1−<span class="sym-param">P<sub>Y,i</sub></span>) ]</div>
+        <div class="tl-why">Each binary feature is Bernoulli(P_{Y,i}): its log-probability is f_i·log P + (1-f_i)·log(1-P) — this expression equals log P when f_i=1 and log(1-P) when f_i=0, compactly written with the indicator built into the exponent form.</div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-badge">3</div>
+      <div class="tl-content">
+        <div class="tl-title">Subtract the class-0 sum from the class-1 sum</div>
+        <div class="tl-expr">
+          <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> <span class="sym-var">f<sub>i</sub></span> [log <span class="sym-param">P<sub>1,i</sub></span> − log <span class="sym-param">P<sub>0,i</sub></span>] &nbsp;+&nbsp; (1−<span class="sym-var">f<sub>i</sub></span>) [log(1−<span class="sym-param">P<sub>1,i</sub></span>) − log(1−<span class="sym-param">P<sub>0,i</sub></span>)]
+        </div>
+        <div class="tl-why">Group terms feature-by-feature since the sums run over the same index i — this keeps every f_i attached to its own coefficient, which is exactly what we need for a linear form.</div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-badge">4</div>
+      <div class="tl-content">
+        <div class="tl-title">Expand (1 − f_i) and collect f_i terms</div>
+        <div class="tl-expr">
+          <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> <span class="sym-var">f<sub>i</sub></span> · log <span style="display:inline-block; vertical-align:middle; font-size:0.85em;">
+            <div style="border-bottom:1px solid var(--panel-border); padding-bottom:0.1rem;"><span class="sym-param">P<sub>1,i</sub></span>(1−<span class="sym-param">P<sub>0,i</sub></span>)</div>
+            <div><span class="sym-param">P<sub>0,i</sub></span>(1−<span class="sym-param">P<sub>1,i</sub></span>)</div>
+          </span>
+          &nbsp;+&nbsp; <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> log <span style="display:inline-block; vertical-align:middle; font-size:0.85em;">
+            <div style="border-bottom:1px solid var(--panel-border); padding-bottom:0.1rem;">1−<span class="sym-param">P<sub>1,i</sub></span></div>
+            <div>1−<span class="sym-param">P<sub>0,i</sub></span></div>
+          </span>
+        </div>
+        <div class="tl-why">The f_i terms factor out into one clean log-ratio each — this ratio is exactly what becomes the weight w_i. What's left over (no f_i attached) is a pure constant, independent of the test point.</div>
+      </div>
+    </div>
+
+    <div class="tl-step">
+      <div class="tl-badge">5</div>
+      <div class="tl-content">
+        <div class="tl-title">Reassemble with the prior log-odds</div>
+        <div class="tl-expr">
+          log-odds &nbsp;=&nbsp; <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> <span class="sym-var">f<sub>i</sub></span> <span class="sym-param">w<sub>i</sub></span> &nbsp;+&nbsp; <big>[</big> <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">i</sub> log<span style="font-size:0.85em;">(1−P<sub>1,i</sub>)/(1−P<sub>0,i</sub>)</span> + log <span class="sym-param">P̂</span>/(1−<span class="sym-param">P̂</span>) <big>]</big>
+        </div>
+        <div class="tl-why">Bring back the log P(Y=1) − log P(Y=0) term from Step 1 (the prior log-odds) and fold it into the constant. Everything without an f_i attached — including this prior term — becomes the bias b.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="icon">✅</span>
+    <div><b>Result:</b> the log-odds is exactly of the form <span class="sym-param">w</span><sup>T</sup><span class="sym-var">X</span> + <span class="sym-param">b</span> — a weighted sum of the features plus a constant. That's the defining shape of a <b>linear classifier</b>.</div>
+  </div>
+</div>
+
+<!-- STAGE 5: FORMULA ANATOMY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">5</span><h2 class="stage-title">Formula Anatomy — The Linear Decision Function</h2></div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Naive Bayes as a Linear Classifier</div>
+    <div class="eq-main">
+      <span class="sym-param">w</span><sup>T</sup><span class="sym-var">X<sub>test</sub></span> + <span class="sym-param">b</span> &nbsp;≥&nbsp; <span class="sym-const">0</span> &nbsp;&nbsp;⟹&nbsp;&nbsp; predict <span class="sym-var">Y</span>=1
+    </div>
+    <div class="eq-number">Eq. 5.1</div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Weight for feature i</div>
+    <div class="eq-main">
+      <span class="sym-param">w<sub>i</sub></span> &nbsp;=&nbsp; log <span style="display:inline-block; vertical-align:middle;">
+        <div class="eq-line" style="font-size:0.75em; border-bottom:1px solid var(--panel-border); padding-bottom:0.2rem;"><span class="sym-param">P̂<sub>1,i</sub></span> (1 − <span class="sym-param">P̂<sub>0,i</sub></span>)</div>
+        <div class="eq-line" style="font-size:0.75em;"><span class="sym-param">P̂<sub>0,i</sub></span> (1 − <span class="sym-param">P̂<sub>1,i</sub></span>)</div>
+      </span>
+    </div>
+    <div class="eq-number">Eq. 5.2</div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-param">w<sub>i</sub></span><span class="legend-text">— how much evidence feature i (a word) contributes toward "spam" vs "not spam"</span></div>
+    <div class="legend-row"><span class="legend-sym sym-param">P̂<sub>1,i</sub></span><span class="legend-text">— probability word i appears, given the email is spam</span></div>
+    <div class="legend-row"><span class="legend-sym sym-param">P̂<sub>0,i</sub></span><span class="legend-text">— probability word i appears, given the email is not spam</span></div>
+    <div class="legend-row"><span class="legend-sym sym-param">b</span><span class="legend-text">— bias: everything that doesn't depend on the specific test point — leftover per-feature constants plus the class prior log-odds</span></div>
+  </div>
+
+  <div class="card accent-gold">
+    <h3>Worked numerical example</h3>
+    <p>Take the word "lottery": <span class="sym-param">P̂<sub>1,lottery</sub></span> = 0.70 (appears in 70% of spam), <span class="sym-param">P̂<sub>0,lottery</sub></span> = 0.05 (appears in 5% of non-spam).</p>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Step</th><th>Computation</th><th>Value</th></tr>
+      <tr><td>Numerator</td><td>0.70 × (1 − 0.05)</td><td>0.665</td></tr>
+      <tr><td>Denominator</td><td>0.05 × (1 − 0.70)</td><td>0.015</td></tr>
+      <tr><td><span class="sym-param">w<sub>lottery</sub></span></td><td>log(0.665 / 0.015)</td><td style="color:var(--gold)">≈ 3.79</td></tr>
+    </table>
+    </div>
+    <p style="margin-bottom:0; color:var(--text-dim); font-size:0.9rem;">A large positive weight — the presence of "lottery" pushes the score strongly toward spam. A word equally likely in both classes would get <span class="sym-param">w<sub>i</sub></span> ≈ log(1) = 0, contributing nothing to the decision.</p>
+  </div>
+</div>
+
+<!-- STAGE 12: FORMULA SHAPE RECOGNITION / GEOMETRIC VISUAL -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">12</span><h2 class="stage-title">Geometric Picture — What "Linear" Actually Looks Like</h2></div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="600" height="280" fill="none" stroke="#9aa0b4" stroke-width="1" opacity="0.3"/>
+      <text x="330" y="15" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">Feature space (2 words shown for visualization)</text>
+
+      <!-- separating line -->
+      <line x1="60" y1="280" x2="580" y2="60" stroke="#3ecfc0" stroke-width="3"/>
+      <text x="500" y="90" fill="#3ecfc0" font-family="Fraunces" font-size="14" font-style="italic">w<tspan baseline-shift="super" font-size="9">T</tspan>X + b = 0</text>
+
+      <!-- spam points (above/right of line) -->
+      <circle cx="450" cy="90" r="7" fill="#f0685a"/>
+      <circle cx="500" cy="130" r="7" fill="#f0685a"/>
+      <circle cx="420" cy="150" r="7" fill="#f0685a"/>
+      <circle cx="540" cy="180" r="7" fill="#f0685a"/>
+      <circle cx="480" cy="200" r="7" fill="#f0685a"/>
+      <text x="500" y="230" fill="#f0685a" font-family="Inter" font-size="12">spam (Y=1)</text>
+
+      <!-- non-spam points (below/left of line) -->
+      <circle cx="120" cy="120" r="7" fill="#5aa3f0"/>
+      <circle cx="180" cy="180" r="7" fill="#5aa3f0"/>
+      <circle cx="100" cy="220" r="7" fill="#5aa3f0"/>
+      <circle cx="220" cy="240" r="7" fill="#5aa3f0"/>
+      <circle cx="160" cy="260" r="7" fill="#5aa3f0"/>
+      <text x="160" y="290" fill="#5aa3f0" font-family="Inter" font-size="12">not spam (Y=0)</text>
+
+      <text x="330" y="45" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">w points toward the spam side</text>
+    </svg>
+  </div>
+  <div class="callout info">
+    <span class="icon">📏</span>
+    <div>Even though Naive Bayes was derived from probabilities and independent coin flips, the boundary it draws between the two classes is a straight <b>hyperplane</b> — geometrically identical in shape to what logistic regression or a linear SVM would draw, even though each gets there by a completely different route.</div>
+  </div>
+</div>
+
+<!-- STAGE 15: GENERATIVE VS DISCRIMINATIVE -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">15</span><h2 class="stage-title">Generative vs. Discriminative — Bridging the Two Worlds</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th></th><th>Naive Bayes (generative)</th><th>Logistic Regression (discriminative)</th></tr>
+    <tr><td>What's modeled</td><td><span class="sym-fn">P</span>(X|Y) and <span class="sym-fn">P</span>(Y), separately</td><td><span class="sym-fn">P</span>(Y|X) directly</td></tr>
+    <tr><td>How weights are found</td><td>Derived algebraically from counted probabilities</td><td>Learned by optimizing (e.g. gradient descent)</td></tr>
+    <tr><td>Decision boundary shape</td><td>Linear (hyperplane) — shown in this lecture</td><td>Linear (hyperplane) — by construction</td></tr>
+    <tr><td>Data efficiency</td><td>Often needs less data (strong assumptions help)</td><td>Often needs more data, but fewer assumptions</td></tr>
+  </table>
+  </div>
+  <div class="callout tip">
+    <span class="icon">🌉</span>
+    <div><b>The bridge:</b> this derivation shows Naive Bayes isn't a fundamentally different <i>kind</i> of classifier from logistic regression — it's a linear classifier whose weights happen to have a closed-form, counting-based formula instead of being learned iteratively.</div>
+  </div>
+</div>
+
+<!-- STAGE 9: EDGE CASES / SCOPE -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">9</span><h2 class="stage-title">Edge Cases & Scope</h2></div>
+  <div class="card-grid">
+    <div class="card accent-red">
+      <h3>🔢 Binary features only</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">This exact linear derivation relies on each f_i being Bernoulli (0/1). With continuous features (e.g. Gaussian Naive Bayes), the algebra produces a different — generally <b>quadratic</b> — decision boundary. A future lecture extends this.</p>
+    </div>
+    <div class="card accent-red">
+      <h3>♾️ Undefined weights</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">If <span class="sym-param">P̂<sub>0,i</sub></span> or <span class="sym-param">P̂<sub>1,i</sub></span> is exactly 0 or 1, <span class="sym-param">w<sub>i</sub></span> involves log(0) or division by 0 — another reason Laplace smoothing (L49) is a prerequisite here too.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 10: HIDDEN TRIGGER -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">10</span><h2 class="stage-title">Hidden Trigger Recognition ⭐</h2></div>
+  <div class="flow-row">
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"log-odds"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"decision function"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"hyperplane"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"linear classifier"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"w<sup>T</sup>X + b"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"generative vs discriminative"</span>
+  </div>
+</div>
+
+<!-- STAGE 13: SYMBOL TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">13</span><h2 class="stage-title">Symbol Translation ⭐</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Notation</th><th>Meaning</th><th>In code</th></tr>
+    <tr><td><span class="sym-param">w</span></td><td>weight vector, one entry per feature</td><td><code>w = log(...)</code>, vectorized</td></tr>
+    <tr><td><span class="sym-param">b</span></td><td>bias / intercept</td><td><code>b</code> scalar</td></tr>
+    <tr><td><span class="sym-param">w</span><sup>T</sup><span class="sym-var">X</span></td><td>dot product of weights and features</td><td><code>np.dot(w, X)</code></td></tr>
+    <tr><td>log-odds ≥ 0</td><td>decision threshold</td><td><code>if w @ X + b >= 0: predict 1</code></td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- STAGE 20: INDUSTRY IMPLEMENTATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">20</span><h2 class="stage-title">Industry Implementation</h2></div>
+  <pre><span class="kw">import</span> numpy <span class="kw">as</span> np
+
+<span class="cmt"># Precompute w and b once from trained P_hat, P_1i, P_0i</span>
+w = np.log((P1 * (<span class="num">1</span> - P0)) / (P0 * (<span class="num">1</span> - P1)))
+b = np.<span class="fn">sum</span>(np.log((<span class="num">1</span> - P1) / (<span class="num">1</span> - P0))) + np.log(P_hat / (<span class="num">1</span> - P_hat))
+
+<span class="cmt"># Prediction is now a single dot product — no loop over words needed</span>
+<span class="kw">def</span> <span class="fn">predict</span>(X_test):
+    <span class="kw">return</span> <span class="num">1</span> <span class="kw">if</span> (w @ X_test + b) >= <span class="num">0</span> <span class="kw">else</span> <span class="num">0</span></pre>
+  <div class="callout info">
+    <span class="icon">🏭</span>
+    <div>This is exactly why production spam filters can classify an email in microseconds: once <span class="sym-param">w</span> and <span class="sym-param">b</span> are precomputed during training, prediction is a single vectorized dot product — identical in cost to a trained logistic regression model at inference time.</div>
+  </div>
+</div>
+
+<!-- STAGE 16: INVARIANT LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">16</span><h2 class="stage-title">Invariant Library ⭐</h2></div>
+  <div class="card-grid">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim); margin-bottom:0;">With binary features, Naive Bayes' decision boundary is exactly linear — this is a mathematical identity, not an approximation.</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim); margin-bottom:0;">A feature with w_i ≈ 0 contributes little to the decision — happens when a word is equally common in both classes.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim); margin-bottom:0;">The boundary is never curved when features are strictly binary and independence is assumed — curvature only enters with continuous/Gaussian features.</p></div>
+  </div>
+</div>
+
+<!-- STAGE 18: EXAMINER TRAP LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">18</span><h2 class="stage-title">Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 1:</b> assuming "generative model" and "linear classifier" are mutually exclusive categories. Naive Bayes is proof they aren't — a model can be generative in <i>how it's trained</i> and linear in <i>what boundary it produces</i>.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 2:</b> forgetting that <span class="sym-param">b</span> contains the class <b>prior</b> term, not just per-feature leftovers. If the classes are imbalanced (e.g. 95% not-spam), the prior shifts <span class="sym-param">b</span> and biases the decision even before any word is examined.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 3:</b> this linear result is <b>specific to binary features</b>. Don't generalize it to Gaussian Naive Bayes without re-deriving — that case yields a quadratic boundary in general.</div>
+  </div>
+</div>
+
+<!-- STAGE 19: EXAM SHORTCUTS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">19</span><h2 class="stage-title">Exam Shortcuts</h2></div>
+  <div class="card accent-teal">
+    <ul style="margin-bottom:0;">
+      <li>Asked to prove linearity → start from log-odds ≥ 0, substitute independence, and group by f_i. Don't try to shortcut the algebra — examiners check the grouping step.</li>
+      <li>Asked for w_i → it's always a log-ratio of the form log[P<sub>1,i</sub>(1−P<sub>0,i</sub>) / (P<sub>0,i</sub>(1−P<sub>1,i</sub>))].</li>
+      <li>Asked what's in b → "everything without an f_i attached," including the prior log-odds.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STAGE 21: CONNECTIONS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">21</span><h2 class="stage-title">Connections</h2></div>
+  <div class="flow-row">
+    <div class="flow-box" style="border-color:var(--blue);">L48: Naive Bayes<br>core model</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--red);">L49: Pitfalls<br>(smoothing, logs)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--teal);">L54: Decision Function<br>(this lecture)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--purple);">Logistic Regression<br>(discriminative twin)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--gold);">Gaussian NB<br>(quadratic boundary)</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">22</span><h2 class="stage-title">One-Page Brain ⭐</h2></div>
+  <div class="card accent-purple" style="background:linear-gradient(160deg, var(--panel-bg), var(--panel-bg-2));">
+    <div class="brain-grid">
+      <div class="brain-card">
+        <h4>Core Intuition</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Behind every generative product-of-probabilities hides a linear sum, once you take logs and compare ratios.</p>
+      </div>
+      <div class="brain-card">
+        <h4>3 Formulas</h4>
+        <p style="margin:0; font-size:0.85rem; color:var(--text-dim);">
+          1. decision: w<sup>T</sup>X + b ≥ 0<br>
+          2. w<sub>i</sub> = log[P<sub>1,i</sub>(1−P<sub>0,i</sub>)/(P<sub>0,i</sub>(1−P<sub>1,i</sub>))]<br>
+          3. b = Σ log[(1−P<sub>1,i</sub>)/(1−P<sub>0,i</sub>)] + log[P̂/(1−P̂)]
+        </p>
+      </div>
+      <div class="brain-card">
+        <h4>2 Diagrams</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">5-step derivation timeline · 2D hyperplane separating spam/not-spam</p>
+      </div>
+      <div class="brain-card">
+        <h4>5 Triggers</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">"log-odds," "decision function," "hyperplane," "linear classifier," "generative vs discriminative"</p>
+      </div>
+      <div class="brain-card">
+        <h4>3 Traps</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">generative ≠ nonlinear · prior lives inside b · result is binary-feature-only</p>
+      </div>
+      <div class="brain-card">
+        <h4>Dependencies</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Requires: L48 Naive Bayes, L49 smoothing/logs, Bayes' theorem, basic linear algebra</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="card accent-blue">
+    <h3>🧾 Cheat Sheet</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><td>Claim</td><td>Naive Bayes with binary features has a linear decision boundary</td></tr>
+      <tr><td>Route</td><td>Bayes' rule → log-odds → independence → group by f_i</td></tr>
+      <tr><td>Weight w_i</td><td>log-ratio of feature likelihoods across classes</td></tr>
+      <tr><td>Bias b</td><td>feature-independent leftovers + prior log-odds</td></tr>
+      <tr><td>Significance</td><td>Bridges generative modeling and discriminative linear classification</td></tr>
+      <tr><td>Limitation</td><td>Only linear for binary features; continuous features → quadratic (future lecture)</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

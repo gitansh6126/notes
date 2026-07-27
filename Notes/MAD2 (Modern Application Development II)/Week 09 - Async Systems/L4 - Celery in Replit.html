@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celery Task Queues in Replit — MAD2 Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1210;
+    --bg-soft: #101815;
+    --card: #141c18;
+    --card-alt: #182018;
+    --border: #263129;
+    --celery: #a3d16a;
+    --celery-deep: #74a744;
+    --celery-glow: rgba(163,209,106,0.18);
+    --redis: #e6684a;
+    --redis-soft: rgba(230,104,74,0.15);
+    --text: #eaf2e8;
+    --muted: #8a9b8f;
+    --code-bg: #0a100c;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(163,209,106,0.06), transparent 40%),
+      radial-gradient(circle at 85% 10%, rgba(230,104,74,0.05), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 100px;}
+
+  /* ---------- HERO ---------- */
+  .hero{
+    padding:56px 20px 40px;
+    text-align:left;
+    max-width:920px;margin:0 auto;
+    border-bottom:1px solid var(--border);
+  }
+  .hero-eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    color:var(--celery);
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .hero-eyebrow::before{content:"●";color:var(--redis);font-size:10px;}
+  .hero h1{
+    font-family:var(--font-display);
+    font-size:clamp(28px,5vw,44px);
+    line-height:1.15;
+    margin:14px 0 10px;
+    letter-spacing:-0.01em;
+  }
+  .hero h1 .accent{color:var(--celery);}
+  .hero p.sub{color:var(--muted);font-size:16px;max-width:560px;margin:0;}
+
+  /* ---------- MODULE SHELL ---------- */
+  .module{
+    margin-top:46px;
+    position:relative;
+    padding-left:44px;
+  }
+  .module::before{ /* connecting spine */
+    content:"";
+    position:absolute;
+    left:15px; top:38px; bottom:-46px;
+    width:1px;
+    background:linear-gradient(to bottom, var(--border), transparent);
+  }
+  .module:last-child::before{display:none;}
+  .module-num{
+    position:absolute;
+    left:0; top:0;
+    width:32px;height:32px;
+    border-radius:8px;
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--celery);
+  }
+  .module-label{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--muted);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    margin-bottom:4px;
+  }
+  .module h2{
+    font-family:var(--font-display);
+    font-size:22px;
+    margin:0 0 14px;
+    letter-spacing:-0.01em;
+  }
+
+  /* ---------- CARDS ---------- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:20px 22px;
+    margin-bottom:14px;
+  }
+  .card + .card{margin-top:0;}
+  .card-title{
+    font-family:var(--font-mono);
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.09em;
+    color:var(--celery);
+    margin-bottom:8px;
+  }
+
+  /* callouts */
+  .callout{
+    border-radius:12px;
+    padding:16px 18px;
+    margin:14px 0;
+    border-left:3px solid var(--celery);
+    background:var(--celery-glow);
+    font-size:15px;
+  }
+  .callout.warn{border-left-color:var(--redis);background:var(--redis-soft);}
+  .callout b{color:var(--celery);}
+  .callout.warn b{color:var(--redis);}
+
+  .analogy{
+    display:flex;gap:12px;
+    background:var(--card-alt);
+    border:1px dashed var(--border);
+    border-radius:12px;
+    padding:16px 18px;
+    margin:14px 0;
+    font-size:15px;
+  }
+  .analogy .icon{font-size:22px;line-height:1;}
+
+  /* ---------- TAGS / TRIGGER WORDS ---------- */
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+  .tag{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    padding:5px 10px;
+    border-radius:999px;
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+  .tag.trap{border-color:var(--redis);color:var(--redis);}
+  .tag.trigger{border-color:var(--celery);color:var(--celery);}
+
+  /* ---------- TABLES ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14.5px;
+    margin:6px 0;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+  }
+  th{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--muted);
+  }
+  tr:last-child td{border-bottom:none;}
+  .yes{color:var(--celery);font-weight:600;}
+  .no{color:var(--redis);font-weight:600;}
+
+  /* ---------- CODE ---------- */
+  pre{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px 18px;
+    overflow-x:auto;
+    font-family:var(--font-mono);
+    font-size:13.5px;
+    line-height:1.65;
+    margin:12px 0;
+  }
+  code{font-family:var(--font-mono);}
+  .inline-code{
+    background:var(--code-bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:2px 6px;
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--celery);
+  }
+  .cm{color:#5f7264;} .kw{color:#e6684a;} .fn{color:#a3d16a;} .str{color:#e8c46a;} .num{color:#8bb4d8;}
+
+  .anno-row{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+    margin-top:10px;
+  }
+  .anno{
+    display:flex;gap:10px;
+    font-size:13.5px;
+    padding:8px 10px;
+    background:var(--card-alt);
+    border-radius:8px;
+    border:1px solid var(--border);
+  }
+  .anno .k{
+    font-family:var(--font-mono);
+    color:var(--celery);
+    min-width:110px;
+    flex-shrink:0;
+  }
+
+  /* ---------- DIAGRAM PIPELINE (signature element) ---------- */
+  .pipeline{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:26px 16px;
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    border-radius:14px;
+    position:relative;
+    margin:16px 0;
+    overflow:hidden;
+  }
+  .pnode{
+    flex:1 1 110px;
+    min-width:100px;
+    text-align:center;
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 8px;
+    position:relative;
+    z-index:2;
+  }
+  .pnode .pico{font-size:20px;display:block;margin-bottom:4px;}
+  .pnode .ptitle{font-family:var(--font-mono);font-size:12px;color:var(--text);font-weight:600;}
+  .pnode .psub{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .pnode.broker{border-color:var(--redis);}
+  .pnode.backend{border-color:var(--redis);}
+  .pnode.broker .ptitle, .pnode.backend .ptitle{color:var(--redis);}
+  .parrow{
+    flex:0 0 auto;
+    color:var(--muted);
+    font-size:18px;
+    z-index:2;
+  }
+  .track{
+    position:absolute;
+    top:50%;
+    left:6%; right:6%;
+    height:2px;
+    background:linear-gradient(90deg, transparent, var(--border) 15%, var(--border) 85%, transparent);
+    z-index:1;
+  }
+  .packet{
+    position:absolute;
+    top:50%;
+    left:6%;
+    width:9px;height:9px;
+    border-radius:50%;
+    background:var(--celery);
+    box-shadow:0 0 10px var(--celery);
+    transform:translateY(-50%);
+    animation:travel 5s linear infinite;
+    z-index:1;
+  }
+  @keyframes travel{
+    0%{left:6%;opacity:0;}
+    5%{opacity:1;}
+    45%{left:94%;opacity:1;}
+    50%{opacity:0;left:94%;}
+    100%{left:6%;opacity:0;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .packet{animation:none;opacity:1;left:50%;}
+  }
+  @media (max-width:640px){
+    .pipeline{flex-direction:column;}
+    .parrow{transform:rotate(90deg);}
+    .track,.packet{display:none;}
+  }
+
+  /* vertical flow (execution flow module) */
+  .vflow{display:flex;flex-direction:column;gap:0;margin:14px 0;}
+  .vstep{
+    display:flex;gap:14px;align-items:flex-start;
+    padding:12px 0;
+    position:relative;
+  }
+  .vstep .vdot{
+    width:26px;height:26px;border-radius:50%;
+    background:var(--card);border:1px solid var(--celery);
+    color:var(--celery);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-mono);font-size:11px;
+    flex-shrink:0;
+  }
+  .vstep:not(:last-child)::before{
+    content:"";position:absolute;left:12px;top:38px;bottom:-2px;
+    width:1px;background:var(--border);
+  }
+  .vstep .vtext{font-size:14.5px;padding-top:3px;}
+  .vstep .vtext b{color:var(--celery);}
+
+  /* practice ladder */
+  .ladder{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+  .lstep{
+    display:flex;align-items:center;gap:12px;
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:10px 14px;
+  }
+  .lstep .lnum{
+    font-family:var(--font-mono);color:var(--celery);font-size:13px;
+    width:20px;flex-shrink:0;
+  }
+  .lstep .ltitle{font-weight:600;font-size:14px;}
+  .lstep .ldesc{color:var(--muted);font-size:13px;}
+
+  /* two column grid */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media (max-width:640px){.grid2{grid-template-columns:1fr;}}
+
+  .wrongright{display:flex;flex-direction:column;gap:8px;}
+  .wr-line{display:flex;gap:10px;font-size:14.5px;align-items:flex-start;}
+  .wr-line .mark{flex-shrink:0;}
+
+  .badge-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:6px;}
+  .badge{font-size:13.5px;color:var(--muted);}
+  .badge b{color:var(--text);font-family:var(--font-mono);font-size:13px;}
+  .stars{color:var(--celery);letter-spacing:2px;}
+
+  .memory-box{
+    display:grid;grid-template-columns:1fr;gap:12px;
+  }
+  @media (min-width:640px){.memory-box{grid-template-columns:repeat(3,1fr);}}
+  .mem-card{
+    background:var(--card-alt);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    text-align:center;
+  }
+  .mem-card .mem-label{font-family:var(--font-mono);font-size:11px;color:var(--celery);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+  .mem-card .mem-body{font-size:14px;}
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-family:var(--font-mono);
+    font-size:12px;
+    margin-top:60px;
+    padding-top:24px;
+    border-top:1px solid var(--border);
+  }
+
+  ::selection{background:var(--celery-glow);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">MAD2 Learning OS · Backend Systems</div>
+  <h1>Celery Task Queues<br><span class="accent">in Replit</span></h1>
+  <p class="sub">How to hand off slow, heavy work to a background worker — using Redis as the messenger and Replit's Nix + tmux setup to run it all in one cloud shell.</p>
+</div>
+
+<div class="wrap">
+
+  <!-- MODULE 1 — TOPIC CARD -->
+  <div class="module">
+    <div class="module-num">1</div>
+    <div class="module-label">Topic Card · 30 Seconds</div>
+    <h2>Where this topic lives</h2>
+    <div class="card">
+      <div class="badge-row">
+        <div class="badge"><b>Topic</b><br>Celery Distributed Task Queue</div>
+        <div class="badge"><b>Category</b><br>Backend Infra / Async Processing</div>
+        <div class="badge"><b>Difficulty</b><br><span class="stars">★★★☆☆</span></div>
+        <div class="badge"><b>Importance</b><br><span class="stars">★★★★☆</span></div>
+      </div>
+      <div class="callout" style="margin-top:16px;">
+        <b>Prerequisites:</b> Comfortable writing plain Python functions, know what a terminal/shell is, and roughly what "the server is blocked" means when a request takes too long.
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 2 — CORE INTUITION -->
+  <div class="module">
+    <div class="module-num">2</div>
+    <div class="module-label">Core Intuition · WHY</div>
+    <h2>The one idea behind everything</h2>
+    <div class="analogy">
+      <div class="icon">🍽️</div>
+      <div>
+        Your web app is a <b>waiter</b>. It should take orders quickly and move to the next table — it should never stand at the stove cooking. Celery is the <b>kitchen staff</b>: the waiter drops the order slip on a spike (the <b>broker</b>), a chef (the <b>worker</b>) picks it up and cooks in the background, and the finished dish gets placed where it can be collected later (the <b>backend</b>). The waiter stays free the whole time.
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:14.5px;">In code terms: if a function is slow (sending 10,000 emails, resizing a video, crunching numbers), your app shouldn't freeze while it runs. Celery lets that function run somewhere else, at its own pace.</p>
+  </div>
+
+  <!-- MODULE 3 — VISUAL MENTAL MODEL -->
+  <div class="module">
+    <div class="module-num">3</div>
+    <div class="module-label">Visual Mental Model</div>
+    <h2>One diagram, the whole system</h2>
+    <div class="pipeline">
+      <div class="track"></div>
+      <div class="packet"></div>
+      <div class="pnode"><span class="pico">🖥️</span><span class="ptitle">App</span><span class="psub">calls .delay()</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode broker"><span class="pico">📮</span><span class="ptitle">Redis (Broker)</span><span class="psub">holds the queue</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode"><span class="pico">👷</span><span class="ptitle">Celery Worker</span><span class="psub">runs the task</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode backend"><span class="pico">🗄️</span><span class="ptitle">Redis (Backend)</span><span class="psub">stores the result</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode"><span class="pico">📲</span><span class="ptitle">App</span><span class="psub">calls .get()</span></div>
+    </div>
+    <p style="color:var(--muted);font-size:13.5px;text-align:center;margin-top:-4px;">One Redis instance, two different jobs: the red boxes are the <em>same server</em> playing two roles.</p>
+  </div>
+
+  <!-- MODULE 4 — PATTERN RECOGNITION -->
+  <div class="module">
+    <div class="module-num">4</div>
+    <div class="module-label">Pattern Recognition</div>
+    <h2>Spot the topic instantly</h2>
+    <div class="card">
+      <div class="card-title">Trigger Words</div>
+      <div class="tags">
+        <span class="tag trigger">background task</span>
+        <span class="tag trigger">don't block the request</span>
+        <span class="tag trigger">long-running</span>
+        <span class="tag trigger">send later</span>
+        <span class="tag trigger">.delay()</span>
+        <span class="tag trigger">AsyncResult</span>
+        <span class="tag trigger">message broker</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recognition Shortcut</div>
+      <table>
+        <tr><th>See this…</th><th>Think this</th></tr>
+        <tr><td>"App must stay responsive"</td><td>Offload to <b>Celery</b></td></tr>
+        <tr><td>"Need the result later, not now"</td><td><span class="inline-code">AsyncResult.get()</span></td></tr>
+        <tr><td>"Where do tasks wait?"</td><td><b>Broker</b> (Redis)</td></tr>
+        <tr><td>"Where does the answer live?"</td><td><b>Backend</b> (Redis)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- MODULE 5 — DEEP FUNDAMENTALS -->
+  <div class="module">
+    <div class="module-num">5</div>
+    <div class="module-label">Deep Fundamentals</div>
+    <h2>Why does this even exist?</h2>
+    <div class="vflow">
+      <div class="vstep"><div class="vdot">1</div><div class="vtext"><b>Why created:</b> A single Python process handling a web request can only do one thing at a time. A slow task (video encoding, mass emails) freezes every other user's request.</div></div>
+      <div class="vstep"><div class="vdot">2</div><div class="vtext"><b>Problem solved:</b> Celery separates "accept the request" from "do the heavy lifting," so the two can happen at different speeds, on different machines even.</div></div>
+      <div class="vstep"><div class="vdot">3</div><div class="vtext"><b>What happens internally:</b> The task call is serialized into a message and pushed onto a Redis list acting as a queue. A separate worker process is constantly polling that queue.</div></div>
+      <div class="vstep"><div class="vdot">4</div><div class="vtext"><b>How it's executed:</b> The worker <b>forks</b> a child process (or thread/greenlet) to actually run your function, keeping the main worker loop free to keep pulling new tasks.</div></div>
+    </div>
+  </div>
+
+  <!-- MODULE 6 — EXECUTION FLOW -->
+  <div class="module">
+    <div class="module-num">6</div>
+    <div class="module-label">Execution Flow</div>
+    <h2>The internal sequence</h2>
+    <div class="vflow">
+      <div class="vstep"><div class="vdot">a</div><div class="vtext">Client code calls <span class="inline-code">add.delay(4, 5)</span></div></div>
+      <div class="vstep"><div class="vdot">b</div><div class="vtext">Task + arguments are serialized into a message</div></div>
+      <div class="vstep"><div class="vdot">c</div><div class="vtext">Message pushed to the <b>Redis broker</b> queue</div></div>
+      <div class="vstep"><div class="vdot">d</div><div class="vtext">An idle <b>Celery worker</b> pulls the message off the queue</div></div>
+      <div class="vstep"><div class="vdot">e</div><div class="vtext">Worker executes the actual <span class="inline-code">add()</span> function</div></div>
+      <div class="vstep"><div class="vdot">f</div><div class="vtext">Result is written to the <b>Redis backend</b></div></div>
+      <div class="vstep"><div class="vdot">g</div><div class="vtext">Client calls <span class="inline-code">r.get()</span> whenever it wants the answer</div></div>
+    </div>
+  </div>
+
+  <!-- MODULE 7 — SYNTAX ANATOMY -->
+  <div class="module">
+    <div class="module-num">7</div>
+    <div class="module-label">Syntax Anatomy</div>
+    <h2>Every piece, explained</h2>
+    <pre><span class="kw">from</span> celery <span class="kw">import</span> Celery
+
+app = Celery(<span class="str">'tasks'</span>, broker=<span class="str">'redis://localhost:6379/0'</span>, backend=<span class="str">'redis://localhost:6379/0'</span>)
+
+<span class="cm">@app.task</span>
+<span class="kw">def</span> <span class="fn">add</span>(x, y):
+    <span class="kw">return</span> x + y</pre>
+    <div class="anno-row">
+      <div class="anno"><span class="k">Celery('tasks')</span> creates the app instance; <span class="inline-code">'tasks'</span> is just its internal name, usually the module name.</div>
+      <div class="anno"><span class="k">broker=...</span> tells Celery where incoming task messages get queued — here, Redis.</div>
+      <div class="anno"><span class="k">backend=...</span> tells Celery where to store the return value once the task finishes.</div>
+      <div class="anno"><span class="k">@app.task</span> the decorator that turns an ordinary function into something Celery can queue and run asynchronously.</div>
+      <div class="anno"><span class="k">def add(x,y)</span> a completely normal Python function — Celery doesn't change how you write it.</div>
+    </div>
+  </div>
+
+  <!-- MODULE 8 — CODE WALKTHROUGH -->
+  <div class="module">
+    <div class="module-num">8</div>
+    <div class="module-label">Code Walkthrough</div>
+    <h2>Calling it two different ways</h2>
+    <div class="grid2">
+      <div class="card">
+        <div class="card-title">Synchronous</div>
+        <pre>result = add(<span class="num">4</span>, <span class="num">5</span>)
+<span class="cm"># runs immediately,
+# right here, right now
+# result == 9</span></pre>
+      </div>
+      <div class="card">
+        <div class="card-title">Asynchronous</div>
+        <pre>r = add.delay(<span class="num">4</span>, <span class="num">5</span>)
+<span class="cm"># returns instantly with
+# an AsyncResult object</span>
+r.status  <span class="cm"># 'PENDING' / 'SUCCESS'</span>
+r.get()   <span class="cm"># blocks until done, returns 9</span></pre>
+      </div>
+    </div>
+    <div class="callout">
+      <b>Call sequence:</b> <span class="inline-code">add.delay()</span> → message queued on broker → worker dequeues → <span class="inline-code">add()</span> actually runs → result saved to backend → <span class="inline-code">r.get()</span> reads it back.
+    </div>
+  </div>
+
+  <!-- MODULE 9 — BEHIND THE SCENES -->
+  <div class="module">
+    <div class="module-num">9</div>
+    <div class="module-label">Behind the Scenes</div>
+    <h2>What's actually happening under the hood</h2>
+    <div class="vflow">
+      <div class="vstep"><div class="vdot">1</div><div class="vtext">Task call → serialized (typically as JSON) into a message envelope with the function name + arguments</div></div>
+      <div class="vstep"><div class="vdot">2</div><div class="vtext">Message pushed onto a Redis list acting as a FIFO queue</div></div>
+      <div class="vstep"><div class="vdot">3</div><div class="vtext">Worker's event loop polls Redis, pops the next message</div></div>
+      <div class="vstep"><div class="vdot">4</div><div class="vtext">Worker process <b>forks</b> a child to isolate task execution from the main loop</div></div>
+      <div class="vstep"><div class="vdot">5</div><div class="vtext">On completion, result gets written under a task-ID key in Redis, ready for lookup</div></div>
+    </div>
+    <div class="callout warn">
+      <b>Why this matters:</b> <span class="inline-code">fork()</span> is a Unix/Linux system call. It's the reason this whole setup behaves differently on Windows — see Module 11.
+    </div>
+  </div>
+
+  <!-- MODULE 10 — REAL PROJECT USAGE -->
+  <div class="module">
+    <div class="module-num">10</div>
+    <div class="module-label">Real Project Usage</div>
+    <h2>Where you'd actually see this</h2>
+    <table>
+      <tr><th>Product</th><th>How it uses a task queue</th></tr>
+      <tr><td><b>Instagram</b></td><td>When you upload a photo, generating thumbnails and running content filters happens in the background — the upload screen doesn't freeze waiting for it.</td></tr>
+      <tr><td><b>Swiggy / Zomato</b></td><td>Sending your order-confirmation SMS and push notification is queued so the "Order placed!" screen appears instantly.</td></tr>
+      <tr><td><b>Netflix</b></td><td>Encoding an uploaded video into multiple resolutions is a long job handed to background workers, not done while you wait.</td></tr>
+      <tr><td><b>Gmail-style bulk mail</b></td><td>Sending a newsletter to 50,000 people is queued task-by-task or batch-by-batch instead of blocking the "Send" button.</td></tr>
+    </table>
+  </div>
+
+  <!-- MODULE 11 — COMMON MISTAKES -->
+  <div class="module">
+    <div class="module-num">11</div>
+    <div class="module-label">Common Mistakes</div>
+    <h2>❌ Wrong / ✅ Correct</h2>
+    <div class="card">
+      <div class="wrongright">
+        <div class="wr-line"><span class="mark">❌</span><span>Calling <span class="inline-code">add(4, 5)</span> and expecting it to run in the background</span></div>
+        <div class="wr-line"><span class="mark">✅</span><span>Use <span class="inline-code">add.delay(4, 5)</span> — plain calls always run synchronously, in-process</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="wrongright">
+        <div class="wr-line"><span class="mark">❌</span><span>Starting the app and expecting tasks to run with no worker running</span></div>
+        <div class="wr-line"><span class="mark">✅</span><span>A separate <span class="inline-code">celery -A tasks worker</span> process must be running to actually execute queued tasks</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="wrongright">
+        <div class="wr-line"><span class="mark">❌</span><span>Running Celery natively on Windows and hitting mysterious worker crashes</span></div>
+        <div class="wr-line"><span class="mark">✅</span><span>Use <b>WSL</b> or a Linux VM — Celery's worker model needs <span class="inline-code">fork()</span>, which Windows doesn't provide natively</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODULE 12 — DEBUGGING MINDSET -->
+  <div class="module">
+    <div class="module-num">12</div>
+    <div class="module-label">Debugging Mindset</div>
+    <h2>How to hunt down a stuck task</h2>
+    <div class="vflow">
+      <div class="vstep"><div class="vdot">?</div><div class="vtext"><b>Problem:</b> "My task's status is stuck on PENDING forever."</div></div>
+      <div class="vstep"><div class="vdot">1</div><div class="vtext"><b>Observe:</b> Check the terminal running the worker — is it even printing logs?</div></div>
+      <div class="vstep"><div class="vdot">2</div><div class="vtext"><b>Find stage:</b> No worker running → task never left the queue. Worker running but errors in logs → task failed inside the function.</div></div>
+      <div class="vstep"><div class="vdot">3</div><div class="vtext"><b>Fix:</b> Restart Redis (<span class="inline-code">redis-server --daemonize yes</span>), restart the worker, or fix the bug in the task function itself.</div></div>
+    </div>
+    <div class="callout">
+      Also check: is Redis actually reachable at the broker URL? A wrong host/port silently drops every task with no error on the app side.
+    </div>
+  </div>
+
+  <!-- MODULE 13 — IITM EXAM PATTERN -->
+  <div class="module">
+    <div class="module-num">13</div>
+    <div class="module-label">IITM Exam Pattern</div>
+    <h2>How this shows up on paper</h2>
+    <div class="card">
+      <div class="card-title">Trigger Words</div>
+      <div class="tags">
+        <span class="tag trigger">asynchronous execution</span>
+        <span class="tag trigger">message broker</span>
+        <span class="tag trigger">worker process</span>
+        <span class="tag trigger">replit.nix</span>
+      </div>
+      <div class="card-title" style="margin-top:14px;">Trap Words</div>
+      <div class="tags">
+        <span class="tag trap">"runs instantly" (for .delay())</span>
+        <span class="tag trap">broker vs backend swap</span>
+        <span class="tag trap">Windows "just works"</span>
+      </div>
+    </div>
+    <table>
+      <tr><th>MCQ Trick</th><th>Elimination Technique</th></tr>
+      <tr><td>Asks which Redis role <b>stores task results</b></td><td>Eliminate any option naming the <b>broker</b> — that's the queue, not the storage</td></tr>
+      <tr><td>Asks what <span class="inline-code">add(4,5)</span> (no delay) returns</td><td>Eliminate "AsyncResult" options — a direct call is plain synchronous Python</td></tr>
+      <tr><td>Asks why Celery misbehaves on Windows</td><td>Eliminate anything not mentioning <span class="inline-code">fork()</span> / process model</td></tr>
+    </table>
+    <div class="callout">Shortcut to memorize: <b>Queue → Broker, Result → Backend.</b></div>
+  </div>
+
+  <!-- MODULE 14 — INTERVIEW QUESTIONS -->
+  <div class="module">
+    <div class="module-num">14</div>
+    <div class="module-label">Interview Questions</div>
+    <h2>Three tiers of depth</h2>
+    <div class="card"><div class="card-title">Easy</div>What is Celery used for, and why not just call the function directly?</div>
+    <div class="card"><div class="card-title">Medium</div>What's the difference between a message broker and a result backend? Can they be the same server?</div>
+    <div class="card"><div class="card-title">Advanced</div>Why does Celery rely on <span class="inline-code">fork()</span>, and what would you change to run it reliably on Windows or a restricted container?</div>
+  </div>
+
+  <!-- MODULE 15 — ONE-PAGE BRAIN -->
+  <div class="module">
+    <div class="module-num">15</div>
+    <div class="module-label">One-Page Brain</div>
+    <h2>The whole topic, compressed</h2>
+    <div class="pipeline" style="padding:20px 12px;">
+      <div class="pnode"><span class="ptitle">App</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode broker"><span class="ptitle">Broker</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode"><span class="ptitle">Worker</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode backend"><span class="ptitle">Backend</span></div>
+      <div class="parrow">→</div>
+      <div class="pnode"><span class="ptitle">App</span></div>
+    </div>
+    <table>
+      <tr><th>Stage</th><th>Remember</th></tr>
+      <tr><td><span class="inline-code">.delay()</span></td><td>Don't wait — fire and move on</td></tr>
+      <tr><td>Broker</td><td>Holds the queue of pending tasks</td></tr>
+      <tr><td>Worker</td><td>Actually does the work, in its own process</td></tr>
+      <tr><td>Backend</td><td>Holds the finished result until asked for</td></tr>
+      <tr><td><span class="inline-code">fork()</span></td><td>Needs a Unix-like OS — WSL on Windows</td></tr>
+    </table>
+  </div>
+
+  <!-- MODULE 16 — QUICK REVISION TABLE -->
+  <div class="module">
+    <div class="module-num">16</div>
+    <div class="module-label">Quick Revision Table</div>
+    <h2>Scan this before the exam</h2>
+    <table>
+      <tr><th>Component</th><th>Role</th><th>Tech Used Here</th><th>Analogy</th></tr>
+      <tr><td>Broker</td><td>Queues incoming tasks</td><td>Redis</td><td>Order spike in the kitchen</td></tr>
+      <tr><td>Backend</td><td>Stores finished results</td><td>Redis</td><td>Pickup counter</td></tr>
+      <tr><td>Worker</td><td>Executes the task</td><td>Celery process</td><td>The chef</td></tr>
+      <tr><td>App</td><td>Fires tasks, later fetches result</td><td>Your Python code</td><td>The waiter</td></tr>
+      <tr><td>Nix</td><td>Installs Redis, tmux, Python versions</td><td>replit.nix</td><td>Stocking the kitchen</td></tr>
+      <tr><td>tmux</td><td>Runs Redis + worker + app side by side</td><td>Terminal multiplexer</td><td>Multiple kitchen stations at once</td></tr>
+    </table>
+  </div>
+
+  <!-- MODULE 17 — PRACTICE LADDER -->
+  <div class="module">
+    <div class="module-num">17</div>
+    <div class="module-label">Practice Ladder</div>
+    <h2>Build up, one level at a time</h2>
+    <div class="ladder">
+      <div class="lstep"><span class="lnum">L1</span><div><span class="ltitle">Concept</span><br><span class="ldesc">Define broker vs backend in one sentence each</span></div></div>
+      <div class="lstep"><span class="lnum">L2</span><div><span class="ltitle">Predict Output</span><br><span class="ldesc">What does <span class="inline-code">add.delay(2,3)</span> return immediately?</span></div></div>
+      <div class="lstep"><span class="lnum">L3</span><div><span class="ltitle">Find the Bug</span><br><span class="ldesc">Task stays PENDING — spot the missing worker process</span></div></div>
+      <div class="lstep"><span class="lnum">L4</span><div><span class="ltitle">MCQ Drill</span><br><span class="ldesc">Broker vs backend swap questions, elimination practice</span></div></div>
+      <div class="lstep"><span class="lnum">L5</span><div><span class="ltitle">Write Code</span><br><span class="ldesc">Write a Celery task that sends a confirmation email</span></div></div>
+      <div class="lstep"><span class="lnum">L6</span><div><span class="ltitle">Mini Project</span><br><span class="ldesc">Build a background image-resizer using Celery + Redis</span></div></div>
+      <div class="lstep"><span class="lnum">L7</span><div><span class="ltitle">Interview Ready</span><br><span class="ldesc">Explain the full pipeline end-to-end, unprompted</span></div></div>
+    </div>
+  </div>
+
+  <!-- MODULE 18 — MEMORY PALACE -->
+  <div class="module">
+    <div class="module-num">18</div>
+    <div class="module-label">Memory Palace</div>
+    <h2>Three things to keep forever</h2>
+    <div class="memory-box">
+      <div class="mem-card">
+        <div class="mem-label">Rule</div>
+        <div class="mem-body">The app queues, the worker does.</div>
+      </div>
+      <div class="mem-card">
+        <div class="mem-label">Mnemonic</div>
+        <div class="mem-body"><b>Q.W.R.</b><br>Queue → Work → Result</div>
+      </div>
+      <div class="mem-card">
+        <div class="mem-label">Visual</div>
+        <div class="mem-body" style="font-family:var(--font-mono);font-size:13px;">delay() → 📮 → 👷 → 🗄️ → get()</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>MAD2 Learning OS · Week 9, Lecture 4 · Celery in Replit</footer>
+</div>
+
+</body>
+</html>

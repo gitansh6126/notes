@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 55 — The Sigmoid Function &amp; Logistic Regression</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#0b0e17;
+  --bg-alt:#0f1320;
+  --panel-bg:#12162447;
+  --panel-bg-solid:#141a2b;
+  --panel-border:rgba(255,255,255,0.08);
+  --ink:#e7e9f2;
+  --ink-dim:#a7adc4;
+  --ink-faint:#6d7390;
+
+  --gold:#e3b559;
+  --gold-soft:rgba(227,181,89,0.14);
+  --blue:#5fa8e0;
+  --blue-soft:rgba(95,168,224,0.14);
+  --purple:#b58af0;
+  --purple-soft:rgba(181,138,240,0.14);
+  --green:#63c68f;
+  --green-soft:rgba(99,198,143,0.14);
+  --red:#e2716f;
+  --red-soft:rgba(226,113,111,0.14);
+  --teal:#4fd2c6;
+  --teal-soft:rgba(79,210,198,0.14);
+
+  --serif: "Fraunces", "STIX Two Math", serif;
+  --sans: "Inter", -apple-system, sans-serif;
+  --mono: "JetBrains Mono", monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -5%, rgba(95,168,224,0.10), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 100% 10%, rgba(227,181,89,0.08), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:var(--sans);
+  line-height:1.65;
+  padding-bottom:6rem;
+}
+
+/* ---------- generic layout ---------- */
+.wrap{max-width:980px; margin:0 auto; padding:0 1.5rem;}
+
+.eyebrow{
+  font-family:var(--mono); font-size:0.72rem; letter-spacing:0.14em; text-transform:uppercase;
+  color:var(--teal); font-weight:600; display:flex; align-items:center; gap:0.6rem; margin-bottom:0.6rem;
+}
+.eyebrow::before{content:""; width:22px; height:1px; background:var(--teal); display:inline-block;}
+
+h2.layer-title{
+  font-family:var(--serif); font-weight:600; font-size:clamp(1.5rem,3vw,2.1rem);
+  margin-bottom:0.35rem; letter-spacing:-0.01em;
+}
+.layer-sub{color:var(--ink-dim); font-size:0.98rem; max-width:640px; margin-bottom:2rem;}
+
+section.layer{padding:4.2rem 0; border-bottom:1px solid var(--panel-border);}
+section.layer:last-of-type{border-bottom:none;}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:5rem 0 4rem;
+  position:relative;
+  overflow:hidden;
+}
+.hero .tag-row{display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.6rem;}
+.pill{
+  font-family:var(--mono); font-size:0.7rem; padding:0.32rem 0.7rem; border-radius:99px;
+  border:1px solid var(--panel-border); color:var(--ink-dim); letter-spacing:0.03em;
+}
+.hero h1{
+  font-family:var(--serif); font-weight:600; font-size:clamp(2.2rem,5.4vw,3.6rem);
+  line-height:1.08; letter-spacing:-0.02em; max-width:780px;
+}
+.hero h1 em{font-style:italic; color:var(--gold); font-weight:500;}
+.hero p.lede{
+  margin-top:1.4rem; font-size:1.12rem; color:var(--ink-dim); max-width:620px;
+}
+.hero-curve{
+  margin-top:3rem; border:1px solid var(--panel-border); border-radius:20px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+  padding:1.5rem;
+}
+
+/* ---------- box cards ---------- */
+.card-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:1.1rem; margin:1.6rem 0;}
+.card-grid.cols-3{grid-template-columns:repeat(3,1fr);}
+.card{
+  background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:16px;
+  padding:1.5rem 1.5rem; position:relative;
+}
+.card h4{font-family:var(--sans); font-weight:700; font-size:1rem; margin-bottom:0.5rem; display:flex; align-items:center; gap:0.5rem;}
+.card p{color:var(--ink-dim); font-size:0.94rem;}
+.card .icon-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
+
+/* accent variants */
+.acc-gold{border-left:3px solid var(--gold);}
+.acc-blue{border-left:3px solid var(--blue);}
+.acc-purple{border-left:3px solid var(--purple);}
+.acc-green{border-left:3px solid var(--green);}
+.acc-red{border-left:3px solid var(--red);}
+.acc-teal{border-left:3px solid var(--teal);}
+
+/* ---------- callouts ---------- */
+.callout{
+  border-radius:14px; padding:1.2rem 1.4rem; margin:1.6rem 0; display:flex; gap:0.9rem;
+  border:1px solid var(--panel-border);
+}
+.callout .glyph{font-size:1.3rem; line-height:1; flex-shrink:0;}
+.callout h5{font-size:0.92rem; font-weight:700; margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.03em;}
+.callout p{color:var(--ink-dim); font-size:0.94rem;}
+.callout.tip{background:var(--teal-soft); border-color:rgba(79,210,198,0.3);}
+.callout.tip h5{color:var(--teal);}
+.callout.warn{background:var(--red-soft); border-color:rgba(226,113,111,0.3);}
+.callout.warn h5{color:var(--red);}
+.callout.analogy{background:var(--gold-soft); border-color:rgba(227,181,89,0.3);}
+.callout.analogy h5{color:var(--gold);}
+.callout.insight{background:var(--purple-soft); border-color:rgba(181,138,240,0.3);}
+.callout.insight h5{color:var(--purple);}
+.callout.trap{background:var(--red-soft); border-color:rgba(226,113,111,0.3);}
+.callout.trap h5{color:var(--red);}
+
+/* ---------- symbol color roles (premium-math-typesetting) ---------- */
+.sym-var{color:var(--blue); font-style:italic;}
+.sym-param{color:var(--gold); font-style:italic;}
+.sym-const{color:var(--green);}
+.sym-fn{color:var(--purple); font-style:normal;}
+.sym-op{color:var(--red);}
+
+/* ---------- equation panel ---------- */
+.eq-panel{
+  background:linear-gradient(180deg, rgba(255,255,255,0.025), rgba(255,255,255,0)), var(--panel-bg-solid);
+  border:1px solid var(--panel-border);
+  border-radius:18px; padding:2.4rem 1.6rem 2rem; margin:1.8rem 0;
+  box-shadow:0 12px 40px rgba(0,0,0,0.35);
+  text-align:center; position:relative; overflow:hidden;
+}
+.eq-panel::before{
+  content:""; position:absolute; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, var(--eq-accent, var(--gold)), transparent);
+}
+.eq-label{
+  font-family:var(--mono); font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase;
+  color:var(--ink-faint); margin-bottom:1.1rem;
+}
+.eq-main{
+  font-family:var(--serif); font-size:clamp(1.25rem, 3vw, 2rem); font-weight:500;
+  line-height:1.9; color:var(--ink);
+}
+.eq-main .big-op{font-size:1.5em; color:var(--red); vertical-align:middle;}
+.eq-number{
+  position:absolute; bottom:0.8rem; right:1.2rem; font-family:var(--mono); font-size:0.75rem; color:var(--ink-faint);
+}
+.eq-frac{display:inline-flex; flex-direction:column; vertical-align:middle; text-align:center; margin:0 0.35rem; line-height:1.2;}
+.eq-frac .num{padding:0 0.3rem 0.15rem; border-bottom:1.5px solid var(--ink-dim);}
+.eq-frac .den{padding:0.15rem 0.3rem 0;}
+
+/* legend */
+.legend{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:0.5rem 1.5rem;
+  background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:12px;
+  padding:1.1rem 1.3rem; margin-bottom:1.8rem; font-size:0.88rem;
+}
+.legend div{display:flex; gap:0.5rem; color:var(--ink-dim);}
+.legend .sym{font-family:var(--serif); font-weight:600; min-width:1.6rem;}
+
+/* ---------- step timeline ---------- */
+.timeline{position:relative; padding-left:2.4rem; margin:2rem 0;}
+.timeline::before{content:""; position:absolute; left:0.85rem; top:0.4rem; bottom:0.4rem; width:2px; background:linear-gradient(180deg, var(--gold), var(--purple));}
+.tstep{position:relative; margin-bottom:1.6rem;}
+.tstep:last-child{margin-bottom:0;}
+.tstep .badge{
+  position:absolute; left:-2.4rem; top:0; width:1.7rem; height:1.7rem; border-radius:50%;
+  background:var(--bg-alt); border:2px solid var(--gold); color:var(--gold); font-family:var(--mono);
+  font-size:0.78rem; display:flex; align-items:center; justify-content:center; font-weight:700;
+}
+.tstep .tstep-body{background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:12px; padding:1rem 1.3rem;}
+.tstep h5{font-size:0.92rem; font-weight:700; margin-bottom:0.4rem; color:var(--ink);}
+.tstep .expr{font-family:var(--serif); font-size:1.15rem; color:var(--ink);}
+.tstep p.note{color:var(--ink-dim); font-size:0.87rem; margin-top:0.3rem;}
+
+/* ---------- tables ---------- */
+table.data{width:100%; border-collapse:collapse; margin:1.6rem 0; font-size:0.92rem; overflow:hidden; border-radius:12px;}
+table.data thead th{
+  background:var(--panel-bg-solid); text-align:left; padding:0.7rem 1rem; font-family:var(--mono);
+  font-size:0.72rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--teal); border-bottom:1px solid var(--panel-border);
+}
+table.data tbody td{padding:0.7rem 1rem; border-bottom:1px solid var(--panel-border); color:var(--ink-dim);}
+table.data tbody tr:last-child td{border-bottom:none;}
+table.data tbody tr:hover{background:rgba(255,255,255,0.02);}
+table.data td.hl{color:var(--ink); font-weight:600;}
+
+/* ---------- code ---------- */
+.code-block{
+  background:#0a0d16; border:1px solid var(--panel-border); border-radius:14px;
+  padding:1.3rem 1.4rem; margin:1.4rem 0; overflow-x:auto; position:relative;
+}
+.code-block .code-title{
+  font-family:var(--mono); font-size:0.7rem; color:var(--ink-faint); text-transform:uppercase;
+  letter-spacing:0.08em; margin-bottom:0.8rem; display:flex; justify-content:space-between;
+}
+.code-block pre{font-family:var(--mono); font-size:0.85rem; line-height:1.7; color:var(--ink-dim);}
+.code-block .c-kw{color:var(--purple);}
+.code-block .c-fn{color:var(--blue);}
+.code-block .c-num{color:var(--green);}
+.code-block .c-com{color:var(--ink-faint); font-style:italic;}
+.code-block .c-str{color:var(--gold);}
+
+/* ---------- decision tree / diagrams ---------- */
+.diagram-wrap{
+  background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:16px;
+  padding:1.6rem; margin:1.8rem 0; overflow-x:auto;
+}
+.flow{display:flex; align-items:center; gap:0.6rem; flex-wrap:wrap; justify-content:center;}
+.flow .box{
+  background:var(--bg-alt); border:1px solid var(--panel-border); border-radius:10px;
+  padding:0.65rem 1rem; font-size:0.85rem; font-family:var(--mono); text-align:center; color:var(--ink);
+}
+.flow .arrow{color:var(--ink-faint); font-size:1.1rem;}
+.flow .box.gold{border-color:var(--gold); color:var(--gold);}
+.flow .box.blue{border-color:var(--blue); color:var(--blue);}
+.flow .box.purple{border-color:var(--purple); color:var(--purple);}
+.flow .box.teal{border-color:var(--teal); color:var(--teal);}
+.flow .box.green{border-color:var(--green); color:var(--green);}
+.flow .box.red{border-color:var(--red); color:var(--red);}
+
+/* ---------- failure spectrum ---------- */
+.spectrum{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin:1.8rem 0;}
+.spectrum .stage{border-radius:14px; padding:1.2rem; border:1px solid var(--panel-border);}
+.spectrum .stage.works{background:var(--green-soft); border-color:rgba(99,198,143,.3);}
+.spectrum .stage.degrades{background:var(--gold-soft); border-color:rgba(227,181,89,.3);}
+.spectrum .stage.fails{background:var(--red-soft); border-color:rgba(226,113,111,.3);}
+.spectrum h5{font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.5rem;}
+.spectrum .works h5{color:var(--green);}
+.spectrum .degrades h5{color:var(--gold);}
+.spectrum .fails h5{color:var(--red);}
+.spectrum p{font-size:0.86rem; color:var(--ink-dim);}
+
+/* ---------- invariant chips ---------- */
+.inv-row{display:flex; gap:0.6rem; flex-wrap:wrap; margin:1.2rem 0;}
+.inv-chip{font-family:var(--mono); font-size:0.78rem; padding:0.4rem 0.8rem; border-radius:8px; border:1px solid var(--panel-border);}
+.inv-chip.always{background:var(--green-soft); color:var(--green); border-color:rgba(99,198,143,.3);}
+.inv-chip.sometimes{background:var(--gold-soft); color:var(--gold); border-color:rgba(227,181,89,.3);}
+.inv-chip.never{background:var(--red-soft); color:var(--red); border-color:rgba(226,113,111,.3);}
+
+/* ---------- interactive sigmoid demo ---------- */
+.demo{
+  background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:18px;
+  padding:1.8rem; margin:1.8rem 0;
+}
+.demo-top{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;}
+.demo-readout{font-family:var(--mono); font-size:0.9rem;}
+.demo-readout span{color:var(--gold); font-weight:600;}
+input[type=range]{width:100%; accent-color:var(--gold);}
+.demo-grid{display:grid; grid-template-columns:2fr 1fr; gap:1.5rem; align-items:center;}
+
+/* ---------- decision tree component ---------- */
+.dtree{display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:1.5rem 0;}
+.dtree .q{background:var(--bg-alt); border:1px solid var(--blue); color:var(--blue); border-radius:10px; padding:0.6rem 1.1rem; font-size:0.87rem; font-family:var(--mono); text-align:center;}
+.dtree .branch{display:flex; gap:2.2rem;}
+.dtree .leaf{background:var(--panel-bg-solid); border:1px solid var(--panel-border); border-radius:10px; padding:0.6rem 1rem; font-size:0.85rem; text-align:center; max-width:220px;}
+.dtree .leaf.yes{border-color:var(--green); }
+.dtree .leaf.no{border-color:var(--red);}
+.dtree .lbl{font-family:var(--mono); font-size:0.7rem; color:var(--ink-faint); text-transform:uppercase;}
+
+/* ---------- one page brain ---------- */
+.brain{
+  background:radial-gradient(ellipse at top left, rgba(227,181,89,0.08), transparent 60%), var(--panel-bg-solid);
+  border:1px solid var(--gold); border-radius:22px; padding:2.2rem; margin-top:1.6rem;
+}
+.brain h3{font-family:var(--serif); font-size:1.5rem; color:var(--gold); margin-bottom:1.2rem;}
+.brain-grid{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem;}
+.brain-block h6{font-family:var(--mono); font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--teal); margin-bottom:0.4rem;}
+.brain-block p, .brain-block li{font-size:0.88rem; color:var(--ink-dim);}
+.brain-block ul{padding-left:1.1rem;}
+
+/* ---------- retrieval practice ---------- */
+.qa{border:1px solid var(--panel-border); border-radius:12px; margin-bottom:0.7rem; overflow:hidden;}
+.qa summary{
+  cursor:pointer; padding:0.9rem 1.2rem; font-weight:600; font-size:0.92rem; background:var(--panel-bg-solid);
+  list-style:none; display:flex; justify-content:space-between; align-items:center;
+}
+.qa summary::-webkit-details-marker{display:none;}
+.qa summary::after{content:"+"; color:var(--gold); font-size:1.2rem;}
+.qa[open] summary::after{content:"–";}
+.qa .ans{padding:1rem 1.2rem; color:var(--ink-dim); font-size:0.9rem; border-top:1px solid var(--panel-border);}
+
+/* ---------- footer nav dots ---------- */
+.toc{
+  position:fixed; right:1.2rem; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:0.55rem; z-index:50;
+}
+.toc a{width:8px; height:8px; border-radius:50%; background:var(--panel-border); display:block; transition:all .25s;}
+.toc a:hover, .toc a.active{background:var(--gold); transform:scale(1.4);}
+@media (max-width:900px){.toc{display:none;}}
+
+/* ---------- responsive ---------- */
+@media (max-width:760px){
+  .card-grid, .card-grid.cols-3{grid-template-columns:1fr;}
+  .brain-grid{grid-template-columns:1fr;}
+  .demo-grid{grid-template-columns:1fr;}
+  .dtree .branch{flex-direction:column; gap:0.8rem; align-items:center;}
+  section.layer{padding:2.8rem 0;}
+  .hero{padding:3rem 0 2.4rem;}
+}
+
+.section-num{
+  font-family:var(--mono); font-size:0.95rem; color:var(--ink-faint); margin-right:0.5rem;
+}
+</style>
+</head>
+<body>
+
+<nav class="toc" id="toc"></nav>
+
+<!-- ================= HERO ================= -->
+<header class="hero wrap">
+  <div class="tag-row">
+    <span class="pill">Lecture 55</span>
+    <span class="pill">Cognitive pattern: Probability · Optimization · Geometry</span>
+    <span class="pill">Prereq: Perceptron, Linear Algebra</span>
+  </div>
+  <h1>The Sigmoid Function &amp; the birth of <em>Logistic Regression</em></h1>
+  <p class="lede">The perceptron draws a hard line and refuses to say how sure it is. This lecture asks a simple but powerful question: what if a classifier could <em>whisper a probability</em> instead of <em>shouting a verdict</em>? The answer is the S-shaped curve that quietly powers half of modern machine learning.</p>
+
+  <div class="hero-curve">
+    <svg viewBox="0 0 760 220" width="100%" style="display:block;">
+      <defs>
+        <linearGradient id="curveGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#e2716f"/>
+          <stop offset="50%" stop-color="#e3b559"/>
+          <stop offset="100%" stop-color="#63c68f"/>
+        </linearGradient>
+      </defs>
+      <line x1="40" y1="190" x2="720" y2="190" stroke="#ffffff22" stroke-width="1"/>
+      <line x1="380" y1="20" x2="380" y2="190" stroke="#ffffff22" stroke-width="1" stroke-dasharray="4 4"/>
+      <text x="380" y="205" fill="#6d7390" font-size="11" font-family="JetBrains Mono" text-anchor="middle">z = 0</text>
+      <text x="20" y="195" fill="#6d7390" font-size="11" font-family="JetBrains Mono">0</text>
+      <text x="20" y="30" fill="#6d7390" font-size="11" font-family="JetBrains Mono">1</text>
+      <text x="700" y="205" fill="#6d7390" font-size="11" font-family="JetBrains Mono">z →</text>
+      <path d="M 40 185 C 200 185, 300 185, 380 105 C 460 25, 560 20, 720 20" fill="none" stroke="url(#curveGrad)" stroke-width="3.5"/>
+      <circle cx="380" cy="105" r="5" fill="#e3b559"/>
+      <text x="395" y="98" fill="#e3b559" font-size="12" font-family="JetBrains Mono">G(0) = 0.5</text>
+    </svg>
+  </div>
+</header>
+
+<div class="wrap">
+
+<!-- ================= LAYER 0 : ORIENTATION ================= -->
+<section class="layer" id="orientation">
+  <div class="eyebrow">Layer 0 — Knowledge Orientation</div>
+  <h2 class="layer-title">Where this idea lives</h2>
+  <p class="layer-sub">Before the formula, place it on the map: what came before it, what depends on it, and what kind of thinking it demands.</p>
+
+  <div class="diagram-wrap">
+    <div class="flow">
+      <div class="box blue">Linear Algebra<br>(w·x)</div>
+      <span class="arrow">→</span>
+      <div class="box red">Perceptron<br>(hard threshold)</div>
+      <span class="arrow">→</span>
+      <div class="box gold">Logistic Regression<br>(sigmoid + MLE)</div>
+      <span class="arrow">→</span>
+      <div class="box purple">Neural Networks<br>(sigmoid as a gate)</div>
+      <span class="arrow">→</span>
+      <div class="box teal">Softmax<br>(multi-class)</div>
+    </div>
+  </div>
+
+  <div class="card-grid cols-3">
+    <div class="card acc-green">
+      <h4><span class="icon-dot" style="background:var(--green)"></span>Required</h4>
+      <p>Dot products &amp; weight vectors, the perceptron update rule, basic derivatives, and the idea of a decision boundary.</p>
+    </div>
+    <div class="card acc-gold">
+      <h4><span class="icon-dot" style="background:var(--gold)"></span>Helpful</h4>
+      <p>Odds and log-odds from probability theory, exponential functions, and the intuition behind maximum likelihood.</p>
+    </div>
+    <div class="card acc-purple">
+      <h4><span class="icon-dot" style="background:var(--purple)"></span>Optional</h4>
+      <p>Convexity of functions, gradient descent mechanics — needed later when we actually <em>fit</em> w, not today.</p>
+    </div>
+  </div>
+
+  <div class="callout insight">
+    <div class="glyph">🧭</div>
+    <div>
+      <h5>Cognitive pattern for this topic</h5>
+      <p>This is fundamentally a <strong>probability</strong> problem wearing a <strong>geometry</strong> costume: we keep the perceptron's linear score (geometry) but stop treating the boundary as a wall — we treat it as the <em>center of a probability gradient</em>. The eventual fitting of w is an <strong>optimization</strong> problem (maximum likelihood).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 1 : UNDERSTANDING ================= -->
+<section class="layer" id="understanding">
+  <div class="eyebrow">Layer 1 — Understanding</div>
+  <h2 class="layer-title">The problem with a classifier that only shouts</h2>
+  <p class="layer-sub">Why the perceptron's confidence is exactly zero shades of grey.</p>
+
+  <div class="callout analogy">
+    <div class="glyph">⚖️</div>
+    <div>
+      <h5>Analogy — the strict judge</h5>
+      <p>Imagine a judge who only ever says "guilty" or "innocent" — never "probably guilty" or "70% sure." Even when the evidence is razor-thin and the case borderline, the verdict is delivered with the same absolute confidence as an open-and-shut case. That's the perceptron: <span class="sym-fn">P</span>(y=1|<span class="sym-var">x</span>) is always exactly <span class="sym-const">1</span> or exactly <span class="sym-const">0</span>, never <span class="sym-const">0.52</span>.</p>
+    </div>
+  </div>
+
+  <h4 style="margin:1.6rem 0 0.6rem; font-family:var(--serif); font-size:1.15rem;">Two concrete failures</h4>
+  <div class="card-grid">
+    <div class="card acc-red">
+      <h4>1 · Linear inseparability</h4>
+      <p>If even one red point and one blue point sit on the "wrong" side of every possible line, the perceptron's update rule <strong>never converges</strong> — it oscillates forever, hunting for a boundary that does not exist.</p>
+    </div>
+    <div class="card acc-red">
+      <h4>2 · No notion of confidence</h4>
+      <p>A point 0.01 units from the boundary and a point 100 units from it get the <em>identical</em> prediction. The model cannot distinguish "barely positive" from "overwhelmingly positive."</p>
+    </div>
+  </div>
+
+  <h4 style="margin:1.8rem 0 0.6rem; font-family:var(--serif); font-size:1.15rem;">Engineering thinking: reframe the goal</h4>
+  <p style="color:var(--ink-dim); font-size:0.96rem;">Instead of asking <em>"which side of the line is x on?"</em> — a question with only two possible answers — we ask <em>"how far is x from the line, and can that distance be turned into a probability?"</em> This single reframe is what unlocks everything else in the lecture. The linear score <span class="sym-var">z</span> = <span class="sym-param">w</span><sup>T</sup><span class="sym-var">x</span> doesn't disappear — the perceptron already computed it and threw away all but its sign. We keep the whole real number.</p>
+
+  <div class="eq-panel" style="--eq-accent:var(--blue);">
+    <div class="eq-label">Mathematical Translation</div>
+    <div class="eq-main">
+      <span class="sym-var">z</span> <span class="sym-op">=</span> <span class="sym-param">w</span><sup>T</sup><span class="sym-var">x</span>
+      &nbsp;&nbsp;&nbsp; <span style="color:var(--ink-faint); font-size:0.7em;">(the "score" — a signed distance from the decision boundary)</span>
+    </div>
+    <div class="eq-number">Eq. 1.1</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-var">x</span> feature vector describing one data point</div>
+    <div><span class="sym sym-param">w</span> weight vector — what the model learns</div>
+    <div><span class="sym sym-var">z</span> the raw, unbounded score, from −∞ to +∞</div>
+  </div>
+</section>
+
+<!-- ================= LAYER 2 : DERIVATION ================= -->
+<section class="layer" id="derivation">
+  <div class="eyebrow">Layer 2 — Derivation</div>
+  <h2 class="layer-title">Building the sigmoid from first principles</h2>
+  <p class="layer-sub">We don't pull the formula out of a hat — we derive it from three properties we <em>demand</em> of any "link function" G that turns a score into a probability.</p>
+
+  <h4 style="margin-bottom:0.8rem; font-family:var(--serif); font-size:1.15rem;">Formula construction — three demands on G(z)</h4>
+  <div class="card-grid cols-3">
+    <div class="card acc-blue">
+      <h4>Boundary condition</h4>
+      <p><span class="sym-fn">G</span>(<span class="sym-const">0</span>) <span class="sym-op">=</span> <span class="sym-const">0.5</span> — sitting exactly on the decision boundary should mean a coin-flip, 50/50 probability.</p>
+    </div>
+    <div class="card acc-green">
+      <h4>Upper bound</h4>
+      <p><span class="sym-fn">G</span>(<span class="sym-var">z</span>) → <span class="sym-const">1</span> as <span class="sym-var">z</span> → +∞ — an overwhelmingly positive score should mean near-certainty of class +1.</p>
+    </div>
+    <div class="card acc-red">
+      <h4>Lower bound</h4>
+      <p><span class="sym-fn">G</span>(<span class="sym-var">z</span>) → <span class="sym-const">0</span> as <span class="sym-var">z</span> → −∞ — an overwhelmingly negative score should mean near-certainty of class −1.</p>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="glyph">💡</div>
+    <div>
+      <h5>Why not just clip the score?</h5>
+      <p>A tempting shortcut: squash <span class="sym-var">z</span> by clipping it to [0,1] directly (e.g. max(0, min(1, z))). This satisfies all three conditions! But it is not <em>smooth</em> — it has sharp corners with zero gradient almost everywhere, which will matter enormously once we try to optimize <span class="sym-param">w</span> with calculus. We want a function that is smooth <em>everywhere</em> and whose derivative has a clean form.</p>
+    </div>
+  </div>
+
+  <h4 style="margin:2rem 0 0.6rem; font-family:var(--serif); font-size:1.15rem;">A natural route: odds and log-odds</h4>
+  <p style="color:var(--ink-dim); font-size:0.96rem; margin-bottom:1rem;">Statisticians already had a smooth, symmetric way to turn a bounded probability into an unbounded number: the <strong>log-odds</strong> (logit). We simply run that transformation backwards.</p>
+
+  <div class="timeline">
+    <div class="tstep">
+      <div class="badge">1</div>
+      <div class="tstep-body">
+        <h5>Start from odds</h5>
+        <div class="expr">odds <span class="sym-op">=</span> <span class="eq-frac"><span class="num sym-fn">P</span><span class="den">1 − <span class="sym-fn">P</span></span></span></div>
+        <p class="note">Odds range from 0 (impossible) to +∞ (certain) — already unbounded on one side.</p>
+      </div>
+    </div>
+    <div class="tstep">
+      <div class="badge">2</div>
+      <div class="tstep-body">
+        <h5>Take the log to unbound both sides</h5>
+        <div class="expr"><span class="sym-var">z</span> <span class="sym-op">=</span> log <span class="eq-frac"><span class="num sym-fn">P</span><span class="den">1 − <span class="sym-fn">P</span></span></span></div>
+        <p class="note">Now z ranges over all of (−∞, +∞) exactly like our score w<sup>T</sup>x. We declare these equal — <em>the log-odds IS the score</em>.</p>
+      </div>
+    </div>
+    <div class="tstep">
+      <div class="badge">3</div>
+      <div class="tstep-body">
+        <h5>Solve for P — invert the relationship</h5>
+        <div class="expr">e<sup><span class="sym-var">z</span></sup> <span class="sym-op">=</span> <span class="eq-frac"><span class="num sym-fn">P</span><span class="den">1 − <span class="sym-fn">P</span></span></span> &nbsp;⟹&nbsp; <span class="sym-fn">P</span> <span class="sym-op">=</span> e<sup><span class="sym-var">z</span></sup>(1 − <span class="sym-fn">P</span>)</div>
+        <p class="note">Multiply both sides by (1 − P) and expand.</p>
+      </div>
+    </div>
+    <div class="tstep">
+      <div class="badge">4</div>
+      <div class="tstep-body">
+        <h5>Isolate P</h5>
+        <div class="expr"><span class="sym-fn">P</span>(1 + e<sup><span class="sym-var">z</span></sup>) <span class="sym-op">=</span> e<sup><span class="sym-var">z</span></sup> &nbsp;⟹&nbsp; <span class="sym-fn">P</span> <span class="sym-op">=</span> <span class="eq-frac"><span class="num">e<sup><span class="sym-var">z</span></sup></span><span class="den">1 + e<sup><span class="sym-var">z</span></sup></span></span></div>
+        <p class="note">Divide the numerator and denominator by e^z to get the familiar form below.</p>
+      </div>
+    </div>
+    <div class="tstep">
+      <div class="badge">5</div>
+      <div class="tstep-body">
+        <h5>The sigmoid falls out</h5>
+        <div class="expr"><span class="sym-fn">P</span> <span class="sym-op">=</span> <span class="eq-frac"><span class="num sym-const">1</span><span class="den">1 + e<sup>−<span class="sym-var">z</span></sup></span></span> <span class="sym-op">=</span> <span class="sym-fn">σ</span>(<span class="sym-var">z</span>)</div>
+        <p class="note">We didn't guess the S-curve — it is <em>forced</em> by demanding a smooth, symmetric map between an unbounded score and a bounded probability.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="eq-panel" style="--eq-accent:var(--gold);">
+    <div class="eq-label">The Sigmoid (Logistic) Function</div>
+    <div class="eq-main">
+      <span class="sym-fn">G</span>(<span class="sym-var">z</span>) <span class="sym-op">=</span> <span class="eq-frac"><span class="num sym-const">1</span><span class="den"><span class="sym-const">1</span> + <span class="sym-const">e</span><span class="sym-op">−</span><span class="sym-var">z</span></span></span>
+    </div>
+    <div class="eq-number">Eq. 2.1</div>
+  </div>
+  <div class="legend">
+    <div><span class="sym sym-var">z</span> the score w<sup>T</sup>x, any real number</div>
+    <div><span class="sym sym-const">e</span> Euler's number ≈ 2.718, a fixed constant</div>
+    <div><span class="sym sym-fn">G(z)</span> a probability, guaranteed to land in (0, 1)</div>
+  </div>
+
+  <h4 style="margin:2rem 0 0.6rem; font-family:var(--serif); font-size:1.15rem;">Formula anatomy — check the three demands</h4>
+  <table class="data">
+    <thead><tr><th>Input z</th><th>e<sup>−z</sup></th><th>G(z)</th><th>Reads as</th></tr></thead>
+    <tbody>
+      <tr><td>−10</td><td>≈ 22 026</td><td class="hl">≈ 0.00005</td><td>almost certainly class 0 / −1</td></tr>
+      <tr><td>−2</td><td>≈ 7.39</td><td class="hl">≈ 0.12</td><td>leans negative, not certain</td></tr>
+      <tr><td class="hl">0</td><td>1</td><td class="hl">0.500</td><td>exact coin-flip — sits on the boundary</td></tr>
+      <tr><td>2</td><td>≈ 0.135</td><td class="hl">≈ 0.88</td><td>leans positive, not certain</td></tr>
+      <tr><td>10</td><td>≈ 0.0000454</td><td class="hl">≈ 0.99995</td><td>almost certainly class 1 / +1</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout tip">
+    <div class="glyph">🔢</div>
+    <div>
+      <h5>Worked numerical example</h5>
+      <p>Say a spam filter computes <span class="sym-var">z</span> = <span class="sym-param">w</span><sup>T</sup><span class="sym-var">x</span> = <span class="sym-const">1.5</span> for an email. Then <span class="sym-fn">G</span>(1.5) = 1 / (1 + e<sup>−1.5</sup>) = 1 / (1 + 0.223) ≈ <strong>0.817</strong>. The model doesn't just say "spam" — it says "about 82% likely to be spam," which a downstream system can threshold, rank, or combine with other signals.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 3 : COMPUTATION ================= -->
+<section class="layer" id="computation">
+  <div class="eyebrow">Layer 3 — Computation</div>
+  <h2 class="layer-title">Turning the formula into an algorithm</h2>
+  <p class="layer-sub">From equation to code, with an eye on cost and numerical safety.</p>
+
+  <div class="code-block">
+    <div class="code-title"><span>predict_proba.py</span><span>O(d) per example</span></div>
+    <pre><span class="c-kw">import</span> numpy <span class="c-kw">as</span> np
+
+<span class="c-kw">def</span> <span class="c-fn">sigmoid</span>(z):
+    <span class="c-com"># numerically stable: avoids overflow for very negative z</span>
+    <span class="c-kw">return</span> np.where(
+        z >= <span class="c-num">0</span>,
+        <span class="c-num">1</span> / (<span class="c-num">1</span> + np.exp(-z)),
+        np.exp(z) / (<span class="c-num">1</span> + np.exp(z))
+    )
+
+<span class="c-kw">def</span> <span class="c-fn">predict_proba</span>(w, x):
+    z = np.dot(w, x)          <span class="c-com"># O(d) — d = number of features</span>
+    <span class="c-kw">return</span> sigmoid(z)          <span class="c-com"># O(1) — one exponential</span></pre>
+  </div>
+
+  <div class="card-grid">
+    <div class="card acc-teal">
+      <h4>Time complexity</h4>
+      <p>Computing <span class="sym-var">z</span> = <span class="sym-param">w</span><sup>T</sup><span class="sym-var">x</span> is a dot product over <span class="sym-var">d</span> features: <strong>O(d)</strong>. Applying the sigmoid is a single exponential: <strong>O(1)</strong>. Per-example inference is dominated entirely by the dot product.</p>
+    </div>
+    <div class="card acc-teal">
+      <h4>Memory</h4>
+      <p>Only the weight vector <span class="sym-param">w</span> ∈ ℝ<sup>d</sup> needs to be stored — <strong>O(d)</strong> memory, independent of dataset size. This is why logistic regression scales to huge datasets: training data isn't kept around at inference time.</p>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <div class="glyph">⚠️</div>
+    <div>
+      <h5>Optimization trap: naive overflow</h5>
+      <p>A literal translation of 1/(1+e<sup>−z</sup>) computes <code>exp(-z)</code> directly. For a very negative z (say −1000), <code>exp(1000)</code> overflows a float and returns <code>inf</code>, corrupting the result. The stable version above branches on the sign of z so the exponent argument is always ≤ 0, which never overflows — a small trick with big consequences at scale.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 4 : RELIABILITY ================= -->
+<section class="layer" id="reliability">
+  <div class="eyebrow">Layer 4 — Reliability</div>
+  <h2 class="layer-title">When does this model hold up?</h2>
+  <p class="layer-sub">Every model is a story about assumptions. Know them, and you know exactly where the story breaks.</p>
+
+  <h4 style="margin-bottom:0.8rem; font-family:var(--serif); font-size:1.15rem;">Assumption library</h4>
+  <table class="data">
+    <thead><tr><th>Assumption</th><th>What it means</th><th>Consequence if violated</th></tr></thead>
+    <tbody>
+      <tr><td class="hl">Log-odds are linear in x</td><td>log(P/(1−P)) = w<sup>T</sup>x</td><td>A truly curved boundary is fit poorly; consider polynomial features or kernels</td></tr>
+      <tr><td class="hl">Observations are independent</td><td>Each (x, y) pair is an independent coin toss</td><td>Correlated data (time series, repeated subjects) inflates confidence artificially</td></tr>
+      <tr><td class="hl">No perfect separation</td><td>Some overlap between classes exists</td><td>If data IS perfectly separable, MLE pushes ‖w‖ → ∞ and never converges</td></tr>
+    </tbody>
+  </table>
+
+  <h4 style="margin:2rem 0 0.8rem; font-family:var(--serif); font-size:1.15rem;">Failure visualization — works → degrades → fails</h4>
+  <div class="spectrum">
+    <div class="stage works">
+      <h5>Works</h5>
+      <p>Score z near 0: the sigmoid has its steepest slope here, so small changes in x produce meaningfully different probabilities. This is where the model is most informative.</p>
+    </div>
+    <div class="stage degrades">
+      <h5>Degrades</h5>
+      <p>|z| grows large: the curve flattens (saturates). A point with z = 8 and one with z = 20 are both ≈ 99.97% — the model becomes overconfident and stops distinguishing "sure" from "very sure."</p>
+    </div>
+    <div class="stage fails">
+      <h5>Fails</h5>
+      <p>Perfectly separable data: MLE keeps growing ‖w‖ forever to push every point's z toward ±∞, chasing a probability of exactly 1. The optimization never converges without regularization.</p>
+    </div>
+  </div>
+
+  <h4 style="margin:2rem 0 0.6rem; font-family:var(--serif); font-size:1.15rem;">Invariants</h4>
+  <div class="inv-row">
+    <span class="inv-chip always">ALWAYS: G(z) ∈ (0, 1), never exactly 0 or 1</span>
+    <span class="inv-chip always">ALWAYS: G(0) = 0.5 exactly</span>
+    <span class="inv-chip always">ALWAYS: G(−z) = 1 − G(z), symmetric about z=0</span>
+  </div>
+  <div class="inv-row">
+    <span class="inv-chip sometimes">SOMETIMES: decision boundary matches perceptron's if threshold = 0.5</span>
+    <span class="inv-chip sometimes">SOMETIMES: probabilities are well-calibrated (only if model is correctly specified)</span>
+  </div>
+  <div class="inv-row">
+    <span class="inv-chip never">NEVER: G(z) reaches exactly 0 or 1 for finite z</span>
+    <span class="inv-chip never">NEVER: gradient of G(z) is negative — it's monotonically increasing everywhere</span>
+  </div>
+</section>
+
+<!-- ================= LAYER 5 : RECOGNITION ================= -->
+<section class="layer" id="recognition">
+  <div class="eyebrow">Layer 5 — Recognition</div>
+  <h2 class="layer-title">Spotting this pattern in the wild</h2>
+  <p class="layer-sub">How to recognize when a problem — or a formula — is secretly asking for a sigmoid.</p>
+
+  <div class="card-grid">
+    <div class="card acc-blue">
+      <h4>Hidden trigger phrases</h4>
+      <p>"Probability of belonging to a class," "confidence score," "binary outcome with uncertainty," "convert a score to [0,1]" — all of these are asking for a link function like the sigmoid.</p>
+    </div>
+    <div class="card acc-purple">
+      <h4>Formula shape recognition</h4>
+      <p>Any expression of the form 1/(1 + e<sup>−something</sup>) — regardless of what "something" is — is a sigmoid in disguise, including logistic growth curves in biology and economics.</p>
+    </div>
+    <div class="card acc-green">
+      <h4>Symbol translation</h4>
+      <p>You'll see this written as σ(z), G(z), logistic(z), or expit(z) across different textbooks — all identical formulas, different naming conventions.</p>
+    </div>
+    <div class="card acc-gold">
+      <h4>Reverse engineering</h4>
+      <p>If you're handed an S-shaped curve bounded in (0,1), symmetric around its midpoint, with a single steepness parameter — you're almost certainly looking at a sigmoid, even before seeing the formula.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 6 : ENGINEERING JUDGMENT ================= -->
+<section class="layer" id="judgment">
+  <div class="eyebrow">Layer 6 — Engineering Judgment</div>
+  <h2 class="layer-title">Should you actually reach for this?</h2>
+  <p class="layer-sub">A formula is only as good as the judgment behind using it.</p>
+
+  <div class="dtree">
+    <div class="q">Do you need a probability, not just a class label?</div>
+    <div class="branch">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <span class="lbl">No</span>
+        <div class="leaf no">Perceptron or hard-margin SVM may be simpler and faster to train</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <span class="lbl">Yes</span>
+        <div class="leaf yes">Continue — probabilistic model needed</div>
+      </div>
+    </div>
+    <div class="q">Is the true decision boundary roughly linear in your features?</div>
+    <div class="branch">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <span class="lbl">No</span>
+        <div class="leaf no">Use kernelized logistic regression, or a tree/neural model instead</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;">
+        <span class="lbl">Yes</span>
+        <div class="leaf yes">Logistic regression with sigmoid is a strong, interpretable default</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout trap">
+    <div class="glyph">🚫</div>
+    <div>
+      <h5>Why NOT to use it</h5>
+      <p>Skip the sigmoid link when: (1) classes are perfectly separable and you have no regularization plan — training won't converge cleanly; (2) the relationship between features and log-odds is strongly non-linear and you can't or won't engineer features to fix it; (3) you need calibrated multi-class probabilities that sum to 1 across many classes — that's a job for <strong>softmax</strong>, sigmoid's multi-class generalization, not several independent sigmoids.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 7 : TRANSFER ================= -->
+<section class="layer" id="transfer">
+  <div class="eyebrow">Layer 7 — Transfer</div>
+  <h2 class="layer-title">Where this idea shows up again</h2>
+  <p class="layer-sub">The sigmoid is not a one-lecture trick — it's a recurring building block.</p>
+
+  <div class="diagram-wrap">
+    <div class="flow">
+      <div class="box gold">Logistic Regression<br>output layer</div>
+      <span class="arrow">→</span>
+      <div class="box purple">Neural Net<br>activation function</div>
+      <span class="arrow">→</span>
+      <div class="box blue">LSTM / GRU<br>forget &amp; input gates</div>
+      <span class="arrow">→</span>
+      <div class="box teal">Softmax<br>(multi-class version)</div>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-title"><span>sklearn_logistic.py</span><span>industry implementation</span></div>
+    <pre><span class="c-kw">from</span> sklearn.linear_model <span class="c-kw">import</span> LogisticRegression
+
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+<span class="c-com"># .predict_proba applies w^T x, then the sigmoid, internally</span>
+probs = model.predict_proba(X_test)   <span class="c-com"># shape (n, 2)</span>
+preds = model.predict(X_test)         <span class="c-com"># thresholds probs at 0.5</span></pre>
+  </div>
+
+  <div class="callout insight">
+    <div class="glyph">🔗</div>
+    <div>
+      <h5>Generalization layer</h5>
+      <p>The deep principle isn't "the sigmoid formula" — it's <strong>"pick a smooth, monotonic link function that maps an unbounded score to a bounded, meaningful quantity."</strong> Softmax generalizes this to many classes, the tanh function is a rescaled sigmoid used inside RNNs, and the same odds-based reasoning underlies logit models throughout statistics and econometrics.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= LAYER 8 : RESEARCH & ONE-PAGE BRAIN ================= -->
+<section class="layer" id="research">
+  <div class="eyebrow">Layer 8 — Research &amp; Synthesis</div>
+  <h2 class="layer-title">Extensions and the complete cheat sheet</h2>
+  <p class="layer-sub">Open questions, and everything above compressed onto one page.</p>
+
+  <div class="card-grid">
+    <div class="card acc-purple">
+      <h4>Calibration research</h4>
+      <p>Modern deep networks using sigmoid/softmax outputs are often <em>overconfident</em> — the raw probability doesn't match true frequency. Techniques like temperature scaling and Platt scaling exist to recalibrate these outputs.</p>
+    </div>
+    <div class="card acc-purple">
+      <h4>Vanishing gradients</h4>
+      <p>Because the sigmoid saturates for large |z|, its derivative approaches zero — a core reason deep networks moved toward ReLU-family activations for hidden layers, reserving sigmoid mainly for output/gating roles.</p>
+    </div>
+  </div>
+
+  <div class="brain">
+    <h3>🧠 One-Page Brain — Sigmoid &amp; Logistic Regression</h3>
+    <div class="brain-grid">
+      <div class="brain-block">
+        <h6>Core formula</h6>
+        <p>G(z) = 1 / (1 + e<sup>−z</sup>), where z = w<sup>T</sup>x</p>
+      </div>
+      <div class="brain-block">
+        <h6>Intuition</h6>
+        <p>Turns a "how far from the boundary" score into a "how sure am I" probability.</p>
+      </div>
+      <div class="brain-block">
+        <h6>Three defining properties</h6>
+        <ul><li>G(0) = 0.5</li><li>G(z) → 1 as z → ∞</li><li>G(z) → 0 as z → −∞</li></ul>
+      </div>
+      <div class="brain-block">
+        <h6>Key assumptions</h6>
+        <ul><li>Linear log-odds</li><li>Independent observations</li><li>No perfect separation</li></ul>
+      </div>
+      <div class="brain-block">
+        <h6>Common pitfalls</h6>
+        <ul><li>Overflow from naive exp(−z)</li><li>Non-convergence on separable data</li><li>Confusing sigmoid (binary) with softmax (multi-class)</li></ul>
+      </div>
+      <div class="brain-block">
+        <h6>Fitting w</h6>
+        <p>Maximum Likelihood Estimation — find w that makes the observed labels most probable under the model.</p>
+      </div>
+    </div>
+  </div>
+
+  <h4 style="margin:2.4rem 0 0.8rem; font-family:var(--serif); font-size:1.15rem;">Retrieval practice</h4>
+  <details class="qa">
+    <summary>Why must the link function satisfy G(0) = 0.5?</summary>
+    <div class="ans">Because z = 0 means the point sits exactly on the decision boundary — equally consistent with either class — so the model should express total uncertainty: a 50/50 probability.</div>
+  </details>
+  <details class="qa">
+    <summary>Derive why perfectly separable data breaks MLE for logistic regression.</summary>
+    <div class="ans">If a hyperplane perfectly separates the classes, likelihood keeps increasing as ‖w‖ grows, because larger ‖w‖ pushes every z further from 0, driving every predicted probability closer to the correct label's extreme (0 or 1). Since likelihood has no maximum at finite w, gradient-based optimization diverges unless a regularization penalty (like L2) caps ‖w‖.</div>
+  </details>
+  <details class="qa">
+    <summary>What replaces the sigmoid when there are more than two classes?</summary>
+    <div class="ans">Softmax — it generalizes the sigmoid so that outputs across all classes are non-negative and sum to exactly 1, which the sigmoid alone cannot guarantee when applied independently per class.</div>
+  </details>
+</section>
+
+</div>
+
+<footer class="wrap" style="padding-top:2rem; color:var(--ink-faint); font-size:0.82rem; text-align:center;">
+  Lecture 55 · Sigmoid Function in Logistic Regression — structured with the ML Learning Framework
+</footer>
+
+<script>
+// build side nav dots from sections
+(function(){
+  const sections = document.querySelectorAll('section.layer');
+  const toc = document.getElementById('toc');
+  sections.forEach(function(s){
+    const a = document.createElement('a');
+    a.href = '#' + s.id;
+    toc.appendChild(a);
+  });
+  const links = toc.querySelectorAll('a');
+  function onScroll(){
+    let idx = 0;
+    sections.forEach(function(s, i){
+      if (window.scrollY + window.innerHeight/2 >= s.offsetTop) idx = i;
+    });
+    links.forEach(function(l,i){ l.classList.toggle('active', i===idx); });
+  }
+  window.addEventListener('scroll', onScroll);
+  onScroll();
+})();
+</script>
+
+</body>
+</html>

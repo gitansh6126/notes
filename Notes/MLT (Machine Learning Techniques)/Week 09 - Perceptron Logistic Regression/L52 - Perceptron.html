@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 52 · Perceptron Algorithm</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --bg2:#0d1220;
+  --panel-bg:#12172a;
+  --panel-border:rgba(255,255,255,0.08);
+  --card-bg:#111726;
+  --card-border:rgba(255,255,255,0.07);
+  --gold:#e0b84c;
+  --gold-soft:rgba(224,184,76,0.14);
+  --teal:#3ec9b0;
+  --teal-soft:rgba(62,201,176,0.14);
+  --purple:#a385e0;
+  --purple-soft:rgba(163,133,224,0.14);
+  --red:#e0715f;
+  --blue:#5b9bd5;
+  --text:#e8ebf3;
+  --text-dim:#a7b0c4;
+  --text-faint:#6f7891;
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --mono-font:"JetBrains Mono",monospace;
+  --sans-font:"Inter",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    linear-gradient(180deg, rgba(224,184,76,0.05), transparent 400px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans-font);
+  line-height:1.6;
+  padding:0 0 80px 0;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+
+.hero{
+  padding:64px 20px 40px;
+  text-align:center;
+  border-bottom:1px solid var(--panel-border);
+  background:radial-gradient(ellipse at top, rgba(163,133,224,0.10), transparent 60%);
+}
+.breadcrumb{
+  font-family:var(--mono-font);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:var(--serif-math-font);
+  font-weight:700;
+  font-size:clamp(1.8rem,4.5vw,3rem);
+  margin:0 0 14px;
+  background:linear-gradient(135deg,#fff, var(--gold) 60%, var(--teal));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p.sub{
+  color:var(--text-dim);
+  max-width:640px;
+  margin:0 auto;
+  font-size:1.02rem;
+}
+.hero-tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+.tag{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid var(--panel-border);
+  color:var(--text-dim);
+}
+
+section{margin:64px 0;}
+.sec-label{
+  font-family:var(--mono-font);
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--gold);
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::before{content:"";width:22px;height:1px;background:var(--gold);display:inline-block;}
+h2.sec-title{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:600;
+  margin:0 0 22px;
+  color:#fff;
+}
+h3.sub-title{
+  font-family:var(--serif-math-font);
+  font-size:1.2rem;
+  font-weight:600;
+  color:var(--gold);
+  margin:28px 0 12px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:22px 24px;
+  margin:16px 0;
+}
+.card-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+@media(max-width:680px){.card-grid{grid-template-columns:1fr;}}
+
+.callout{
+  border-radius:12px;
+  padding:16px 20px;
+  margin:20px 0;
+  border-left:3px solid;
+  font-size:0.95rem;
+}
+.callout-title{
+  font-weight:700;
+  font-family:var(--sans-font);
+  font-size:0.8rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.callout.analogy{background:var(--purple-soft);border-color:var(--purple);}
+.callout.analogy .callout-title{color:var(--purple);}
+.callout.trap{background:rgba(224,113,95,0.12);border-color:var(--red);}
+.callout.trap .callout-title{color:var(--red);}
+.callout.tip{background:var(--teal-soft);border-color:var(--teal);}
+.callout.tip .callout-title{color:var(--teal);}
+.callout.assume{background:var(--gold-soft);border-color:var(--gold);}
+.callout.assume .callout-title{color:var(--gold);}
+.callout.history{background:rgba(91,155,213,0.12);border-color:var(--blue);}
+.callout.history .callout-title{color:var(--blue);}
+
+.eq-panel{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:2.2rem 1.6rem;
+  margin:1.8rem 0;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  text-align:center;
+  position:relative;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-faint);
+  margin-bottom:14px;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.7rem;right:1.1rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.15rem,2.6vw,1.9rem);
+  line-height:1.9;
+}
+.eq-main .line{display:block;margin:6px 0;}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:#7fd67f;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);}
+sup,sub{font-size:0.62em;}
+
+.legend{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:6px 18px;
+  font-size:0.85rem;
+  color:var(--text-dim);
+}
+.legend .item{display:flex;gap:8px;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-size:1rem;min-width:26px;}
+
+.timeline{position:relative;margin:24px 0;padding-left:34px;}
+.timeline::before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--teal));opacity:0.35;}
+.step{position:relative;margin-bottom:22px;}
+.step-badge{
+  position:absolute;left:-34px;top:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.75rem;color:var(--gold);font-weight:700;
+}
+.step-title{font-weight:700;color:#fff;margin-bottom:4px;font-size:0.98rem;}
+.step-body{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;}
+.step-eq{font-family:var(--serif-math-font);font-size:1.1rem;text-align:center;padding:6px 0;}
+
+table.data-table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:0.92rem;
+  border-radius:10px;overflow:hidden;
+}
+table.data-table th{
+  background:rgba(224,184,76,0.1);color:var(--gold);text-align:left;
+  padding:10px 14px;font-family:var(--mono-font);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;
+}
+table.data-table td{padding:10px 14px;border-top:1px solid var(--card-border);color:var(--text-dim);}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text);}
+
+details.worked{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  margin:16px 0;padding:14px 18px;
+}
+details.worked summary{
+  cursor:pointer;font-weight:700;color:var(--teal);list-style:none;display:flex;align-items:center;gap:8px;
+}
+details.worked summary::-webkit-details-marker{display:none;}
+details.worked summary::before{content:"▸";transition:transform 0.2s;color:var(--teal);}
+details.worked[open] summary::before{transform:rotate(90deg);}
+details.worked .content{margin-top:14px;color:var(--text-dim);font-size:0.93rem;}
+
+.svg-card{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;padding:18px;margin:20px 0;text-align:center;}
+.svg-card svg{max-width:100%;height:auto;}
+.svg-cap{font-family:var(--mono-font);font-size:0.75rem;color:var(--text-faint);margin-top:8px;}
+
+.sim-card{
+  background:linear-gradient(180deg, rgba(62,201,176,0.06), transparent), var(--panel-bg);
+  border:1px solid var(--panel-border);border-radius:18px;padding:22px;margin:24px 0;
+}
+.sim-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.sim-badge{font-family:var(--mono-font);font-size:0.7rem;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:20px;letter-spacing:0.05em;}
+.sim-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+@media(max-width:720px){.sim-layout{grid-template-columns:1fr;}}
+.sim-canvas-wrap{background:#080b13;border-radius:12px;border:1px solid var(--panel-border);padding:10px;}
+canvas#perCanvas{width:100%;height:auto;border-radius:8px;display:block;}
+.controls{display:flex;flex-direction:column;gap:14px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+button.sim-btn{
+  font-family:var(--mono-font);font-size:0.82rem;padding:10px 16px;border-radius:10px;
+  border:1px solid var(--panel-border);background:var(--card-bg);color:var(--text);cursor:pointer;
+  transition:0.15s;
+}
+button.sim-btn:hover{border-color:var(--teal);color:var(--teal);}
+button.sim-btn.primary{background:var(--teal-soft);border-color:var(--teal);color:var(--teal);font-weight:700;}
+button.sim-btn.primary:hover{background:var(--teal);color:#04140f;}
+.readout{font-family:var(--mono-font);font-size:0.85rem;text-align:center;padding:10px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);}
+.readout .status-label{font-weight:700;font-size:1rem;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:10px;text-align:center;}
+.stat-box .num{font-family:var(--mono-font);font-size:1.3rem;color:var(--gold);font-weight:700;}
+.stat-box .lbl{font-family:var(--mono-font);font-size:0.68rem;color:var(--text-faint);text-transform:uppercase;}
+.legend-row{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:0.78rem;color:var(--text-dim);flex-wrap:wrap;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
+
+code, .code{font-family:var(--mono-font);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:5px;font-size:0.88em;color:var(--teal);}
+
+.brain{
+  border:1px solid var(--gold);border-radius:18px;padding:26px;
+  background:radial-gradient(ellipse at top left, rgba(224,184,76,0.09), transparent 60%), var(--panel-bg);
+}
+.brain h3{margin-top:0;color:var(--gold);font-family:var(--serif-math-font);}
+.brain ul{margin:8px 0;padding-left:20px;color:var(--text-dim);}
+.brain li{margin:5px 0;}
+
+.qa{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 18px;margin:10px 0;}
+.qa .q{font-weight:700;color:#fff;margin-bottom:6px;}
+.qa .q::before{content:"Q. ";color:var(--purple);}
+
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px 0;}
+.chain .node{
+  font-family:var(--mono-font);font-size:0.82rem;padding:8px 14px;border-radius:10px;
+  background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-dim);
+}
+.chain .node.current{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);font-weight:700;}
+.chain .arrow{color:var(--text-faint);}
+
+.footer-note{text-align:center;color:var(--text-faint);font-size:0.8rem;font-family:var(--mono-font);margin-top:60px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="breadcrumb">Lecture 52 · Discriminative Models · Binary Classification</div>
+  <h1>The Perceptron Algorithm</h1>
+  <p class="sub">The first discriminative classifier: no probability distributions, no Bayes' Rule — just a hyperplane, a mistake, and a nudge. If it's wrong, push the boundary toward the point that fooled it.</p>
+  <div class="hero-tags">
+    <span class="tag">Discriminative Modeling</span>
+    <span class="tag">Linear Separability</span>
+    <span class="tag">Mistake-Driven Learning</span>
+    <span class="tag">IITM · MLT Week 11</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ORIENTATION -->
+<section id="orientation">
+  <div class="sec-label">Layer 0 · Orientation</div>
+  <h2 class="sec-title">Where This Sits</h2>
+  <div class="chain">
+    <span class="node">Gaussian NB / LDA</span><span class="arrow">→</span>
+    <span class="node current">Perceptron</span><span class="arrow">→</span>
+    <span class="node">Logistic Regression</span><span class="arrow">→</span>
+    <span class="node">SVM (max-margin)</span>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prerequisites</h3>
+      <table class="data-table">
+        <tr><th>Required</th><td>Vectors, dot products, hyperplanes, sign function</td></tr>
+        <tr><th>Helpful</th><td>Generative vs. discriminative distinction (L51)</td></tr>
+        <tr><th>Optional</th><td>Convergence proofs / margin arguments</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Cognitive Pattern</h3>
+      <p style="color:var(--text-dim);margin:0;">This is a <strong style="color:var(--teal);">geometric + algorithmic</strong> topic — no probability at all. You're moving a vector <span class="code">W</span> around in space, one mistake at a time, until a line it defines separates two point clouds perfectly.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GENERATIVE VS DISCRIMINATIVE -->
+<section id="gen-vs-disc">
+  <div class="sec-label">Layer 1 · Understanding</div>
+  <h2 class="sec-title">Generative vs. Discriminative — A Second Look</h2>
+  <p>Lecture 51's Gaussian Naive Bayes was <strong>generative</strong>: it modeled how the data <em>came to exist</em> — draw a label, then draw features from that label's distribution — and used Bayes' Rule to flip that into a classifier. The Perceptron takes the opposite philosophy.</p>
+
+  <table class="data-table">
+    <tr><th>Generative</th><th>Discriminative</th></tr>
+    <tr><td>Models P(X|Y) and P(Y), derives P(Y|X) via Bayes</td><td>Models P(Y|X) — or even just a hard decision rule — directly</td></tr>
+    <tr><td>Cares how features are distributed per class</td><td>Doesn't care about feature distribution at all</td></tr>
+    <tr><td>Can generate synthetic samples</td><td>Can only classify, never generate</td></tr>
+    <tr><td>Example: Gaussian NB / LDA</td><td>Example: Perceptron, Logistic Regression</td></tr>
+  </table>
+
+  <div class="callout analogy">
+    <div class="callout-title">🎯 Analogy — Profiler vs. Bouncer</div>
+    A generative model is like a criminal profiler: it studies everything about how each type of person typically behaves, builds a full mental model of each group, and uses that rich understanding to judge a new case. A discriminative model is like a bouncer at a club door: he doesn't care about your life story or where you grew up — he just needs a fast rule ("if you look like <em>this</em>, you're in; if you look like <em>that</em>, you're out") that draws the line correctly. The Perceptron is the bouncer: it only ever asks "which side of my line are you on?"
+  </div>
+</section>
+
+<!-- LINEAR SEPARABILITY -->
+<section id="separability">
+  <div class="sec-label">Layer 1 → Layer 2</div>
+  <h2 class="sec-title">The Linear Separability Assumption</h2>
+  <p>The Perceptron commits to a strong, deterministic goal: model <span class="code">P(Y=1|X)</span> as either exactly 1 or exactly 0 — never "maybe." It does this with a single hyperplane test.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Deterministic Decision Rule</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1|<span class="sym-var">X</span>) = 1 &nbsp;if&nbsp; <span class="sym-param">W</span><sup>T</sup><span class="sym-var">X</span> ≥ 0</span>
+      <span class="line"><span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1|<span class="sym-var">X</span>) = 0 &nbsp;otherwise</span>
+    </div>
+    <div class="eq-number">Eq. 52.1</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">W</span> the weight vector — its direction defines a hyperplane through the origin</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">W<sup>T</sup>X</span> a signed distance-like score — sign tells you which side of the hyperplane <span class="code">X</span> lands on</div>
+  </div>
+
+  <div class="svg-card">
+    <svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="580" height="200" rx="10" fill="#0d1220" stroke="#1c2436"/>
+      <line x1="310" y1="35" x2="230" y2="205" stroke="#e8ebf3" stroke-width="2"/>
+      <text x="245" y="30" fill="#e8ebf3" font-family="JetBrains Mono" font-size="11">W^T X = 0</text>
+      <!-- arrow for W -->
+      <line x1="270" y1="120" x2="330" y2="95" stroke="#a385e0" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="335" y="90" fill="#a385e0" font-family="JetBrains Mono" font-size="11">W</text>
+      <defs>
+        <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#a385e0"/>
+        </marker>
+      </defs>
+      <!-- green points Y=1 -->
+      <circle cx="380" cy="60" r="7" fill="#3ec9b0"/>
+      <circle cx="440" cy="100" r="7" fill="#3ec9b0"/>
+      <circle cx="400" cy="140" r="7" fill="#3ec9b0"/>
+      <circle cx="480" cy="70" r="7" fill="#3ec9b0"/>
+      <circle cx="460" cy="150" r="7" fill="#3ec9b0"/>
+      <!-- red points Y=0 -->
+      <circle cx="150" cy="60" r="7" fill="#e0715f"/>
+      <circle cx="100" cy="110" r="7" fill="#e0715f"/>
+      <circle cx="170" cy="150" r="7" fill="#e0715f"/>
+      <circle cx="80" cy="170" r="7" fill="#e0715f"/>
+      <circle cx="200" cy="190" r="7" fill="#e0715f"/>
+      <text x="450" y="215" fill="#3ec9b0" font-family="Inter" font-size="12">Y = 1 side (W^T X ≥ 0)</text>
+      <text x="60" y="215" fill="#e0715f" font-family="Inter" font-size="12">Y = 0 side</text>
+    </svg>
+    <div class="svg-cap">Fig 52.1 — A separating hyperplane; W points toward the Y=1 half-space</div>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Limitation</div>
+    This only works if the data is <strong>linearly separable</strong> — some hyperplane perfectly divides the two classes. A single outlier or overlapping classes means <em>no</em> W exists that gets everything right, and the algorithm you're about to see will never stop searching.
+  </div>
+</section>
+
+<!-- THE ALGORITHM -->
+<section id="algorithm">
+  <div class="sec-label">Layer 3 · Computation</div>
+  <h2 class="sec-title">The Perceptron Algorithm</h2>
+
+  <div class="callout history">
+    <div class="callout-title">🕰️ History</div>
+    Developed by <strong>Frank Rosenblatt</strong> in the 1950s — one of the earliest trainable models in machine learning, decades before "deep learning." Its update rule is disarmingly simple, yet it's the direct ancestor of the modern neuron/gradient-update idea.
+  </div>
+
+  <p>The Perceptron doesn't compute anything in closed form (no MLE, no matrix inverse). It <strong>iterates</strong>: look at one point at a time, and only act when it's wrong.</p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Initialize</div>
+      <div class="step-body"><div class="step-eq">W₀ = 0</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Pick a training point</div>
+      <div class="step-body"><p style="margin:0;color:var(--text-dim);">Select some <span class="code">(xᵢ, yᵢ)</span> from the dataset (cycle through them, or pick at random).</p></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Check the current prediction</div>
+      <div class="step-body"><div class="step-eq">sign(W<sub>t</sub><sup>T</sup>x<sub>i</sub>) =? y<sub>i</sub></div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">4</div>
+      <div class="step-title">Correct → do nothing. Wrong → update.</div>
+      <div class="step-body"><div class="step-eq">W<sub>t+1</sub> = W<sub>t</sub> + x<sub>i</sub>&middot;y<sub>i</sub></div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">5</div>
+      <div class="step-title">Repeat until every point is classified correctly</div>
+      <div class="step-body"><p style="margin:0;color:var(--text-dim);">If the data is linearly separable, this is <em>guaranteed</em> to happen in a finite number of steps (Perceptron Convergence Theorem).</p></div>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">The Update Rule</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-param">W</span><sub>t+1</sub> = <span class="sym-param">W</span><sub>t</sub> + <span class="sym-var">x<sub>i</sub></span>&middot;<span class="sym-var">y<sub>i</sub></span></span>
+    </div>
+    <div class="eq-number">Eq. 52.2</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">y<sub>i</sub></span> the true label, ∈ {+1, −1}</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">x<sub>i</sub>&middot;y<sub>i</sub></span> the feature vector, flipped in direction if the true label is −1</div>
+  </div>
+</section>
+
+<!-- WHY THE UPDATE WORKS -->
+<section id="why-update">
+  <div class="sec-label">Layer 2 · Derivation / Intuition</div>
+  <h2 class="sec-title">Why Adding x·y Actually Fixes the Mistake</h2>
+  <p>This isn't an arbitrary rule — it's the smallest nudge that moves the score for the misclassified point in the right direction. Check what happens to the score on <em>that same point</em> right after the update:</p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">New score on the mistaken point</div>
+      <div class="step-body"><div class="step-eq">W<sub>t+1</sub><sup>T</sup>x<sub>i</sub> = (W<sub>t</sub> + x<sub>i</sub>y<sub>i</sub>)<sup>T</sup>x<sub>i</sub></div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Expand</div>
+      <div class="step-body"><div class="step-eq">= W<sub>t</sub><sup>T</sup>x<sub>i</sub> + y<sub>i</sub>&middot;(x<sub>i</sub><sup>T</sup>x<sub>i</sub>)</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Since xᵢᵀxᵢ = ‖xᵢ‖² ≥ 0 always</div>
+      <div class="step-body"><p style="margin:0;color:var(--text-dim);">The new score moves by <span class="code">yᵢ·‖xᵢ‖²</span> — a shift in the <em>same sign</em> as <span class="code">yᵢ</span>. If <span class="code">yᵢ=+1</span>, the score increases (pushed toward positive); if <span class="code">yᵢ=−1</span>, the score decreases (pushed toward negative). Either way, the update moves the score <strong>toward the correct side</strong> for that exact point.</p></div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 Geometric Picture</div>
+    Adding <span class="code">yᵢxᵢ</span> to <span class="code">W</span> rotates the weight vector — and therefore the hyperplane perpendicular to it — toward the misclassified point when <span class="code">yᵢ=+1</span> (pulling the "accept" region to include it), or away from it when <span class="code">yᵢ=−1</span> (pushing the "accept" region to exclude it). One mistake, one small rotation.
+  </div>
+
+  <details class="worked">
+    <summary>Worked Numerical Example — 2D, three updates</summary>
+    <div class="content">
+      <p>Data: <span class="code">x₁=(2,1), y₁=+1</span>; <span class="code">x₂=(−1,1), y₂=−1</span>. Start <span class="code">W₀=(0,0)</span>.</p>
+      <p><strong>Step 1:</strong> check x₁: <span class="code">W₀ᵀx₁ = 0</span>, sign is ambiguous/0 → treat as wrong for y=+1. Update: <span class="code">W₁ = (0,0) + 1·(2,1) = (2,1)</span>.</p>
+      <p><strong>Step 2:</strong> check x₂: <span class="code">W₁ᵀx₂ = 2(−1)+1(1) = −1</span>. sign(−1) = −1 = y₂ ✓ correct, no update.</p>
+      <p><strong>Step 3:</strong> recheck x₁: <span class="code">W₁ᵀx₁ = 2(2)+1(1) = 5 ≥ 0</span> ✓ correct, no update. Both points now correctly classified — <strong>converged</strong> after a single update.</p>
+    </div>
+  </details>
+</section>
+
+<!-- SIMULATOR -->
+<section id="simulator">
+  <div class="sec-label">Signature Interactive</div>
+  <h2 class="sec-title">Playground: Train a Perceptron by Hand</h2>
+  <div class="sim-card">
+    <div class="sim-header">
+      <span class="sim-badge">● LIVE</span>
+      <span style="color:var(--text-dim);font-size:0.9rem;">Step through the algorithm one mistake at a time, or auto-run it to convergence.</span>
+    </div>
+    <div class="sim-layout">
+      <div class="sim-canvas-wrap">
+        <canvas id="perCanvas" width="480" height="380"></canvas>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#3ec9b0;"></span>Y = +1</span>
+          <span><span class="legend-dot" style="background:#e0715f;"></span>Y = −1</span>
+          <span><span class="legend-dot" style="background:#e0b84c;"></span>current mistake</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="btn-row">
+          <button class="sim-btn primary" id="stepBtn">Step ▸</button>
+          <button class="sim-btn" id="autoBtn">Auto-run</button>
+          <button class="sim-btn" id="resetBtn">New Dataset ↻</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="num" id="iterCount">0</div><div class="lbl">Updates made</div></div>
+          <div class="stat-box"><div class="num" id="mistakeCount">–</div><div class="lbl">Mistakes left</div></div>
+        </div>
+        <div class="readout">
+          Status: <span class="status-label" id="statusLabel" style="color:var(--gold);">Not started</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout tip" style="margin-top:0;">
+    <div class="callout-title">Try This</div>
+    Click "New Dataset" a few times until you get one with a lot of overlap between colors near the middle. Then hit "Auto-run" — watch the update counter climb without ever reaching "Converged." That's linear <em>non</em>-separability in action: no W exists that satisfies every point, so the algorithm keeps correcting forever.
+  </div>
+</section>
+
+<!-- CONVERGENCE / ASSUMPTIONS -->
+<section id="convergence">
+  <div class="sec-label">Layer 4 · Reliability</div>
+  <h2 class="sec-title">Convergence, Assumptions & Failure Modes</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Assumption Library</h3>
+      <table class="data-table">
+        <tr><th>Assumption</th><th>Consequence if violated</th></tr>
+        <tr><td>Data is linearly separable</td><td>Algorithm never terminates — loops forever correcting the same points</td></tr>
+        <tr><td>Hyperplane passes through the origin (no explicit bias)</td><td>Cannot represent boundaries offset from origin, unless features are augmented with a constant 1 dimension</td></tr>
+        <tr><td>Finite dataset, finite margin between classes</td><td>Needed for the convergence bound (more margin → fewer updates needed)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Invariant Library</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li><strong style="color:#7fd67f;">Always true:</strong> if separable, the algorithm halts in a finite number of updates (Perceptron Convergence Theorem).</li>
+        <li><strong style="color:var(--gold);">Sometimes true:</strong> the found W is <em>a</em> separating hyperplane — not necessarily the "best" one (no notion of margin maximization).</li>
+        <li><strong style="color:var(--red);">Never true:</strong> guaranteed convergence when classes overlap or are not linearly separable.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout trap">
+    <div class="callout-title">⚠️ IITM Exam Trap</div>
+    The Perceptron finds <em>some</em> separating hyperplane, not the <em>best</em> one — there's no guarantee it maximizes the margin between classes. Multiple runs (different point order, different initialization) can converge to different valid boundaries. Don't confuse this with SVM, which is explicitly designed to find the maximum-margin hyperplane.
+  </div>
+</section>
+
+<!-- ENGINEERING JUDGMENT -->
+<section id="judgment">
+  <div class="sec-label">Layer 6 · Engineering Judgment</div>
+  <h2 class="sec-title">When to Reach for This</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Use the Perceptron when…</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li>You know (or strongly believe) data is linearly separable</li>
+        <li>You want the simplest possible online/streaming learner</li>
+        <li>You're teaching/learning the building block behind neural network units</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prefer alternatives when…</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li>Data is noisy / not perfectly separable → Logistic Regression (soft probabilities, no infinite loop)</li>
+        <li>You want the widest-margin, most robust boundary → SVM</li>
+        <li>You need calibrated probability outputs → Logistic Regression</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSFER -->
+<section id="transfer">
+  <div class="sec-label">Layer 7 · Transfer</div>
+  <h2 class="sec-title">Connections & What's Next</h2>
+  <p>The Perceptron proves that a purely discriminative, non-probabilistic algorithm can learn a linear boundary just by correcting mistakes — no distributional assumptions like L51's Gaussian at all. But it has two visible gaps: it gives a hard 0/1 decision with no notion of <em>confidence</em>, and it has no preference among the (possibly many) hyperplanes that separate the data. The next lecture, <strong>Logistic Regression</strong>, fixes the first gap by replacing the hard sign() with a smooth probability curve; <strong>SVMs</strong> later fix the second by explicitly maximizing the margin.</p>
+</section>
+
+<!-- RETRIEVAL -->
+<section id="retrieval">
+  <div class="sec-label">Layer 7 · Retrieval Practice</div>
+  <h2 class="sec-title">Test Yourself</h2>
+  <div class="qa">
+    <div class="q">Why does the Perceptron update W by adding xᵢ·yᵢ specifically, rather than some other vector?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">Because it's the minimal correction that provably shifts the score W^Tx_i on the mistaken point in the correct direction — the shift equals yᵢ‖xᵢ‖², which has the same sign as yᵢ.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">What happens if you run the Perceptron on data that isn't linearly separable?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">It never converges — it keeps finding mistakes and updating forever, since no W exists that classifies every point correctly.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">Does the Perceptron find the "best" separating hyperplane?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">No — it finds any hyperplane that separates the data with zero training error, with no guarantee of maximizing the margin. That refinement is what SVM adds later.</div></details>
+  </div>
+</section>
+
+<!-- ONE PAGE BRAIN -->
+<section id="brain">
+  <div class="sec-label">Layer 8 · Compression</div>
+  <h2 class="sec-title">One-Page Brain</h2>
+  <div class="brain">
+    <h3>Perceptron Algorithm — Everything on One Page</h3>
+    <p style="color:var(--text-dim);"><strong>Core idea:</strong> discriminative, mistake-driven learning — start with W=0, and every time a point is misclassified, nudge W by adding that point's feature vector scaled by its true label.</p>
+    <ul>
+      <li><strong>Decision rule:</strong> predict Y=1 iff WᵀX ≥ 0 (deterministic, no probabilities)</li>
+      <li><strong>Requires:</strong> linear separability — some hyperplane must perfectly split the classes</li>
+      <li><strong>Update:</strong> W ← W + xᵢyᵢ, only on mistakes</li>
+      <li><strong>Why it works:</strong> the update always shifts the mistaken point's score by yᵢ‖xᵢ‖² — toward the correct sign</li>
+      <li><strong>Convergence:</strong> guaranteed in finite steps if separable; loops forever if not</li>
+      <li><strong>Limitation:</strong> finds <em>a</em> separator, not the max-margin one; no confidence scores</li>
+      <li><strong>Next:</strong> Logistic Regression (soft probabilities) → SVM (max-margin)</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<div class="footer-note">Lecture 52 · Perceptron Algorithm — IITM MLT Study Notes</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('perCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const range = 5;
+
+  let points = [];   // {x,y,label}
+  let w = [0,0,0];   // w1, w2, bias (augmented)
+  let iter = 0;
+  let scanIdx = 0;
+  let converged = false;
+  let autoTimer = null;
+  const MAX_STEPS = 500;
+
+  function toScreen(x,y){ return [ (x+range)/(2*range)*W, H - (y+range)/(2*range)*H ]; }
+
+  function genDataset(){
+    points = [];
+    // hidden separating line: a*x + b*y + c = 0
+    const a = (Math.random()*2-1), b = (Math.random()*2-1), c = (Math.random()*1.5-0.75);
+    const n = 14;
+    for(let i=0;i<n;i++){
+      let x = (Math.random()*2-1)*range*0.85;
+      let y = (Math.random()*2-1)*range*0.85;
+      let score = a*x + b*y + c;
+      // small chance of label noise near boundary to make it interesting but usually separable
+      let label = score >= 0 ? 1 : -1;
+      points.push({x,y,label});
+    }
+    w = [0,0,0];
+    iter = 0; scanIdx = 0; converged = false;
+    updateStats();
+    draw();
+  }
+
+  function predict(p){
+    const s = w[0]*p.x + w[1]*p.y + w[2];
+    return s >= 0 ? 1 : -1;
+  }
+
+  function countMistakes(){
+    return points.filter(p => predict(p) !== p.label).length;
+  }
+
+  function step(){
+    if(converged || iter > MAX_STEPS) return;
+    // scan for a mistake starting at scanIdx
+    let found = -1;
+    for(let k=0;k<points.length;k++){
+      const idx = (scanIdx+k) % points.length;
+      if(predict(points[idx]) !== points[idx].label){ found = idx; break; }
+    }
+    if(found === -1){
+      converged = true;
+      updateStats();
+      draw();
+      return;
+    }
+    const p = points[found];
+    w[0] += p.x * p.label;
+    w[1] += p.y * p.label;
+    w[2] += 1 * p.label;
+    iter++;
+    scanIdx = (found+1) % points.length;
+    updateStats(found);
+    draw(found);
+  }
+
+  function updateStats(highlightIdx){
+    document.getElementById('iterCount').textContent = iter;
+    const m = countMistakes();
+    document.getElementById('mistakeCount').textContent = converged ? 0 : m;
+    const status = document.getElementById('statusLabel');
+    if(converged){ status.textContent = 'Converged ✓'; status.style.color = '#3ec9b0'; }
+    else if(iter===0){ status.textContent = 'Not started'; status.style.color = '#e0b84c'; }
+    else if(iter > MAX_STEPS){ status.textContent = 'Not separable (stopped)'; status.style.color='#e0715f'; }
+    else { status.textContent = 'Training…'; status.style.color = '#e0b84c'; }
+  }
+
+  function draw(highlightIdx){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#080b13';
+    ctx.fillRect(0,0,W,H);
+    // grid
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for(let i=0;i<=10;i++){
+      const gx = i/10*W, gy = i/10*H;
+      ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke();
+    }
+    // decision boundary line: w0*x + w1*y + w2 = 0
+    if(w[0]!==0 || w[1]!==0){
+      ctx.strokeStyle = '#e8ebf3';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let pts = [];
+      // sample x in range, solve y; and y in range solve x, keep those within bounds
+      if(Math.abs(w[1]) > 1e-6){
+        [-range, range].forEach(x=>{
+          const y = -(w[0]*x + w[2])/w[1];
+          if(y>=-range && y<=range) pts.push([x,y]);
+        });
+      }
+      if(Math.abs(w[0]) > 1e-6){
+        [-range, range].forEach(y=>{
+          const x = -(w[1]*y + w[2])/w[0];
+          if(x>=-range && x<=range) pts.push([x,y]);
+        });
+      }
+      if(pts.length>=2){
+        const [sx1,sy1] = toScreen(pts[0][0],pts[0][1]);
+        const [sx2,sy2] = toScreen(pts[1][0],pts[1][1]);
+        ctx.moveTo(sx1,sy1); ctx.lineTo(sx2,sy2);
+        ctx.stroke();
+      }
+    }
+    // points
+    points.forEach((p,idx)=>{
+      const [sx,sy] = toScreen(p.x,p.y);
+      ctx.beginPath();
+      ctx.arc(sx,sy,7,0,Math.PI*2);
+      ctx.fillStyle = p.label===1 ? '#3ec9b0' : '#e0715f';
+      ctx.fill();
+      if(idx===highlightIdx){
+        ctx.strokeStyle = '#e0b84c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(sx,sy,12,0,Math.PI*2);
+        ctx.stroke();
+      }
+    });
+  }
+
+  document.getElementById('stepBtn').addEventListener('click', ()=>{ step(); });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{ stopAuto(); genDataset(); });
+  const autoBtn = document.getElementById('autoBtn');
+  function stopAuto(){
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; autoBtn.textContent='Auto-run'; }
+  }
+  autoBtn.addEventListener('click', ()=>{
+    if(autoTimer){ stopAuto(); return; }
+    autoBtn.textContent = 'Stop';
+    autoTimer = setInterval(()=>{
+      if(converged || iter>MAX_STEPS){ stopAuto(); return; }
+      step();
+    }, 220);
+  });
+
+  genDataset();
+})();
+</script>
+
+</body>
+</html>

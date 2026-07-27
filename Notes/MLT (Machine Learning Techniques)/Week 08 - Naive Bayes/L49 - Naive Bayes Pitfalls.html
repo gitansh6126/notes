@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>L49 — Pitfalls of Naive Bayes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0d14;
+    --panel-bg:#12141f;
+    --panel-bg-2:#151827;
+    --panel-border: rgba(255,255,255,0.08);
+    --text:#e7e9f2;
+    --text-dim:#9aa0b4;
+    --gold:#e0b24d;
+    --blue:#5aa3f0;
+    --green:#57c785;
+    --purple:#b18aef;
+    --red:#f0685a;
+    --teal:#3ecfc0;
+    --serif-math-font:"Fraunces", "STIX Two Math", serif;
+    --mono-font:"JetBrains Mono", monospace;
+    --sans-font:"Inter", sans-serif;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse at top left, rgba(240,104,90,0.08), transparent 45%),
+      radial-gradient(ellipse at bottom right, rgba(90,163,240,0.08), transparent 45%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--sans-font);
+    line-height:1.6;
+    padding: 0 0 4rem 0;
+  }
+  .wrap{max-width:980px; margin:0 auto; padding: 0 1.25rem;}
+
+  .hero{
+    padding: 3.5rem 1.25rem 2.5rem;
+    text-align:center;
+    border-bottom: 1px solid var(--panel-border);
+    margin-bottom: 2.5rem;
+    background: linear-gradient(180deg, rgba(240,104,90,0.06), transparent);
+  }
+  .kicker{
+    font-family: var(--mono-font);
+    color: var(--teal);
+    letter-spacing: 0.15em;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+  .hero h1{
+    font-family: var(--serif-math-font);
+    font-weight:600;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    margin: 0.5rem 0 0.75rem;
+    background: linear-gradient(90deg, #fff, var(--red));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero p{color:var(--text-dim); max-width:640px; margin:0 auto; font-size:1.05rem;}
+  .tags{display:flex; gap:0.5rem; flex-wrap:wrap; justify-content:center; margin-top:1.25rem;}
+  .tag{
+    font-family: var(--mono-font); font-size:0.75rem; padding:0.3rem 0.7rem;
+    border-radius:999px; border:1px solid var(--panel-border); color:var(--text-dim);
+  }
+
+  .stage{margin: 2.75rem 0;}
+  .stage-head{display:flex; align-items:baseline; gap:0.75rem; margin-bottom:1rem;}
+  .stage-num{
+    font-family: var(--mono-font); color: var(--bg); background: var(--teal);
+    font-weight:700; font-size:0.85rem; padding: 0.15rem 0.55rem; border-radius:6px;
+    flex-shrink:0;
+  }
+  .stage-title{
+    font-family: var(--serif-math-font); font-size: clamp(1.2rem, 3vw, 1.6rem);
+    font-weight:600; margin:0;
+  }
+  .stage-sub{color:var(--text-dim); font-size:0.9rem; margin: -0.5rem 0 1rem 2.6rem;}
+
+  .card{
+    background: var(--panel-bg);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .card h3{margin-top:0; font-family:var(--serif-math-font); font-weight:600; font-size:1.1rem;}
+  .card-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:1rem;}
+  .card.accent-blue{border-left:3px solid var(--blue);}
+  .card.accent-gold{border-left:3px solid var(--gold);}
+  .card.accent-green{border-left:3px solid var(--green);}
+  .card.accent-purple{border-left:3px solid var(--purple);}
+  .card.accent-red{border-left:3px solid var(--red);}
+  .card.accent-teal{border-left:3px solid var(--teal);}
+
+  .callout{
+    border-radius: 12px; padding: 1rem 1.2rem; margin: 1.25rem 0;
+    border: 1px solid; display:flex; gap:0.75rem; align-items:flex-start;
+  }
+  .callout .icon{font-size:1.3rem; line-height:1;}
+  .callout.info{background:rgba(90,163,240,0.08); border-color:rgba(90,163,240,0.3);}
+  .callout.warn{background:rgba(240,104,90,0.08); border-color:rgba(240,104,90,0.3);}
+  .callout.tip{background:rgba(87,199,133,0.08); border-color:rgba(87,199,133,0.3);}
+  .callout.trap{background:rgba(177,138,239,0.08); border-color:rgba(177,138,239,0.3);}
+  .callout b{color:#fff;}
+
+  .eq-panel{
+    background: var(--panel-bg-2);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 2.2rem 1.5rem 1.8rem;
+    margin: 1.5rem 0;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    text-align:center;
+    position:relative;
+    overflow-x:auto;
+  }
+  .eq-panel .eq-label{
+    position:absolute; top:0.9rem; left:1.25rem;
+    font-family:var(--mono-font); font-size:0.72rem; color:var(--text-dim);
+    letter-spacing:0.08em; text-transform:uppercase;
+  }
+  .eq-panel .eq-number{
+    position:absolute; bottom:0.75rem; right:1.25rem;
+    font-size:0.78rem; opacity:0.5; font-family: var(--mono-font);
+  }
+  .eq-main{font-family: var(--serif-math-font); font-size: clamp(1.15rem, 3vw, 1.9rem); margin-top:0.5rem;}
+  .eq-line{margin:0.6rem 0;}
+  .sym-var{color:var(--blue); font-style:italic;}
+  .sym-param{color:var(--gold); font-style:italic;}
+  .sym-const{color:var(--green);}
+  .sym-fn{color:var(--purple); font-style:normal;}
+  .sym-op{color:var(--red); font-size:1.25em; font-weight:700;}
+  .op-big{font-size:1.6em; vertical-align:-0.15em; display:inline-block; margin:0 0.15em;}
+  sub, sup{font-size:0.68em;}
+
+  .legend{margin: 0.75rem 0 1.5rem; font-size:0.88rem; display:grid; gap:0.4rem;}
+  .legend-row{display:flex; gap:0.6rem; align-items:baseline;}
+  .legend-sym{font-family:var(--serif-math-font); min-width:2.2rem; font-size:1.05rem;}
+  .legend-text{color:var(--text-dim);}
+
+  .timeline{position:relative; margin:1.5rem 0; padding-left:2.4rem;}
+  .timeline::before{
+    content:""; position:absolute; left:1.05rem; top:0.4rem; bottom:0.4rem;
+    width:2px; background: linear-gradient(180deg, var(--teal), var(--purple));
+  }
+  .tl-step{position:relative; margin-bottom:1.4rem;}
+  .tl-badge{
+    position:absolute; left:-2.4rem; top:0; width:2.1rem; height:2.1rem;
+    border-radius:50%; background:var(--panel-bg-2); border:2px solid var(--teal);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--mono-font); font-weight:700; font-size:0.85rem; color:var(--teal);
+  }
+  .tl-content{
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:12px; padding:0.9rem 1.1rem;
+  }
+  .tl-title{font-weight:700; margin-bottom:0.3rem; font-size:0.95rem;}
+  .tl-expr{font-family:var(--serif-math-font); font-size:1.05rem; color:var(--text);}
+
+  table{width:100%; border-collapse:collapse; margin:1rem 0; font-size:0.92rem;}
+  th, td{padding:0.6rem 0.75rem; text-align:left; border-bottom:1px solid var(--panel-border);}
+  th{color:var(--teal); font-family:var(--mono-font); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.05em;}
+  tr:hover td{background:rgba(255,255,255,0.02);}
+  .table-wrap{overflow-x:auto;}
+
+  pre{
+    background:#0d0f18; border:1px solid var(--panel-border); border-radius:12px;
+    padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono-font); font-size:0.85rem;
+    line-height:1.55;
+  }
+  code{font-family:var(--mono-font);}
+  .cmt{color:var(--text-dim);}
+  .kw{color:var(--purple);}
+  .fn{color:var(--blue);}
+  .str{color:var(--green);}
+  .num{color:var(--gold);}
+
+  .diagram{
+    background:var(--panel-bg-2); border:1px solid var(--panel-border); border-radius:16px;
+    padding:1.25rem; margin:1.5rem 0; overflow-x:auto;
+  }
+  .diagram svg{display:block; margin:0 auto; max-width:100%; height:auto;}
+
+  .flow-row{display:flex; align-items:center; justify-content:center; gap:0.5rem; flex-wrap:wrap; margin:1rem 0;}
+  .flow-box{
+    background:var(--panel-bg); border:1px solid var(--panel-border); border-radius:10px;
+    padding:0.6rem 0.9rem; font-size:0.85rem; text-align:center; min-width:110px;
+  }
+  .flow-arrow{color:var(--text-dim); font-size:1.2rem;}
+
+  .brain-grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:1rem;}
+  .brain-card h4{margin:0 0 0.5rem; color:var(--teal); font-family:var(--mono-font); font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;}
+
+  hr.divider{border:none; border-top:1px solid var(--panel-border); margin:3rem 0;}
+  ul, ol{padding-left:1.3rem;}
+  li{margin:0.35rem 0;}
+
+  /* before/after comparison */
+  .vs-grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem;}
+  @media (max-width:600px){.vs-grid{grid-template-columns:1fr;}}
+  .vs-card{border-radius:14px; padding:1.2rem; border:1px solid var(--panel-border);}
+  .vs-card.bad{background:rgba(240,104,90,0.06); border-color:rgba(240,104,90,0.3);}
+  .vs-card.good{background:rgba(87,199,133,0.06); border-color:rgba(87,199,133,0.3);}
+  .vs-card h4{margin-top:0; font-family:var(--mono-font); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em;}
+
+  @media (max-width:640px){
+    .stage-sub{margin-left:0;}
+    .stage-head{flex-wrap:wrap;}
+    .card{padding:1.1rem;}
+    .eq-panel{padding:1.8rem 1rem 1.5rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="kicker">Lecture 49 · Probabilistic Machine Learning</div>
+  <h1>Pitfalls of Naive Bayes</h1>
+  <p>Two quiet bugs that can silently wreck a working classifier — the zero-frequency trap and numerical underflow — and the two-line fixes that neutralize them.</p>
+  <div class="tags">
+    <span class="tag">Zero-Frequency Problem</span>
+    <span class="tag">Laplace Smoothing</span>
+    <span class="tag">Numerical Stability</span>
+    <span class="tag">Log-Space Computation</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- STAGE -1: COGNITIVE PATTERN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">-1</span><h2 class="stage-title">Cognitive Pattern</h2></div>
+  <div class="stage-sub">What kind of thinking do these pitfalls require?</div>
+  <div class="card accent-teal">
+    <div class="card-grid">
+      <div><b style="color:var(--red)">🕳️ Edge-case reasoning</b><br><span style="color:var(--text-dim); font-size:0.9rem;">What happens at the boundary — a count of exactly zero?</span></div>
+      <div><b style="color:var(--gold)">🎲 Bayesian thinking</b><br><span style="color:var(--text-dim); font-size:0.9rem;">Treating a fix as "adding prior belief" rather than a hack.</span></div>
+      <div><b style="color:var(--blue)">🖥️ Numerical/engineering</b><br><span style="color:var(--text-dim); font-size:0.9rem;">How floating point hardware actually behaves under repeated multiplication.</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 0: PROBLEM -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">0</span><h2 class="stage-title">The Real-World Problem</h2></div>
+  <div class="card accent-blue">
+    <p>L48 gave us a working Naive Bayes classifier: clean math, closed-form counting, fast predictions. But deploy it on real data and it breaks in two specific, predictable ways:</p>
+    <ol style="margin-bottom:0;">
+      <li>A single unseen word can override every other word in the email.</li>
+      <li>Multiplying hundreds of small probabilities can silently collapse to <b>zero</b> on real hardware, even when no probability itself is zero.</li>
+    </ol>
+    <div class="callout warn" style="margin-bottom:0; margin-top:1rem;">
+      <span class="icon">⚠️</span>
+      <div><b>What happens if we don't solve this?</b> The classifier looks correct in math class but fails silently in production — misclassifying emails for reasons that have nothing to do with their actual content.</div>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 1: PROBLEM 1 - ZERO FREQUENCY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">1</span><h2 class="stage-title">Pitfall 1 — The Zero-Frequency Problem</h2></div>
+  <div class="stage-sub">How one unseen word can destroy an entire prediction</div>
+
+  <div class="card accent-red">
+    <h3>The setup</h3>
+    <p>Recall the MLE feature estimate from L48:</p>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Feature Probability (recap)</div>
+    <div class="eq-main">
+      <span class="sym-param">P̂<sub>Y,J</sub></span> &nbsp;=&nbsp;
+      <span style="display:inline-block; vertical-align:middle;">
+        <div class="eq-line" style="font-size:0.7em; border-bottom:1px solid var(--panel-border); padding-bottom:0.2rem;">count(word j in class Y)</div>
+        <div class="eq-line" style="font-size:0.7em;">count(class Y)</div>
+      </span>
+    </div>
+    <div class="eq-number">Eq. 1.1</div>
+  </div>
+
+  <div class="callout warn">
+    <span class="icon">🕳️</span>
+    <div><b>The trap:</b> if word <i>j</i> ("cryptocurrency," say) never appeared in <i>any</i> spam training email, the numerator is 0, so <span class="sym-param">P̂<sub>1,j</sub></span> = 0 — a hard, absolute zero, not "unlikely."</div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg">
+      <text x="350" y="25" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="13">P(X | Y=1) = P(lottery|1) · P(money|1) · P(cryptocurrency|1) · …</text>
+      <rect x="30" y="50" width="140" height="50" rx="8" fill="#151827" stroke="#57c785" stroke-width="2"/>
+      <text x="100" y="80" text-anchor="middle" fill="#57c785" font-family="JetBrains Mono" font-size="12">0.70</text>
+      <text x="100" y="115" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="10">P(lottery|1)</text>
+
+      <text x="185" y="82" text-anchor="middle" fill="#9aa0b4" font-size="18">×</text>
+
+      <rect x="205" y="50" width="140" height="50" rx="8" fill="#151827" stroke="#57c785" stroke-width="2"/>
+      <text x="275" y="80" text-anchor="middle" fill="#57c785" font-family="JetBrains Mono" font-size="12">0.55</text>
+      <text x="275" y="115" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="10">P(money|1)</text>
+
+      <text x="360" y="82" text-anchor="middle" fill="#9aa0b4" font-size="18">×</text>
+
+      <rect x="380" y="50" width="160" height="50" rx="8" fill="#151827" stroke="#f0685a" stroke-width="3"/>
+      <text x="460" y="80" text-anchor="middle" fill="#f0685a" font-family="JetBrains Mono" font-size="13" font-weight="700">0.00</text>
+      <text x="460" y="115" text-anchor="middle" fill="#f0685a" font-family="Inter" font-size="10">P(cryptocurrency|1)</text>
+
+      <text x="555" y="82" text-anchor="middle" fill="#9aa0b4" font-size="18">=</text>
+
+      <rect x="575" y="50" width="100" height="50" rx="8" fill="#151827" stroke="#f0685a" stroke-width="3"/>
+      <text x="625" y="80" text-anchor="middle" fill="#f0685a" font-family="JetBrains Mono" font-size="14" font-weight="700">0.00</text>
+      <text x="625" y="115" text-anchor="middle" fill="#f0685a" font-family="Inter" font-size="10">whole product</text>
+
+      <text x="350" y="155" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="12">One zero factor wipes out every other word's evidence — even a 0.70 and a 0.55.</text>
+    </svg>
+  </div>
+
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Why it's dangerous:</b> this isn't a rare corner case. With a vocabulary of tens of thousands of words and a modest training set, <i>most</i> words in any given test email will have appeared only in one class, or in neither — so zero-frequency collisions happen constantly, not occasionally.</div>
+  </div>
+</div>
+
+<!-- STAGE 2/3: ENGINEERING + MATH TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">2</span><h2 class="stage-title">Engineering Requirement → Math Translation</h2></div>
+  <div class="card-grid">
+    <div class="card accent-green">
+      <h3>✅ Requirement</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">No probability estimate should ever be exactly zero — every word deserves <i>some</i> nonzero chance, even if unseen.</p>
+    </div>
+    <div class="card accent-green">
+      <h3>✅ Translation</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">Inject a small amount of fake evidence into the counts before dividing — i.e., <b>pad</b> both numerator and denominator.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 4: LAPLACE SMOOTHING FORMULA CONSTRUCTION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">4</span><h2 class="stage-title">Laplace Smoothing — Building the Fix</h2></div>
+  <div class="stage-sub">Add two "pseudo-emails" to the training set</div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg">
+      <rect x="40" y="30" width="230" height="70" rx="10" fill="#151827" stroke="#e0b24d" stroke-width="2"/>
+      <text x="155" y="58" text-anchor="middle" fill="#e0b24d" font-family="Inter" font-size="12" font-weight="700">Pseudo-email A</text>
+      <text x="155" y="78" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">contains EVERY word · Y = 0</text>
+
+      <rect x="430" y="30" width="230" height="70" rx="10" fill="#151827" stroke="#e0b24d" stroke-width="2"/>
+      <text x="545" y="58" text-anchor="middle" fill="#e0b24d" font-family="Inter" font-size="12" font-weight="700">Pseudo-email B</text>
+      <text x="545" y="78" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">contains EVERY word · Y = 1</text>
+
+      <line x1="270" y1="65" x2="330" y2="65" stroke="#9aa0b4" stroke-width="2"/>
+      <text x="350" y="70" text-anchor="middle" fill="#9aa0b4" font-size="16">+</text>
+      <line x1="370" y1="65" x2="430" y2="65" stroke="#9aa0b4" stroke-width="2"/>
+
+      <line x1="155" y1="100" x2="350" y2="150" stroke="#9aa0b4" stroke-width="2"/>
+      <line x1="545" y1="100" x2="350" y2="150" stroke="#9aa0b4" stroke-width="2"/>
+
+      <rect x="230" y="150" width="240" height="50" rx="10" fill="#151827" stroke="#3ecfc0" stroke-width="2"/>
+      <text x="350" y="180" text-anchor="middle" fill="#3ecfc0" font-family="Inter" font-size="12">Augmented Training Set</text>
+
+      <text x="350" y="15" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">Every word now appears at least once in each class</text>
+    </svg>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Laplace-Smoothed Feature Estimate</div>
+    <div class="eq-main">
+      <div class="eq-line">
+        <span class="sym-param">P̂<sub>Y,J</sub></span> &nbsp;=&nbsp;
+      </div>
+      <div class="eq-line" style="font-size:0.85em;">
+        count(word j in class Y) &nbsp;+&nbsp; <span class="sym-const">1</span>
+      </div>
+      <div class="eq-line" style="border-top:1px solid var(--panel-border); width:fit-content; margin:0.3rem auto; padding-top:0.3rem; font-size:0.85em;">
+        count(class Y) &nbsp;+&nbsp; <span class="sym-const">2</span>
+      </div>
+    </div>
+    <div class="eq-number">Eq. 4.1</div>
+  </div>
+  <div class="legend">
+    <div class="legend-row"><span class="legend-sym sym-const">+1</span><span class="legend-text">— the pseudo-count contributed by the one pseudo-email of that class that "contains" word j</span></div>
+    <div class="legend-row"><span class="legend-sym sym-const">+2</span><span class="legend-text">— the denominator grows by 2 because we added two pseudo-emails total (one per class) into the pool of class-Y emails... conceptually one per class contributes its own +1 in the numerator, and the count of class-Y emails itself grows by 1 for the matching pseudo-email — generalized versions use +k for k possible feature values</span></div>
+  </div>
+
+  <div class="callout info">
+    <span class="icon">💡</span>
+    <div><b>Analogy:</b> it's like a chef who never lets a recipe say "zero of any spice." Before tasting, they assume every spice in the rack has at least a pinch present — so no single missing spice can make the whole dish taste like "nothing."</div>
+  </div>
+
+  <div class="card accent-gold">
+    <h3>Worked example — before vs after smoothing</h3>
+    <p>Suppose 60 spam emails in training, and the word "cryptocurrency" appears in <b>0</b> of them.</p>
+    <div class="vs-grid">
+      <div class="vs-card bad">
+        <h4>❌ Raw MLE</h4>
+        <p style="margin:0;"><span class="sym-param">P̂</span> = 0 / 60 = <b style="color:var(--red)">0.00</b></p>
+        <p style="margin:0; color:var(--text-dim); font-size:0.85rem;">Kills the entire product for any email containing this word.</p>
+      </div>
+      <div class="vs-card good">
+        <h4>✅ Laplace-smoothed</h4>
+        <p style="margin:0;"><span class="sym-param">P̂</span> = (0+1) / (60+2) = <b style="color:var(--green)">0.016</b></p>
+        <p style="margin:0; color:var(--text-dim); font-size:0.85rem;">Small, but nonzero — the word contributes weak evidence instead of a fatal veto.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <span class="icon">🧠</span>
+    <div><b>Alternative perspective — Bayesian view:</b> Laplace smoothing is mathematically equivalent to putting a <b>Beta(1,1)</b> prior (i.e. a uniform prior) on each feature's probability and taking the posterior mean instead of the raw MLE. "Adding pseudo-counts" and "adding a prior belief" are the same move seen from two angles — pure counting vs. Bayesian updating.</div>
+  </div>
+</div>
+
+<!-- STAGE 6 (derivation-light): PITFALL 2 -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">6</span><h2 class="stage-title">Pitfall 2 — Numerical Underflow</h2></div>
+  <div class="stage-sub">Why "no probability is exactly zero" still isn't enough</div>
+
+  <div class="card accent-red">
+    <p>Even after Laplace smoothing, every <span class="sym-fn">P</span>(<span class="sym-var">F<sub>j</sub></span>|<span class="sym-var">Y</span>) is a small positive fraction. Multiplying a few hundred of these together produces numbers like 10<sup>-300</sup> or smaller.</p>
+    <p style="margin-bottom:0;">Standard floating-point (double precision) can only represent numbers down to about <b>10<sup>-308</sup></b> before <b>underflowing to exactly 0.0</b> — a purely computational artifact, unrelated to the true probability.</p>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 140" xmlns="http://www.w3.org/2000/svg">
+      <text x="350" y="25" text-anchor="middle" fill="#e7e9f2" font-family="Inter" font-size="12">Multiplying D small fractions → product shrinks exponentially with D</text>
+      <line x1="50" y1="90" x2="650" y2="90" stroke="#9aa0b4" stroke-width="2"/>
+      <circle cx="80" cy="90" r="5" fill="#57c785"/>
+      <text x="80" y="115" text-anchor="middle" fill="#9aa0b4" font-size="10">D=5, ~10⁻²</text>
+      <circle cx="230" cy="90" r="5" fill="#e0b24d"/>
+      <text x="230" y="115" text-anchor="middle" fill="#9aa0b4" font-size="10">D=50, ~10⁻²⁰</text>
+      <circle cx="420" cy="90" r="5" fill="#f0685a"/>
+      <text x="420" y="115" text-anchor="middle" fill="#f0685a" font-size="10">D=300, ~10⁻¹²⁰</text>
+      <circle cx="620" cy="90" r="6" fill="#f0685a"/>
+      <text x="620" y="70" text-anchor="middle" fill="#f0685a" font-family="Inter" font-size="11" font-weight="700">underflow → 0.0</text>
+      <text x="620" y="115" text-anchor="middle" fill="#f0685a" font-size="10">D=3000+</text>
+    </svg>
+  </div>
+
+  <div class="callout warn">
+    <span class="icon">⚠️</span>
+    <div><b>Silent failure mode:</b> if both the spam-score and not-spam-score underflow to exactly 0.0, the comparison "which is bigger" becomes 0 vs 0 — meaningless, and the classifier's output depends on tie-breaking rules rather than the actual evidence.</div>
+  </div>
+</div>
+
+<!-- STAGE 7/8: ALGORITHM + OPTIMIZATION FIX -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">7</span><h2 class="stage-title">The Fix — Work in Log-Space</h2></div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Log-Space Score</div>
+    <div class="eq-main">
+      log <span class="sym-fn">P</span>(<span class="sym-var">X</span>|<span class="sym-var">Y</span>) <span class="sym-fn">P</span>(<span class="sym-var">Y</span>) &nbsp;=&nbsp; log <span class="sym-fn">P</span>(<span class="sym-var">Y</span>) &nbsp;+&nbsp; <span class="op-big sym-op">Σ</span><sub style="font-size:0.5em;">j=1</sub><sup style="font-size:0.5em;">D</sup> log <span class="sym-fn">P</span>(<span class="sym-var">F<sub>j</sub></span>|<span class="sym-var">Y</span>)
+    </div>
+    <div class="eq-number">Eq. 7.1</div>
+  </div>
+
+  <div class="callout tip">
+    <span class="icon">🧮</span>
+    <div><b>Why this works:</b> <span class="sym-fn">log</span> is a strictly increasing function, so whichever class has the larger <i>product</i> of probabilities also has the larger <i>sum of logs</i>. The comparison "which class wins" is completely unaffected — but now we're adding numbers like -0.36 instead of multiplying numbers like 0.70, so nothing underflows.</div>
+  </div>
+
+  <pre><span class="cmt">// Numerically stable prediction</span>
+<span class="kw">function</span> <span class="fn">predict_log</span>(X_test, P_hat, P_YJ):
+    <span class="kw">for</span> Y <span class="kw">in</span> [<span class="num">0</span>, <span class="num">1</span>]:
+        log_score[Y] = log((Y == <span class="num">1</span>) ? P_hat : (<span class="num">1</span> - P_hat))
+        <span class="kw">for</span> j <span class="kw">in</span> <span class="num">1</span>..D:
+            p = X_test[j] == <span class="num">1</span> ? P_YJ[Y][j] : (<span class="num">1</span> - P_YJ[Y][j])
+            log_score[Y] += log(p)      <span class="cmt">// sum, never multiply</span>
+
+    <span class="kw">return</span> argmax(log_score[<span class="num">0</span>], log_score[<span class="num">1</span>])</pre>
+
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Critical dependency — read carefully:</b> <span class="sym-fn">log</span>(0) is <b>undefined</b> (−∞). Log-space computation <i>only</i> works if every probability fed into it is strictly positive. That means <b>Laplace smoothing must be applied first</b> — the log trick fixes underflow, but it does <b>not</b> fix the zero-frequency problem on its own. The two techniques are prerequisites of each other, not substitutes.</div>
+  </div>
+
+  <div class="diagram">
+    <svg viewBox="0 0 700 130" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="40" width="180" height="50" rx="10" fill="#151827" stroke="#e0b24d" stroke-width="2"/>
+      <text x="110" y="70" text-anchor="middle" fill="#e0b24d" font-family="Inter" font-size="12">Laplace Smoothing</text>
+      <text x="110" y="20" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">fixes: zero probabilities</text>
+
+      <line x1="200" y1="65" x2="260" y2="65" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a3)"/>
+
+      <rect x="265" y="40" width="180" height="50" rx="10" fill="#151827" stroke="#3ecfc0" stroke-width="2"/>
+      <text x="355" y="70" text-anchor="middle" fill="#3ecfc0" font-family="Inter" font-size="12">Log-Space Sum</text>
+      <text x="355" y="20" text-anchor="middle" fill="#9aa0b4" font-family="Inter" font-size="11">fixes: underflow</text>
+
+      <line x1="445" y1="65" x2="505" y2="65" stroke="#9aa0b4" stroke-width="2" marker-end="url(#a3)"/>
+
+      <rect x="510" y="40" width="170" height="50" rx="10" fill="#151827" stroke="#57c785" stroke-width="2"/>
+      <text x="595" y="70" text-anchor="middle" fill="#57c785" font-family="Inter" font-size="12">Stable Prediction</text>
+
+      <defs><marker id="a3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#9aa0b4"/></marker></defs>
+    </svg>
+  </div>
+</div>
+
+<!-- STAGE 9: EDGE CASES -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">9</span><h2 class="stage-title">Edge Cases & Failure Modes</h2></div>
+  <div class="card-grid">
+    <div class="card accent-red">
+      <h3>🧊 Applying log before smoothing</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">Taking log(0) produces -∞ or a runtime error — smoothing is not optional if you're using log-space arithmetic.</p>
+    </div>
+    <div class="card accent-red">
+      <h3>⚖️ Over-smoothing</h3>
+      <p style="color:var(--text-dim); margin-bottom:0;">Adding pseudo-counts larger than +1 (or using it on tiny datasets) can wash out genuine signal — smoothing trades off bias for robustness.</p>
+    </div>
+  </div>
+</div>
+
+<!-- STAGE 10: HIDDEN TRIGGER -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">10</span><h2 class="stage-title">Hidden Trigger Recognition ⭐</h2></div>
+  <div class="flow-row">
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"unseen word"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"probability zero"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"pseudo-count"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"add-one"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"underflow"</span>
+    <span class="tag" style="border-color:var(--teal); color:var(--teal);">"log-likelihood"</span>
+  </div>
+</div>
+
+<!-- STAGE 13: SYMBOL TRANSLATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">13</span><h2 class="stage-title">Symbol Translation ⭐</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Notation</th><th>Meaning</th><th>In code</th></tr>
+    <tr><td>+1 (numerator)</td><td>one pseudo-count of word j in class Y</td><td><code>count + 1</code></td></tr>
+    <tr><td>+2 (denominator)</td><td>total pseudo-emails added across both classes</td><td><code>total + 2</code></td></tr>
+    <tr><td>log <span class="sym-fn">P</span></td><td>log-probability, summed instead of multiplied</td><td><code>np.log(p)</code></td></tr>
+    <tr><td>argmax<sub>Y</sub></td><td>pick the class with the larger log-score</td><td><code>np.argmax(log_score)</code></td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- STAGE 15: PROBLEM FAMILIES -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">15</span><h2 class="stage-title">Problem Families — Related Fixes</h2></div>
+  <div class="table-wrap">
+  <table>
+    <tr><th>Technique</th><th>Where else it appears</th></tr>
+    <tr><td>Additive (Laplace) smoothing</td><td>N-gram language models, categorical MLE anywhere data is sparse</td></tr>
+    <tr><td>Log-sum-exp trick</td><td>Softmax computation in neural networks — same underflow problem, different formula</td></tr>
+    <tr><td>Bayesian priors</td><td>Any MLE estimate can be regularized this way — ridge regression's L2 penalty is the Gaussian-prior analogue</td></tr>
+  </table>
+  </div>
+</div>
+
+<!-- STAGE 16: INVARIANT LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">16</span><h2 class="stage-title">Invariant Library ⭐</h2></div>
+  <div class="card-grid">
+    <div class="card accent-green"><h3>Always True</h3><p style="color:var(--text-dim); margin-bottom:0;">Laplace smoothing guarantees every feature probability is strictly between 0 and 1.</p></div>
+    <div class="card accent-gold"><h3>Sometimes True</h3><p style="color:var(--text-dim); margin-bottom:0;">Underflow occurs — depends on vocabulary size D and how small individual probabilities are.</p></div>
+    <div class="card accent-red"><h3>Never True</h3><p style="color:var(--text-dim); margin-bottom:0;">Log-space computation alone never fixes a genuine zero probability — log(0) stays undefined regardless.</p></div>
+  </div>
+</div>
+
+<!-- STAGE 18: EXAMINER TRAP LIBRARY -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">18</span><h2 class="stage-title">Examiner Trap Library ⭐</h2></div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 1:</b> claiming log-space computation "solves the zero-frequency problem." It only solves <b>underflow</b>. Zero-frequency is solved by <b>smoothing</b>, applied first.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 2:</b> thinking Laplace smoothing changes the <b>prediction rule</b> (still argmax of a score) — it only changes how the <b>parameters</b> are estimated.</div>
+  </div>
+  <div class="callout trap">
+    <span class="icon">🪤</span>
+    <div><b>Trap 3:</b> forgetting why the denominator increases by <b>2</b>, not 1, in the binary-feature case — one pseudo-email is added per class.</div>
+  </div>
+</div>
+
+<!-- STAGE 19: EXAM SHORTCUTS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">19</span><h2 class="stage-title">Exam Shortcuts</h2></div>
+  <div class="card accent-teal">
+    <ul style="margin-bottom:0;">
+      <li>"Zero-frequency" question → answer <b>Laplace / add-one smoothing</b>.</li>
+      <li>"Underflow" question → answer <b>log-space / sum of logs</b>.</li>
+      <li>Always apply smoothing <b>before</b> taking logs — that ordering is the most commonly tested detail.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- STAGE 20: INDUSTRY IMPLEMENTATION -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">20</span><h2 class="stage-title">Industry Implementation</h2></div>
+  <pre><span class="kw">from</span> sklearn.naive_bayes <span class="kw">import</span> BernoulliNB
+
+<span class="cmt"># alpha=1.0 is Laplace (add-one) smoothing by default</span>
+model = BernoulliNB(alpha=<span class="num">1.0</span>)
+model.fit(X_train, y_train)
+
+<span class="cmt"># sklearn internally uses log-probabilities to avoid underflow</span>
+log_probs = model.predict_log_proba(X_test)</pre>
+  <div class="callout info">
+    <span class="icon">🏭</span>
+    <div>In sklearn, the <code>alpha</code> parameter of <code>BernoulliNB</code>/<code>MultinomialNB</code> directly controls the smoothing pseudo-count — <code>alpha=1.0</code> is exactly the Laplace scheme derived above; <code>alpha&lt;1</code> gives lighter (Lidstone) smoothing.</div>
+  </div>
+</div>
+
+<!-- STAGE 21: CONNECTIONS -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">21</span><h2 class="stage-title">Connections</h2></div>
+  <div class="flow-row">
+    <div class="flow-box" style="border-color:var(--blue);">L48: Naive Bayes<br>core model</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--teal);">L49: Pitfalls<br>(this lecture)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--purple);">Regularization<br>(ridge, lasso priors)</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-box" style="border-color:var(--gold);">Softmax / log-sum-exp<br>(deep learning)</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- STAGE 22: ONE PAGE BRAIN -->
+<div class="stage">
+  <div class="stage-head"><span class="stage-num">22</span><h2 class="stage-title">One-Page Brain ⭐</h2></div>
+  <div class="card accent-gold" style="background:linear-gradient(160deg, var(--panel-bg), var(--panel-bg-2));">
+    <div class="brain-grid">
+      <div class="brain-card">
+        <h4>Core Intuition</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Never let one missing word veto everything (smoothing); never let a computer's floats vanish to zero (logs).</p>
+      </div>
+      <div class="brain-card">
+        <h4>2 Formulas</h4>
+        <p style="margin:0; font-size:0.85rem; color:var(--text-dim);">
+          1. <span class="sym-param">P̂<sub>Y,J</sub></span> = (count+1)/(count+2)<br>
+          2. score = log P(Y) + Σ log P(F<sub>j</sub>|Y)
+        </p>
+      </div>
+      <div class="brain-card">
+        <h4>2 Diagrams</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Zero-product collapse · Laplace pseudo-email injection · log-space pipeline</p>
+      </div>
+      <div class="brain-card">
+        <h4>5 Triggers</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">"unseen word," "pseudo-count," "add-one," "underflow," "log-likelihood"</p>
+      </div>
+      <div class="brain-card">
+        <h4>3 Traps</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Logs don't fix zero-frequency · smoothing doesn't change the decision rule · denominator grows by 2, not 1</p>
+      </div>
+      <div class="brain-card">
+        <h4>Dependencies</h4>
+        <p style="margin:0; font-size:0.9rem; color:var(--text-dim);">Requires: L48 Naive Bayes, MLE, basic floating-point representation</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="card accent-blue">
+    <h3>🧾 Cheat Sheet</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><td>Problem 1</td><td>Zero-frequency: one unseen word → probability 0 → whole product 0</td></tr>
+      <tr><td>Fix 1</td><td>Laplace smoothing: add +1 to numerator, +2 to denominator (2 pseudo-emails)</td></tr>
+      <tr><td>Problem 2</td><td>Numerical underflow: product of many small fractions → rounds to 0.0</td></tr>
+      <tr><td>Fix 2</td><td>Log-space: sum of logs instead of product of probabilities</td></tr>
+      <tr><td>Order matters</td><td>Smooth first, then take logs — log(0) is undefined</td></tr>
+      <tr><td>Bayesian view</td><td>Laplace smoothing = uniform (Beta(1,1)) prior on each feature probability</td></tr>
+    </table>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>

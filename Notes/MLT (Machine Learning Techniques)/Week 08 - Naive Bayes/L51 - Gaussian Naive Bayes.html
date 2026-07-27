@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 51 · Gaussian Naive Bayes Classifier</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --bg2:#0d1220;
+  --panel-bg:#12172a;
+  --panel-border:rgba(255,255,255,0.08);
+  --card-bg:#111726;
+  --card-border:rgba(255,255,255,0.07);
+  --gold:#e0b84c;
+  --gold-soft:rgba(224,184,76,0.14);
+  --teal:#3ec9b0;
+  --teal-soft:rgba(62,201,176,0.14);
+  --purple:#a385e0;
+  --purple-soft:rgba(163,133,224,0.14);
+  --red:#e0715f;
+  --blue:#5b9bd5;
+  --text:#e8ebf3;
+  --text-dim:#a7b0c4;
+  --text-faint:#6f7891;
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --mono-font:"JetBrains Mono",monospace;
+  --sans-font:"Inter",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    linear-gradient(180deg, rgba(224,184,76,0.05), transparent 400px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans-font);
+  line-height:1.6;
+  padding:0 0 80px 0;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+
+/* HERO */
+.hero{
+  padding:64px 20px 40px;
+  text-align:center;
+  border-bottom:1px solid var(--panel-border);
+  background:radial-gradient(ellipse at top, rgba(163,133,224,0.10), transparent 60%);
+}
+.breadcrumb{
+  font-family:var(--mono-font);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:var(--serif-math-font);
+  font-weight:700;
+  font-size:clamp(1.8rem,4.5vw,3rem);
+  margin:0 0 14px;
+  background:linear-gradient(135deg,#fff, var(--gold) 60%, var(--teal));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p.sub{
+  color:var(--text-dim);
+  max-width:640px;
+  margin:0 auto;
+  font-size:1.02rem;
+}
+.hero-tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+.tag{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid var(--panel-border);
+  color:var(--text-dim);
+}
+
+/* SECTION HEADERS */
+section{margin:64px 0;}
+.sec-label{
+  font-family:var(--mono-font);
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--gold);
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::before{content:"";width:22px;height:1px;background:var(--gold);display:inline-block;}
+h2.sec-title{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:600;
+  margin:0 0 22px;
+  color:#fff;
+}
+h3.sub-title{
+  font-family:var(--serif-math-font);
+  font-size:1.2rem;
+  font-weight:600;
+  color:var(--gold);
+  margin:28px 0 12px;
+}
+
+/* CARDS */
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:22px 24px;
+  margin:16px 0;
+}
+.card-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+@media(max-width:680px){.card-grid{grid-template-columns:1fr;}}
+
+/* CALLOUTS */
+.callout{
+  border-radius:12px;
+  padding:16px 20px;
+  margin:20px 0;
+  border-left:3px solid;
+  font-size:0.95rem;
+}
+.callout-title{
+  font-weight:700;
+  font-family:var(--sans-font);
+  font-size:0.8rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.callout.analogy{background:var(--purple-soft);border-color:var(--purple);}
+.callout.analogy .callout-title{color:var(--purple);}
+.callout.trap{background:rgba(224,113,95,0.12);border-color:var(--red);}
+.callout.trap .callout-title{color:var(--red);}
+.callout.tip{background:var(--teal-soft);border-color:var(--teal);}
+.callout.tip .callout-title{color:var(--teal);}
+.callout.assume{background:var(--gold-soft);border-color:var(--gold);}
+.callout.assume .callout-title{color:var(--gold);}
+
+/* EQUATION PANEL */
+.eq-panel{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:2.2rem 1.6rem;
+  margin:1.8rem 0;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  text-align:center;
+  position:relative;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-faint);
+  margin-bottom:14px;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.7rem;right:1.1rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.15rem,2.6vw,1.9rem);
+  line-height:1.9;
+}
+.eq-main .line{display:block;margin:6px 0;}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:#7fd67f;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);}
+sup,sub{font-size:0.62em;}
+
+/* LEGEND */
+.legend{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:6px 18px;
+  font-size:0.85rem;
+  color:var(--text-dim);
+}
+.legend .item{display:flex;gap:8px;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-size:1rem;min-width:26px;}
+
+/* STEP TIMELINE */
+.timeline{position:relative;margin:24px 0;padding-left:34px;}
+.timeline::before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--teal));opacity:0.35;}
+.step{position:relative;margin-bottom:22px;}
+.step-badge{
+  position:absolute;left:-34px;top:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.75rem;color:var(--gold);font-weight:700;
+}
+.step-title{font-weight:700;color:#fff;margin-bottom:4px;font-size:0.98rem;}
+.step-body{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;}
+.step-eq{font-family:var(--serif-math-font);font-size:1.1rem;text-align:center;padding:6px 0;}
+
+/* TABLES */
+table.data-table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:0.92rem;
+  border-radius:10px;overflow:hidden;
+}
+table.data-table th{
+  background:rgba(224,184,76,0.1);color:var(--gold);text-align:left;
+  padding:10px 14px;font-family:var(--mono-font);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;
+}
+table.data-table td{padding:10px 14px;border-top:1px solid var(--card-border);color:var(--text-dim);}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text);}
+
+/* MATRIX GRID */
+.matrix{display:inline-grid;grid-template-columns:repeat(2,1fr);gap:4px 18px;border-left:2px solid var(--text-dim);border-right:2px solid var(--text-dim);padding:8px 14px;font-family:var(--serif-math-font);font-size:1.1rem;vertical-align:middle;}
+
+/* COLLAPSIBLE */
+details.worked{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  margin:16px 0;padding:14px 18px;
+}
+details.worked summary{
+  cursor:pointer;font-weight:700;color:var(--teal);list-style:none;display:flex;align-items:center;gap:8px;
+}
+details.worked summary::-webkit-details-marker{display:none;}
+details.worked summary::before{content:"▸";transition:transform 0.2s;color:var(--teal);}
+details.worked[open] summary::before{transform:rotate(90deg);}
+details.worked .content{margin-top:14px;color:var(--text-dim);font-size:0.93rem;}
+
+/* SVG WRAPPER */
+.svg-card{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;padding:18px;margin:20px 0;text-align:center;}
+.svg-card svg{max-width:100%;height:auto;}
+.svg-cap{font-family:var(--mono-font);font-size:0.75rem;color:var(--text-faint);margin-top:8px;}
+
+/* SIMULATOR */
+.sim-card{
+  background:linear-gradient(180deg, rgba(62,201,176,0.06), transparent), var(--panel-bg);
+  border:1px solid var(--panel-border);border-radius:18px;padding:22px;margin:24px 0;
+}
+.sim-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.sim-badge{font-family:var(--mono-font);font-size:0.7rem;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:20px;letter-spacing:0.05em;}
+.sim-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+@media(max-width:720px){.sim-layout{grid-template-columns:1fr;}}
+.sim-canvas-wrap{background:#080b13;border-radius:12px;border:1px solid var(--panel-border);padding:10px;}
+canvas#gnbCanvas{width:100%;height:auto;border-radius:8px;display:block;}
+.controls{display:flex;flex-direction:column;gap:16px;}
+.ctrl label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;font-family:var(--mono-font);}
+.ctrl input[type=range]{width:100%;accent-color:var(--teal);}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:10px 14px;}
+.switch{position:relative;display:inline-block;width:44px;height:24px;}
+.switch input{opacity:0;width:0;height:0;}
+.slider-toggle{position:absolute;cursor:pointer;inset:0;background:#333;border-radius:24px;transition:0.2s;}
+.slider-toggle::before{content:"";position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:0.2s;}
+input:checked + .slider-toggle{background:var(--gold);}
+input:checked + .slider-toggle::before{transform:translateX(20px);}
+.readout{font-family:var(--mono-font);font-size:0.85rem;text-align:center;padding:10px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);margin-top:6px;}
+.readout .boundary-label{font-weight:700;font-size:1rem;}
+.legend-row{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:0.78rem;color:var(--text-dim);}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
+
+/* code */
+code, .code{font-family:var(--mono-font);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:5px;font-size:0.88em;color:var(--teal);}
+
+/* one page brain */
+.brain{
+  border:1px solid var(--gold);border-radius:18px;padding:26px;
+  background:radial-gradient(ellipse at top left, rgba(224,184,76,0.09), transparent 60%), var(--panel-bg);
+}
+.brain h3{margin-top:0;color:var(--gold);font-family:var(--serif-math-font);}
+.brain ul{margin:8px 0;padding-left:20px;color:var(--text-dim);}
+.brain li{margin:5px 0;}
+
+/* retrieval Q */
+.qa{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 18px;margin:10px 0;}
+.qa .q{font-weight:700;color:#fff;margin-bottom:6px;}
+.qa .q::before{content:"Q. ";color:var(--purple);}
+
+/* connections nav */
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px 0;}
+.chain .node{
+  font-family:var(--mono-font);font-size:0.82rem;padding:8px 14px;border-radius:10px;
+  background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-dim);
+}
+.chain .node.current{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);font-weight:700;}
+.chain .arrow{color:var(--text-faint);}
+
+hr.div{border:none;border-top:1px solid var(--panel-border);margin:40px 0;}
+
+.footer-note{text-align:center;color:var(--text-faint);font-size:0.8rem;font-family:var(--mono-font);margin-top:60px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="breadcrumb">Lecture 51 · Generative Models · Binary Classification</div>
+  <h1>Gaussian Naive Bayes Classifier</h1>
+  <p class="sub">Extending Naive Bayes from coin-flip features to real-valued data — modeling each class as its own Gaussian cloud, then letting Bayes' Rule draw the line between them.</p>
+  <div class="hero-tags">
+    <span class="tag">Generative Modeling</span>
+    <span class="tag">MLE Estimation</span>
+    <span class="tag">Linear vs Quadratic Boundaries</span>
+    <span class="tag">IITM · MLT Week 11</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============ KNOWLEDGE GRAPH ============ -->
+<section id="orientation">
+  <div class="sec-label">Layer 0 · Orientation</div>
+  <h2 class="sec-title">Where This Sits</h2>
+
+  <div class="chain">
+    <span class="node">Bayes' Rule</span><span class="arrow">→</span>
+    <span class="node">Naive Bayes (Binary Features)</span><span class="arrow">→</span>
+    <span class="node current">Gaussian Naive Bayes</span><span class="arrow">→</span>
+    <span class="node">Logistic Regression (next)</span><span class="arrow">→</span>
+    <span class="node">Discriminative Models</span>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prerequisites</h3>
+      <table class="data-table">
+        <tr><th>Required</th><td>Bayes' Rule, MLE, Bernoulli distribution</td></tr>
+        <tr><th>Helpful</th><td>Multivariate Gaussian density, matrix inverse/determinant</td></tr>
+        <tr><th>Optional</th><td>Eigen-decomposition (for visualizing covariance ellipses)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Cognitive Pattern</h3>
+      <p style="color:var(--text-dim);margin:0;">This is a <strong style="color:var(--teal);">probabilistic + geometric</strong> topic: you're fitting probability "clouds" to data (inference) and then asking what <em>shape</em> of boundary separates two clouds (geometry). Every result in this lecture is one of these two lenses.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE PROBLEM ============ -->
+<section id="problem">
+  <div class="sec-label">Layer 1 · Understanding</div>
+  <h2 class="sec-title">The Problem: Naive Bayes Meets Real Numbers</h2>
+  <p>Classic Naive Bayes assumes every feature is <strong>binary</strong> (word present/absent, pixel on/off) so each feature's class-conditional distribution is a Bernoulli. But most real data — height, temperature, sensor readings, exam scores — is <strong>real-valued</strong>, living in <span class="eq-inline"><span class="sym-var">R<sup>D</sup></span></span>. A Bernoulli can't describe "37.2°C." We need a distribution over continuous space, and the natural default is the <strong>Gaussian (Normal) distribution</strong>.</p>
+
+  <div class="callout analogy">
+    <div class="callout-title">🎯 Analogy — Two Archers, Two Targets</div>
+    Imagine two archers, each shooting arrows at their own target on the same wall. Archer A's arrows cluster tightly around one spot; Archer B's cluster around a different spot, maybe with a different spread. If you find a stray arrow on the wall and don't know who shot it, your best guess is: <em>"which archer's typical cluster is this arrow closer to, accounting for how tightly each archer usually groups their shots?"</em> That's exactly Gaussian Naive Bayes — each class is an archer, each Gaussian is their shot pattern, and classification asks which pattern more plausibly produced the point you're looking at.
+  </div>
+</section>
+
+<!-- ============ GENERATIVE MODEL ============ -->
+<section id="genmodel">
+  <div class="sec-label">Layer 1 → Layer 2</div>
+  <h2 class="sec-title">The Generative Model</h2>
+  <p>A <strong>generative</strong> classifier doesn't directly ask "given <span class="sym-var" style="font-family:var(--serif-math-font)">X</span>, what is <span class="sym-var" style="font-family:var(--serif-math-font)">Y</span>?" Instead it models <em>how the data was generated</em>: first a label is drawn, then features are drawn conditioned on that label. Formally, it learns the full joint <span class="sym-fn" style="font-family:var(--serif-math-font)">P(X, Y)</span> by factorizing it into two pieces you estimate separately:</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">The Generative Factorization</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-fn">P</span>(<span class="sym-var">X</span>, <span class="sym-var">Y</span>) = <span class="sym-fn">P</span>(<span class="sym-var">Y</span>) &middot; <span class="sym-fn">P</span>(<span class="sym-var">X</span> | <span class="sym-var">Y</span>)</span>
+    </div>
+    <div class="eq-number">Eq. 51.1</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym var" style="color:var(--purple);font-family:var(--serif-math-font)">P(Y)</span> the <strong>prior</strong> — how common is each class before seeing any features?</div>
+    <div class="item"><span class="sym" style="color:var(--purple);font-family:var(--serif-math-font)">P(X|Y)</span> the <strong>likelihood</strong> — given the class, what does the feature vector look like?</div>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prior: <span style="font-family:var(--serif-math-font);color:var(--gold);">P(Y)</span></h3>
+      <p style="color:var(--text-dim);">Modeled as a <strong>Bernoulli</strong> distribution — same as ordinary Naive Bayes. It only needs one parameter, <span class="code">p</span>, the probability of label 1.</p>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Likelihood: <span style="font-family:var(--serif-math-font);color:var(--gold);">P(X|Y)</span></h3>
+      <p style="color:var(--text-dim);">Modeled as a <strong>multivariate Gaussian</strong> — this is the new piece. Each class gets its own bell-shaped cloud in <span class="code">R^D</span>.</p>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Class-Conditional Densities</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-var">X</span> | <span class="sym-var">Y</span>=1 &nbsp;∼&nbsp; <span class="sym-fn">N</span>(<span class="sym-param">μ<sub>1</sub></span>, <span class="sym-param">Σ</span>)</span>
+      <span class="line"><span class="sym-var">X</span> | <span class="sym-var">Y</span>=0 &nbsp;∼&nbsp; <span class="sym-fn">N</span>(<span class="sym-param">μ<sub>0</sub></span>, <span class="sym-param">Σ</span>)</span>
+    </div>
+    <div class="eq-number">Eq. 51.2</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="color:var(--gold);font-family:var(--serif-math-font);">μ<sub>1</sub>, μ<sub>0</sub></span> class-specific means — "where each archer's cluster is centered"</div>
+    <div class="item"><span class="sym" style="color:var(--gold);font-family:var(--serif-math-font);">Σ</span> covariance matrix — shape/spread of the cloud (shared across classes here)</div>
+  </div>
+
+  <div class="callout assume">
+    <div class="callout-title">📐 Key Simplifying Assumption</div>
+    Both classes are given the <strong>same covariance matrix</strong> <span class="code">Σ</span> — only the <em>centers</em> <span class="code">μ₁</span> and <span class="code">μ₀</span> differ, not the <em>shape</em> of each cloud. This single assumption is what makes the boundary come out <strong>linear</strong>, as you'll see below.
+  </div>
+
+  <div class="svg-card">
+    <svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="g1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#3ec9b0" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#3ec9b0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="g0" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e0b84c" stop-opacity="0.55"/>
+          <stop offset="100%" stop-color="#e0b84c" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <line x1="40" y1="190" x2="600" y2="190" stroke="#3a4358" stroke-width="1"/>
+      <line x1="40" y1="20" x2="40" y2="190" stroke="#3a4358" stroke-width="1"/>
+      <ellipse cx="200" cy="120" rx="110" ry="70" fill="url(#g0)"/>
+      <ellipse cx="200" cy="120" rx="55" ry="35" fill="none" stroke="#e0b84c" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <circle cx="200" cy="120" r="4" fill="#e0b84c"/>
+      <text x="200" y="112" text-anchor="middle" fill="#e0b84c" font-family="JetBrains Mono" font-size="11">μ₀</text>
+      <text x="200" y="205" text-anchor="middle" fill="#e0b84c" font-family="Inter" font-size="12">Class 0 cloud</text>
+
+      <ellipse cx="440" cy="100" rx="110" ry="70" fill="url(#g1)"/>
+      <ellipse cx="440" cy="100" rx="55" ry="35" fill="none" stroke="#3ec9b0" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <circle cx="440" cy="100" r="4" fill="#3ec9b0"/>
+      <text x="440" y="92" text-anchor="middle" fill="#3ec9b0" font-family="JetBrains Mono" font-size="11">μ₁</text>
+      <text x="440" y="205" text-anchor="middle" fill="#3ec9b0" font-family="Inter" font-size="12">Class 1 cloud</text>
+
+      <line x1="315" y1="35" x2="315" y2="185" stroke="#a385e0" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <text x="315" y="24" text-anchor="middle" fill="#a385e0" font-family="Inter" font-size="11">same shape (Σ), different center</text>
+    </svg>
+    <div class="svg-cap">Fig 51.1 — Two Gaussian clouds, identical shape (shared Σ), shifted centers (μ₀ vs μ₁)</div>
+  </div>
+</section>
+
+<!-- ============ MLE ============ -->
+<section id="mle">
+  <div class="sec-label">Layer 2 · Derivation</div>
+  <h2 class="sec-title">Estimating Parameters via MLE</h2>
+  <p>We never know the true <span class="code">P(Y)</span>, <span class="code">μ₁</span>, <span class="code">μ₀</span>, <span class="code">Σ</span> — we only have training data <span class="code">{(xᵢ, yᵢ)}</span>. Maximum Likelihood Estimation says: <em>pick the parameters that make the observed data most probable.</em> For a Gaussian generative model, this reduces to intuitive "counting and averaging" formulas.</p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Estimate the Prior</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">The MLE of a Bernoulli parameter is just the sample proportion — the fraction of training points labeled 1.</p>
+        <div class="step-eq"><span class="sym-param">p̂</span> = <span class="sym-op">1/N</span> <span style="font-size:1.4em;color:var(--red);">Σ</span><sub>i</sub> <span class="sym-var">y<sub>i</sub></span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Estimate Each Class Mean</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">The MLE mean of a Gaussian is the sample average — but computed <em>only over points belonging to that class</em> ("center of mass" of each archer's arrows).</p>
+        <div class="step-eq"><span class="sym-param">μ̂<sub>1</sub></span> = <span class="sym-op">1/N₁</span> <span style="font-size:1.4em;color:var(--red);">Σ</span><sub>i: yᵢ=1</sub> <span class="sym-var">x<sub>i</sub></span> &nbsp;&nbsp;&nbsp; <span class="sym-param">μ̂<sub>0</sub></span> = <span class="sym-op">1/N₀</span> <span style="font-size:1.4em;color:var(--red);">Σ</span><sub>i: yᵢ=0</sub> <span class="sym-var">x<sub>i</sub></span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Estimate the Shared Covariance</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">Since both classes share one <span class="code">Σ</span>, we pool the spread of <em>every</em> point around its <em>own</em> class mean, averaging outer products of the residuals.</p>
+        <div class="step-eq"><span class="sym-param">Σ̂</span> = <span class="sym-op">1/N</span> <span style="font-size:1.4em;color:var(--red);">Σ</span><sub>i</sub> (<span class="sym-var">x<sub>i</sub></span> − <span class="sym-param">μ̂<sub>yᵢ</sub></span>)(<span class="sym-var">x<sub>i</sub></span> − <span class="sym-param">μ̂<sub>yᵢ</sub></span>)<sup>T</sup></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">N₁, N₀</span> number of training points in class 1 / class 0</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">μ̂<sub>yᵢ</sub></span> the mean of <em>whichever</em> class point <span class="code">xᵢ</span> belongs to</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">(x−μ)(x−μ)<sup>T</sup></span> an outer product — a <span class="code">D×D</span> matrix, not a scalar</div>
+  </div>
+
+  <details class="worked">
+    <summary>Worked Numerical Example — 4 points, 1 feature dimension</summary>
+    <div class="content">
+      <p>Suppose <span class="code">D=1</span> and we have points: Class 0 → {2, 4}; Class 1 → {8, 10}.</p>
+      <p><strong>Priors:</strong> N=4, N₁=2 → <span class="code">p̂ = 2/4 = 0.5</span></p>
+      <p><strong>Means:</strong> <span class="code">μ̂₀ = (2+4)/2 = 3</span>, &nbsp; <span class="code">μ̂₁ = (8+10)/2 = 9</span></p>
+      <p><strong>Shared variance</strong> (1-D covariance): residuals are (2−3)=−1, (4−3)=1, (8−9)=−1, (10−9)=1. Squared: 1,1,1,1. Average → <span class="code">Σ̂ = 4/4 = 1</span>.</p>
+      <p>Notice both classes contributed points that are exactly 1 unit from their own mean — so even though the class centers (3 and 9) are far apart, the shared spread is small and tight, which is exactly what "shared Σ" captures.</p>
+    </div>
+  </details>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Common Mistake</div>
+    Don't average the covariance <em>across the whole dataset ignoring class membership</em> without first subtracting each point's <strong>own class mean</strong>. Subtracting one global mean would inflate <span class="code">Σ̂</span> with the separation between the classes, which isn't spread — it's signal you want the model to use for classification, not throw away into the covariance.
+  </div>
+</section>
+
+<!-- ============ PREDICTION ============ -->
+<section id="prediction">
+  <div class="sec-label">Layer 3 · Computation</div>
+  <h2 class="sec-title">Prediction via Bayes' Rule</h2>
+  <p>With <span class="code">P(Y)</span>, <span class="code">μ₁</span>, <span class="code">μ₀</span>, <span class="code">Σ</span> all estimated, classifying a new point <span class="code">X<sub>test</sub></span> is a direct application of Bayes' Rule: compute the posterior for each class and pick the winner.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Decision Rule</div>
+    <div class="eq-main">
+      <span class="line">Predict <span class="sym-var">Y</span>=1 &nbsp;if&nbsp;</span>
+      <span class="line"><span class="sym-fn">P</span>(<span class="sym-var">X<sub>test</sub></span>|<span class="sym-var">Y</span>=1)<span class="sym-fn">P</span>(<span class="sym-var">Y</span>=1) &nbsp;<span class="sym-op">≥</span>&nbsp; <span class="sym-fn">P</span>(<span class="sym-var">X<sub>test</sub></span>|<span class="sym-var">Y</span>=0)<span class="sym-fn">P</span>(<span class="sym-var">Y</span>=0)</span>
+    </div>
+    <div class="eq-number">Eq. 51.3</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 Why No Denominator?</div>
+    Full Bayes' Rule divides by <span class="code">P(X<sub>test</sub>)</span> to get a true posterior probability. But since that denominator is <strong>identical</strong> for both classes when comparing them, it cancels out of the comparison entirely — we only need the numerators to decide which class wins.
+  </div>
+</section>
+
+<!-- ============ DECISION BOUNDARY ============ -->
+<section id="boundary">
+  <div class="sec-label">Layer 2 → Layer 5 · Derivation & Recognition</div>
+  <h2 class="sec-title">Decision Boundaries: Linear vs Quadratic</h2>
+  <p>This is the headline result of the lecture. Take logs of both sides of Eq. 51.3, plug in the Gaussian density formula, and simplify. Whether the surviving equation is linear or quadratic in <span class="code">X</span> depends entirely on <strong>one</strong> assumption: is <span class="code">Σ</span> shared?</p>
+
+  <h3 class="sub-title">Case 1 — Equal Covariance Matrices</h3>
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Take log of both Gaussian densities</div>
+      <div class="step-body"><div class="step-eq" style="font-size:0.95rem;">log N(x;μ,Σ) = −½(x−μ)<sup>T</sup>Σ<sup>−1</sup>(x−μ) + const</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Expand the quadratic form (x−μ)ᵀΣ⁻¹(x−μ)</div>
+      <div class="step-body"><div class="step-eq" style="font-size:0.95rem;">x<sup>T</sup>Σ<sup>−1</sup>x − 2μ<sup>T</sup>Σ<sup>−1</sup>x + μ<sup>T</sup>Σ<sup>−1</sup>μ</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Subtract the class-1 and class-0 expressions</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">Because <strong>Σ is the same for both classes</strong>, the <span class="code">xᵀΣ⁻¹x</span> quadratic term is identical on both sides — it cancels completely.</p>
+        <div class="step-eq" style="font-size:0.95rem;color:var(--text-faint);"><s>x<sup>T</sup>Σ<sup>−1</sup>x</s> − 2μ₁<sup>T</sup>Σ<sup>−1</sup>x + ... &nbsp;vs&nbsp; <s>x<sup>T</sup>Σ<sup>−1</sup>x</s> − 2μ₀<sup>T</sup>Σ<sup>−1</sup>x + ...</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-badge">4</div>
+      <div class="step-title">What remains is linear in x</div>
+      <div class="step-body"><div class="step-eq">W<sup>T</sup>X + b = 0</div></div>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Linear Decision Boundary</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-param">W</span><sup>T</sup><span class="sym-var">X</span> + <span class="sym-param">b</span> = 0</span>
+      <span class="line" style="font-size:0.75em;color:var(--text-faint);">where <span class="sym-param">W</span> ∝ <span class="sym-param">Σ<sup>−1</sup></span>(<span class="sym-param">μ<sub>1</sub></span> − <span class="sym-param">μ<sub>0</sub></span>)</span>
+    </div>
+    <div class="eq-number">Eq. 51.4</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">W</span> a weight vector — direction perpendicular to the separating boundary</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">b</span> a bias/offset — where the boundary sits along that direction</div>
+  </div>
+
+  <h3 class="sub-title">Case 2 — Different Covariance Matrices</h3>
+  <p>If instead each class gets its <strong>own</strong> covariance (<span class="code">Σ₁ ≠ Σ₀</span>), the quadratic terms <span class="code">xᵀΣ₁⁻¹x</span> and <span class="code">xᵀΣ₀⁻¹x</span> are no longer identical — they <em>don't</em> cancel. What survives is quadratic in <span class="code">X</span>, giving a curved boundary (an ellipse, parabola, or hyperbola depending on the data).</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Quadratic Decision Boundary</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-var">X</span><sup>T</sup><span class="sym-param">A</span><span class="sym-var">X</span> + <span class="sym-param">W</span><sup>T</sup><span class="sym-var">X</span> + <span class="sym-param">b</span> = 0</span>
+    </div>
+    <div class="eq-number">Eq. 51.5</div>
+  </div>
+
+  <div class="svg-card">
+    <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg">
+      <!-- Linear case -->
+      <text x="150" y="24" text-anchor="middle" fill="#e8ebf3" font-family="Inter" font-weight="600" font-size="13">Equal Σ → Linear</text>
+      <rect x="30" y="36" width="240" height="180" rx="10" fill="#0d1220" stroke="#1c2436"/>
+      <circle cx="90" cy="80" r="26" fill="none" stroke="#e0b84c" stroke-width="1.5"/>
+      <circle cx="110" cy="120" r="26" fill="none" stroke="#e0b84c" stroke-width="1.5"/>
+      <circle cx="80" cy="150" r="26" fill="none" stroke="#e0b84c" stroke-width="1.5"/>
+      <circle cx="200" cy="70" r="26" fill="none" stroke="#3ec9b0" stroke-width="1.5"/>
+      <circle cx="220" cy="110" r="26" fill="none" stroke="#3ec9b0" stroke-width="1.5"/>
+      <circle cx="195" cy="150" r="26" fill="none" stroke="#3ec9b0" stroke-width="1.5"/>
+      <line x1="150" y1="45" x2="150" y2="210" stroke="#e8ebf3" stroke-width="2"/>
+      <text x="150" y="228" text-anchor="middle" fill="#a7b0c4" font-family="JetBrains Mono" font-size="10">same-size ellipses, straight line</text>
+
+      <!-- Quadratic case -->
+      <text x="490" y="24" text-anchor="middle" fill="#e8ebf3" font-family="Inter" font-weight="600" font-size="13">Different Σ → Quadratic</text>
+      <rect x="370" y="36" width="240" height="180" rx="10" fill="#0d1220" stroke="#1c2436"/>
+      <ellipse cx="440" cy="120" rx="30" ry="55" fill="none" stroke="#e0b84c" stroke-width="1.5"/>
+      <circle cx="540" cy="120" r="18" fill="none" stroke="#3ec9b0" stroke-width="1.5"/>
+      <path d="M 480 40 Q 445 120 480 210" fill="none" stroke="#e8ebf3" stroke-width="2"/>
+      <text x="490" y="228" text-anchor="middle" fill="#a7b0c4" font-family="JetBrains Mono" font-size="10">different-size ellipses, curved boundary</text>
+    </svg>
+    <div class="svg-cap">Fig 51.2 — Same-shape clouds give a flat cut; differently-shaped clouds give a bent one</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 Intuition</div>
+    Think of each covariance as defining the "personal space bubble" shape of a class. If both classes have identically-shaped bubbles, only their <em>positions</em> differ — and the fair dividing line between two identically-shaped regions is always straight (a perpendicular bisector, generalized). If one bubble is fat and one is thin, the fair boundary has to bend to respect that asymmetry.
+  </div>
+</section>
+
+<!-- ============ SIMULATOR ============ -->
+<section id="simulator">
+  <div class="sec-label">Signature Interactive</div>
+  <h2 class="sec-title">Playground: Watch the Boundary Bend</h2>
+  <div class="sim-card">
+    <div class="sim-header">
+      <span class="sim-badge">● LIVE</span>
+      <span style="color:var(--text-dim);font-size:0.9rem;">Drag the sliders — the regions are colored by which class wins the posterior at each point.</span>
+    </div>
+    <div class="sim-layout">
+      <div class="sim-canvas-wrap">
+        <canvas id="gnbCanvas" width="480" height="380"></canvas>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#e0b84c;"></span>Class 0 region</span>
+          <span><span class="legend-dot" style="background:#3ec9b0;"></span>Class 1 region</span>
+          <span><span class="legend-dot" style="background:#fff;"></span>means</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="toggle-row">
+          <span style="font-family:var(--mono-font);font-size:0.85rem;">Force Equal Σ (linear)</span>
+          <label class="switch">
+            <input type="checkbox" id="equalToggle" checked>
+            <span class="slider-toggle"></span>
+          </label>
+        </div>
+        <div class="ctrl">
+          <label><span>Mean Separation (Δμ)</span><span id="sepVal">2.4</span></label>
+          <input type="range" id="sepSlider" min="0" max="4" step="0.1" value="2.4">
+        </div>
+        <div class="ctrl">
+          <label><span>σ₀ (Class 0 spread)</span><span id="s0Val">1.0</span></label>
+          <input type="range" id="s0Slider" min="0.4" max="2.2" step="0.05" value="1.0">
+        </div>
+        <div class="ctrl">
+          <label><span>σ₁ (Class 1 spread)</span><span id="s1Val">1.0</span></label>
+          <input type="range" id="s1Slider" min="0.4" max="2.2" step="0.05" value="1.0" disabled>
+        </div>
+        <div class="readout">
+          Boundary shape: <span class="boundary-label" id="boundaryLabel" style="color:var(--gold);">LINEAR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout tip" style="margin-top:0;">
+    <div class="callout-title">Try This</div>
+    Toggle off "Force Equal Σ" and drag σ₀ and σ₁ apart. Watch the straight boundary bow into a curve — and if you push σ₀ far enough past σ₁, it can even close into a loop around the tighter class. That loop <em>is</em> Eq. 51.5 in action: the class with tiny variance becomes a "confident island" the model will only assign to points very close to its mean.
+  </div>
+</section>
+
+<!-- ============ NOMENCLATURE / COMPARISON ============ -->
+<section id="compare">
+  <div class="sec-label">Layer 5 · Recognition</div>
+  <h2 class="sec-title">Naming Things Correctly</h2>
+  <p>This equal-vs-different-covariance distinction has standard names you'll see in scikit-learn, textbooks, and exam questions:</p>
+  <table class="data-table">
+    <tr><th>Setting</th><th>Boundary</th><th>Standard Name</th></tr>
+    <tr><td>Binary features, Bernoulli likelihood</td><td>—</td><td>(Ordinary) Naive Bayes</td></tr>
+    <tr><td>Real features, Gaussian, <strong>shared Σ</strong></td><td>Linear</td><td>Gaussian NB (shared Σ) ≈ Linear Discriminant Analysis (LDA)</td></tr>
+    <tr><td>Real features, Gaussian, <strong>separate Σ₁,Σ₀</strong></td><td>Quadratic</td><td>Quadratic Discriminant Analysis (QDA)</td></tr>
+  </table>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ IITM Exam Trap</div>
+    The word <strong>"Naive"</strong> in ordinary Naive Bayes refers to the <em>feature-independence</em> assumption. But this lecture's Gaussian model uses a <strong>full covariance matrix</strong> <span class="code">Σ</span> — it does <em>not</em> assume features are independent (that would force <span class="code">Σ</span> to be diagonal). So "Gaussian Naive Bayes" as taught here is, strictly, the generative model behind <strong>LDA</strong>, not a features-independent Naive Bayes. If a question asks you to assume independent features too, you must additionally diagonalize <span class="code">Σ</span> — don't silently assume that unless told.
+  </div>
+</section>
+
+<!-- ============ ASSUMPTIONS & EDGE CASES ============ -->
+<section id="assumptions">
+  <div class="sec-label">Layer 4 · Reliability</div>
+  <h2 class="sec-title">Assumptions, Edge Cases & Failure Modes</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Assumption Library</h3>
+      <table class="data-table">
+        <tr><th>Assumption</th><th>Consequence if violated</th></tr>
+        <tr><td>Data really is Gaussian per class</td><td>Poor fit if data is skewed, multimodal, or heavy-tailed</td></tr>
+        <tr><td>Σ shared across classes</td><td>Forces linear boundary; if wrong, underfits true (curved) separation</td></tr>
+        <tr><td>Enough samples per class</td><td>Σ̂ becomes unstable / non-invertible with too few points relative to D</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Invariant Library</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li><strong style="color:#7fd67f;">Always true:</strong> With shared Σ, the boundary is exactly linear.</li>
+        <li><strong style="color:var(--gold);">Sometimes true:</strong> With different Σ's, the boundary is curved — but can degenerate back to linear/near-linear if Σ₁≈Σ₀.</li>
+        <li><strong style="color:var(--red);">Never true:</strong> The boundary is never linear when Σ₁≠Σ₀ in general position (the quadratic term genuinely survives).</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Failure Visualization</div>
+    <strong>Works:</strong> well-separated, roughly elliptical, single-mode classes with enough data. <strong>Degrades:</strong> classes overlap heavily, or D is large relative to N (covariance estimate gets noisy). <strong>Fails:</strong> a class is multimodal (e.g. two sub-clusters) — a single Gaussian per class cannot represent two blobs, no matter how you tune Σ.
+  </div>
+</section>
+
+<!-- ============ ENGINEERING JUDGMENT ============ -->
+<section id="judgment">
+  <div class="sec-label">Layer 6 · Engineering Judgment</div>
+  <h2 class="sec-title">When to Reach for This</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Use Gaussian NB / LDA when…</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li>Features are continuous and roughly bell-shaped per class</li>
+        <li>You want a fast, closed-form, no-iteration classifier</li>
+        <li>You want an interpretable linear decision rule</li>
+        <li>Data is limited — shared Σ means fewer parameters to estimate than QDA</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prefer alternatives when…</h3>
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li>Classes clearly have different spreads → QDA</li>
+        <li>True decision boundary looks non-quadratic → Logistic Regression / kernel methods</li>
+        <li>Features are genuinely independent given class → true (diagonal-Σ) Naive Bayes is cheaper</li>
+        <li>You don't want to assume any distributional form → discriminative models (next lecture)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TRANSFER & NEXT ============ -->
+<section id="transfer">
+  <div class="sec-label">Layer 7 · Transfer</div>
+  <h2 class="sec-title">Connections & What's Next</h2>
+  <p>Gaussian NB is <strong>generative</strong>: it models <span class="code">P(X|Y)</span> and <span class="code">P(Y)</span>, then derives <span class="code">P(Y|X)</span> via Bayes' Rule. Under the shared-Σ assumption, the resulting decision rule is linear in <span class="code">X</span> — which raises a natural question: <em>what if we skip the generative modeling step entirely and directly model <span class="code">P(Y|X)</span> as a linear function?</em> That's precisely the pivot to <strong>discriminative models</strong>, starting with <strong>Logistic Regression</strong> in the next lecture — same linear boundary shape, completely different philosophy of how you got there.</p>
+
+  <table class="data-table">
+    <tr><th>Generative (this lecture)</th><th>Discriminative (next lecture)</th></tr>
+    <tr><td>Models P(X|Y) and P(Y), derives P(Y|X)</td><td>Models P(Y|X) directly</td></tr>
+    <tr><td>Can generate synthetic data from the model</td><td>Cannot generate data — only classifies</td></tr>
+    <tr><td>Needs distributional assumptions (Gaussian)</td><td>Fewer assumptions about feature distribution</td></tr>
+  </table>
+</section>
+
+<!-- ============ RETRIEVAL PRACTICE ============ -->
+<section id="retrieval">
+  <div class="sec-label">Layer 7 · Retrieval Practice</div>
+  <h2 class="sec-title">Test Yourself</h2>
+  <div class="qa">
+    <div class="q">Why does assuming a shared covariance matrix force the decision boundary to be linear?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">Because the quadratic term <span class="code">xᵀΣ⁻¹x</span> is identical for both classes and cancels when you compare (subtract) their log-posteriors — only the linear-in-x terms survive.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">What MLE estimate do you use for μ₁, and why only over class-1 points?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">The sample mean of class-1 points only — because μ₁ is the mean of the Gaussian that specifically generates class-1 data; mixing in class-0 points would bias the estimate toward the wrong center.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">If Σ₁ ≠ Σ₀, what shape can the decision boundary take, and what is this model called?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">A general quadratic curve (ellipse, parabola, or hyperbola) — this setting is called Quadratic Discriminant Analysis (QDA).</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">Is "Gaussian Naive Bayes" as derived here truly feature-independent, in the sense the word "naive" usually implies?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">No — it uses a full covariance matrix Σ, so features can be correlated. It's only "naive" in name/lineage; mathematically it's the generative model behind LDA. True feature-independence would require Σ to be diagonal.</div></details>
+  </div>
+</section>
+
+<!-- ============ ONE PAGE BRAIN ============ -->
+<section id="brain">
+  <div class="sec-label">Layer 8 · Compression</div>
+  <h2 class="sec-title">One-Page Brain</h2>
+  <div class="brain">
+    <h3>Gaussian Naive Bayes — Everything on One Page</h3>
+    <p style="color:var(--text-dim);"><strong>Core idea:</strong> model each class as its own Gaussian cloud; classify a point by asking which cloud more plausibly produced it, weighted by how common each class is.</p>
+    <ul>
+      <li><strong>Model:</strong> P(Y) ~ Bernoulli; X|Y=1 ~ N(μ₁,Σ); X|Y=0 ~ N(μ₀,Σ)</li>
+      <li><strong>MLE:</strong> p̂ = fraction labeled 1; μ̂ = class sample mean; Σ̂ = pooled outer-product average of residuals from own-class mean</li>
+      <li><strong>Predict:</strong> compare P(X|Y=1)P(Y=1) vs P(X|Y=0)P(Y=0)</li>
+      <li><strong>Shared Σ → linear boundary</strong> WᵀX+b=0, W ∝ Σ⁻¹(μ₁−μ₀) — this is LDA</li>
+      <li><strong>Different Σ → quadratic boundary</strong> — this is QDA</li>
+      <li><strong>Trap:</strong> "naive" here ≠ independent features; Σ is full, not diagonal</li>
+      <li><strong>Next:</strong> discriminative twin — Logistic Regression models P(Y|X) directly, no Gaussian assumption needed</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<div class="footer-note">Lecture 51 · Gaussian Naive Bayes Classifier — IITM MLT Study Notes</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('gnbCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  const sepSlider = document.getElementById('sepSlider');
+  const s0Slider = document.getElementById('s0Slider');
+  const s1Slider = document.getElementById('s1Slider');
+  const equalToggle = document.getElementById('equalToggle');
+  const sepVal = document.getElementById('sepVal');
+  const s0Val = document.getElementById('s0Val');
+  const s1Val = document.getElementById('s1Val');
+  const boundaryLabel = document.getElementById('boundaryLabel');
+
+  // data-space range
+  const range = 5; // -5..5 in both axes
+
+  function toScreen(x, y){
+    return [ (x+range)/(2*range)*W, H - (y+range)/(2*range)*H ];
+  }
+
+  function gaussLog(x, y, mx, my, s){
+    // isotropic gaussian, log density up to additive const shared form: -0.5*log(s^2) - ((x-mx)^2+(y-my)^2)/(2*s^2)
+    const d2 = (x-mx)*(x-mx) + (y-my)*(y-my);
+    return -Math.log(s) - d2/(2*s*s);
+  }
+
+  function draw(){
+    const sep = parseFloat(sepSlider.value);
+    let s0 = parseFloat(s0Slider.value);
+    let s1 = parseFloat(s1Slider.value);
+    const equal = equalToggle.checked;
+    if(equal){ s1 = s0; s1Slider.value = s0; }
+
+    sepVal.textContent = sep.toFixed(1);
+    s0Val.textContent = s0.toFixed(2);
+    s1Val.textContent = s1.toFixed(2);
+    s1Slider.disabled = equal;
+
+    boundaryLabel.textContent = equal ? 'LINEAR' : (Math.abs(s0-s1) < 0.02 ? 'LINEAR' : 'QUADRATIC');
+    boundaryLabel.style.color = (equal || Math.abs(s0-s1)<0.02) ? '#e0b84c' : '#a385e0';
+
+    const mx0 = -sep/2, my0 = 0;
+    const mx1 = sep/2, my1 = 0;
+
+    const img = ctx.createImageData(W, H);
+    const step = 3;
+    for(let py=0; py<H; py+=step){
+      for(let px=0; px<W; px+=step){
+        const x = (px/W)*2*range - range;
+        const y = ((H-py)/H)*2*range - range;
+        const l1 = gaussLog(x,y,mx1,my1,s1);
+        const l0 = gaussLog(x,y,mx0,my0,s0);
+        const class1wins = l1 >= l0;
+        // color intensity based on confidence margin
+        const margin = Math.min(Math.abs(l1-l0), 4)/4;
+        let r,g,b;
+        if(class1wins){
+          r = 20 + margin*30; g = 60 + margin*140; b = 90 + margin*90;
+        } else {
+          r = 90 + margin*130; g = 70 + margin*80; b = 30 + margin*20;
+        }
+        for(let dy=0; dy<step; dy++){
+          for(let dx=0; dx<step; dx++){
+            const xx = px+dx, yy = py+dy;
+            if(xx>=W||yy>=H) continue;
+            const idx = (yy*W+xx)*4;
+            img.data[idx] = r; img.data[idx+1]=g; img.data[idx+2]=b; img.data[idx+3]=255;
+          }
+        }
+      }
+    }
+    ctx.putImageData(img,0,0);
+
+    // overlay mean markers
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 2;
+    [[mx0,my0],[mx1,my1]].forEach(([mx,my])=>{
+      const [sx,sy] = toScreen(mx,my);
+      ctx.beginPath();
+      ctx.moveTo(sx-7,sy); ctx.lineTo(sx+7,sy);
+      ctx.moveTo(sx,sy-7); ctx.lineTo(sx,sy+7);
+      ctx.stroke();
+    });
+
+    // 1-sigma ellipse rings
+    function ring(mx,my,s,color){
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4,3]);
+      ctx.beginPath();
+      for(let a=0;a<=Math.PI*2+0.1;a+=0.05){
+        const x = mx + s*Math.cos(a);
+        const y = my + s*Math.sin(a);
+        const [sx,sy] = toScreen(x,y);
+        if(a===0) ctx.moveTo(sx,sy); else ctx.lineTo(sx,sy);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ring(mx0,my0,s0,'rgba(224,184,76,0.9)');
+    ring(mx1,my1,s1,'rgba(62,201,176,0.9)');
+  }
+
+  [sepSlider,s0Slider,s1Slider,equalToggle].forEach(el=>el.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asynchronous Tasks with Celery — MAD2 Learning OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0d1117;
+    --surface: #131a22;
+    --surface-2: #1a232d;
+    --surface-3: #202b37;
+    --border: #29343f;
+    --border-soft: #1f2830;
+    --text: #e8eef4;
+    --text-muted: #90a0ae;
+    --text-faint: #5c6b78;
+
+    --teal: #43d9c0;
+    --teal-dim: #1c3833;
+    --amber: #f2b84b;
+    --amber-dim: #3a2f18;
+    --coral: #f0685f;
+    --coral-dim: #3a1f1e;
+    --violet: #9b8cff;
+    --violet-dim: #241f3d;
+
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:
+      radial-gradient(1100px 500px at 85% -10%, rgba(67,217,192,0.08), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(155,140,255,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  ::selection{ background:var(--teal); color:#04140f; }
+  a{ color:inherit; text-decoration:none; }
+
+  .shell{ display:grid; grid-template-columns:250px minmax(0,1fr); max-width:1320px; margin:0 auto; }
+
+  .sidebar{
+    position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+    padding:28px 14px 40px 22px; border-right:1px solid var(--border-soft);
+    scrollbar-width:thin; scrollbar-color:var(--surface-3) transparent;
+  }
+  .sidebar::-webkit-scrollbar{ width:6px; }
+  .sidebar::-webkit-scrollbar-thumb{ background:var(--surface-3); border-radius:4px; }
+
+  .brand{
+    display:flex; align-items:center; gap:9px; font-family:var(--mono); font-size:12px;
+    letter-spacing:.06em; color:var(--teal); margin-bottom:26px; text-transform:uppercase;
+  }
+  .brand .dot{ width:7px; height:7px; border-radius:50%; background:var(--teal); box-shadow:0 0 8px var(--teal); }
+
+  .navlist{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px; }
+  .navlist a{
+    display:flex; gap:9px; align-items:baseline; padding:7px 10px; border-radius:8px;
+    font-size:13px; color:var(--text-muted); transition:background .15s ease, color .15s ease;
+  }
+  .navlist a:hover{ background:var(--surface-2); color:var(--text); }
+  .navlist .num{ font-family:var(--mono); font-size:11px; color:var(--text-faint); min-width:18px; }
+  .navlist a.active{ background:var(--surface-2); color:var(--teal); }
+
+  .mobile-bar{ display:none; }
+
+  main{ padding:36px 40px 100px; min-width:0; }
+
+  .hero{
+    border:1px solid var(--border); background:linear-gradient(160deg, var(--surface-2), var(--surface) 70%);
+    border-radius:20px; padding:34px 34px 30px; margin-bottom:34px; position:relative; overflow:hidden;
+  }
+  .hero::after{
+    content:""; position:absolute; inset:0;
+    background:
+      linear-gradient(90deg, transparent 0 24px, var(--border-soft) 24px 25px, transparent 25px) 0 0/26px 100%,
+      linear-gradient(0deg, transparent 0 24px, var(--border-soft) 24px 25px, transparent 25px) 0 0/100% 26px;
+    opacity:.35; pointer-events:none;
+  }
+  .hero-eyebrow{ font-family:var(--mono); font-size:12px; color:var(--teal); text-transform:uppercase; letter-spacing:.08em; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+  .hero h1{ font-family:var(--display); font-size:clamp(28px,4vw,42px); line-height:1.1; margin:0 0 14px; letter-spacing:-.01em; }
+  .hero p.lede{ color:var(--text-muted); max-width:640px; margin:0; font-size:16px; }
+
+  section.module{ margin-bottom:38px; scroll-margin-top:20px; }
+  .module-head{ display:flex; align-items:baseline; gap:14px; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--border-soft); }
+  .module-head .mnum{ font-family:var(--mono); font-size:13px; color:var(--text-faint); }
+  .module-head h2{ font-family:var(--display); font-size:22px; margin:0; font-weight:600; letter-spacing:-.01em; }
+  .module-head .msub{ margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--text-faint); text-transform:uppercase; letter-spacing:.05em; white-space:nowrap; }
+
+  .card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:22px 24px; }
+  .card + .card{ margin-top:14px; }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .grid-2, .grid-3{ grid-template-columns:1fr; } }
+
+  .topic-card{ display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+  .topic-cell{ padding:18px 20px; border-right:1px solid var(--border-soft); background:var(--surface); }
+  .topic-cell:last-child{ border-right:none; }
+  .topic-cell .tlabel{ font-family:var(--mono); font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text-faint); margin-bottom:8px; }
+  .topic-cell .tval{ font-size:15px; font-weight:600; }
+  .stars{ letter-spacing:2px; color:var(--amber); font-size:15px; }
+  .stars.imp{ color:var(--coral); }
+  @media (max-width:820px){ .topic-card{ grid-template-columns:1fr 1fr; } .topic-cell{ border-bottom:1px solid var(--border-soft);} }
+
+  .analogy{ background:linear-gradient(160deg, var(--violet-dim), var(--surface) 75%); border:1px solid #33305a; border-radius:var(--radius); padding:22px 24px; display:flex; gap:16px; }
+  .analogy .glyph{ font-size:26px; flex:0 0 auto; line-height:1; }
+  .analogy p{ margin:0; font-size:15.5px; color:#dbd6ff; }
+  .analogy strong{ color:#fff; }
+
+  .callout{ border-radius:var(--radius-sm); padding:14px 16px; border:1px solid var(--border); display:flex; gap:12px; align-items:flex-start; font-size:14.5px; }
+  .callout .icon{ font-size:17px; line-height:1.4; }
+  .callout.info{ background:var(--teal-dim); border-color:#1f5a51; }
+  .callout.warn{ background:var(--amber-dim); border-color:#5a4620; }
+  .callout.danger{ background:var(--coral-dim); border-color:#5c2a28; }
+  .callout.tip{ background:var(--violet-dim); border-color:#3a3466; }
+
+  .diagram{
+    border:1px solid var(--border);
+    background: radial-gradient(circle at 1px 1px, var(--border-soft) 1px, transparent 1px) 0 0/18px 18px, var(--surface);
+    border-radius:var(--radius); padding:28px 22px; overflow-x:auto;
+  }
+  .flow-row{ display:flex; align-items:center; gap:10px; flex-wrap:nowrap; min-width:max-content; justify-content:center; }
+  .flow-col{ display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .node{ font-family:var(--mono); font-size:12.5px; text-align:center; padding:11px 15px; border-radius:10px; border:1px solid var(--border); background:var(--surface-2); white-space:nowrap; color:var(--text); }
+  .node.server{ border-color:#2b5e56; background:var(--teal-dim); color:#a7f3e8; }
+  .node.worker{ border-color:#3a3466; background:var(--violet-dim); color:#d6cfff; }
+  .node.client{ border-color:var(--border); background:var(--surface-3); }
+  .node.warn{ border-color:#5a4620; background:var(--amber-dim); color:#ffe1a3; }
+  .node.danger{ border-color:#5c2a28; background:var(--coral-dim); color:#ffb3ae; }
+  .arrow{ color:var(--text-faint); font-family:var(--mono); font-size:16px; }
+  .arrow.down{ transform:rotate(90deg); }
+  .vflow{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+  @media (max-width:640px){ .flow-row{ flex-direction:column; } .arrow{ transform:rotate(90deg); } }
+
+  /* ---- signature: push vs pull queue ---- */
+  .signature{ border:1px solid var(--border); border-radius:var(--radius); padding:26px 22px 22px; background:var(--surface); }
+  .pp-lane{ display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  @media (max-width:700px){ .pp-lane{ grid-template-columns:1fr; } }
+  .pp-panel{ text-align:center; border:1.5px solid var(--border); border-radius:12px; padding:20px 14px; }
+  .pp-panel.push{ border-color:#2b5e56; background:var(--teal-dim); }
+  .pp-panel.pull{ border-color:#5a4620; background:var(--amber-dim); }
+  .pp-panel .picon{ font-size:26px; margin-bottom:8px; display:block; }
+  .pp-panel .ptitle{ font-family:var(--mono); font-weight:600; font-size:13px; margin-bottom:8px; }
+  .pp-panel .pdesc{ font-size:12.5px; color:var(--text-muted); }
+  .pp-panel.push .ptitle{ color:#a7f3e8; }
+  .pp-panel.pull .ptitle{ color:#ffe1a3; }
+  .pp-ticks{ display:flex; justify-content:center; gap:5px; margin-top:12px; }
+  .pp-tick{ width:8px; height:8px; border-radius:50%; background:var(--surface-3); }
+  .pp-tick.active{ background:var(--amber); }
+  .pp-tick.active-t{ background:var(--teal); }
+
+  table{ width:100%; border-collapse:collapse; font-size:14px; }
+  thead th{ text-align:left; font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); padding:10px 12px; border-bottom:1px solid var(--border); }
+  tbody td{ padding:11px 12px; border-bottom:1px solid var(--border-soft); vertical-align:top; }
+  tbody tr:last-child td{ border-bottom:none; }
+  tbody tr:hover{ background:var(--surface-2); }
+
+  .code-block{ background:#0a0f14; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; margin:14px 0; }
+  .code-head{ display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid var(--border); font-family:var(--mono); font-size:11px; color:var(--text-faint); }
+  .code-head .d{ width:9px; height:9px; border-radius:50%; background:var(--surface-3); }
+  .code-block pre{ margin:0; padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.65; }
+  .code-block code{ color:#c9d6de; }
+  .tok-kw{ color:var(--violet); }
+  .tok-fn{ color:var(--teal); }
+  .tok-str{ color:var(--amber); }
+  .tok-cm{ color:var(--text-faint); font-style:italic; }
+  .tok-dec{ color:#f0685f; }
+  .tok-num{ color:#7ee2ff; }
+
+  .anno-list{ list-style:none; margin:14px 0 0; padding:0; display:flex; flex-direction:column; gap:8px; }
+  .anno-list li{ display:flex; gap:10px; font-size:13.5px; padding:8px 12px; background:var(--surface-2); border-left:3px solid var(--teal); border-radius:6px; }
+  .anno-list code{ font-family:var(--mono); color:var(--teal); font-size:12.5px; flex:0 0 auto; }
+
+  .mistake-pair{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:700px){ .mistake-pair{ grid-template-columns:1fr; } }
+  .mrow{ border-radius:var(--radius-sm); padding:13px 15px; font-size:14px; border:1px solid; }
+  .mrow.wrong{ background:var(--coral-dim); border-color:#5c2a28; }
+  .mrow.right{ background:var(--teal-dim); border-color:#1f5a51; }
+  .mrow .tag{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:5px; }
+  .mrow.wrong .tag{ color:#ff9b95; }
+  .mrow.right .tag{ color:#8be8d8; }
+
+  .usecase{ display:flex; gap:14px; padding:14px 4px; border-bottom:1px solid var(--border-soft); }
+  .usecase:last-child{ border-bottom:none; }
+  .usecase .logo{ flex:0 0 46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center; background:var(--surface-2); border:1px solid var(--border); font-size:19px; }
+  .usecase .name{ font-weight:600; margin-bottom:3px; }
+  .usecase .desc{ color:var(--text-muted); font-size:14px; }
+
+  .debug-chain{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; }
+  .debug-chip{ font-family:var(--mono); font-size:12px; padding:7px 12px; border-radius:20px; background:var(--surface-2); border:1px solid var(--border); color:var(--text-muted); }
+  .debug-chip.now{ color:var(--teal); border-color:#2b5e56; background:var(--teal-dim); }
+
+  details.acc{ border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); overflow:hidden; }
+  details.acc + details.acc{ margin-top:10px; }
+  details.acc summary{ cursor:pointer; padding:13px 16px; font-weight:600; font-size:14.5px; display:flex; justify-content:space-between; align-items:center; list-style:none; }
+  details.acc summary::-webkit-details-marker{ display:none; }
+  details.acc summary::after{ content:"+"; font-family:var(--mono); color:var(--text-faint); font-size:18px; }
+  details.acc[open] summary::after{ content:"–"; }
+  details.acc .acc-body{ padding:0 16px 16px; color:var(--text-muted); font-size:14px; }
+  details.acc .acc-body .a{ color:var(--teal); font-weight:600; }
+
+  .tabs{ display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .tab-btn{ font-family:var(--mono); font-size:12px; padding:8px 14px; border-radius:20px; border:1px solid var(--border); background:var(--surface-2); color:var(--text-muted); cursor:pointer; }
+  .tab-btn.active{ background:var(--teal-dim); border-color:#2b5e56; color:var(--teal); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+  .qa{ padding:14px 0; border-bottom:1px solid var(--border-soft); }
+  .qa:last-child{ border-bottom:none; }
+  .qa .q{ font-weight:600; margin-bottom:6px; }
+  .qa .a{ color:var(--text-muted); font-size:14px; }
+
+  .brain-flow{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-family:var(--mono); font-size:13px; margin-bottom:18px; }
+  .brain-node{ padding:8px 13px; border-radius:8px; background:var(--surface-2); border:1px solid var(--border); }
+  .remember-chain{ display:flex; flex-direction:column; gap:0; }
+  .rc-row{ display:grid; grid-template-columns:170px 1fr; gap:14px; padding:10px 0; border-bottom:1px solid var(--border-soft); align-items:center; }
+  .rc-row:last-child{ border-bottom:none; }
+  .rc-key{ font-family:var(--mono); color:var(--teal); font-size:13.5px; }
+  .rc-arrow{ color:var(--text-faint); }
+  @media (max-width:600px){ .rc-row{ grid-template-columns:1fr; gap:2px; } }
+
+  .ladder{ display:flex; flex-direction:column; gap:10px; }
+  .rung{ display:flex; gap:14px; align-items:flex-start; padding:14px 16px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface); }
+  .rung .lvl{ flex:0 0 auto; font-family:var(--mono); font-size:11px; padding:5px 9px; border-radius:6px; background:var(--surface-3); color:var(--text-faint); white-space:nowrap; margin-top:2px; }
+  .rung .lbody .ltitle{ font-weight:600; font-size:14px; margin-bottom:3px; }
+  .rung .lbody .ldesc{ font-size:13.5px; color:var(--text-muted); }
+  .rung:nth-child(5) .lvl, .rung:nth-child(6) .lvl, .rung:nth-child(7) .lvl{ background:var(--violet-dim); color:var(--violet); }
+
+  .palace-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  @media (max-width:820px){ .palace-grid{ grid-template-columns:1fr; } }
+  .palace-card{ border:1px solid var(--border); border-radius:var(--radius); padding:20px; background:var(--surface); text-align:center; }
+  .palace-card .picon{ font-size:26px; margin-bottom:10px; }
+  .palace-card .ptitle{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); margin-bottom:8px; }
+  .palace-card .pbody{ font-size:14.5px; }
+  .palace-card.rule{ border-color:#2b5e56; }
+  .palace-card.mnemonic{ border-color:#5a4620; }
+  .palace-card.visual{ border-color:#3a3466; }
+
+  h3.subhead{ font-family:var(--display); font-size:15.5px; margin:0 0 10px; color:var(--text); }
+  p.p-muted{ color:var(--text-muted); margin:0 0 10px; font-size:14.5px; }
+
+  footer{ padding:30px 40px 60px; color:var(--text-faint); font-size:12.5px; font-family:var(--mono); text-align:center; }
+
+  .skip{ position:absolute; left:-9999px; }
+  .skip:focus{ left:16px; top:16px; background:var(--teal); color:#04140f; padding:10px 14px; border-radius:8px; z-index:100; }
+  :focus-visible{ outline:2px solid var(--teal); outline-offset:2px; }
+
+  @media (prefers-reduced-motion: reduce){ *{ scroll-behavior:auto !important; animation:none !important; transition:none !important; } }
+
+  @media (max-width:920px){
+    .shell{ grid-template-columns:1fr; }
+    .sidebar{ position:relative; height:auto; display:none; border-right:none; border-bottom:1px solid var(--border-soft); }
+    .sidebar.open{ display:block; }
+    .mobile-bar{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border-soft); position:sticky; top:0; background:rgba(13,17,23,0.92); backdrop-filter:blur(6px); z-index:20; }
+    .mobile-bar button{ font-family:var(--mono); font-size:12px; background:var(--surface-2); color:var(--text); border:1px solid var(--border); padding:8px 12px; border-radius:8px; }
+    main{ padding:24px 18px 80px; }
+    .topic-card{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<a href="#topic" class="skip">Skip to content</a>
+
+<div class="mobile-bar">
+  <span class="brand" style="margin:0;"><span class="dot"></span>MAD2 · W9_L3</span>
+  <button id="navToggle" aria-expanded="false" aria-controls="sidebarNav">Modules ▾</button>
+</div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebarNav">
+    <div class="brand"><span class="dot"></span>MAD2 Learning OS</div>
+    <ul class="navlist">
+      <li><a href="#topic"><span class="num">01</span>Topic Card</a></li>
+      <li><a href="#intuition"><span class="num">02</span>Core Intuition</a></li>
+      <li><a href="#mentalmodel"><span class="num">03</span>Visual Mental Model</a></li>
+      <li><a href="#pattern"><span class="num">04</span>Pattern Recognition</a></li>
+      <li><a href="#fundamentals"><span class="num">05</span>Deep Fundamentals</a></li>
+      <li><a href="#execflow"><span class="num">06</span>Execution Flow</a></li>
+      <li><a href="#syntax"><span class="num">07</span>Syntax Anatomy</a></li>
+      <li><a href="#walkthrough"><span class="num">08</span>Code Walkthrough</a></li>
+      <li><a href="#behindscenes"><span class="num">09</span>Behind the Scenes</a></li>
+      <li><a href="#realworld"><span class="num">10</span>Real Project Usage</a></li>
+      <li><a href="#mistakes"><span class="num">11</span>Common Mistakes</a></li>
+      <li><a href="#debugging"><span class="num">12</span>Debugging Mindset</a></li>
+      <li><a href="#exampattern"><span class="num">13</span>IITM Exam Pattern</a></li>
+      <li><a href="#interview"><span class="num">14</span>Interview Questions</a></li>
+      <li><a href="#onepage"><span class="num">15</span>One-Page Brain</a></li>
+      <li><a href="#revtable"><span class="num">16</span>Revision Table</a></li>
+      <li><a href="#ladder"><span class="num">17</span>Practice Ladder</a></li>
+      <li><a href="#palace"><span class="num">18</span>Memory Palace</a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <div class="hero">
+      <div class="hero-eyebrow"><span>●</span> W9_L3 &nbsp;·&nbsp; Backend Architecture</div>
+      <h1>Asynchronous Tasks with Celery</h1>
+      <p class="lede">How Celery wraps a raw message broker into a reliable task-management framework — push queues for instant work, pull queues for batching, and the failure modes (deadlock, buffer overflow) that show up once tasks go distributed.</p>
+    </div>
+
+    <!-- MODULE 1 -->
+    <section class="module" id="topic">
+      <div class="module-head"><span class="mnum">01</span><h2>Topic Card</h2><span class="msub">30 seconds</span></div>
+      <div class="topic-card">
+        <div class="topic-cell"><div class="tlabel">Topic</div><div class="tval">Asynchronous Tasks with Celery</div></div>
+        <div class="topic-cell"><div class="tlabel">Category</div><div class="tval">Task Orchestration</div></div>
+        <div class="topic-cell"><div class="tlabel">Difficulty</div><div class="tval stars">★★★★☆</div></div>
+        <div class="topic-cell"><div class="tlabel">Importance</div><div class="tval stars imp">★★★★★</div></div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <div style="font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-faint);margin-bottom:8px;">Prerequisites</div>
+        <p style="margin:0;color:var(--text-muted);font-size:14.5px;">Web Servers &amp; Task Queues (W9_L1) and Message Queues (W9_L2) — you should already know what a broker, producer, and consumer are before adding Celery on top.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 2 -->
+    <section class="module" id="intuition">
+      <div class="module-head"><span class="mnum">02</span><h2>Core Intuition</h2><span class="msub">Why</span></div>
+      <div class="analogy">
+        <div class="glyph">🎫</div>
+        <p>Celery is the restaurant's <strong>ticket-management system</strong> tying the front-of-house (web server) to the kitchen (workers) through order tickets (the broker). It doesn't just hand a ticket to any free cook and forget about it — it tracks whether the dish got made, retries if a cook drops it, and can even tell the kitchen to batch-prepare garnish every 30 minutes instead of one plate at a time. A raw message broker gives you the ticket rail; Celery is the whole system running it reliably.</p>
+      </div>
+    </section>
+
+    <!-- MODULE 3 -->
+    <section class="module" id="mentalmodel">
+      <div class="module-head"><span class="mnum">03</span><h2>Visual Mental Model</h2><span class="msub">One picture, whole topic</span></div>
+
+      <div class="signature">
+        <h3 class="subhead" style="text-align:center;margin-bottom:18px;">Push Queue vs. Pull Queue</h3>
+        <div class="pp-lane">
+          <div class="pp-panel push">
+            <span class="picon">🔔</span>
+            <div class="ptitle">PUSH QUEUE</div>
+            <div class="pdesc">Task lands → dispatched the moment a worker is free. Good for: notifications, feed updates, transactional emails.</div>
+            <div class="pp-ticks">
+              <span class="pp-tick active-t"></span><span class="pp-tick active-t"></span><span class="pp-tick active-t"></span><span class="pp-tick active-t"></span><span class="pp-tick active-t"></span>
+            </div>
+          </div>
+          <div class="pp-panel pull">
+            <span class="picon">⏱️</span>
+            <div class="ptitle">PULL QUEUE</div>
+            <div class="pdesc">Worker polls on a schedule (e.g. every 30s) and processes whatever piled up. Good for: leaderboards, batch analytics.</div>
+            <div class="pp-ticks">
+              <span class="pp-tick"></span><span class="pp-tick"></span><span class="pp-tick active"></span><span class="pp-tick"></span><span class="pp-tick"></span><span class="pp-tick"></span><span class="pp-tick active"></span>
+            </div>
+          </div>
+        </div>
+        <p style="text-align:center;color:var(--text-faint);font-family:var(--mono);font-size:11.5px;margin:18px 0 0;">same broker underneath — the difference is when the worker looks</p>
+      </div>
+    </section>
+
+    <!-- MODULE 4 -->
+    <section class="module" id="pattern">
+      <div class="module-head"><span class="mnum">04</span><h2>Pattern Recognition</h2><span class="msub">Spot it instantly</span></div>
+      <div class="card">
+        <h3 class="subhead">Trigger words</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;">
+          <span class="debug-chip">Celery</span>
+          <span class="debug-chip">push queue</span>
+          <span class="debug-chip">pull queue</span>
+          <span class="debug-chip">batch mode</span>
+          <span class="debug-chip">deadlock</span>
+          <span class="debug-chip">buffer overflow</span>
+          <span class="debug-chip">retries</span>
+          <span class="debug-chip">auto-discovery</span>
+          <span class="debug-chip">result backend</span>
+          <span class="debug-chip">worker process</span>
+        </div>
+        <h3 class="subhead">Recognition shortcut</h3>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">"instant notification"</span><span><span class="rc-arrow">→</span> Push queue</span></div>
+          <div class="rc-row"><span class="rc-key">"aggregate every N seconds"</span><span><span class="rc-arrow">→</span> Pull queue / batch mode</span></div>
+          <div class="rc-row"><span class="rc-key">"two things waiting on each other"</span><span><span class="rc-arrow">→</span> Deadlock</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 5 -->
+    <section class="module" id="fundamentals">
+      <div class="module-head"><span class="mnum">05</span><h2>Deep Fundamentals</h2><span class="msub">No memorization</span></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="subhead">Why was this created?</h3>
+          <p class="p-muted">Raw brokers only move messages — they don't retry failed jobs, discover workers, or track results. Celery was built to wrap that raw plumbing into a usable task framework.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">What problem does it solve?</h3>
+          <p class="p-muted">Reinventing retries, monitoring, and worker management for every project. Celery gives you those for free, on top of any supported broker.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">What happens internally?</h3>
+          <p class="p-muted">A Celery app registers task functions, connects to a broker, auto-discovers available workers, and tracks task state through to a result backend.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">How does it get executed?</h3>
+          <p class="p-muted">Calling <code>.delay()</code> serializes the function call and arguments, sends them to the broker, and a worker process later deserializes and runs them — retrying on failure per your config.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 6 -->
+    <section class="module" id="execflow">
+      <div class="module-head"><span class="mnum">06</span><h2>Execution Flow</h2><span class="msub">Internal sequence</span></div>
+      <div class="diagram">
+        <div class="vflow">
+          <div class="node client">Task triggered via <code>.delay()</code></div>
+          <span class="arrow down">→</span>
+          <div class="node server">Serialized &amp; pushed to the broker</div>
+          <span class="arrow down">→</span>
+          <div class="node warn">Enqueue must be fast — cheaper than doing the task itself</div>
+          <span class="arrow down">→</span>
+          <div class="flow-row" style="gap:26px;">
+            <div class="flow-col">
+              <div class="node">Push queue</div>
+              <span class="arrow down">→</span>
+              <div class="node worker">Dispatched the instant a worker is free</div>
+            </div>
+            <div class="flow-col">
+              <div class="node">Pull queue</div>
+              <span class="arrow down">→</span>
+              <div class="node worker">Worker polls on a schedule, processes in batch</div>
+            </div>
+          </div>
+          <span class="arrow down">→</span>
+          <div class="node">Worker executes the task</div>
+          <span class="arrow down">→</span>
+          <div class="flow-row" style="gap:26px;">
+            <div class="node server">Success → result stored</div>
+            <div class="node danger">Failure → retry per policy</div>
+          </div>
+          <span class="arrow down">→</span>
+          <div class="node">Queue eventually drains</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 7 -->
+    <section class="module" id="syntax">
+      <div class="module-head"><span class="mnum">07</span><h2>Syntax Anatomy</h2><span class="msub">Every keyword explained</span></div>
+      <div class="card">
+        <div class="code-block">
+          <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; tasks.py</div>
+          <pre><code><span class="tok-dec">@app.task</span>(bind=<span class="tok-kw">True</span>, max_retries=<span class="tok-num">3</span>)
+<span class="tok-kw">def</span> <span class="tok-fn">update_leaderboard</span>(self, score_id):
+    <span class="tok-kw">try</span>:
+        sync_score(score_id)
+    <span class="tok-kw">except</span> Exception <span class="tok-kw">as</span> exc:
+        <span class="tok-kw">raise</span> self.retry(exc=exc, countdown=<span class="tok-num">60</span>)</code></pre>
+        </div>
+        <ul class="anno-list">
+          <li><code>bind=True</code> binds the task instance to <code>self</code>, so you can call retry/state methods on it</li>
+          <li><code>max_retries=3</code> caps how many times Celery will re-attempt this task before giving up</li>
+          <li><code>self.retry(exc=exc, ...)</code> tells Celery to requeue the task, passing along the failure that triggered it</li>
+          <li><code>countdown=60</code> waits 60 seconds before the retry attempt, instead of hammering immediately</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- MODULE 8 -->
+    <section class="module" id="walkthrough">
+      <div class="module-head"><span class="mnum">08</span><h2>Code Walkthrough</h2><span class="msub">Push vs. pull in code</span></div>
+      <div class="grid-2">
+        <div class="card">
+          <h3 class="subhead">Push — instant notification</h3>
+          <div class="code-block">
+            <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; views.py</div>
+            <pre><code><span class="tok-kw">def</span> <span class="tok-fn">place_order</span>(request):
+    order = create_order(request)
+    notify_user.delay(order.id)
+    <span class="tok-kw">return</span> Response(<span class="tok-str">"placed"</span>)</code></pre>
+          </div>
+          <p class="p-muted" style="margin-top:10px;">Fires the moment the event happens — a worker picks it up right away.</p>
+        </div>
+        <div class="card">
+          <h3 class="subhead">Pull — periodic batch</h3>
+          <div class="code-block">
+            <div class="code-head"><span class="d"></span><span class="d"></span><span class="d"></span>&nbsp; tasks.py (Celery beat)</div>
+            <pre><code><span class="tok-dec">@app.task</span>
+<span class="tok-kw">def</span> <span class="tok-fn">refresh_leaderboard</span>():
+    scores = pending_scores.pop_all()
+    bulk_update(scores)  <span class="tok-cm"># runs every 30s</span></code></pre>
+          </div>
+          <p class="p-muted" style="margin-top:10px;">A scheduler triggers this on a timer, aggregating whatever piled up.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 9 -->
+    <section class="module" id="behindscenes">
+      <div class="module-head"><span class="mnum">09</span><h2>Behind the Scenes</h2><span class="msub">What's really happening</span></div>
+      <div class="diagram">
+        <div class="vflow">
+          <div class="node">Celery app holds a registry of every task function it knows about</div>
+          <span class="arrow down">→</span>
+          <div class="node">Auto-discovery finds tasks across your project's modules on startup</div>
+          <span class="arrow down">→</span>
+          <div class="node warn">App connects to the broker over a configured URL (Redis / RabbitMQ)</div>
+          <span class="arrow down">→</span>
+          <div class="node">Task calls are serialized (JSON/pickle) and queued</div>
+          <span class="arrow down">→</span>
+          <div class="node worker">Worker processes pull jobs, execute them, and write status to a result backend</div>
+          <span class="arrow down">→</span>
+          <div class="node">Celery Beat scheduler triggers periodic (pull-style) tasks on a timer</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 10 -->
+    <section class="module" id="realworld">
+      <div class="module-head"><span class="mnum">10</span><h2>Real Project Usage</h2><span class="msub">Where this actually runs</span></div>
+      <div class="card">
+        <div class="usecase">
+          <div class="logo">📸</div>
+          <div><div class="name">Instagram-style feeds</div><div class="desc">A new post triggers an instant push-queue task fanning it out to followers' feeds.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">🏆</div>
+          <div><div class="name">Mobile game leaderboards</div><div class="desc">Score submissions land in a pull queue and get aggregated into the global leaderboard every 30 seconds instead of on every single submission.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">✉️</div>
+          <div><div class="name">Notification systems</div><div class="desc">Email/SMS sends run as push-queue Celery tasks with retries, so a temporary provider outage doesn't lose the message.</div></div>
+        </div>
+        <div class="usecase">
+          <div class="logo">📊</div>
+          <div><div class="name">E-commerce analytics</div><div class="desc">Nightly sales rollups run as a pull-queue batch job, processing a full day's data in one pass rather than per-transaction.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 11 -->
+    <section class="module" id="mistakes">
+      <div class="module-head"><span class="mnum">11</span><h2>Common Mistakes</h2><span class="msub">❌ / ✅</span></div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Doing heavy work before enqueueing — e.g. serializing an entire large object into the task call.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Keep the enqueue call trivial — pass a lightweight ID and let the worker fetch what it needs.</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Assuming tasks always succeed and skipping retry/failure handling entirely.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Configure retries, monitoring, and dead-letter handling so the queue reliably drains even under failures.</div>
+        </div>
+        <div class="mistake-pair">
+          <div class="mrow wrong"><span class="tag">Wrong</span>Using a push queue for something like a live leaderboard, hitting the broker on every single score update.</div>
+          <div class="mrow right"><span class="tag">Correct</span>Use a pull queue that aggregates updates on a schedule — batch mode is built for exactly this.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 12 -->
+    <section class="module" id="debugging">
+      <div class="module-head"><span class="mnum">12</span><h2>Debugging Mindset</h2><span class="msub">Problem → Fix</span></div>
+      <div class="card">
+        <h3 class="subhead">"Two services are stuck, nothing progresses"</h3>
+        <div class="debug-chain">
+          <span class="debug-chip now">Observe: the system just hangs, no error thrown</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Find stage: check for a circular wait between task callbacks or workers</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Fix: redesign the dependency so no two parties wait on each other — this is a deadlock</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">"Tasks are getting silently dropped"</h3>
+        <div class="debug-chain">
+          <span class="debug-chip now">Observe: queue length maxed out, no further growth logged</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Find stage: check the broker's queue capacity / buffer limits</span>
+          <span class="arrow">→</span>
+          <span class="debug-chip">Fix: raise the buffer, add backpressure, or scale consumers to outrun the producer rate</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 13 -->
+    <section class="module" id="exampattern">
+      <div class="module-head"><span class="mnum">13</span><h2>IITM Exam Pattern</h2><span class="msub">MCQ survival kit</span></div>
+      <details class="acc" open>
+        <summary>Trigger &amp; Trap Words</summary>
+        <div class="acc-body">
+          <p><span class="a">Trigger words:</span> "Celery", "push queue", "pull queue", "batch mode", "deadlock", "buffer overflow", "retries", "auto-discovery".</p>
+          <p><span class="a">Trap words:</span> options implying pull queues are "always faster," or treating "task queue" and "message broker" as identical — Celery is the framework, the broker is the transport underneath it.</p>
+        </div>
+      </details>
+      <details class="acc">
+        <summary>MCQ Tricks</summary>
+        <div class="acc-body">Push vs. pull is about fit, not speed: push suits real-time events, pull suits periodic aggregation. Neither is universally "better."</div>
+      </details>
+      <details class="acc">
+        <summary>PYQ Pattern</summary>
+        <div class="acc-body">Expect questions asking you to identify architecture components — broker vs. worker vs. result backend vs. beat scheduler — and match each to its role.</div>
+      </details>
+      <details class="acc">
+        <summary>Elimination Technique</summary>
+        <div class="acc-body">Eliminate any option claiming enqueueing a task should take as long as executing it — that directly violates Celery's efficiency principle.</div>
+      </details>
+    </section>
+
+    <!-- MODULE 14 -->
+    <section class="module" id="interview">
+      <div class="module-head"><span class="mnum">14</span><h2>Interview Questions</h2><span class="msub">Three tiers</span></div>
+      <div class="card">
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="easy">Easy</button>
+          <button class="tab-btn" data-tab="medium">Medium</button>
+          <button class="tab-btn" data-tab="advanced">Advanced</button>
+        </div>
+        <div class="tab-panel active" id="easy">
+          <div class="qa"><div class="q">What is Celery and what problem does it solve?</div><div class="a">A Python framework for distributed task management that wraps a message broker with retries, worker auto-discovery, and result tracking, so teams don't rebuild that plumbing themselves.</div></div>
+        </div>
+        <div class="tab-panel" id="medium">
+          <div class="qa"><div class="q">When would you choose a pull queue over a push queue?</div><div class="a">When updates are frequent but individually low-value — like score submissions — so batching them on a timer (e.g. every 30s) is more efficient than processing each one instantly.</div></div>
+        </div>
+        <div class="tab-panel" id="advanced">
+          <div class="qa"><div class="q">Design a leaderboard system for a game with millions of concurrent score submissions.</div><div class="a">Submissions go into a lightweight pull queue (not pushed individually); a periodic worker aggregates and bulk-updates the leaderboard on a fixed interval; buffer limits and backpressure prevent overflow if submissions spike faster than workers can drain them.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 15 -->
+    <section class="module" id="onepage">
+      <div class="module-head"><span class="mnum">15</span><h2>One-Page Brain</h2><span class="msub">Compressed revision</span></div>
+      <div class="card">
+        <div class="brain-flow">
+          <span class="brain-node">.delay()</span><span class="arrow">→</span>
+          <span class="brain-node">Broker</span><span class="arrow">→</span>
+          <span class="brain-node">Push: now</span><span class="arrow">|</span>
+          <span class="brain-node">Pull: poll</span><span class="arrow">→</span>
+          <span class="brain-node">Worker executes</span><span class="arrow">→</span>
+          <span class="brain-node">Retry on fail</span><span class="arrow">→</span>
+          <span class="brain-node">Result stored</span>
+        </div>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">Push queue</span><span><span class="rc-arrow">→</span> Real-time dispatch</span></div>
+          <div class="rc-row"><span class="rc-key">Pull queue</span><span><span class="rc-arrow">→</span> Periodic, batched</span></div>
+          <div class="rc-row"><span class="rc-key">Deadlock</span><span><span class="rc-arrow">→</span> Circular wait, nothing moves</span></div>
+          <div class="rc-row"><span class="rc-key">Buffer overflow</span><span><span class="rc-arrow">→</span> Queue capacity exceeded</span></div>
+          <div class="rc-row"><span class="rc-key">Efficiency</span><span><span class="rc-arrow">→</span> Enqueue must be cheap</span></div>
+          <div class="rc-row"><span class="rc-key">Celery</span><span><span class="rc-arrow">→</span> Framework wrapping the broker</span></div>
+          <div class="rc-row"><span class="rc-key">Replit note</span><span><span class="rc-arrow">→</span> Needs a separate background worker process configured</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 16 -->
+    <section class="module" id="revtable">
+      <div class="module-head"><span class="mnum">16</span><h2>Quick Revision Table</h2><span class="msub">Scannable</span></div>
+      <div class="card" style="padding:8px 10px;overflow-x:auto;">
+        <table>
+          <thead><tr><th>Concept</th><th>Definition</th><th>Analogy</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Push Queue</td><td>Task is dispatched the instant a worker is free</td><td>A bell rings, a waiter comes immediately</td><td>Sending a transaction notification</td></tr>
+            <tr><td>Pull Queue</td><td>Worker polls periodically and processes in batch</td><td>Checking the mailbox once an hour</td><td>Updating a leaderboard every 30s</td></tr>
+            <tr><td>Deadlock</td><td>Two parties each wait on the other, nothing proceeds</td><td>Two people insisting "you go first" at a doorway</td><td>Circular task dependency</td></tr>
+            <tr><td>Buffer Overflow</td><td>Queue's physical capacity is exceeded</td><td>A mailbox too full to accept more letters</td><td>Producer outpacing consumers</td></tr>
+            <tr><td>Efficiency Principle</td><td>Enqueueing must be far cheaper than doing the task</td><td>Dropping a ticket takes a second; cooking takes twenty minutes</td><td>Passing an ID, not a full object</td></tr>
+            <tr><td>Reliability</td><td>Retries, monitoring, and guaranteed queue drain</td><td>A kitchen that remakes a dropped plate instead of skipping it</td><td>Celery's <code>max_retries</code></td></tr>
+            <tr><td>Celery</td><td>Framework managing tasks, workers, and results atop a broker</td><td>The restaurant's whole ticket-management system</td><td>Celery + Redis/RabbitMQ</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MODULE 17 -->
+    <section class="module" id="ladder">
+      <div class="module-head"><span class="mnum">17</span><h2>Practice Ladder</h2><span class="msub">7 levels</span></div>
+      <div class="ladder">
+        <div class="rung"><span class="lvl">LV.1 Concept</span><div class="lbody"><div class="ltitle">Why must enqueueing be cheap?</div><div class="ldesc">Explain the efficiency principle in your own words.</div></div></div>
+        <div class="rung"><span class="lvl">LV.2 Predict Output</span><div class="lbody"><div class="ltitle">A pull queue polls every 30s</div><div class="ldesc">10 scores arrive in 5 seconds. When and how are they processed?</div></div></div>
+        <div class="rung"><span class="lvl">LV.3 Find Bug</span><div class="lbody"><div class="ltitle">Spot the architectural bug</div><div class="ldesc">A Celery task serializes a full 50MB object before enqueueing it. What principle does this break?</div></div></div>
+        <div class="rung"><span class="lvl">LV.4 MCQ</span><div class="lbody"><div class="ltitle">Push vs. pull fit</div><div class="ldesc">Match four scenarios to the correct queue architecture.</div></div></div>
+        <div class="rung"><span class="lvl">LV.5 Coding</span><div class="lbody"><div class="ltitle">Add retry logic to a Celery task</div><div class="ldesc">Given a task with no error handling, add <code>bind=True</code>, <code>max_retries</code>, and a <code>self.retry()</code> call.</div></div></div>
+        <div class="rung"><span class="lvl">LV.6 Mini Project</span><div class="lbody"><div class="ltitle">Design a batch leaderboard updater</div><div class="ldesc">Sketch a pull-queue system that aggregates score submissions every 30 seconds.</div></div></div>
+        <div class="rung"><span class="lvl">LV.7 Interview</span><div class="lbody"><div class="ltitle">Handle a producer/consumer imbalance</div><div class="ldesc">Your queue is growing faster than workers can drain it. Walk through your diagnosis and fix.</div></div></div>
+      </div>
+    </section>
+
+    <!-- MODULE 18 -->
+    <section class="module" id="palace">
+      <div class="module-head"><span class="mnum">18</span><h2>Memory Palace</h2><span class="msub">Three anchors</span></div>
+      <div class="palace-grid">
+        <div class="palace-card rule">
+          <div class="picon">📏</div>
+          <div class="ptitle">Rule</div>
+          <div class="pbody">Enqueueing must always be cheaper than doing — never make the drop-off as slow as the task itself.</div>
+        </div>
+        <div class="palace-card mnemonic">
+          <div class="picon">🔤</div>
+          <div class="ptitle">Mnemonic</div>
+          <div class="pbody"><strong>E.S.R.</strong> — Efficiency, Separation, Reliability<br><br>(the three task-queue principles, in that order)</div>
+        </div>
+        <div class="palace-card visual">
+          <div class="picon">🧭</div>
+          <div class="ptitle">Visual</div>
+          <div class="pbody" style="font-family:var(--mono);font-size:12.5px;">.delay() → [Broker]<br>→ Push(now) / Pull(poll)<br>→ Worker → Retry?<br>→ Result</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>MAD2 LEARNING OS &nbsp;·&nbsp; W9_L3 &nbsp;·&nbsp; Asynchronous Tasks with Celery</footer>
+
+<script>
+  const toggle = document.getElementById('navToggle');
+  const nav = document.getElementById('sidebarNav');
+  toggle.addEventListener('click', () => {
+    const isOpen = nav.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', isOpen);
+    toggle.textContent = isOpen ? 'Modules ▴' : 'Modules ▾';
+  });
+  nav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    if (window.innerWidth <= 920) { nav.classList.remove('open'); toggle.textContent = 'Modules ▾'; toggle.setAttribute('aria-expanded', 'false'); }
+  }));
+
+  const sections = document.querySelectorAll('section.module');
+  const navLinks = document.querySelectorAll('.navlist a');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + id));
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  sections.forEach(s => observer.observe(s));
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const panelParent = btn.closest('.card');
+      panelParent.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      panelParent.querySelector('#' + tab).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

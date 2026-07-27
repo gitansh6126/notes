@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 53 · Perceptron Mistakes &amp; Convergence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --bg2:#0d1220;
+  --panel-bg:#12172a;
+  --panel-border:rgba(255,255,255,0.08);
+  --card-bg:#111726;
+  --card-border:rgba(255,255,255,0.07);
+  --gold:#e0b84c;
+  --gold-soft:rgba(224,184,76,0.14);
+  --teal:#3ec9b0;
+  --teal-soft:rgba(62,201,176,0.14);
+  --purple:#a385e0;
+  --purple-soft:rgba(163,133,224,0.14);
+  --red:#e0715f;
+  --blue:#5b9bd5;
+  --text:#e8ebf3;
+  --text-dim:#a7b0c4;
+  --text-faint:#6f7891;
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --mono-font:"JetBrains Mono",monospace;
+  --sans-font:"Inter",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    linear-gradient(180deg, rgba(224,184,76,0.05), transparent 400px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans-font);
+  line-height:1.6;
+  padding:0 0 80px 0;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+
+.hero{
+  padding:64px 20px 40px;
+  text-align:center;
+  border-bottom:1px solid var(--panel-border);
+  background:radial-gradient(ellipse at top, rgba(163,133,224,0.10), transparent 60%);
+}
+.breadcrumb{
+  font-family:var(--mono-font);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:var(--serif-math-font);
+  font-weight:700;
+  font-size:clamp(1.7rem,4.3vw,2.8rem);
+  margin:0 0 14px;
+  background:linear-gradient(135deg,#fff, var(--gold) 60%, var(--teal));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p.sub{
+  color:var(--text-dim);
+  max-width:660px;
+  margin:0 auto;
+  font-size:1.02rem;
+}
+.hero-tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+.tag{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid var(--panel-border);
+  color:var(--text-dim);
+}
+
+section{margin:64px 0;}
+.sec-label{
+  font-family:var(--mono-font);
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--gold);
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::before{content:"";width:22px;height:1px;background:var(--gold);display:inline-block;}
+h2.sec-title{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:600;
+  margin:0 0 22px;
+  color:#fff;
+}
+h3.sub-title{
+  font-family:var(--serif-math-font);
+  font-size:1.2rem;
+  font-weight:600;
+  color:var(--gold);
+  margin:28px 0 12px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:22px 24px;
+  margin:16px 0;
+}
+.card-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+@media(max-width:680px){.card-grid{grid-template-columns:1fr;}}
+
+.callout{
+  border-radius:12px;
+  padding:16px 20px;
+  margin:20px 0;
+  border-left:3px solid;
+  font-size:0.95rem;
+}
+.callout-title{
+  font-weight:700;
+  font-family:var(--sans-font);
+  font-size:0.8rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.callout.analogy{background:var(--purple-soft);border-color:var(--purple);}
+.callout.analogy .callout-title{color:var(--purple);}
+.callout.trap{background:rgba(224,113,95,0.12);border-color:var(--red);}
+.callout.trap .callout-title{color:var(--red);}
+.callout.tip{background:var(--teal-soft);border-color:var(--teal);}
+.callout.tip .callout-title{color:var(--teal);}
+.callout.assume{background:var(--gold-soft);border-color:var(--gold);}
+.callout.assume .callout-title{color:var(--gold);}
+.callout.extension{background:rgba(91,155,213,0.12);border-color:var(--blue);}
+.callout.extension .callout-title{color:var(--blue);}
+
+.eq-panel{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:2.2rem 1.6rem;
+  margin:1.8rem 0;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  text-align:center;
+  position:relative;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-faint);
+  margin-bottom:14px;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.7rem;right:1.1rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.1rem,2.5vw,1.85rem);
+  line-height:1.9;
+}
+.eq-main .line{display:block;margin:6px 0;}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:#7fd67f;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);}
+sup,sub{font-size:0.62em;}
+
+.legend{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:6px 18px;
+  font-size:0.85rem;
+  color:var(--text-dim);
+}
+.legend .item{display:flex;gap:8px;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-size:1rem;min-width:26px;}
+
+.timeline{position:relative;margin:24px 0;padding-left:34px;}
+.timeline::before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--teal));opacity:0.35;}
+.step{position:relative;margin-bottom:22px;}
+.step-badge{
+  position:absolute;left:-34px;top:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.75rem;color:var(--gold);font-weight:700;
+}
+.step-title{font-weight:700;color:#fff;margin-bottom:4px;font-size:0.98rem;}
+.step-body{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;}
+.step-eq{font-family:var(--serif-math-font);font-size:1.1rem;text-align:center;padding:6px 0;}
+
+table.data-table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:0.92rem;
+  border-radius:10px;overflow:hidden;
+}
+table.data-table th{
+  background:rgba(224,184,76,0.1);color:var(--gold);text-align:left;
+  padding:10px 14px;font-family:var(--mono-font);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;
+}
+table.data-table td{padding:10px 14px;border-top:1px solid var(--card-border);color:var(--text-dim);}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text);}
+
+details.worked{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  margin:16px 0;padding:14px 18px;
+}
+details.worked summary{
+  cursor:pointer;font-weight:700;color:var(--teal);list-style:none;display:flex;align-items:center;gap:8px;
+}
+details.worked summary::-webkit-details-marker{display:none;}
+details.worked summary::before{content:"▸";transition:transform 0.2s;color:var(--teal);}
+details.worked[open] summary::before{transform:rotate(90deg);}
+details.worked .content{margin-top:14px;color:var(--text-dim);font-size:0.93rem;}
+
+.svg-card{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;padding:18px;margin:20px 0;text-align:center;}
+.svg-card svg{max-width:100%;height:auto;}
+.svg-cap{font-family:var(--mono-font);font-size:0.75rem;color:var(--text-faint);margin-top:8px;}
+
+.sim-card{
+  background:linear-gradient(180deg, rgba(62,201,176,0.06), transparent), var(--panel-bg);
+  border:1px solid var(--panel-border);border-radius:18px;padding:22px;margin:24px 0;
+}
+.sim-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.sim-badge{font-family:var(--mono-font);font-size:0.7rem;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:20px;letter-spacing:0.05em;}
+.sim-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+@media(max-width:720px){.sim-layout{grid-template-columns:1fr;}}
+.sim-canvas-wrap{background:#080b13;border-radius:12px;border:1px solid var(--panel-border);padding:10px;}
+canvas#marginCanvas{width:100%;height:auto;border-radius:8px;display:block;}
+.controls{display:flex;flex-direction:column;gap:14px;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;}
+button.sim-btn{
+  font-family:var(--mono-font);font-size:0.82rem;padding:10px 16px;border-radius:10px;
+  border:1px solid var(--panel-border);background:var(--card-bg);color:var(--text);cursor:pointer;
+  transition:0.15s;
+}
+button.sim-btn:hover{border-color:var(--teal);color:var(--teal);}
+button.sim-btn.primary{background:var(--teal-soft);border-color:var(--teal);color:var(--teal);font-weight:700;}
+button.sim-btn.primary:hover{background:var(--teal);color:#04140f;}
+.ctrl label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;font-family:var(--mono-font);}
+.ctrl input[type=range]{width:100%;accent-color:var(--teal);}
+.readout{font-family:var(--mono-font);font-size:0.85rem;text-align:center;padding:10px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);}
+.readout .status-label{font-weight:700;font-size:1rem;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.stat-box{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:10px;text-align:center;}
+.stat-box .num{font-family:var(--mono-font);font-size:1.3rem;color:var(--gold);font-weight:700;}
+.stat-box .lbl{font-family:var(--mono-font);font-size:0.68rem;color:var(--text-faint);text-transform:uppercase;}
+.legend-row{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:0.78rem;color:var(--text-dim);flex-wrap:wrap;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;}
+
+code, .code{font-family:var(--mono-font);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:5px;font-size:0.88em;color:var(--teal);}
+
+.brain{
+  border:1px solid var(--gold);border-radius:18px;padding:26px;
+  background:radial-gradient(ellipse at top left, rgba(224,184,76,0.09), transparent 60%), var(--panel-bg);
+}
+.brain h3{margin-top:0;color:var(--gold);font-family:var(--serif-math-font);}
+.brain ul{margin:8px 0;padding-left:20px;color:var(--text-dim);}
+.brain li{margin:5px 0;}
+
+.qa{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 18px;margin:10px 0;}
+.qa .q{font-weight:700;color:#fff;margin-bottom:6px;}
+.qa .q::before{content:"Q. ";color:var(--purple);}
+
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px 0;}
+.chain .node{
+  font-family:var(--mono-font);font-size:0.82rem;padding:8px 14px;border-radius:10px;
+  background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-dim);
+}
+.chain .node.current{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);font-weight:700;}
+.chain .arrow{color:var(--text-faint);}
+
+.footer-note{text-align:center;color:var(--text-faint);font-size:0.8rem;font-family:var(--mono-font);margin-top:60px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="breadcrumb">Lecture 53 · Discriminative Models · Perceptron, Part II</div>
+  <h1>Mistakes, Cycles &amp; the γ-Margin</h1>
+  <p class="sub">Linear separability alone isn't enough to guarantee the Perceptron ever stops. This lecture finds the crack in the theorem, then patches it with one extra requirement: a safety gap called the margin.</p>
+  <div class="hero-tags">
+    <span class="tag">Update Rule Anatomy</span>
+    <span class="tag">Cycling / Non-Convergence</span>
+    <span class="tag">γ-Margin Separability</span>
+    <span class="tag">IITM · MLT Week 11</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ORIENTATION -->
+<section id="orientation">
+  <div class="sec-label">Layer 0 · Orientation</div>
+  <h2 class="sec-title">Where This Sits</h2>
+  <div class="chain">
+    <span class="node">Perceptron Algorithm (L52)</span><span class="arrow">→</span>
+    <span class="node current">Mistakes &amp; Convergence (L53)</span><span class="arrow">→</span>
+    <span class="node">Logistic Regression</span><span class="arrow">→</span>
+    <span class="node">SVM (max-margin)</span>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prerequisites</h3>
+      <table class="data-table">
+        <tr><th>Required</th><td>Perceptron update rule W ← W + yᵢxᵢ (L52)</td></tr>
+        <tr><th>Helpful</th><td>Linear separability, dot products, sign()</td></tr>
+        <tr><th>Optional</th><td>Norms, Cauchy-Schwarz (for the full convergence proof)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Cognitive Pattern</h3>
+      <p style="color:var(--text-dim);margin:0;">This lecture is about <strong style="color:var(--teal);">finding the hole in a claim</strong> — "linearly separable ⇒ converges" sounds right, but a specific counter-example breaks it. The fix is definitional: tighten the assumption until the counter-example is no longer allowed.</p>
+    </div>
+  </div>
+</section>
+
+<!-- RECAP: UPDATE RULE -->
+<section id="recap">
+  <div class="sec-label">Layer 1 · Recap</div>
+  <h2 class="sec-title">1. The Update Rule, Revisited</h2>
+  <p>Recall from L52: whenever the current weights <span class="code">wₜ</span> misclassify a point <span class="code">(xᵢ, yᵢ)</span>, the Perceptron nudges the weights toward correctness.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">The Update Rule</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-param">w</span><sub>t+1</sub> = <span class="sym-param">w</span><sub>t</sub> + <span class="sym-var">y<sub>i</sub></span><span class="sym-var">x<sub>i</sub></span></span>
+    </div>
+    <div class="eq-number">Eq. 53.1</div>
+  </div>
+</section>
+
+<!-- TYPES OF MISTAKES -->
+<section id="mistakes">
+  <div class="sec-label">Layer 5 · Recognition</div>
+  <h2 class="sec-title">2. The Two Ways to Be Wrong</h2>
+  <p>Every mistake the Perceptron can make falls into exactly one of two symmetric cases. Naming both explicitly makes the update rule's direction obvious rather than mysterious.</p>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Mistake Type 1 — False Positive</h3>
+      <p style="color:var(--text-dim);">Predicted <strong style="color:var(--teal);">+1</strong> (since <span class="code">wₜᵀxᵢ ≥ 0</span>) but the true label is <strong style="color:var(--red);">−1</strong>.</p>
+      <div class="step-eq" style="margin-top:10px;">w<sub>t+1</sub> = w<sub>t</sub> − x<sub>i</sub></div>
+      <p style="color:var(--text-dim);font-size:0.88rem;">The dot product <span class="code">wₜ₊₁ᵀxᵢ</span> moves <em>down</em> — pulled toward and past zero, correcting toward the negative side.</p>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Mistake Type 2 — False Negative</h3>
+      <p style="color:var(--text-dim);">Predicted <strong style="color:var(--red);">−1</strong> (since <span class="code">wₜᵀxᵢ &lt; 0</span>) but the true label is <strong style="color:var(--teal);">+1</strong>.</p>
+      <div class="step-eq" style="margin-top:10px;">w<sub>t+1</sub> = w<sub>t</sub> + x<sub>i</sub></div>
+      <p style="color:var(--text-dim);font-size:0.88rem;">The dot product <span class="code">wₜ₊₁ᵀxᵢ</span> moves <em>up</em> — pulled toward and past zero, correcting toward the positive side.</p>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <tr><th>Type</th><th>Predicted</th><th>True label</th><th>Update</th><th>Effect on wᵀxᵢ</th></tr>
+    <tr><td>1</td><td>+1</td><td>−1</td><td>w ← w − xᵢ</td><td>decreases</td></tr>
+    <tr><td>2</td><td>−1</td><td>+1</td><td>w ← w + xᵢ</td><td>increases</td></tr>
+  </table>
+
+  <div class="callout analogy">
+    <div class="callout-title">🎯 Analogy — Whack-a-Mole</div>
+    Here's the catch the lecture is building toward: fixing the mole in front of you (the current mistake) can pop up a <em>different</em> mole somewhere else (a point that used to be correctly classified). The update rule is provably correct for the specific point it just looked at — but it has zero memory of, or promise to, every other point on the board. That's the "local, not global" warning at the heart of this lecture.
+  </div>
+
+  <div class="callout assume">
+    <div class="callout-title">🔑 Key Insight</div>
+    The update is a strictly <strong>local</strong> correction — it guarantees the mistaken point is fixed <em>right now</em>, but makes <strong>no promise</strong> that previously-correct points stay correct. In principle, the algorithm could oscillate forever, fixing one point while breaking another.
+  </div>
+</section>
+
+<!-- FAILURE CASE -->
+<section id="failure">
+  <div class="sec-label">Layer 4 · Reliability</div>
+  <h2 class="sec-title">3. The Failure Case: When "Separable" Isn't Enough</h2>
+  <p>It's tempting to assume: "the data is linearly separable, so the Perceptron must eventually converge." Lecture 53's central twist is a counter-example that breaks this intuition — a small dataset (two points labeled +1, one labeled −1) where the algorithm can <strong>cycle</strong> between weight vectors, never settling on one that classifies everything correctly.</p>
+
+  <div class="svg-card">
+    <svg viewBox="0 0 620 260" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="580" height="220" rx="10" fill="#0d1220" stroke="#1c2436"/>
+      <!-- boundary line hugging points -->
+      <line x1="330" y1="35" x2="290" y2="225" stroke="#e8ebf3" stroke-width="1.5" stroke-dasharray="5 4"/>
+      <text x="345" y="45" fill="#a7b0c4" font-family="JetBrains Mono" font-size="10">w^T x = 0 (current)</text>
+      <!-- points very close to boundary -->
+      <circle cx="335" cy="90" r="7" fill="#3ec9b0"/>
+      <text x="350" y="94" fill="#3ec9b0" font-family="JetBrains Mono" font-size="11">x₁ (+1)</text>
+      <circle cx="300" cy="150" r="7" fill="#e0715f"/>
+      <text x="230" y="154" fill="#e0715f" font-family="JetBrains Mono" font-size="11">x₃ (−1)</text>
+      <circle cx="320" cy="200" r="7" fill="#3ec9b0"/>
+      <text x="335" y="204" fill="#3ec9b0" font-family="JetBrains Mono" font-size="11">x₂ (+1)</text>
+      <!-- cycle arrows -->
+      <path d="M 420 60 A 60 40 0 1 1 419 59" fill="none" stroke="#a385e0" stroke-width="1.8" marker-end="url(#arrow2)"/>
+      <defs>
+        <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 Z" fill="#a385e0"/>
+        </marker>
+      </defs>
+      <text x="420" y="45" text-anchor="middle" fill="#a385e0" font-family="Inter" font-size="12">w cycles: w⁽⁰⁾ → w⁽¹⁾ → w⁽²⁾ → w⁽⁰⁾ …</text>
+      <text x="310" y="248" text-anchor="middle" fill="#6f7891" font-family="Inter" font-size="11" font-style="italic">points crowd right on the boundary — every fix re-breaks another</text>
+    </svg>
+    <div class="svg-cap">Fig 53.1 — Points sitting on/very near w^Tx=0 can make corrections chase each other in a loop</div>
+  </div>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Why This Happens</div>
+    When a point lies <strong>on or extremely close to</strong> the current decision boundary, fixing it barely moves the boundary — just enough to flip that one point, but also just enough to flip a neighboring point onto the wrong side. With three tightly-packed points like this, the algorithm can be shown to revisit the same sequence of weight vectors indefinitely: linear separability was satisfied, yet convergence still failed.
+  </div>
+</section>
+
+<!-- GAMMA MARGIN -->
+<section id="gamma-margin">
+  <div class="sec-label">Layer 2 · Derivation / Definition</div>
+  <h2 class="sec-title">4. The Fix: Linear Separability with a γ-Margin</h2>
+  <p>The failure case above only arises because points are allowed to sit arbitrarily close to the boundary. The fix is to explicitly forbid that — require every point to be at least a fixed distance away from <em>every</em> valid separator, not just barely on the correct side of one.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">γ-Margin Separability</div>
+    <div class="eq-main">
+      <span class="line">∃ <span class="sym-param">w*</span> such that, ∀ (<span class="sym-var">x<sub>i</sub></span>, <span class="sym-var">y<sub>i</sub></span>):</span>
+      <span class="line"><span class="sym-var">y<sub>i</sub></span> (<span class="sym-param">w*</span>)<sup>T</sup><span class="sym-var">x<sub>i</sub></span> ≥ <span class="sym-const">γ</span></span>
+    </div>
+    <div class="eq-number">Eq. 53.2</div>
+  </div>
+  <div class="legend">
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">w*</span> some fixed separating weight vector (may not be unique)</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">γ &gt; 0</span> a strictly positive constant — the guaranteed minimum "safety gap"</div>
+    <div class="item"><span class="sym" style="font-family:var(--serif-math-font);">yᵢ(w*)ᵀxᵢ</span> a signed margin — how far and on which correct side point i sits</div>
+  </div>
+
+  <div class="svg-card">
+    <svg viewBox="0 0 620 240" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="20" width="580" height="200" rx="10" fill="#0d1220" stroke="#1c2436"/>
+      <line x1="310" y1="35" x2="310" y2="205" stroke="#e8ebf3" stroke-width="2"/>
+      <rect x="270" y="35" width="80" height="170" fill="#a385e0" opacity="0.12"/>
+      <line x1="270" y1="30" x2="270" y2="210" stroke="#a385e0" stroke-width="1" stroke-dasharray="4 3"/>
+      <line x1="350" y1="30" x2="350" y2="210" stroke="#a385e0" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="310" y="222" text-anchor="middle" fill="#a385e0" font-family="JetBrains Mono" font-size="11">γ margin — no point allowed inside</text>
+      <circle cx="400" cy="70" r="7" fill="#3ec9b0"/>
+      <circle cx="450" cy="120" r="7" fill="#3ec9b0"/>
+      <circle cx="410" cy="170" r="7" fill="#3ec9b0"/>
+      <circle cx="220" cy="70" r="7" fill="#e0715f"/>
+      <circle cx="180" cy="130" r="7" fill="#e0715f"/>
+      <circle cx="230" cy="180" r="7" fill="#e0715f"/>
+      <text x="430" y="30" fill="#3ec9b0" font-family="Inter" font-size="11">Y=+1</text>
+      <text x="200" y="30" fill="#e0715f" font-family="Inter" font-size="11">Y=−1</text>
+    </svg>
+    <div class="svg-cap">Fig 53.2 — A guaranteed empty strip of width 2γ around the boundary — no point may sit inside it</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 Reading the Definition</div>
+    Plain-separability only says "every point is on its correct side" — a point can be a hair's width from the line and it still counts. γ-margin separability says "every point is on its correct side <em>by at least γ</em>" — the closest point to the boundary, over the <em>best possible</em> w*, still keeps a guaranteed clearance. This single strengthening is exactly what rules out the cycling counter-example from Section 3: no point can crowd the boundary anymore.
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">✅ Conclusion (this lecture)</div>
+    Under γ-margin separability, the corner cases where the Perceptron fails to converge are ruled out by construction — every point keeps a guaranteed distance from any valid separator, so the earlier cycling scenario simply cannot occur. This is the assumption the rigorous convergence proof is built on.
+  </div>
+
+  <div class="callout extension">
+    <div class="callout-title">📚 Beyond This Lecture — The Convergence Bound</div>
+    The classical result built on this assumption (the <strong>Novikoff / Perceptron Convergence Theorem</strong>) goes one step further: if the data is γ-margin separable and every <span class="code">‖xᵢ‖ ≤ R</span>, the number of mistakes the Perceptron ever makes is bounded by <span class="code">R² / γ²</span> — a finite number fixed in advance, regardless of the order points are presented in. Bigger margin ⇒ fewer mistakes needed; smaller margin ⇒ convergence is guaranteed but can take far longer. This bound isn't spelled out in today's slides but is the natural next fact once γ-margin separability is on the table.
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section id="simulator">
+  <div class="sec-label">Signature Interactive</div>
+  <h2 class="sec-title">Playground: Margin Width vs. Updates to Converge</h2>
+  <div class="sim-card">
+    <div class="sim-header">
+      <span class="sim-badge">● LIVE</span>
+      <span style="color:var(--text-dim);font-size:0.9rem;">Drag the margin slider, then auto-run — watch how a shrinking gap drives the update count up.</span>
+    </div>
+    <div class="sim-layout">
+      <div class="sim-canvas-wrap">
+        <canvas id="marginCanvas" width="480" height="380"></canvas>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#3ec9b0;"></span>Y = +1</span>
+          <span><span class="legend-dot" style="background:#e0715f;"></span>Y = −1</span>
+          <span><span class="legend-dot" style="background:#e0b84c;"></span>current mistake</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="ctrl">
+          <label><span>Target margin γ</span><span id="gammaVal">1.5</span></label>
+          <input type="range" id="gammaSlider" min="0.15" max="2.2" step="0.05" value="1.5">
+        </div>
+        <div class="btn-row">
+          <button class="sim-btn primary" id="stepBtn">Step ▸</button>
+          <button class="sim-btn" id="autoBtn">Auto-run</button>
+          <button class="sim-btn" id="resetBtn">New Dataset ↻</button>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="num" id="iterCount">0</div><div class="lbl">Updates made</div></div>
+          <div class="stat-box"><div class="num" id="mistakeCount">–</div><div class="lbl">Mistakes left</div></div>
+        </div>
+        <div class="readout">
+          Status: <span class="status-label" id="statusLabel" style="color:var(--gold);">Not started</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout tip" style="margin-top:0;">
+    <div class="callout-title">Try This</div>
+    Set γ near its minimum and generate a new dataset — the two classes almost touch. Auto-run it and watch the update counter climb much higher before converging than it does at large γ. This is the R²/γ² bound made visible: shrinking the margin doesn't break convergence outright (the data is still separable), but it makes the Perceptron work much harder to find it.
+  </div>
+</section>
+
+<!-- ASSUMPTIONS -->
+<section id="assumptions">
+  <div class="sec-label">Layer 4 · Reliability</div>
+  <h2 class="sec-title">Assumption &amp; Invariant Library</h2>
+  <table class="data-table">
+    <tr><th>Assumption</th><th>Consequence if violated</th></tr>
+    <tr><td>Plain linear separability only</td><td>Convergence is <em>not</em> guaranteed — cycling is possible if points crowd the boundary</td></tr>
+    <tr><td>γ-margin separability (γ&gt;0 fixed)</td><td>Convergence <em>is</em> guaranteed, in at most R²/γ² updates</td></tr>
+    <tr><td>Bounded feature norms ‖xᵢ‖ ≤ R</td><td>Needed for the mistake bound to be finite and meaningful</td></tr>
+  </table>
+  <div class="card-grid">
+    <div class="card">
+      <ul style="color:var(--text-dim);margin:0;padding-left:18px;">
+        <li><strong style="color:#7fd67f;">Always true:</strong> a single update strictly corrects the specific mistaken point's score in the right direction.</li>
+        <li><strong style="color:var(--gold);">Sometimes true:</strong> that same update leaves other points still correctly classified — not guaranteed, just common in practice.</li>
+        <li><strong style="color:var(--red);">Never true:</strong> plain linear separability (without a margin) guarantees termination in general.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="callout trap" style="margin:0;">
+        <div class="callout-title">⚠️ IITM Exam Trap</div>
+        "Linearly separable" and "linearly separable with a γ-margin" are <strong>not</strong> the same assumption on an exam. If a question only states plain separability, you cannot cite the finite-mistake-bound theorem — that requires the strictly stronger γ-margin condition.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRANSFER -->
+<section id="transfer">
+  <div class="sec-label">Layer 7 · Transfer</div>
+  <h2 class="sec-title">Connections &amp; What's Next</h2>
+  <p>This lecture reveals a pattern that recurs throughout ML theory: a clean, intuitive assumption ("the classes don't overlap") often needs to be <em>strengthened</em> with a quantitative safety margin before you can prove anything rigorous about an algorithm's behavior. You'll see the exact same move again, more explicitly, when <strong>Support Vector Machines</strong> make margin maximization the entire objective rather than an afterthought — SVM doesn't just require <em>some</em> margin to exist, it actively searches for the largest one possible.</p>
+</section>
+
+<!-- RETRIEVAL -->
+<section id="retrieval">
+  <div class="sec-label">Layer 7 · Retrieval Practice</div>
+  <h2 class="sec-title">Test Yourself</h2>
+  <div class="qa">
+    <div class="q">Why doesn't correcting one mistake guarantee the algorithm is closer to a global solution?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">The update is a local fix — it provably corrects the score for the specific point just examined, but makes no promise about points that were previously classified correctly; those can become mistakes as a side effect.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">What property of the failure-case points causes the cycling behavior?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">The points sit on or extremely close to the current decision boundary, so small corrective updates flip one point onto the correct side while flipping another onto the wrong side, repeating in a loop.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">How does γ-margin separability differ from plain linear separability?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">Plain separability only requires every point to be on the correct side of some hyperplane. γ-margin separability requires every point to be on the correct side by at least a fixed positive distance γ, ruling out points arbitrarily close to the boundary.</div></details>
+  </div>
+</section>
+
+<!-- ONE PAGE BRAIN -->
+<section id="brain">
+  <div class="sec-label">Layer 8 · Compression</div>
+  <h2 class="sec-title">One-Page Brain</h2>
+  <div class="brain">
+    <h3>Perceptron Convergence — Everything on One Page</h3>
+    <p style="color:var(--text-dim);"><strong>Core idea:</strong> the update rule locally fixes one mistake at a time, but with no safety margin between classes, corrections can chase each other forever even on separable data — the fix is to require a guaranteed gap γ.</p>
+    <ul>
+      <li><strong>Update:</strong> w ← w + yᵢxᵢ, applied only on mistakes</li>
+      <li><strong>Mistake Type 1</strong> (predicted +1, true −1): w ← w − xᵢ, score decreases</li>
+      <li><strong>Mistake Type 2</strong> (predicted −1, true +1): w ← w + xᵢ, score increases</li>
+      <li><strong>Key insight:</strong> updates are local — fixing one point can break another</li>
+      <li><strong>Failure case:</strong> points crowding the boundary can make the algorithm cycle, even though the data is linearly separable</li>
+      <li><strong>Fix:</strong> γ-margin separability — ∃ w* such that yᵢ(w*)ᵀxᵢ ≥ γ &gt; 0 for all i</li>
+      <li><strong>Payoff:</strong> under γ-margin separability, convergence is guaranteed (extension: in at most R²/γ² mistakes)</li>
+      <li><strong>Next:</strong> SVM makes margin maximization the explicit goal, not just a convergence assumption</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<div class="footer-note">Lecture 53 · Perceptron Mistakes &amp; Convergence — IITM MLT Study Notes</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('marginCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const range = 5;
+
+  let points = [];
+  let w = [0,0,0];
+  let iter = 0;
+  let scanIdx = 0;
+  let converged = false;
+  let autoTimer = null;
+  const MAX_STEPS = 800;
+
+  const gammaSlider = document.getElementById('gammaSlider');
+  const gammaVal = document.getElementById('gammaVal');
+
+  function toScreen(x,y){ return [ (x+range)/(2*range)*W, H - (y+range)/(2*range)*H ]; }
+
+  function genDataset(){
+    const gamma = parseFloat(gammaSlider.value);
+    gammaVal.textContent = gamma.toFixed(2);
+    points = [];
+    const angle = Math.random()*Math.PI;
+    const a = Math.cos(angle), b = Math.sin(angle); // unit normal
+    const c = (Math.random()*2-1)*1.0;
+    const n = 14;
+    let tries = 0;
+    while(points.length < n && tries < 4000){
+      tries++;
+      let x = (Math.random()*2-1)*range*0.9;
+      let y = (Math.random()*2-1)*range*0.9;
+      let score = a*x + b*y + c;
+      if(Math.abs(score) < gamma*0.55) continue; // enforce margin gap
+      let label = score >= 0 ? 1 : -1;
+      points.push({x,y,label});
+    }
+    w = [0,0,0];
+    iter = 0; scanIdx = 0; converged = false;
+    updateStats();
+    draw();
+  }
+
+  function predict(p){
+    const s = w[0]*p.x + w[1]*p.y + w[2];
+    return s >= 0 ? 1 : -1;
+  }
+  function countMistakes(){
+    return points.filter(p => predict(p) !== p.label).length;
+  }
+  function step(){
+    if(converged || iter > MAX_STEPS) return;
+    let found = -1;
+    for(let k=0;k<points.length;k++){
+      const idx = (scanIdx+k) % points.length;
+      if(predict(points[idx]) !== points[idx].label){ found = idx; break; }
+    }
+    if(found === -1){ converged = true; updateStats(); draw(); return; }
+    const p = points[found];
+    w[0] += p.x * p.label;
+    w[1] += p.y * p.label;
+    w[2] += 1 * p.label;
+    iter++;
+    scanIdx = (found+1) % points.length;
+    updateStats(found);
+    draw(found);
+  }
+  function updateStats(highlightIdx){
+    document.getElementById('iterCount').textContent = iter;
+    const m = countMistakes();
+    document.getElementById('mistakeCount').textContent = converged ? 0 : m;
+    const status = document.getElementById('statusLabel');
+    if(converged){ status.textContent = 'Converged ✓'; status.style.color = '#3ec9b0'; }
+    else if(iter===0){ status.textContent = 'Not started'; status.style.color = '#e0b84c'; }
+    else if(iter > MAX_STEPS){ status.textContent = 'Stopped (cap reached)'; status.style.color='#e0715f'; }
+    else { status.textContent = 'Training…'; status.style.color = '#e0b84c'; }
+  }
+  function draw(highlightIdx){
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#080b13';
+    ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+    for(let i=0;i<=10;i++){
+      const gx = i/10*W, gy = i/10*H;
+      ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke();
+    }
+    if(w[0]!==0 || w[1]!==0){
+      ctx.strokeStyle = '#e8ebf3';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let pts = [];
+      if(Math.abs(w[1]) > 1e-6){
+        [-range, range].forEach(x=>{
+          const y = -(w[0]*x + w[2])/w[1];
+          if(y>=-range && y<=range) pts.push([x,y]);
+        });
+      }
+      if(Math.abs(w[0]) > 1e-6){
+        [-range, range].forEach(y=>{
+          const x = -(w[1]*y + w[2])/w[0];
+          if(x>=-range && x<=range) pts.push([x,y]);
+        });
+      }
+      if(pts.length>=2){
+        const [sx1,sy1] = toScreen(pts[0][0],pts[0][1]);
+        const [sx2,sy2] = toScreen(pts[1][0],pts[1][1]);
+        ctx.moveTo(sx1,sy1); ctx.lineTo(sx2,sy2);
+        ctx.stroke();
+      }
+    }
+    points.forEach((p,idx)=>{
+      const [sx,sy] = toScreen(p.x,p.y);
+      ctx.beginPath();
+      ctx.arc(sx,sy,7,0,Math.PI*2);
+      ctx.fillStyle = p.label===1 ? '#3ec9b0' : '#e0715f';
+      ctx.fill();
+      if(idx===highlightIdx){
+        ctx.strokeStyle = '#e0b84c';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(sx,sy,12,0,Math.PI*2);
+        ctx.stroke();
+      }
+    });
+  }
+
+  document.getElementById('stepBtn').addEventListener('click', ()=>{ step(); });
+  document.getElementById('resetBtn').addEventListener('click', ()=>{ stopAuto(); genDataset(); });
+  gammaSlider.addEventListener('input', ()=>{ gammaVal.textContent = parseFloat(gammaSlider.value).toFixed(2); });
+  gammaSlider.addEventListener('change', ()=>{ stopAuto(); genDataset(); });
+  const autoBtn = document.getElementById('autoBtn');
+  function stopAuto(){
+    if(autoTimer){ clearInterval(autoTimer); autoTimer=null; autoBtn.textContent='Auto-run'; }
+  }
+  autoBtn.addEventListener('click', ()=>{
+    if(autoTimer){ stopAuto(); return; }
+    autoBtn.textContent = 'Stop';
+    autoTimer = setInterval(()=>{
+      if(converged || iter>MAX_STEPS){ stopAuto(); return; }
+      step();
+    }, 120);
+  });
+
+  genDataset();
+})();
+</script>
+
+</body>
+</html>

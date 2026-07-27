@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrating Vue.js with Flask — MAD2 Learning OS</title>
+<style>
+  :root{
+    --bg: #0f1220;
+    --panel: #171a2b;
+    --panel-2: #1d2136;
+    --border: #2a2f4a;
+    --text: #e8e9f3;
+    --muted: #9ba0c0;
+    --accent: #7c9eff;
+    --accent-2: #ff9d6c;
+    --good: #52d68a;
+    --bad: #ff6b6b;
+    --warn: #ffd166;
+    --code-bg: #0b0d18;
+    --jinja: #ff9d6c;
+    --vue: #52d68a;
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: radial-gradient(circle at 10% 0%, #1a1e33 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 24px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  .hero{
+    background: linear-gradient(135deg, #1d2140 0%, #232a52 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; top:-60px; right:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(124,158,255,0.25), transparent 70%);
+  }
+  .hero h1{
+    margin:0 0 6px 0;
+    font-size: 1.7rem;
+    background: linear-gradient(90deg, var(--accent), #b8c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero .subtitle{ color: var(--muted); margin-bottom: 18px; font-size: 0.95rem;}
+  .topic-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+    gap: 12px;
+  }
+  .topic-chip{
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .topic-chip .label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;}
+  .topic-chip .value{ font-size:0.95rem; font-weight:600; margin-top:2px;}
+  .stars{ color: var(--warn); letter-spacing: 2px;}
+
+  .module{
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+  }
+  .module-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    background: rgba(124,158,255,0.12); color: var(--accent);
+    border: 1px solid rgba(124,158,255,0.3);
+    padding: 4px 12px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .module h2{ margin: 0 0 14px 0; font-size: 1.25rem; color: var(--text); }
+  .module h3{ font-size: 1rem; color: var(--accent); margin: 18px 0 8px 0; }
+  .module p{ color: #d3d5ea; }
+
+  .callout{ border-radius: 12px; padding: 14px 16px; margin: 14px 0; border-left: 4px solid var(--accent); background: rgba(124,158,255,0.08); }
+  .callout.analogy{ border-left-color: var(--accent-2); background: rgba(255,157,108,0.08); }
+  .callout.warn{ border-left-color: var(--warn); background: rgba(255,209,102,0.08); }
+  .callout.good{ border-left-color: var(--good); background: rgba(82,214,138,0.08); }
+  .callout.bad{ border-left-color: var(--bad); background: rgba(255,107,107,0.08); }
+  .callout .ctitle{ font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; display:flex; align-items:center; gap:6px;}
+
+  .flow{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px; justify-content:center;
+    padding: 18px 10px; margin: 14px 0;
+    background: var(--code-bg); border-radius: 12px; border: 1px dashed var(--border);
+  }
+  .flow .node{ background: var(--panel-2); border: 1px solid var(--border); padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+  .flow .arrow{ color: var(--accent); font-size: 1.1rem; }
+  .flow .node.vue{ border-color: var(--vue); color: var(--vue); }
+  .flow .node.jinja{ border-color: var(--jinja); color: var(--jinja); }
+
+  .vs-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 640px){ .vs-grid{ grid-template-columns: 1fr; } }
+  .vs-card{ border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+  .vs-card.jinja{ background: linear-gradient(180deg, rgba(255,157,108,0.1), transparent); border-color: rgba(255,157,108,0.35); }
+  .vs-card.vue{ background: linear-gradient(180deg, rgba(82,214,138,0.1), transparent); border-color: rgba(82,214,138,0.35); }
+  .vs-card h4{ margin:0 0 10px 0; display:flex; align-items:center; gap:8px; }
+  .vs-card ul{ margin:0; padding-left: 18px; font-size: 0.9rem; color:#d3d5ea;}
+  .vs-card li{ margin-bottom:6px; }
+
+  /* stacked page diagram */
+  .page-stack{ display:flex; flex-direction:column; align-items:center; gap:0; margin: 16px 0; }
+  .layer{
+    width: 100%; max-width: 480px; border-radius: 10px; padding: 14px 18px;
+    border: 1px solid var(--border); text-align:center; font-size:0.88rem; font-weight:600;
+    position:relative;
+  }
+  .layer.l1{ background: rgba(255,157,108,0.12); border-color: rgba(255,157,108,0.4); color: var(--jinja); margin-bottom:-1px; border-radius: 10px 10px 0 0;}
+  .layer.l2{ background: rgba(124,158,255,0.1); border-color: rgba(124,158,255,0.3); color: var(--accent); margin-bottom:-1px; border-radius:0;}
+  .layer.l3{ background: rgba(82,214,138,0.14); border-color: rgba(82,214,138,0.45); color: var(--vue); border-radius: 0 0 10px 10px;}
+  .layer .sub{ font-weight:400; color: var(--muted); font-size:0.78rem; display:block; margin-top:2px;}
+
+  .code-block{ background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 14px 0; }
+  .code-block .code-title{ background: var(--panel-2); padding: 8px 14px; font-size: 0.78rem; color: var(--muted); border-bottom: 1px solid var(--border); font-family: 'Consolas', monospace; }
+  pre{ margin:0; padding: 16px; overflow-x:auto; font-family: 'Consolas', 'SF Mono', monospace; font-size: 0.85rem; line-height: 1.7; }
+  .code-block code .c1{ color: var(--muted); font-style: italic; }
+  .code-block code .kw{ color: #c792ea; }
+  .code-block code .fn{ color: var(--accent); }
+  .code-block code .str{ color: var(--good); }
+  .code-block code .num{ color: var(--warn); }
+  .code-block code .tag{ color: var(--jinja); }
+  .code-block code .attr{ color: var(--warn); }
+
+  .annot-list{ margin: 10px 0 0 0; padding:0; list-style:none; }
+  .annot-list li{ display:flex; gap:10px; padding: 6px 0; border-top: 1px dashed var(--border); font-size:0.87rem; }
+  .annot-list li:first-child{ border-top:none; }
+  .annot-list code.key{ background: rgba(124,158,255,0.15); color: var(--accent); padding: 2px 8px; border-radius:6px; font-size:0.82rem; white-space:nowrap; height: fit-content; }
+
+  table{ width:100%; border-collapse: collapse; margin: 14px 0; font-size:0.88rem; }
+  th, td{ padding: 10px 12px; border: 1px solid var(--border); text-align:left; }
+  th{ background: var(--panel-2); color: var(--accent); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;}
+  tr:nth-child(even) td{ background: rgba(255,255,255,0.02); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0;}
+  .chip{ background: var(--panel-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:0.82rem; }
+  .chip.trap{ border-color: var(--bad); color: var(--bad); }
+  .chip.trigger{ border-color: var(--accent); color: var(--accent); }
+
+  .tier{ margin-bottom:12px; padding:12px 14px; border-radius:10px; background: rgba(255,255,255,0.03); border:1px solid var(--border); }
+  .tier .badge{ font-size:0.7rem; padding:2px 10px; border-radius:999px; font-weight:700; margin-right:8px;}
+  .tier.easy .badge{ background: rgba(82,214,138,0.2); color: var(--good); }
+  .tier.medium .badge{ background: rgba(255,209,102,0.2); color: var(--warn); }
+  .tier.advanced .badge{ background: rgba(255,107,107,0.2); color: var(--bad); }
+  .tier ul{ margin: 8px 0 0 0; padding-left: 18px; }
+
+  .remember-chain{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .remember-row{ display:grid; grid-template-columns: 160px 1fr; gap:10px; align-items:center; background: var(--code-bg); border-radius:8px; padding:8px 12px; border:1px solid var(--border); }
+  .remember-row .k{ color: var(--accent); font-weight:700; font-size:0.85rem; }
+  .remember-row .v{ font-size:0.85rem; color:#d3d5ea; }
+
+  .ladder{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .rung{ display:flex; align-items:center; gap:12px; background: var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+  .rung .num{ width:28px; height:28px; border-radius:50%; background: var(--accent); color:#0f1220; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; }
+
+  .palace-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-top:10px;}
+  @media (max-width:640px){ .palace-grid{ grid-template-columns:1fr; } }
+  .palace-card{ background: var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .palace-card .icon{ font-size:1.6rem; margin-bottom:6px;}
+  .palace-card .ptitle{ font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;}
+
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 28px 0; background: var(--panel); border:1px solid var(--border); border-radius: var(--radius); padding:16px; }
+  .toc a{ color: var(--muted); text-decoration:none; font-size:0.78rem; background: rgba(255,255,255,0.03); padding:6px 10px; border-radius:8px; border:1px solid var(--border); }
+  .toc a:hover{ color: var(--accent); border-color: var(--accent); }
+
+  .footer-note{ text-align:center; color:var(--muted); font-size:0.8rem; margin-top: 20px; padding: 20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ MODULE 1: TOPIC CARD ============ -->
+  <div class="hero">
+    <h1>🧩 Integrating Vue.js with Flask</h1>
+    <div class="subtitle">Screencast 8.2 · MAD2 Learning OS · The Hybrid App Pattern</div>
+    <div class="topic-grid">
+      <div class="topic-chip">
+        <div class="label">Category</div>
+        <div class="value">Vue Fundamentals — Frontend/Backend Integration</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Difficulty</div>
+        <div class="value stars">⭐⭐☆☆☆</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Importance</div>
+        <div class="value stars">★★★★★</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Prerequisites</div>
+        <div class="value">Basic Jinja templating, basic Vue instance/mounting</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <a href="#m2">2. Core Intuition</a>
+    <a href="#m3">3. Mental Model</a>
+    <a href="#m4">4. Pattern Recognition</a>
+    <a href="#m5">5. Deep Fundamentals</a>
+    <a href="#m6">6. Execution Flow</a>
+    <a href="#m7">7. Syntax Anatomy</a>
+    <a href="#m8">8. Code Walkthrough</a>
+    <a href="#m9">9. Behind the Scenes</a>
+    <a href="#m10">10. Real Project Usage</a>
+    <a href="#m11">11. Common Mistakes</a>
+    <a href="#m12">12. Debugging Mindset</a>
+    <a href="#m13">13. Exam Pattern</a>
+    <a href="#m14">14. Interview Qs</a>
+    <a href="#m15">15. One-Page Brain</a>
+    <a href="#m16">16. Revision Table</a>
+    <a href="#m17">17. Practice Ladder</a>
+    <a href="#m18">18. Memory Palace</a>
+  </div>
+
+  <!-- ============ MODULE 2: CORE INTUITION ============ -->
+  <div class="module" id="m2">
+    <span class="module-tag">Module 2 · Core Intuition</span>
+    <h2>Why does this exist?</h2>
+    <p>Think of your Flask app as a <strong>house already fully built</strong> by Jinja — walls, rooms, doors all in place on the server. You don't want to demolish it to install one smart thermostat. Instead, you plug in a small smart device (Vue) into one room (a <code>&lt;div&gt;</code>) that reacts and updates on its own, while the rest of the house stays exactly as it was.</p>
+    <div class="callout analogy">
+      <div class="ctitle">🏠 Analogy</div>
+      A full Vue SPA would mean rebuilding the entire house as a smart home from scratch. The hybrid approach lets you keep the sturdy, SEO-friendly, server-rendered house — and only add reactivity exactly where you need it: a live search box, a dynamic sidebar, a counter.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 3: VISUAL MENTAL MODEL ============ -->
+  <div class="module" id="m3">
+    <span class="module-tag">Module 3 · Visual Mental Model</span>
+    <h2>One picture: the layered page</h2>
+    <div class="page-stack">
+      <div class="layer l1">Jinja Template (server-rendered HTML)<span class="sub">handles page structure, static content, initial load</span></div>
+      <div class="layer l2">Static Assets Layer (CDN / static folder)<span class="sub">Vue.js library loaded like Bootstrap or jQuery</span></div>
+      <div class="layer l3">Vue Instance mounted on a &lt;div&gt;<span class="sub">handles reactivity only inside that mount point</span></div>
+    </div>
+    <p style="text-align:center;font-size:0.85rem;color:var(--muted);">Same page, two rendering engines — Jinja owns the page, Vue owns one widget inside it.</p>
+  </div>
+
+  <!-- ============ MODULE 4: PATTERN RECOGNITION ============ -->
+  <div class="module" id="m4">
+    <span class="module-tag">Module 4 · Pattern Recognition</span>
+    <h2>Spot it instantly</h2>
+    <p>Trigger words that should make you think "hybrid Vue + Flask":</p>
+    <div class="chip-row">
+      <span class="chip trigger">{% raw %}</span>
+      <span class="chip trigger">delimiters</span>
+      <span class="chip trigger">app.js</span>
+      <span class="chip trigger">new Vue()</span>
+      <span class="chip trigger">CDN script tag</span>
+      <span class="chip trigger">$mount</span>
+      <span class="chip trigger">static folder</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">⚡ Recognition Shortcut</div>
+      "Same curly braces confusing server and client" → delimiter clash &nbsp;|&nbsp; "small reactive widget inside a bigger server page" → hybrid app &nbsp;|&nbsp; "no build tools, no CLI" → CDN-based Vue, not Vue CLI/SPA.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 5: DEEP FUNDAMENTALS ============ -->
+  <div class="module" id="m5">
+    <span class="module-tag">Module 5 · Deep Fundamentals</span>
+    <h2>The four core questions</h2>
+    <h3>1. Why was this feature created?</h3>
+    <p>Not every app needs the complexity of a full SPA. Many teams have an existing Flask + Jinja app and just want <em>one part</em> of a page to feel modern and reactive — rebuilding everything as an SPA would be wasteful and risky.</p>
+    <h3>2. What problem does it solve?</h3>
+    <p>It lets you add client-side reactivity incrementally, without a build pipeline, without abandoning server-side rendering, and without losing SEO or breaking existing authentication.</p>
+    <h3>3. What happens internally?</h3>
+    <p>The browser receives one HTML page from Flask/Jinja. Somewhere in that HTML is a plain <code>&lt;div&gt;</code>. After the page loads, Vue's JS (loaded as a static file) scans for that div, "takes over" everything inside it, and starts managing it reactively — the rest of the page is untouched, static HTML.</p>
+    <h3>4. How does the browser execute it?</h3>
+    <p>Jinja renders and sends final HTML — <em>before</em> Vue ever runs. Only after the page loads in the browser does the Vue script execute, find its mount point, and begin reactive rendering purely on the client side from that point onward.</p>
+  </div>
+
+  <!-- ============ MODULE 6: EXECUTION FLOW ============ -->
+  <div class="module" id="m6">
+    <span class="module-tag">Module 6 · Execution Flow</span>
+    <h2>The full request lifecycle</h2>
+    <div class="flow">
+      <div class="node jinja">Browser requests page</div>
+      <div class="arrow">→</div>
+      <div class="node jinja">Flask renders Jinja template</div>
+      <div class="arrow">→</div>
+      <div class="node jinja">Full HTML sent to browser</div>
+    </div>
+    <div class="flow">
+      <div class="node">Browser parses HTML</div>
+      <div class="arrow">→</div>
+      <div class="node">Loads Vue.js (CDN/static)</div>
+      <div class="arrow">→</div>
+      <div class="node vue">app.js runs → new Vue({...})</div>
+      <div class="arrow">→</div>
+      <div class="node vue">Mounts to target div</div>
+      <div class="arrow">→</div>
+      <div class="node vue">Reactive updates begin</div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 7: SYNTAX ANATOMY ============ -->
+  <div class="module" id="m7">
+    <span class="module-tag">Module 7 · Syntax Anatomy</span>
+    <h2>Breaking down the pieces</h2>
+    <div class="code-block">
+      <div class="code-title">app.js — Vue instance anatomy</div>
+      <pre><code><span class="kw">const</span> app = <span class="kw">new</span> <span class="fn">Vue</span>({
+  el: <span class="str">'#app'</span>,
+  delimiters: [<span class="str">'${'</span>, <span class="str">'}'</span>],
+  data: {
+    message: <span class="str">'Hello from Vue!'</span>
+  }
+})</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">el</code> the CSS selector of the HTML element Vue should "take over" — this is the mount point</li>
+      <li><code class="key">delimiters</code> tells Vue to use <code>${ }</code> instead of the default <code>{{ }}</code>, so Jinja never mistakes Vue syntax for its own</li>
+      <li><code class="key">data</code> the reactive state object — anything referenced here auto-updates the DOM when it changes</li>
+    </ul>
+  </div>
+
+  <!-- ============ MODULE 8: CODE WALKTHROUGH ============ -->
+  <div class="module" id="m8">
+    <span class="module-tag">Module 8 · Code Walkthrough</span>
+    <h2>Step by step, with annotations</h2>
+
+    <h3>Step 1 — Add Vue.js to your project</h3>
+    <div class="code-block">
+      <div class="code-title">base.html — via CDN</div>
+      <pre><code>&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"https://cdn.jsdelivr.net/npm/vue@2"</span>&gt;&lt;/<span class="tag">script</span>&gt;</code></pre>
+    </div>
+
+    <h3>Step 2 — Mark the Vue mount point, avoid Jinja clashes</h3>
+    <div class="code-block">
+      <div class="code-title">index.html (Jinja template)</div>
+      <pre><code>&lt;<span class="tag">div</span> <span class="attr">id</span>=<span class="str">"app"</span>&gt;
+  <span class="c1">&lt;!-- Vue owns everything inside here --&gt;</span>
+  {<span class="num">%</span> raw <span class="num">%</span>}
+  &lt;<span class="tag">p</span>&gt;${ message }&lt;/<span class="tag">p</span>&gt;
+  {<span class="num">%</span> endraw <span class="num">%</span>}
+&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">script</span> <span class="attr">src</span>=<span class="str">"{{ url_for('static', filename='app.js') }}"</span>&gt;&lt;/<span class="tag">script</span>&gt;</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">{% raw %} ... {% endraw %}</code> tells Jinja "don't touch anything in here" — protects Vue's syntax from being misread as Jinja's own template variables</li>
+      <li><code class="key">${ message }</code> Vue expression using custom delimiters — safe to sit inside a Jinja template because it no longer looks like <code>{{ }}</code></li>
+      <li><code class="key">url_for('static', ...)</code> standard Flask way to reference the <code>app.js</code> file living in the static folder</li>
+    </ul>
+
+    <h3>Step 3 — Define the Vue app</h3>
+    <div class="code-block">
+      <div class="code-title">static/app.js</div>
+      <pre><code><span class="kw">new</span> <span class="fn">Vue</span>({
+  el: <span class="str">'#app'</span>,
+  delimiters: [<span class="str">'${'</span>, <span class="str">'}'</span>],
+  data: {
+    message: <span class="str">'Hello from Vue!'</span>
+  }
+})</code></pre>
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Two valid solutions to the curly-brace clash</div>
+      Either wrap Vue expressions in <code>{% raw %}</code>, <strong>or</strong> change Vue's delimiters to <code>${ }</code> — you don't need both, pick one consistently across the project.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 9: BEHIND THE SCENES ============ -->
+  <div class="module" id="m9">
+    <span class="module-tag">Module 9 · Behind the Scenes</span>
+    <h2>What each engine actually does</h2>
+    <div class="vs-grid">
+      <div class="vs-card jinja">
+        <h4>🍃 Jinja (server, runs first)</h4>
+        <ul>
+          <li>Runs entirely on the server, before any HTML reaches the browser</li>
+          <li>Replaces <code>{{ }}</code> expressions with real values at render time</li>
+          <li>Once the HTML is sent, Jinja's job is done — it never runs again for that page</li>
+        </ul>
+      </div>
+      <div class="vs-card vue">
+        <h4>🖼️ Vue (client, runs after)</h4>
+        <ul>
+          <li>Runs entirely in the browser, after the page has loaded</li>
+          <li>Scans the DOM for its mount point (<code>el</code>) and attaches itself there</li>
+          <li>Keeps watching its <code>data</code> and re-renders only that portion when it changes</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout warn">
+      <div class="ctitle">⚠️ Why the clash happens</div>
+      Jinja processes <code>{{ }}</code> during server rendering. If Vue also uses <code>{{ }}</code>, Jinja tries to render it first and either errors out or strips it — Vue never even gets a chance to see its own syntax.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 10: REAL PROJECT USAGE ============ -->
+  <div class="module" id="m10">
+    <span class="module-tag">Module 10 · Real Project Usage</span>
+    <h2>Where you've already seen this</h2>
+    <table>
+      <tr><th>Product</th><th>How the hybrid pattern shows up</th></tr>
+      <tr><td>GitHub (older UI eras)</td><td>Server-rendered pages with small isolated JS-driven widgets for things like live-updating notification counts</td></tr>
+      <tr><td>College/university portals</td><td>Legacy Jinja/PHP-rendered pages get a single reactive widget added (e.g. a live attendance counter) without a full rewrite</td></tr>
+      <tr><td>E-commerce admin dashboards</td><td>Server-rendered product listing page with one reactive "quick edit" sidebar built in Vue</td></tr>
+      <tr><td>Blogging platforms</td><td>Statically rendered articles (great for SEO) with an isolated reactive comment or live-search widget</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 11: COMMON MISTAKES ============ -->
+  <div class="module" id="m11">
+    <span class="module-tag">Module 11 · Common Mistakes</span>
+    <h2>Wrong vs Right</h2>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Writing <code>{{ message }}</code> inside a Jinja template expecting it to be a Vue expression — Jinja renders (or errors on) it first, so Vue never sees it.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Wrap it in <code>{% raw %}...{% endraw %}</code>, or configure Vue's <code>delimiters: ['${', '}']</code> so the two engines never compete for the same syntax.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Forgetting to load the Vue script <em>before</em> <code>app.js</code> runs — Vue won't be defined yet, causing a reference error.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Load the Vue CDN/static script tag first in the template, then your own <code>app.js</code> after it.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Assuming this hybrid setup needs token-based auth like an SPA — it doesn't; standard Flask cookie sessions work fine since the page is still server-rendered.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 12: DEBUGGING MINDSET ============ -->
+  <div class="module" id="m12">
+    <span class="module-tag">Module 12 · Debugging Mindset</span>
+    <h2>Problem → Fix flow</h2>
+    <div class="flow">
+      <div class="node">Vue expressions showing as raw text?</div>
+      <div class="arrow">→</div>
+      <div class="node">Check delimiter clash</div>
+      <div class="arrow">→</div>
+      <div class="node">Add raw tags or custom delimiters</div>
+      <div class="arrow">→</div>
+      <div class="node vue">Fix + retest</div>
+    </div>
+    <table>
+      <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+      <tr><td>Jinja throws a template syntax error</td><td>Vue's <code>{{ }}</code> conflicts with Jinja's own parser</td><td>Wrap the block in <code>{% raw %} {% endraw %}</code></td></tr>
+      <tr><td>Page shows literal <code>${message}</code> text</td><td>Vue script loaded after page render, or wrong <code>el</code> selector</td><td>Check script load order and that <code>el</code> matches an existing div id</td></tr>
+      <tr><td>"Vue is not defined" error</td><td>CDN/static script tag missing or placed after app.js</td><td>Load Vue library script before app.js</td></tr>
+      <tr><td>Reactivity not updating</td><td>Data mutated outside Vue's <code>data</code> object</td><td>Only mutate values that live inside Vue's reactive <code>data</code></td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 13: EXAM PATTERN ============ -->
+  <div class="module" id="m13">
+    <span class="module-tag">Module 13 · IITM Exam Pattern</span>
+    <h2>What to watch for in MCQs</h2>
+    <div class="chip-row">
+      <span class="chip trigger">Trigger: "same curly braces", "template conflict"</span>
+      <span class="chip trap">Trap: assuming you need BOTH raw tags AND custom delimiters (only one is needed)</span>
+      <span class="chip trap">Trap: confusing hybrid app with full SPA — hybrid keeps Jinja for most of the page</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">🎯 Elimination Technique</div>
+      If a question implies rebuilding the entire frontend or removing Jinja entirely, eliminate it — the hybrid approach is defined by keeping Jinja for the bulk of the app.
+    </div>
+    <div class="callout">
+      <div class="ctitle">📝 PYQ Pattern</div>
+      Common question: "What causes template rendering conflicts between Jinja and Vue?" → Answer: both use <code>{{ }}</code> by default. "How do you resolve it?" → <code>{% raw %}</code> tags or custom Vue delimiters.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 14: INTERVIEW QUESTIONS ============ -->
+  <div class="module" id="m14">
+    <span class="module-tag">Module 14 · Interview Questions</span>
+    <h2>Three tiers</h2>
+    <div class="tier easy">
+      <span class="badge">EASY</span>
+      <ul>
+        <li>Why do Jinja and Vue clash by default, and what's the simplest fix?</li>
+        <li>What are the two ways to add Vue.js to a Flask project?</li>
+      </ul>
+    </div>
+    <div class="tier medium">
+      <span class="badge">MEDIUM</span>
+      <ul>
+        <li>Why would you choose the hybrid approach over a full Vue SPA for a given project?</li>
+        <li>Why does this pattern remain compatible with cookie-based authentication?</li>
+      </ul>
+    </div>
+    <div class="tier advanced">
+      <span class="badge">ADVANCED</span>
+      <ul>
+        <li>How would you incrementally migrate a large legacy Jinja app to a modern frontend without downtime?</li>
+        <li>What are the SEO/accessibility tradeoffs between this hybrid pattern and a full client-side rendered SPA?</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 15: ONE-PAGE BRAIN ============ -->
+  <div class="module" id="m15">
+    <span class="module-tag">Module 15 · One-Page Brain</span>
+    <h2>Compressed revision flow</h2>
+    <div class="flow">
+      <div class="node jinja">Flask renders Jinja page</div>
+      <div class="arrow">→</div>
+      <div class="node">Vue.js loaded as static file</div>
+      <div class="arrow">→</div>
+      <div class="node vue">Vue mounts to a div</div>
+      <div class="arrow">→</div>
+      <div class="node vue">Reactivity limited to that div</div>
+    </div>
+    <div class="remember-chain">
+      <div class="remember-row"><div class="k">{% raw %}</div><div class="v">tells Jinja to skip parsing a block, letting Vue's <code>{{ }}</code> pass through untouched</div></div>
+      <div class="remember-row"><div class="k">delimiters: ['${','}']</div><div class="v">alternative fix — changes Vue's own syntax so it never looks like Jinja's</div></div>
+      <div class="remember-row"><div class="k">el: '#app'</div><div class="v">the mount point — the one place Vue is allowed to take over</div></div>
+      <div class="remember-row"><div class="k">static folder / CDN</div><div class="v">Vue is just a script file, loaded like Bootstrap — no build tools required</div></div>
+      <div class="remember-row"><div class="k">cookie auth still works</div><div class="v">the page is still server-rendered, so no token auth overhead needed</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 16: QUICK REVISION TABLE ============ -->
+  <div class="module" id="m16">
+    <span class="module-tag">Module 16 · Quick Revision Table</span>
+    <h2>Hybrid App vs Full SPA</h2>
+    <table>
+      <tr><th>Aspect</th><th>Hybrid (Jinja + Vue widget)</th><th>Full Vue SPA</th></tr>
+      <tr><td>Build tools</td><td>None required (CDN/static file)</td><td>Vue CLI, bundlers (Webpack/Vite)</td></tr>
+      <tr><td>Rendering</td><td>Server renders most of the page</td><td>Client renders the entire app</td></tr>
+      <tr><td>SEO/accessibility</td><td>Strong — most content is server-rendered</td><td>Weaker unless SSR is added separately</td></tr>
+      <tr><td>Authentication</td><td>Standard cookie-based sessions</td><td>Usually token-based</td></tr>
+      <tr><td>Migration effort</td><td>Incremental, piece-by-piece</td><td>Often a full rewrite</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 17: PRACTICE LADDER ============ -->
+  <div class="module" id="m17">
+    <span class="module-tag">Module 17 · Practice Ladder</span>
+    <h2>Climb from concept to interview-ready</h2>
+    <div class="ladder">
+      <div class="rung"><div class="num">1</div><div>Explain in your own words why Jinja and Vue's default syntax clashes</div></div>
+      <div class="rung"><div class="num">2</div><div>Predict what renders if you forget <code>{% raw %}</code> around a Vue expression</div></div>
+      <div class="rung"><div class="num">3</div><div>Find the bug: Vue script loaded before the Vue library itself</div></div>
+      <div class="rung"><div class="num">4</div><div>MCQ: identify which two solutions resolve the delimiter clash</div></div>
+      <div class="rung"><div class="num">5</div><div>Write code: mount a Vue instance to a div inside a Jinja template with custom delimiters</div></div>
+      <div class="rung"><div class="num">6</div><div>Mini project: add a live search widget to an existing server-rendered page</div></div>
+      <div class="rung"><div class="num">7</div><div>Interview: justify hybrid vs SPA architecture for a legacy migration project</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 18: MEMORY PALACE ============ -->
+  <div class="module" id="m18">
+    <span class="module-tag">Module 18 · Memory Palace</span>
+    <h2>Lock it in</h2>
+    <div class="palace-grid">
+      <div class="palace-card">
+        <div class="icon">📏</div>
+        <div class="ptitle">Rule</div>
+        <div>"Jinja builds the house. Vue wires one smart room."</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🔑</div>
+        <div class="ptitle">Mnemonic</div>
+        <div>"R.D. — <strong>R</strong>aw tags or <strong>D</strong>elimiters, pick one to end the clash"</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🧭</div>
+        <div class="ptitle">Visual</div>
+        <div>Jinja renders → Page loads → Vue mounts → One div reacts</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px;">
+      <div class="ctitle">🚀 Beyond this lecture</div>
+      As reactive needs grow beyond a widget or two, teams often graduate to a proper Vue CLI/build-tool setup, and eventually to a full SPA with token-based auth — but the hybrid pattern is the ideal starting point for incremental modernization.
+    </div>
+  </div>
+
+  <div class="footer-note">Integrating Vue.js with Flask · MAD2 Learning OS · Screencast 8.2</div>
+
+</div>
+</body>
+</html>

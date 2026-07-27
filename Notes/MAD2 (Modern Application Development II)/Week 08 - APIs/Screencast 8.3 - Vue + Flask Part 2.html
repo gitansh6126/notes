@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Separating Frontend & Backend — MAD2 Learning OS</title>
+<style>
+  :root{
+    --bg: #0f1220;
+    --panel: #171a2b;
+    --panel-2: #1d2136;
+    --border: #2a2f4a;
+    --text: #e8e9f3;
+    --muted: #9ba0c0;
+    --accent: #7c9eff;
+    --accent-2: #ff9d6c;
+    --good: #52d68a;
+    --bad: #ff6b6b;
+    --warn: #ffd166;
+    --code-bg: #0b0d18;
+    --front: #52d68a;
+    --back: #ff9d6c;
+    --radius: 14px;
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background: radial-gradient(circle at 10% 0%, #1a1e33 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    padding: 24px;
+  }
+  .wrap{ max-width: 980px; margin: 0 auto; }
+
+  .hero{
+    background: linear-gradient(135deg, #1d2140 0%, #232a52 100%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 30px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; top:-60px; right:-60px;
+    width:220px; height:220px; border-radius:50%;
+    background: radial-gradient(circle, rgba(124,158,255,0.25), transparent 70%);
+  }
+  .hero h1{
+    margin:0 0 6px 0;
+    font-size: 1.6rem;
+    background: linear-gradient(90deg, var(--accent), #b8c9ff);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .hero .subtitle{ color: var(--muted); margin-bottom: 18px; font-size: 0.95rem;}
+  .topic-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; }
+  .topic-chip{ background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+  .topic-chip .label{ font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em;}
+  .topic-chip .value{ font-size:0.95rem; font-weight:600; margin-top:2px;}
+  .stars{ color: var(--warn); letter-spacing: 2px;}
+
+  .module{ background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .module-tag{ display:inline-flex; align-items:center; gap:8px; background: rgba(124,158,255,0.12); color: var(--accent); border: 1px solid rgba(124,158,255,0.3); padding: 4px 12px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 12px; }
+  .module h2{ margin: 0 0 14px 0; font-size: 1.25rem; color: var(--text); }
+  .module h3{ font-size: 1rem; color: var(--accent); margin: 18px 0 8px 0; }
+  .module p{ color: #d3d5ea; }
+
+  .callout{ border-radius: 12px; padding: 14px 16px; margin: 14px 0; border-left: 4px solid var(--accent); background: rgba(124,158,255,0.08); }
+  .callout.analogy{ border-left-color: var(--accent-2); background: rgba(255,157,108,0.08); }
+  .callout.warn{ border-left-color: var(--warn); background: rgba(255,209,102,0.08); }
+  .callout.good{ border-left-color: var(--good); background: rgba(82,214,138,0.08); }
+  .callout.bad{ border-left-color: var(--bad); background: rgba(255,107,107,0.08); }
+  .callout .ctitle{ font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; display:flex; align-items:center; gap:6px;}
+
+  .flow{ display:flex; flex-wrap:wrap; align-items:center; gap:10px; justify-content:center; padding: 18px 10px; margin: 14px 0; background: var(--code-bg); border-radius: 12px; border: 1px dashed var(--border); }
+  .flow .node{ background: var(--panel-2); border: 1px solid var(--border); padding: 10px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; }
+  .flow .arrow{ color: var(--accent); font-size: 1.1rem; }
+  .flow .node.front{ border-color: var(--front); color: var(--front); }
+  .flow .node.back{ border-color: var(--back); color: var(--back); }
+  .flow .node.block{ border-color: var(--bad); color: var(--bad); }
+
+  .vs-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 640px){ .vs-grid{ grid-template-columns: 1fr; } }
+  .vs-card{ border-radius: 12px; padding: 16px; border: 1px solid var(--border); }
+  .vs-card.front{ background: linear-gradient(180deg, rgba(82,214,138,0.1), transparent); border-color: rgba(82,214,138,0.35); }
+  .vs-card.back{ background: linear-gradient(180deg, rgba(255,157,108,0.1), transparent); border-color: rgba(255,157,108,0.35); }
+  .vs-card h4{ margin:0 0 10px 0; display:flex; align-items:center; gap:8px; }
+  .vs-card ul{ margin:0; padding-left: 18px; font-size: 0.9rem; color:#d3d5ea;}
+  .vs-card li{ margin-bottom:6px; }
+
+  /* CORS door diagram */
+  .cors-diagram{ display:flex; align-items:center; justify-content:center; gap: 0; margin: 18px 0; flex-wrap:wrap; }
+  .cors-box{ padding: 16px 20px; border-radius: 12px; text-align:center; font-size:0.85rem; font-weight:600; border: 2px solid; min-width:150px; }
+  .cors-box.origin{ border-color: var(--front); color: var(--front); background: rgba(82,214,138,0.08); }
+  .cors-box.target{ border-color: var(--back); color: var(--back); background: rgba(255,157,108,0.08); }
+  .cors-gate{ display:flex; flex-direction:column; align-items:center; margin: 0 16px; }
+  .cors-gate .gate-icon{ font-size:1.8rem; }
+  .cors-gate .gate-label{ font-size:0.72rem; color:var(--muted); margin-top:4px; text-align:center; max-width:110px;}
+
+  .code-block{ background: var(--code-bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 14px 0; }
+  .code-block .code-title{ background: var(--panel-2); padding: 8px 14px; font-size: 0.78rem; color: var(--muted); border-bottom: 1px solid var(--border); font-family: 'Consolas', monospace; }
+  pre{ margin:0; padding: 16px; overflow-x:auto; font-family: 'Consolas', 'SF Mono', monospace; font-size: 0.85rem; line-height: 1.7; }
+  .code-block code .c1{ color: var(--muted); font-style: italic; }
+  .code-block code .kw{ color: #c792ea; }
+  .code-block code .fn{ color: var(--accent); }
+  .code-block code .str{ color: var(--good); }
+  .code-block code .num{ color: var(--warn); }
+  .code-block code .tag{ color: var(--back); }
+  .code-block code .attr{ color: var(--warn); }
+
+  .annot-list{ margin: 10px 0 0 0; padding:0; list-style:none; }
+  .annot-list li{ display:flex; gap:10px; padding: 6px 0; border-top: 1px dashed var(--border); font-size:0.87rem; }
+  .annot-list li:first-child{ border-top:none; }
+  .annot-list code.key{ background: rgba(124,158,255,0.15); color: var(--accent); padding: 2px 8px; border-radius:6px; font-size:0.82rem; white-space:nowrap; height: fit-content; }
+
+  table{ width:100%; border-collapse: collapse; margin: 14px 0; font-size:0.88rem; }
+  th, td{ padding: 10px 12px; border: 1px solid var(--border); text-align:left; }
+  th{ background: var(--panel-2); color: var(--accent); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.04em;}
+  tr:nth-child(even) td{ background: rgba(255,255,255,0.02); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0;}
+  .chip{ background: var(--panel-2); border:1px solid var(--border); padding:5px 12px; border-radius:999px; font-size:0.82rem; }
+  .chip.trap{ border-color: var(--bad); color: var(--bad); }
+  .chip.trigger{ border-color: var(--accent); color: var(--accent); }
+
+  .tier{ margin-bottom:12px; padding:12px 14px; border-radius:10px; background: rgba(255,255,255,0.03); border:1px solid var(--border); }
+  .tier .badge{ font-size:0.7rem; padding:2px 10px; border-radius:999px; font-weight:700; margin-right:8px;}
+  .tier.easy .badge{ background: rgba(82,214,138,0.2); color: var(--good); }
+  .tier.medium .badge{ background: rgba(255,209,102,0.2); color: var(--warn); }
+  .tier.advanced .badge{ background: rgba(255,107,107,0.2); color: var(--bad); }
+  .tier ul{ margin: 8px 0 0 0; padding-left: 18px; }
+
+  .remember-chain{ display:flex; flex-direction:column; gap:6px; margin-top:10px; }
+  .remember-row{ display:grid; grid-template-columns: 160px 1fr; gap:10px; align-items:center; background: var(--code-bg); border-radius:8px; padding:8px 12px; border:1px solid var(--border); }
+  .remember-row .k{ color: var(--accent); font-weight:700; font-size:0.85rem; }
+  .remember-row .v{ font-size:0.85rem; color:#d3d5ea; }
+
+  .ladder{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+  .rung{ display:flex; align-items:center; gap:12px; background: var(--panel-2); border:1px solid var(--border); border-radius:10px; padding:10px 14px; }
+  .rung .num{ width:28px; height:28px; border-radius:50%; background: var(--accent); color:#0f1220; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem; flex-shrink:0; }
+
+  .palace-grid{ display:grid; grid-template-columns: repeat(3,1fr); gap:12px; margin-top:10px;}
+  @media (max-width:640px){ .palace-grid{ grid-template-columns:1fr; } }
+  .palace-card{ background: var(--panel-2); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .palace-card .icon{ font-size:1.6rem; margin-bottom:6px;}
+  .palace-card .ptitle{ font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); margin-bottom:6px;}
+
+  .toc{ display:flex; flex-wrap:wrap; gap:8px; margin: 0 0 28px 0; background: var(--panel); border:1px solid var(--border); border-radius: var(--radius); padding:16px; }
+  .toc a{ color: var(--muted); text-decoration:none; font-size:0.78rem; background: rgba(255,255,255,0.03); padding:6px 10px; border-radius:8px; border:1px solid var(--border); }
+  .toc a:hover{ color: var(--accent); border-color: var(--accent); }
+
+  .footer-note{ text-align:center; color:var(--muted); font-size:0.8rem; margin-top: 20px; padding: 20px 0;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ MODULE 1: TOPIC CARD ============ -->
+  <div class="hero">
+    <h1>🌉 Separating Frontend & Backend — Vue + Flask</h1>
+    <div class="subtitle">Screencast 8.3 · MAD2 Learning OS · The Decoupled Architecture</div>
+    <div class="topic-grid">
+      <div class="topic-chip">
+        <div class="label">Category</div>
+        <div class="value">Backend Dev — App Architecture</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Difficulty</div>
+        <div class="value stars">⭐⭐⭐☆☆</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Importance</div>
+        <div class="value stars">★★★★★</div>
+      </div>
+      <div class="topic-chip">
+        <div class="label">Prerequisites</div>
+        <div class="value">Hybrid Vue+Flask (8.2), Token Auth (8.1)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <a href="#m2">2. Core Intuition</a>
+    <a href="#m3">3. Mental Model</a>
+    <a href="#m4">4. Pattern Recognition</a>
+    <a href="#m5">5. Deep Fundamentals</a>
+    <a href="#m6">6. Execution Flow</a>
+    <a href="#m7">7. Syntax Anatomy</a>
+    <a href="#m8">8. Code Walkthrough</a>
+    <a href="#m9">9. Behind the Scenes</a>
+    <a href="#m10">10. Real Project Usage</a>
+    <a href="#m11">11. Common Mistakes</a>
+    <a href="#m12">12. Debugging Mindset</a>
+    <a href="#m13">13. Exam Pattern</a>
+    <a href="#m14">14. Interview Qs</a>
+    <a href="#m15">15. One-Page Brain</a>
+    <a href="#m16">16. Revision Table</a>
+    <a href="#m17">17. Practice Ladder</a>
+    <a href="#m18">18. Memory Palace</a>
+  </div>
+
+  <!-- ============ MODULE 2: CORE INTUITION ============ -->
+  <div class="module" id="m2">
+    <span class="module-tag">Module 2 · Core Intuition</span>
+    <h2>Why does this exist?</h2>
+    <p>In the hybrid setup (8.2), Vue and Jinja lived in the <strong>same house</strong>. Now imagine splitting into <strong>two separate buildings</strong> entirely — a restaurant's dining room (Vue frontend) and its kitchen (Flask backend) — connected only by waiters carrying orders back and forth (API calls). The kitchen doesn't care who's sitting at the table; it just receives orders and sends back food (JSON data).</p>
+    <div class="callout analogy">
+      <div class="ctitle">🍽️ Analogy</div>
+      Because the dining room and kitchen are now different buildings (different ports/domains), the building's security guard (the browser's Same-Origin Policy) stops any waiter from freely walking between them — unless the kitchen puts up a sign explicitly saying "waiters from this dining room are allowed in." That sign is CORS.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 3: VISUAL MENTAL MODEL ============ -->
+  <div class="module" id="m3">
+    <span class="module-tag">Module 3 · Visual Mental Model</span>
+    <h2>One picture: two apps, one bridge</h2>
+    <div class="cors-diagram">
+      <div class="cors-box origin">Vue Frontend<br><span style="font-weight:400;font-size:0.75rem;">localhost:8081</span></div>
+      <div class="cors-gate">
+        <div class="gate-icon">🌉</div>
+        <div class="gate-label">API calls + CORS headers</div>
+      </div>
+      <div class="cors-box target">Flask Backend<br><span style="font-weight:400;font-size:0.75rem;">localhost:8080</span></div>
+    </div>
+    <p style="text-align:center;font-size:0.85rem;color:var(--muted);">Two independent apps. No shared HTML, no shared cookies by default — just JSON over HTTP, guarded by CORS and Auth Tokens.</p>
+  </div>
+
+  <!-- ============ MODULE 4: PATTERN RECOGNITION ============ -->
+  <div class="module" id="m4">
+    <span class="module-tag">Module 4 · Pattern Recognition</span>
+    <h2>Spot it instantly</h2>
+    <div class="chip-row">
+      <span class="chip trigger">CORS</span>
+      <span class="chip trigger">Same-Origin Policy</span>
+      <span class="chip trigger">different ports/domains</span>
+      <span class="chip trigger">dist folder</span>
+      <span class="chip trigger">publicPath</span>
+      <span class="chip trigger">Auth Token</span>
+      <span class="chip trigger">RESTful API</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">⚡ Recognition Shortcut</div>
+      "Frontend and backend on different ports" → CORS needed &nbsp;|&nbsp; "Cross-domain API calls" → Token auth, not cookies &nbsp;|&nbsp; "dist folder inside static folder" → combined deployment.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 5: DEEP FUNDAMENTALS ============ -->
+  <div class="module" id="m5">
+    <span class="module-tag">Module 5 · Deep Fundamentals</span>
+    <h2>The four core questions</h2>
+    <h3>1. Why was this feature created?</h3>
+    <p>As apps grow, teams want to scale, deploy, and develop the frontend and backend independently — different teams, different release cycles, sometimes even different hosting providers (e.g. frontend on a CDN, backend on a cloud server).</p>
+    <h3>2. What problem does it solve?</h3>
+    <p>It removes the tight coupling from the hybrid model. Flask becomes a pure API server; Vue becomes a pure client app. Either can be redeployed, scaled, or replaced without touching the other.</p>
+    <h3>3. What happens internally?</h3>
+    <p>The browser loads the Vue app from one origin (e.g. a CDN or a dev server on port 8081). When Vue's JS code makes a <code>fetch</code>/<code>axios</code> call to Flask's API on a different origin (port 8080), the browser's Same-Origin Policy checks whether the response includes CORS headers permitting that origin — if not, it blocks the response from reaching Vue's JS.</p>
+    <h3>4. How does the browser execute it?</h3>
+    <p>For non-trivial requests, the browser first sends a "preflight" OPTIONS request asking the backend "will you accept a request from this origin?" Only if Flask (via <code>flask-cors</code>) answers yes does the browser allow the actual request to proceed.</p>
+  </div>
+
+  <!-- ============ MODULE 6: EXECUTION FLOW ============ -->
+  <div class="module" id="m6">
+    <span class="module-tag">Module 6 · Execution Flow</span>
+    <h2>The full request lifecycle</h2>
+    <div class="flow">
+      <div class="node front">Vue app loads (port 8081)</div>
+      <div class="arrow">→</div>
+      <div class="node front">User logs in via API call</div>
+      <div class="arrow">→</div>
+      <div class="node back">Flask verifies + returns auth token</div>
+      <div class="arrow">→</div>
+      <div class="node front">Vue stores token (Local Storage)</div>
+    </div>
+    <div class="flow">
+      <div class="node front">Vue calls GET /api/data</div>
+      <div class="arrow">→</div>
+      <div class="node block">Browser checks Same-Origin Policy</div>
+      <div class="arrow">→</div>
+      <div class="node back">Flask (flask-cors) allows origin</div>
+      <div class="arrow">→</div>
+      <div class="node back">JSON response returned</div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 7: SYNTAX ANATOMY ============ -->
+  <div class="module" id="m7">
+    <span class="module-tag">Module 7 · Syntax Anatomy</span>
+    <h2>Breaking down the pieces</h2>
+    <div class="code-block">
+      <div class="code-title">app.py — enabling CORS</div>
+      <pre><code><span class="kw">from</span> flask_cors <span class="kw">import</span> CORS
+
+app = Flask(__name__)
+<span class="fn">CORS</span>(app, origins=[<span class="str">"http://localhost:8081"</span>])</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">CORS(app, ...)</code> wraps the whole Flask app so every route can respond with the right cross-origin headers</li>
+      <li><code class="key">origins=[...]</code> the allow-list — in dev this is often <code>"*"</code> (allow everyone); in production it must be your exact frontend domain</li>
+    </ul>
+  </div>
+
+  <!-- ============ MODULE 8: CODE WALKTHROUGH ============ -->
+  <div class="module" id="m8">
+    <span class="module-tag">Module 8 · Code Walkthrough</span>
+    <h2>Step by step, with annotations</h2>
+
+    <h3>Step 1 — Enable CORS in development</h3>
+    <div class="code-block">
+      <div class="code-title">app.py</div>
+      <pre><code><span class="kw">from</span> flask_cors <span class="kw">import</span> CORS
+CORS(app)  <span class="c1"># dev only: allows all origins</span></code></pre>
+    </div>
+
+    <h3>Step 2 — Frontend calls the API with a token</h3>
+    <div class="code-block">
+      <div class="code-title">Vue component — fetching data</div>
+      <pre><code><span class="fn">fetch</span>(<span class="str">"http://localhost:8080/api/items"</span>, {
+  headers: { <span class="str">"Authentication-Token"</span>: <span class="kw">this</span>.token }
+})
+  .<span class="fn">then</span>(res =&gt; res.<span class="fn">json</span>())
+  .<span class="fn">then</span>(data =&gt; { <span class="kw">this</span>.items = data })</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">Authentication-Token header</code> replaces cookies since the two apps don't share a domain, so browsers won't auto-send cookies across origins anyway</li>
+    </ul>
+
+    <h3>Step 3 — Build the Vue app for production</h3>
+    <div class="code-block">
+      <div class="code-title">Terminal</div>
+      <pre><code>npm run build  <span class="c1"># generates a /dist folder with compiled HTML/CSS/JS</span></code></pre>
+    </div>
+
+    <h3>Step 4a — Separate deployment (Vue on CDN, Flask standalone)</h3>
+    <p style="font-size:0.87rem;">Upload <code>dist/</code> to a static host or CDN. Flask stays a pure API server elsewhere. Update CORS <code>origins</code> to that CDN's domain.</p>
+
+    <h3>Step 4b — Combined deployment (Vue served by Flask)</h3>
+    <div class="code-block">
+      <div class="code-title">app.py — serve Vue's dist folder + redirect root</div>
+      <pre><code>app = Flask(__name__, static_folder=<span class="str">"dist"</span>, static_url_path=<span class="str">""</span>)
+
+<span class="fn">@app.route</span>(<span class="str">"/"</span>)
+<span class="kw">def</span> <span class="fn">index</span>():
+    <span class="kw">return</span> app.send_static_file(<span class="str">"index.html"</span>)</code></pre>
+    </div>
+    <ul class="annot-list">
+      <li><code class="key">static_folder="dist"</code> points Flask at Vue's compiled output instead of its usual <code>static</code> folder</li>
+      <li><code class="key">static_url_path=""</code> serves those files from the root URL rather than under <code>/static</code></li>
+      <li><code class="key">@app.route("/")</code> redirect controller — ensures visiting the base URL lands on Vue's <code>index.html</code>, not a 404</li>
+      <li><strong>Don't forget:</strong> also adjust Vue's <code>publicPath</code> config so its built asset URLs match where Flask actually serves them from</li>
+    </ul>
+  </div>
+
+  <!-- ============ MODULE 9: BEHIND THE SCENES ============ -->
+  <div class="module" id="m9">
+    <span class="module-tag">Module 9 · Behind the Scenes</span>
+    <h2>What the browser actually does</h2>
+    <div class="flow">
+      <div class="node front">JS calls fetch() to a different origin</div>
+      <div class="arrow">→</div>
+      <div class="node">Browser sends preflight OPTIONS request</div>
+      <div class="arrow">→</div>
+      <div class="node back">Server responds with Access-Control-Allow-Origin</div>
+      <div class="arrow">→</div>
+      <div class="node front">If matched → real request proceeds; else → blocked</div>
+    </div>
+    <div class="callout warn">
+      <div class="ctitle">⚠️ CORS is enforced by the browser, not the server</div>
+      The Flask server may actually process and respond to the request just fine — but if the response headers don't permit the calling origin, the <em>browser</em> throws away the response before your JS code ever sees it. Tools like Postman ignore CORS entirely, which is why "it works in Postman but not in the browser" is a classic CORS symptom.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 10: REAL PROJECT USAGE ============ -->
+  <div class="module" id="m10">
+    <span class="module-tag">Module 10 · Real Project Usage</span>
+    <h2>Where you've already seen this</h2>
+    <table>
+      <tr><th>Product</th><th>How the decoupled pattern shows up</th></tr>
+      <tr><td>Netflix</td><td>Frontend SPA served from a CDN for speed; backend microservices handle data via APIs on entirely separate infrastructure</td></tr>
+      <tr><td>Spotify Web Player</td><td>Web client is a standalone app calling Spotify's public/internal APIs, completely decoupled from how those APIs are hosted</td></tr>
+      <tr><td>Trello</td><td>The board UI (client app) talks to backend REST APIs; teams can redeploy either independently</td></tr>
+      <tr><td>Startups using Vercel/Netlify + a cloud API</td><td>Classic separate-deployment pattern: frontend on a CDN host, backend API on a different cloud service, connected via CORS + tokens</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 11: COMMON MISTAKES ============ -->
+  <div class="module" id="m11">
+    <span class="module-tag">Module 11 · Common Mistakes</span>
+    <h2>Wrong vs Right</h2>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Relying on cookie-based authentication between a frontend on port 8081 and a backend on port 8080 — cookies typically won't be sent across different origins by default.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Use Auth Tokens sent explicitly in request headers — they don't depend on the browser's cookie/session behavior at all.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Leaving CORS set to allow all origins (<code>"*"</code>) in a production deployment — a security risk since any website could call your API.
+    </div>
+    <div class="callout good">
+      <div class="ctitle">✅ Correct</div>
+      Restrict <code>origins</code> to your actual frontend's exact production domain before deploying.
+    </div>
+    <div class="callout bad">
+      <div class="ctitle">❌ Wrong</div>
+      Forgetting to update Vue's <code>publicPath</code> and Flask's <code>static_folder</code> together in combined deployment — leads to broken CSS/JS asset paths (blank white page).
+    </div>
+  </div>
+
+  <!-- ============ MODULE 12: DEBUGGING MINDSET ============ -->
+  <div class="module" id="m12">
+    <span class="module-tag">Module 12 · Debugging Mindset</span>
+    <h2>Problem → Fix flow</h2>
+    <div class="flow">
+      <div class="node">Console shows CORS error?</div>
+      <div class="arrow">→</div>
+      <div class="node">Check Access-Control-Allow-Origin header</div>
+      <div class="arrow">→</div>
+      <div class="node">Add/update flask-cors config</div>
+      <div class="arrow">→</div>
+      <div class="node back">Fix + retest</div>
+    </div>
+    <table>
+      <tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr>
+      <tr><td>"blocked by CORS policy" in console</td><td>Backend not sending correct CORS headers for this origin</td><td>Add/adjust <code>flask_cors.CORS(app, origins=[...])</code></td></tr>
+      <tr><td>Works in Postman, fails in browser</td><td>Classic CORS-only issue — Postman doesn't enforce Same-Origin Policy</td><td>Confirm CORS config matches the browser's calling origin</td></tr>
+      <tr><td>Blank page after combined deployment</td><td>Mismatched <code>publicPath</code> / <code>static_folder</code> asset paths</td><td>Align Vue's build config with Flask's static serving path</td></tr>
+      <tr><td>404 on refreshing a Vue route</td><td>Flask has no catch-all route for client-side routing</td><td>Redirect unmatched routes to <code>index.html</code> so Vue Router can take over</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 13: EXAM PATTERN ============ -->
+  <div class="module" id="m13">
+    <span class="module-tag">Module 13 · IITM Exam Pattern</span>
+    <h2>What to watch for in MCQs</h2>
+    <div class="chip-row">
+      <span class="chip trigger">Trigger: "different ports", "cross-origin", "dist folder"</span>
+      <span class="chip trap">Trap: assuming cookies still work across separated apps</span>
+      <span class="chip trap">Trap: confusing CORS (browser-enforced) with server-side authentication</span>
+    </div>
+    <div class="callout">
+      <div class="ctitle">🎯 Elimination Technique</div>
+      If a question describes frontend and backend on different ports/domains and still assumes cookie auth works seamlessly, eliminate it — that scenario needs token auth.
+    </div>
+    <div class="callout">
+      <div class="ctitle">📝 PYQ Pattern</div>
+      Common question: "Why does a frontend on port 8081 fail to call an API on port 8080?" → Answer: Same-Origin Policy blocks it; fix with CORS. "How do combined deployments serve the frontend?" → Vue's <code>dist</code> folder placed inside Flask's static folder, with a root-route redirect to <code>index.html</code>.
+    </div>
+  </div>
+
+  <!-- ============ MODULE 14: INTERVIEW QUESTIONS ============ -->
+  <div class="module" id="m14">
+    <span class="module-tag">Module 14 · Interview Questions</span>
+    <h2>Three tiers</h2>
+    <div class="tier easy">
+      <span class="badge">EASY</span>
+      <ul>
+        <li>What is CORS and why does it exist?</li>
+        <li>Why can't cookie-based auth be used directly across separated frontend/backend apps?</li>
+      </ul>
+    </div>
+    <div class="tier medium">
+      <span class="badge">MEDIUM</span>
+      <ul>
+        <li>What's the difference between separate deployment and combined deployment?</li>
+        <li>What is a CORS preflight request, and when does the browser send one?</li>
+      </ul>
+    </div>
+    <div class="tier advanced">
+      <span class="badge">ADVANCED</span>
+      <ul>
+        <li>How would you securely configure CORS for a production app serving multiple frontend domains?</li>
+        <li>Design the deployment pipeline for a Vue+Flask app that needs independent scaling of frontend and backend.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 15: ONE-PAGE BRAIN ============ -->
+  <div class="module" id="m15">
+    <span class="module-tag">Module 15 · One-Page Brain</span>
+    <h2>Compressed revision flow</h2>
+    <div class="flow">
+      <div class="node front">Vue app (own origin)</div>
+      <div class="arrow">→</div>
+      <div class="node">API call w/ Auth Token</div>
+      <div class="arrow">→</div>
+      <div class="node back">Flask API + CORS headers</div>
+      <div class="arrow">→</div>
+      <div class="node back">JSON response</div>
+    </div>
+    <div class="remember-chain">
+      <div class="remember-row"><div class="k">CORS</div><div class="v">browser-enforced permission system for cross-origin requests</div></div>
+      <div class="remember-row"><div class="k">Auth Token, not cookies</div><div class="v">needed once frontend/backend live on different origins</div></div>
+      <div class="remember-row"><div class="k">dist folder</div><div class="v">Vue's compiled production build output</div></div>
+      <div class="remember-row"><div class="k">publicPath + static_folder</div><div class="v">must match, or built asset URLs break in combined deployment</div></div>
+      <div class="remember-row"><div class="k">Root route redirect</div><div class="v">Flask route for "/" returns Vue's index.html in combined mode</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 16: QUICK REVISION TABLE ============ -->
+  <div class="module" id="m16">
+    <span class="module-tag">Module 16 · Quick Revision Table</span>
+    <h2>Separate vs Combined Deployment</h2>
+    <table>
+      <tr><th>Aspect</th><th>Separate Deployment</th><th>Combined Deployment</th></tr>
+      <tr><td>Frontend hosting</td><td>Static host / CDN</td><td>Served from Flask's static folder</td></tr>
+      <tr><td>Scaling</td><td>Independent for each app</td><td>Scale together as one unit</td></tr>
+      <tr><td>Performance</td><td>Faster static asset delivery via CDN</td><td>Simpler, but no CDN benefit by default</td></tr>
+      <tr><td>Deployment complexity</td><td>Two pipelines to manage</td><td>One combined pipeline</td></tr>
+      <tr><td>Best for</td><td>Larger teams, high scale</td><td>Smaller teams, simpler ops</td></tr>
+    </table>
+  </div>
+
+  <!-- ============ MODULE 17: PRACTICE LADDER ============ -->
+  <div class="module" id="m17">
+    <span class="module-tag">Module 17 · Practice Ladder</span>
+    <h2>Climb from concept to interview-ready</h2>
+    <div class="ladder">
+      <div class="rung"><div class="num">1</div><div>Explain in your own words why the browser blocks cross-origin API calls by default</div></div>
+      <div class="rung"><div class="num">2</div><div>Predict what error appears in devtools when CORS isn't configured</div></div>
+      <div class="rung"><div class="num">3</div><div>Find the bug: API works in Postman but fails from the Vue app</div></div>
+      <div class="rung"><div class="num">4</div><div>MCQ: identify what header a CORS-enabled response must include</div></div>
+      <div class="rung"><div class="num">5</div><div>Write code: configure <code>flask-cors</code> to allow only your frontend's domain</div></div>
+      <div class="rung"><div class="num">6</div><div>Mini project: build and deploy a Vue app into Flask's static folder with a working root redirect</div></div>
+      <div class="rung"><div class="num">7</div><div>Interview: design a full deployment strategy for a decoupled Vue+Flask production app</div></div>
+    </div>
+  </div>
+
+  <!-- ============ MODULE 18: MEMORY PALACE ============ -->
+  <div class="module" id="m18">
+    <span class="module-tag">Module 18 · Memory Palace</span>
+    <h2>Lock it in</h2>
+    <div class="palace-grid">
+      <div class="palace-card">
+        <div class="icon">📏</div>
+        <div class="ptitle">Rule</div>
+        <div>"Different origins → CORS decides, tokens authenticate."</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🔑</div>
+        <div class="ptitle">Mnemonic</div>
+        <div>"C.A.T. — <strong>C</strong>ORS opens the door, <strong>A</strong>uth <strong>T</strong>oken proves who you are"</div>
+      </div>
+      <div class="palace-card">
+        <div class="icon">🧭</div>
+        <div class="ptitle">Visual</div>
+        <div>Vue origin → CORS gate → Flask API → JSON back</div>
+      </div>
+    </div>
+    <div class="callout" style="margin-top:16px;">
+      <div class="ctitle">🚀 Beyond this lecture</div>
+      Production systems often add API gateways, rate limiting, and stricter CORS allow-lists, plus CI/CD pipelines that automatically rebuild and redeploy the frontend and backend independently.
+    </div>
+  </div>
+
+  <div class="footer-note">Separating Frontend & Backend — Vue + Flask · MAD2 Learning OS · Screencast 8.3</div>
+
+</div>
+</body>
+</html>

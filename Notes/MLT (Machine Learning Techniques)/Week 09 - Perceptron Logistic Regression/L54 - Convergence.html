@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lecture 54 · Perceptron Convergence Proof</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0e17;
+  --bg2:#0d1220;
+  --panel-bg:#12172a;
+  --panel-border:rgba(255,255,255,0.08);
+  --card-bg:#111726;
+  --card-border:rgba(255,255,255,0.07);
+  --gold:#e0b84c;
+  --gold-soft:rgba(224,184,76,0.14);
+  --teal:#3ec9b0;
+  --teal-soft:rgba(62,201,176,0.14);
+  --purple:#a385e0;
+  --purple-soft:rgba(163,133,224,0.14);
+  --red:#e0715f;
+  --blue:#5b9bd5;
+  --text:#e8ebf3;
+  --text-dim:#a7b0c4;
+  --text-faint:#6f7891;
+  --serif-math-font:"Fraunces","STIX Two Math",serif;
+  --mono-font:"JetBrains Mono",monospace;
+  --sans-font:"Inter",sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:
+    linear-gradient(180deg, rgba(224,184,76,0.05), transparent 400px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.025) 0px, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 40px),
+    var(--bg);
+  color:var(--text);
+  font-family:var(--sans-font);
+  line-height:1.6;
+  padding:0 0 80px 0;
+}
+.wrap{max-width:960px;margin:0 auto;padding:0 20px;}
+
+.hero{
+  padding:64px 20px 40px;
+  text-align:center;
+  border-bottom:1px solid var(--panel-border);
+  background:radial-gradient(ellipse at top, rgba(163,133,224,0.10), transparent 60%);
+}
+.breadcrumb{
+  font-family:var(--mono-font);
+  font-size:0.78rem;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--teal);
+  margin-bottom:18px;
+}
+.hero h1{
+  font-family:var(--serif-math-font);
+  font-weight:700;
+  font-size:clamp(1.7rem,4.3vw,2.8rem);
+  margin:0 0 14px;
+  background:linear-gradient(135deg,#fff, var(--gold) 60%, var(--teal));
+  -webkit-background-clip:text;
+  background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.hero p.sub{
+  color:var(--text-dim);
+  max-width:660px;
+  margin:0 auto;
+  font-size:1.02rem;
+}
+.hero-tags{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px;}
+.tag{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  padding:5px 12px;
+  border-radius:20px;
+  border:1px solid var(--panel-border);
+  color:var(--text-dim);
+}
+
+section{margin:64px 0;}
+.sec-label{
+  font-family:var(--mono-font);
+  font-size:0.75rem;
+  text-transform:uppercase;
+  letter-spacing:0.12em;
+  color:var(--gold);
+  margin-bottom:8px;
+  display:flex;align-items:center;gap:10px;
+}
+.sec-label::before{content:"";width:22px;height:1px;background:var(--gold);display:inline-block;}
+h2.sec-title{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.4rem,3vw,2rem);
+  font-weight:600;
+  margin:0 0 22px;
+  color:#fff;
+}
+h3.sub-title{
+  font-family:var(--serif-math-font);
+  font-size:1.2rem;
+  font-weight:600;
+  color:var(--gold);
+  margin:28px 0 12px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--card-border);
+  border-radius:14px;
+  padding:22px 24px;
+  margin:16px 0;
+}
+.card-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;}
+@media(max-width:680px){.card-grid{grid-template-columns:1fr;}}
+.card-grid.three{grid-template-columns:repeat(3,1fr);}
+@media(max-width:820px){.card-grid.three{grid-template-columns:1fr;}}
+
+.callout{
+  border-radius:12px;
+  padding:16px 20px;
+  margin:20px 0;
+  border-left:3px solid;
+  font-size:0.95rem;
+}
+.callout-title{
+  font-weight:700;
+  font-family:var(--sans-font);
+  font-size:0.8rem;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.callout.analogy{background:var(--purple-soft);border-color:var(--purple);}
+.callout.analogy .callout-title{color:var(--purple);}
+.callout.trap{background:rgba(224,113,95,0.12);border-color:var(--red);}
+.callout.trap .callout-title{color:var(--red);}
+.callout.tip{background:var(--teal-soft);border-color:var(--teal);}
+.callout.tip .callout-title{color:var(--teal);}
+.callout.assume{background:var(--gold-soft);border-color:var(--gold);}
+.callout.assume .callout-title{color:var(--gold);}
+
+.eq-panel{
+  background:var(--panel-bg);
+  border:1px solid var(--panel-border);
+  border-radius:16px;
+  padding:2.2rem 1.6rem;
+  margin:1.8rem 0;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+  text-align:center;
+  position:relative;
+}
+.eq-panel .eq-label{
+  font-family:var(--mono-font);
+  font-size:0.72rem;
+  text-transform:uppercase;
+  letter-spacing:0.1em;
+  color:var(--text-faint);
+  margin-bottom:14px;
+}
+.eq-panel .eq-number{
+  position:absolute;bottom:0.7rem;right:1.1rem;
+  font-size:0.75rem;opacity:0.45;font-family:var(--mono-font);
+}
+.eq-main{
+  font-family:var(--serif-math-font);
+  font-size:clamp(1.05rem,2.4vw,1.7rem);
+  line-height:1.9;
+}
+.eq-main .line{display:block;margin:6px 0;}
+.sym-var{color:var(--blue);font-style:italic;}
+.sym-param{color:var(--gold);font-style:italic;}
+.sym-const{color:#7fd67f;}
+.sym-fn{color:var(--purple);font-style:normal;}
+.sym-op{color:var(--red);}
+sup,sub{font-size:0.62em;}
+
+.legend{
+  margin-top:10px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:6px 18px;
+  font-size:0.85rem;
+  color:var(--text-dim);
+}
+.legend .item{display:flex;gap:8px;align-items:baseline;}
+.legend .sym{font-family:var(--serif-math-font);font-size:1rem;min-width:26px;}
+
+.timeline{position:relative;margin:24px 0;padding-left:34px;}
+.timeline::before{content:"";position:absolute;left:12px;top:6px;bottom:6px;width:2px;background:linear-gradient(var(--gold),var(--teal));opacity:0.35;}
+.step{position:relative;margin-bottom:22px;}
+.step-badge{
+  position:absolute;left:-34px;top:0;
+  width:26px;height:26px;border-radius:50%;
+  background:var(--bg2);border:2px solid var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono-font);font-size:0.75rem;color:var(--gold);font-weight:700;
+}
+.step-title{font-weight:700;color:#fff;margin-bottom:4px;font-size:0.98rem;}
+.step-body{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:12px 16px;}
+.step-eq{font-family:var(--serif-math-font);font-size:1.05rem;text-align:center;padding:6px 0;}
+
+table.data-table{
+  width:100%;border-collapse:collapse;margin:16px 0;font-size:0.92rem;
+  border-radius:10px;overflow:hidden;
+}
+table.data-table th{
+  background:rgba(224,184,76,0.1);color:var(--gold);text-align:left;
+  padding:10px 14px;font-family:var(--mono-font);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.04em;
+}
+table.data-table td{padding:10px 14px;border-top:1px solid var(--card-border);color:var(--text-dim);}
+table.data-table tr:hover td{background:rgba(255,255,255,0.02);color:var(--text);}
+
+details.worked{
+  background:var(--card-bg);border:1px solid var(--card-border);border-radius:12px;
+  margin:16px 0;padding:14px 18px;
+}
+details.worked summary{
+  cursor:pointer;font-weight:700;color:var(--teal);list-style:none;display:flex;align-items:center;gap:8px;
+}
+details.worked summary::-webkit-details-marker{display:none;}
+details.worked summary::before{content:"▸";transition:transform 0.2s;color:var(--teal);}
+details.worked[open] summary::before{transform:rotate(90deg);}
+details.worked .content{margin-top:14px;color:var(--text-dim);font-size:0.93rem;}
+
+.svg-card{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:14px;padding:18px;margin:20px 0;text-align:center;}
+.svg-card svg{max-width:100%;height:auto;}
+.svg-cap{font-family:var(--mono-font);font-size:0.75rem;color:var(--text-faint);margin-top:8px;}
+
+.sim-card{
+  background:linear-gradient(180deg, rgba(62,201,176,0.06), transparent), var(--panel-bg);
+  border:1px solid var(--panel-border);border-radius:18px;padding:22px;margin:24px 0;
+}
+.sim-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.sim-badge{font-family:var(--mono-font);font-size:0.7rem;background:var(--teal-soft);color:var(--teal);padding:4px 10px;border-radius:20px;letter-spacing:0.05em;}
+.sim-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+@media(max-width:720px){.sim-layout{grid-template-columns:1fr;}}
+.sim-canvas-wrap{background:#080b13;border-radius:12px;border:1px solid var(--panel-border);padding:10px;}
+canvas#proofCanvas{width:100%;height:auto;border-radius:8px;display:block;}
+.controls{display:flex;flex-direction:column;gap:14px;}
+.ctrl label{display:flex;justify-content:space-between;font-size:0.82rem;color:var(--text-dim);margin-bottom:4px;font-family:var(--mono-font);}
+.ctrl input[type=range]{width:100%;accent-color:var(--teal);}
+.readout{font-family:var(--mono-font);font-size:0.85rem;text-align:center;padding:10px;border-radius:10px;background:var(--card-bg);border:1px solid var(--card-border);}
+.readout .status-label{font-weight:700;font-size:1.05rem;}
+.legend-row{display:flex;gap:16px;justify-content:center;margin-top:10px;font-size:0.78rem;color:var(--text-dim);flex-wrap:wrap;}
+.legend-dot{width:14px;height:3px;display:inline-block;margin-right:6px;vertical-align:middle;}
+
+code, .code{font-family:var(--mono-font);background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:5px;font-size:0.88em;color:var(--teal);}
+
+.brain{
+  border:1px solid var(--gold);border-radius:18px;padding:26px;
+  background:radial-gradient(ellipse at top left, rgba(224,184,76,0.09), transparent 60%), var(--panel-bg);
+}
+.brain h3{margin-top:0;color:var(--gold);font-family:var(--serif-math-font);}
+.brain ul{margin:8px 0;padding-left:20px;color:var(--text-dim);}
+.brain li{margin:5px 0;}
+
+.qa{background:var(--card-bg);border:1px solid var(--card-border);border-radius:10px;padding:14px 18px;margin:10px 0;}
+.qa .q{font-weight:700;color:#fff;margin-bottom:6px;}
+.qa .q::before{content:"Q. ";color:var(--purple);}
+
+.chain{display:flex;align-items:center;flex-wrap:wrap;gap:8px;justify-content:center;margin:20px 0;}
+.chain .node{
+  font-family:var(--mono-font);font-size:0.82rem;padding:8px 14px;border-radius:10px;
+  background:var(--card-bg);border:1px solid var(--card-border);color:var(--text-dim);
+}
+.chain .node.current{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);font-weight:700;}
+.chain .arrow{color:var(--text-faint);}
+
+.proof-pill{
+  display:inline-block;font-family:var(--mono-font);font-size:0.7rem;
+  background:var(--purple-soft);color:var(--purple);padding:3px 10px;border-radius:20px;
+  margin-bottom:10px;letter-spacing:0.04em;
+}
+
+.footer-note{text-align:center;color:var(--text-faint);font-size:0.8rem;font-family:var(--mono-font);margin-top:60px;}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="breadcrumb">Lecture 54 · Discriminative Models · Perceptron, Part III</div>
+  <h1>The Perceptron Convergence Proof</h1>
+  <p class="sub">Two innocent-looking inequalities — one growing linearly, one growing quadratically — collide to force a hard ceiling on how many mistakes the Perceptron can ever make. This is that proof, worked line by line.</p>
+  <div class="hero-tags">
+    <span class="tag">Norm Growth Bound</span>
+    <span class="tag">Cauchy–Schwarz</span>
+    <span class="tag">L ≤ R²/γ²</span>
+    <span class="tag">IITM · MLT Week 11</span>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ORIENTATION -->
+<section id="orientation">
+  <div class="sec-label">Layer 0 · Orientation</div>
+  <h2 class="sec-title">Where This Sits</h2>
+  <div class="chain">
+    <span class="node">Perceptron Algorithm (L52)</span><span class="arrow">→</span>
+    <span class="node">γ-Margin Separability (L53)</span><span class="arrow">→</span>
+    <span class="node current">Convergence Proof (L54)</span><span class="arrow">→</span>
+    <span class="node">SVM / Neural Nets</span>
+  </div>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Prerequisites</h3>
+      <table class="data-table">
+        <tr><th>Required</th><td>γ-margin separability (L53), the update rule w←w+yx</td></tr>
+        <tr><th>Required</th><td>Vector norms, dot products, Cauchy–Schwarz inequality</td></tr>
+        <tr><th>Helpful</th><td>Proof by induction</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Cognitive Pattern</h3>
+      <p style="color:var(--text-dim);margin:0;">This is a <strong style="color:var(--teal);">sandwich proof</strong> — build an <em>upper</em> bound on some quantity, build a <em>lower</em> bound on the same quantity, then squeeze them together. Whatever survives the squeeze is your theorem.</p>
+    </div>
+  </div>
+</section>
+
+<!-- THE PLAN -->
+<section id="plan">
+  <div class="sec-label">Layer 1 · Understanding</div>
+  <h2 class="sec-title">The Big Picture Before the Algebra</h2>
+  <p>The goal: bound <span class="code">L</span>, the total number of mistakes the Perceptron ever makes. The proof strategy is a classic "squeeze":</p>
+
+  <div class="callout analogy">
+    <div class="callout-title">🎯 Analogy — Trapping a Number Between Two Fences</div>
+    Imagine you don't know a number's exact value, but you can build two fences around it: a fence that says "this number can grow <em>at most</em> this fast" (upper bound), and a fence that says "this number <em>must</em> grow at least this fast" (lower bound). If the "must grow fast" fence eventually overtakes the "can't grow past" fence, the number is trapped — it simply cannot keep existing past that point. That collision point is exactly where <span class="code">L</span> gets capped.
+  </div>
+
+  <table class="data-table">
+    <tr><th>Step</th><th>What we bound</th><th>Direction</th></tr>
+    <tr><td>1</td><td>‖w<sub>L+1</sub>‖²</td><td>Upper bound — grows at most linearly in L</td></tr>
+    <tr><td>2</td><td>w<sub>L+1</sub><sup>T</sup>w*</td><td>Lower bound — grows at least linearly in L</td></tr>
+    <tr><td>3</td><td>‖w<sub>L+1</sub>‖² again, via Cauchy–Schwarz</td><td>Lower bound — grows at least quadratically in L</td></tr>
+    <tr><td>4</td><td>Combine steps 1 &amp; 3</td><td>Quadratic lower bound ≤ linear upper bound ⇒ L is capped</td></tr>
+  </table>
+</section>
+
+<!-- ASSUMPTIONS -->
+<section id="assumptions">
+  <div class="sec-label">Layer 4 · Setup</div>
+  <h2 class="sec-title">Core Assumptions</h2>
+  <div class="card-grid three">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">1. γ-Margin</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">∃ w* such that the data is linearly separable with margin <span class="code">γ &gt; 0</span> — every point is correctly classified by w* with a guaranteed clearance γ.</p>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">2. Bounded Radius</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">Every point sits inside a ball of radius <span class="code">R</span>: <span class="code">‖x‖ ≤ R</span> for all training points.</p>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">3. Normalize ‖w*‖=1</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;">WLOG rescale w* to unit length — this rescales γ along with it, but the separator itself (the direction) is unchanged.</p>
+    </div>
+  </div>
+  <div class="callout assume">
+    <div class="callout-title">📐 Why Normalize w*?</div>
+    A separating hyperplane is defined by the <em>direction</em> of w*, not its length — scaling w* by any positive constant gives the exact same boundary. So we're free to pick the scale that makes the algebra cleanest: unit length. This is a bookkeeping convenience, not a new assumption about the data.
+  </div>
+</section>
+
+<!-- STEP 1: UPPER BOUND -->
+<section id="step1">
+  <div class="sec-label">Layer 2 · Derivation</div>
+  <span class="proof-pill">PROOF · PART 1 OF 3</span>
+  <h2 class="sec-title">1. The Weight Vector Can't Grow Too Fast</h2>
+  <p>Every mistake triggers an update. We track how much the squared norm <span class="code">‖w‖²</span> can possibly increase per mistake.</p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Expand the squared norm after an update</div>
+      <div class="step-body"><div class="step-eq">‖w<sub>L+1</sub>‖² = ‖w<sub>L</sub> + yx‖² = ‖w<sub>L</sub>‖² + 2y(w<sub>L</sub><sup>T</sup>x) + ‖x‖²</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Use the fact that a mistake just happened</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">w<sub>L</sub> misclassified (x,y) — meaning its score and the true label disagree in sign, so the cross term is ≤ 0:</p>
+        <div class="step-eq" style="color:var(--red);">y(w<sub>L</sub><sup>T</sup>x) ≤ 0</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Drop the non-positive term, apply the radius bound</div>
+      <div class="step-body"><div class="step-eq">‖w<sub>L+1</sub>‖² ≤ ‖w<sub>L</sub>‖² + ‖x‖² ≤ ‖w<sub>L</sub>‖² + R²</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">4</div>
+      <div class="step-title">Unroll the recursion from w₀ = 0</div>
+      <div class="step-body"><p style="margin:0;color:var(--text-dim);">Each of the L mistakes adds at most R² to the squared norm, starting from zero.</p></div>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Upper Bound (grows linearly in L)</div>
+    <div class="eq-main">
+      <span class="line">‖<span class="sym-param">w<sub>L+1</sub></span>‖² ≤ <span class="sym-var">L</span>&middot;<span class="sym-const">R²</span></span>
+    </div>
+    <div class="eq-number">Eq. 54.1</div>
+  </div>
+</section>
+
+<!-- STEP 2: LOWER BOUND (dot with w*) -->
+<section id="step2">
+  <div class="sec-label">Layer 2 · Derivation</div>
+  <span class="proof-pill">PROOF · PART 2 OF 3</span>
+  <h2 class="sec-title">2. Alignment With the Optimal Separator Can't Grow Too Slowly</h2>
+  <p>Now track a different quantity: how well <span class="code">w</span> is aligned with the (unknown, but existing) optimal separator <span class="code">w*</span>, measured by their dot product.</p>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Dot the update with w*</div>
+      <div class="step-body"><div class="step-eq">w<sub>L+1</sub><sup>T</sup>w* = (w<sub>L</sub>+yx)<sup>T</sup>w* = w<sub>L</sub><sup>T</sup>w* + y(x<sup>T</sup>w*)</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Apply the margin guarantee</div>
+      <div class="step-body">
+        <p style="margin:0 0 8px;color:var(--text-dim);">By the γ-margin assumption, every point satisfies y(x<sup>T</sup>w*) ≥ γ — including the point we just mistook:</p>
+        <div class="step-eq" style="color:var(--teal);">y(x<sup>T</sup>w*) ≥ γ</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-badge">3</div>
+      <div class="step-title">Unroll the recursion from w₀ = 0</div>
+      <div class="step-body"><p style="margin:0;color:var(--text-dim);">Each of the L mistakes adds at least γ to the alignment, starting from zero.</p></div>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Lower Bound (grows at least linearly in L)</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-param">w<sub>L+1</sub></span><sup>T</sup><span class="sym-param">w*</span> ≥ <span class="sym-var">L</span>&middot;<span class="sym-const">γ</span></span>
+    </div>
+    <div class="eq-number">Eq. 54.2</div>
+  </div>
+</section>
+
+<!-- STEP 3: CAUCHY-SCHWARZ -->
+<section id="step3">
+  <div class="sec-label">Layer 2 · Derivation</div>
+  <span class="proof-pill">PROOF · PART 3 OF 3</span>
+  <h2 class="sec-title">3. Turning the Dot Product Into a Norm — Cauchy–Schwarz</h2>
+  <p>Eq. 54.2 bounds a dot product, but Eq. 54.1 bounds a squared norm. Cauchy–Schwarz is the bridge that converts one into the other.</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">Cauchy–Schwarz Inequality</div>
+    <div class="eq-main">
+      <span class="line">(<span class="sym-param">w<sub>L+1</sub></span><sup>T</sup><span class="sym-param">w*</span>)² ≤ ‖<span class="sym-param">w<sub>L+1</sub></span>‖²&middot;‖<span class="sym-param">w*</span>‖²</span>
+    </div>
+    <div class="eq-number">Eq. 54.3</div>
+  </div>
+
+  <div class="timeline">
+    <div class="step">
+      <div class="step-badge">1</div>
+      <div class="step-title">Apply ‖w*‖ = 1 (our normalization)</div>
+      <div class="step-body"><div class="step-eq">‖w<sub>L+1</sub>‖² ≥ (w<sub>L+1</sub><sup>T</sup>w*)²</div></div>
+    </div>
+    <div class="step">
+      <div class="step-badge">2</div>
+      <div class="step-title">Substitute the Eq. 54.2 lower bound</div>
+      <div class="step-body"><div class="step-eq">‖w<sub>L+1</sub>‖² ≥ (L&middot;γ)² = L²γ²</div></div>
+    </div>
+  </div>
+
+  <div class="eq-panel">
+    <div class="eq-label">Lower Bound (grows quadratically in L)</div>
+    <div class="eq-main">
+      <span class="line">‖<span class="sym-param">w<sub>L+1</sub></span>‖² ≥ <span class="sym-var">L</span>²<span class="sym-const">γ</span>²</span>
+    </div>
+    <div class="eq-number">Eq. 54.4</div>
+  </div>
+</section>
+
+<!-- THE SQUEEZE -->
+<section id="squeeze">
+  <div class="sec-label">Layer 2 · Derivation — The Punchline</div>
+  <h2 class="sec-title">4. Squeezing Both Bounds Together</h2>
+  <p>Eq. 54.1 says ‖w<sub>L+1</sub>‖² can grow <em>at most</em> linearly. Eq. 54.4 says the same quantity <em>must</em> grow at least quadratically. Both are true simultaneously, so:</p>
+
+  <div class="eq-panel">
+    <div class="eq-label">The Squeeze</div>
+    <div class="eq-main">
+      <span class="line"><span class="sym-var">L</span>²<span class="sym-const">γ</span>² ≤ ‖<span class="sym-param">w<sub>L+1</sub></span>‖² ≤ <span class="sym-var">L</span>&middot;<span class="sym-const">R²</span></span>
+      <span class="line" style="font-size:0.8em;color:var(--text-faint);">↓ drop the middle, divide both sides by L</span>
+      <span class="line"><span class="sym-var">L</span>²<span class="sym-const">γ</span>² ≤ <span class="sym-var">L</span>&middot;<span class="sym-const">R²</span> &nbsp;⟹&nbsp; <span class="sym-var">L</span> ≤ <span class="sym-const">R²</span>/<span class="sym-const">γ</span>²</span>
+    </div>
+    <div class="eq-number">Eq. 54.5 — Perceptron Convergence Theorem</div>
+  </div>
+
+  <div class="callout tip">
+    <div class="callout-title">💡 What Just Happened</div>
+    Both R and γ are <strong>fixed, finite constants</strong> determined entirely by the dataset — not by the algorithm's choices, initialization, or point order. So <span class="code">R²/γ²</span> is a fixed finite number, and the total mistake count L can never exceed it. The Perceptron isn't just "eventually" going to stop — it's capped by a number you could compute in advance, before ever running the algorithm.
+  </div>
+
+  <details class="worked">
+    <summary>Worked Numerical Example — plugging in R and γ</summary>
+    <div class="content">
+      <p>Suppose all points satisfy <span class="code">‖x‖ ≤ R = 3</span>, and the best separator achieves a margin <span class="code">γ = 0.5</span> (after normalizing ‖w*‖=1).</p>
+      <p>Then the mistake bound is <span class="code">L ≤ R²/γ² = 9 / 0.25 = 36</span>.</p>
+      <p>No matter what order the points are presented in, no matter how the Perceptron is initialized (as long as w₀=0), it will make <strong>at most 36 mistakes</strong> before finding a perfect separator. It might converge in far fewer — this is a worst-case ceiling, not a promise of exactly 36.</p>
+    </div>
+  </details>
+
+  <div class="callout trap">
+    <div class="callout-title">⚠️ Common Mistake</div>
+    Don't forget the bound is on <strong>total mistakes</strong>, not total <em>iterations</em> or <em>epochs</em> — correctly classified points cost nothing and can be revisited freely. Also, the bound requires the <strong>normalized</strong> γ (with ‖w*‖=1); plugging in a margin measured against an un-normalized w* gives the wrong number.
+  </div>
+</section>
+
+<!-- SIMULATOR -->
+<section id="simulator">
+  <div class="sec-label">Signature Interactive</div>
+  <h2 class="sec-title">Playground: Watch the Two Bounds Collide</h2>
+  <div class="sim-card">
+    <div class="sim-header">
+      <span class="sim-badge">● LIVE</span>
+      <span style="color:var(--text-dim);font-size:0.9rem;">Adjust R and γ — the crossing point of the two curves is exactly the mistake cap R²/γ².</span>
+    </div>
+    <div class="sim-layout">
+      <div class="sim-canvas-wrap">
+        <canvas id="proofCanvas" width="480" height="360"></canvas>
+        <div class="legend-row">
+          <span><span class="legend-dot" style="background:#e0715f;"></span>Upper bound: L·R²</span>
+          <span><span class="legend-dot" style="background:#3ec9b0;"></span>Lower bound: L²γ²</span>
+          <span><span class="legend-dot" style="background:#e0b84c;"></span>crossing = R²/γ²</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="ctrl">
+          <label><span>Radius R</span><span id="rVal">3.0</span></label>
+          <input type="range" id="rSlider" min="1" max="6" step="0.1" value="3.0">
+        </div>
+        <div class="ctrl">
+          <label><span>Margin γ</span><span id="gVal">0.6</span></label>
+          <input type="range" id="gSlider" min="0.2" max="2.0" step="0.05" value="0.6">
+        </div>
+        <div class="readout">
+          Mistake cap L ≤ R²/γ² = <span class="status-label" id="boundVal" style="color:var(--gold);">25.0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout tip" style="margin-top:0;">
+    <div class="callout-title">Try This</div>
+    Push γ toward its minimum while keeping R fixed — the green (quadratic, must-grow-at-least-this-fast) curve steepens and crosses the red (linear, can't-grow-past-this) curve much sooner. That earlier crossing <em>is</em> a smaller allowed L — exactly matching the L53 observation that tighter margins force more updates before convergence... wait, more precisely: a smaller γ raises the mistake <em>ceiling</em>, which is consistent with needing more updates in the worst case.
+  </div>
+</section>
+
+<!-- SIGNIFICANCE -->
+<section id="significance">
+  <div class="sec-label">Layer 7 · Transfer</div>
+  <h2 class="sec-title">Why This Proof Matters</h2>
+  <div class="card-grid">
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Historical Significance</h3>
+      <p style="color:var(--text-dim);">The Perceptron is one of the <strong>earliest ML algorithms with a provable convergence guarantee</strong> — a rigorous, finite mistake bound, decades before deep learning existed.</p>
+    </div>
+    <div class="card">
+      <h3 class="sub-title" style="margin-top:0;">Forward Influence</h3>
+      <p style="color:var(--text-dim);">It's the direct conceptual ancestor of both <strong>Neural Networks</strong> (a single neuron is essentially a perceptron unit) and <strong>SVMs</strong> (which take the γ-margin idea from an assumption to an explicit optimization objective).</p>
+    </div>
+  </div>
+  <div class="callout analogy">
+    <div class="callout-title">🎯 The Thread So Far</div>
+    L52 gave the algorithm. L53 showed plain separability wasn't enough and introduced γ-margin separability as the fix. L54 cashed in that fix for a hard number: L ≤ R²/γ². Next, SVM asks a sharper question — instead of just <em>assuming</em> some margin γ exists, why not <em>search</em> for the largest possible one?
+  </div>
+</section>
+
+<!-- RETRIEVAL -->
+<section id="retrieval">
+  <div class="sec-label">Layer 7 · Retrieval Practice</div>
+  <h2 class="sec-title">Test Yourself</h2>
+  <div class="qa">
+    <div class="q">Why is y(wₗᵀx) ≤ 0 exactly when a mistake occurs?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">A mistake means the predicted sign of wₗᵀx disagrees with the true label y — so their product is non-positive by definition of disagreement in sign.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">Why do we need Cauchy–Schwarz at all — why not compare Eq. 54.1 and Eq. 54.2 directly?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">Eq. 54.1 bounds a squared norm ‖w‖², while Eq. 54.2 bounds a dot product wᵀw*, which are different quantities. Cauchy–Schwarz is the algebraic bridge that converts the dot-product bound into a squared-norm bound so the two can be compared directly.</div></details>
+  </div>
+  <div class="qa">
+    <div class="q">If you doubled R while keeping γ fixed, what happens to the guaranteed mistake bound?</div>
+    <details class="worked"><summary>Show answer</summary><div class="content">The bound L ≤ R²/γ² is quadratic in R, so doubling R quadruples the mistake bound.</div></details>
+  </div>
+</section>
+
+<!-- ONE PAGE BRAIN -->
+<section id="brain">
+  <div class="sec-label">Layer 8 · Compression</div>
+  <h2 class="sec-title">One-Page Brain</h2>
+  <div class="brain">
+    <h3>Perceptron Convergence Proof — Everything on One Page</h3>
+    <p style="color:var(--text-dim);"><strong>Core idea:</strong> sandwich ‖w‖² between an upper bound that grows linearly in mistakes L and a lower bound that grows quadratically in L — the two can only coexist while L stays below R²/γ².</p>
+    <ul>
+      <li><strong>Assumptions:</strong> γ-margin separability, ‖x‖≤R for all points, normalize ‖w*‖=1</li>
+      <li><strong>Upper bound:</strong> ‖w<sub>L+1</sub>‖² ≤ L·R² (mistakes can't grow the norm too fast, since y·wᵀx ≤ 0 on a mistake)</li>
+      <li><strong>Lower bound (linear):</strong> w<sub>L+1</sub>ᵀw* ≥ L·γ (each mistake adds ≥γ alignment with w*)</li>
+      <li><strong>Lower bound (quadratic):</strong> via Cauchy–Schwarz, ‖w<sub>L+1</sub>‖² ≥ (L·γ)² = L²γ²</li>
+      <li><strong>Squeeze:</strong> L²γ² ≤ L·R² ⟹ L ≤ R²/γ²</li>
+      <li><strong>Payoff:</strong> a fixed, dataset-determined ceiling on total mistakes — guaranteed finite convergence</li>
+      <li><strong>Next:</strong> SVM explicitly maximizes γ instead of merely assuming it exists</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<div class="footer-note">Lecture 54 · Perceptron Convergence Proof — IITM MLT Study Notes</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('proofCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const rSlider = document.getElementById('rSlider');
+  const gSlider = document.getElementById('gSlider');
+  const rVal = document.getElementById('rVal');
+  const gVal = document.getElementById('gVal');
+  const boundVal = document.getElementById('boundVal');
+
+  const padL = 46, padB = 34, padT = 16, padR = 14;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+
+  function draw(){
+    const R = parseFloat(rSlider.value);
+    const g = parseFloat(gSlider.value);
+    rVal.textContent = R.toFixed(1);
+    gVal.textContent = g.toFixed(2);
+    const Lstar = (R*R)/(g*g);
+    boundVal.textContent = Lstar.toFixed(1);
+
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#080b13';
+    ctx.fillRect(0,0,W,H);
+
+    // domain: L in [0, Lmax], Lmax a bit past Lstar (cap for readability)
+    const Lmax = Math.max(Lstar*1.3, 4);
+    const upperMaxVal = Lmax * R*R;
+    const lowerMaxVal = Lmax*Lmax*g*g;
+    const yMax = Math.max(upperMaxVal, lowerMaxVal, 1);
+
+    function toXY(L, val){
+      const px = padL + (L/Lmax)*plotW;
+      const py = padT + plotH - (val/yMax)*plotH;
+      return [px,py];
+    }
+
+    // axes
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(padL, padT); ctx.lineTo(padL, padT+plotH); ctx.lineTo(padL+plotW, padT+plotH);
+    ctx.stroke();
+    ctx.fillStyle = '#6f7891';
+    ctx.font = '10px "JetBrains Mono"';
+    ctx.fillText('L (mistakes)', padL+plotW-70, padT+plotH+22);
+    ctx.save();
+    ctx.translate(14, padT+plotH/2+20);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText('‖w‖² bounds', 0, 0);
+    ctx.restore();
+
+    // upper bound line: L*R^2
+    ctx.strokeStyle = '#e0715f';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for(let i=0;i<=100;i++){
+      const L = (i/100)*Lmax;
+      const val = L*R*R;
+      const [px,py] = toXY(L,val);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // lower bound curve: L^2 * g^2
+    ctx.strokeStyle = '#3ec9b0';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for(let i=0;i<=100;i++){
+      const L = (i/100)*Lmax;
+      const val = L*L*g*g;
+      const [px,py] = toXY(L,val);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // crossing point marker
+    const crossVal = Lstar*R*R;
+    if(Lstar <= Lmax){
+      const [cx,cy] = toXY(Lstar, crossVal);
+      ctx.fillStyle = '#e0b84c';
+      ctx.beginPath();
+      ctx.arc(cx,cy,6,0,Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(224,184,76,0.5)';
+      ctx.setLineDash([4,3]);
+      ctx.beginPath();
+      ctx.moveTo(cx, padT+plotH); ctx.lineTo(cx,cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#e0b84c';
+      ctx.font = 'bold 11px "JetBrains Mono"';
+      ctx.fillText('L* = R²/γ² = '+Lstar.toFixed(1), Math.min(cx+8, W-150), cy-10);
+    }
+
+    // shaded impossible zone (lower bound above upper bound, i.e. L > Lstar)
+    ctx.fillStyle = 'rgba(224,113,95,0.08)';
+    const [xAtLstar] = toXY(Math.min(Lstar,Lmax), 0);
+    ctx.fillRect(xAtLstar, padT, padL+plotW-xAtLstar, plotH);
+  }
+
+  [rSlider,gSlider].forEach(el=>el.addEventListener('input', draw));
+  draw();
+})();
+</script>
+
+</body>
+</html>
