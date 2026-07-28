@@ -3,827 +3,400 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Markup Alternatives &amp; Literate Programming — MAD2 Learning OS</title>
+<title>Markup Alternatives | Lecture 8.4</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0D1117;
-  --bg-soft:#0A0D12;
-  --card:#161B22;
-  --card-hi:#1C232C;
-  --border:#2A313C;
-  --border-hi:#3D4552;
-  --text:#E6EDF3;
-  --muted:#8B949E;
-  --faint:#5B6472;
-  --get:#3FB950;
-  --post:#58A6FF;
-  --put:#D2A8FF;
-  --delete:#F85149;
-  --pink:#E754A8;
-  --amber:#E3A008;
-  --amber-bg:rgba(227,160,8,.10);
-  --font-display:'Space Grotesk',system-ui,sans-serif;
-  --font-body:'Inter',system-ui,sans-serif;
-  --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --paper:#F1F3F6; --paper-raised:#FFFFFF; --ink:#10151C; --ink-soft:#4A5568; --ink-faint:#8892A0;
+  --line:#DBE0E6; --signal:#1F7A6C; --signal-deep:#145C52; --signal-tint:#DCEFEA;
+  --html:#E4572E; --html-tint:#FBE7DF; --md:#24292E; --md-tint:#E7E9EB; --json:#C99A1B; --json-tint:#FBF0D4;
+  --rst:#2C6FA6; --rst-tint:#E7F0F8; --lit:#7A5AC4; --lit-tint:#F0ECFA; --bad:#C0432E; --bad-tint:#FAEAE7;
+  --radius:10px; --shadow:0 1px 2px rgba(16,21,28,0.04), 0 6px 20px rgba(16,21,28,0.06);
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(227,160,8,.09), transparent 60%),
-    radial-gradient(ellipse 900px 500px at 90% 10%, rgba(88,166,255,.06), transparent 60%),
-    var(--bg);
-  color:var(--text);
-  font-family:var(--font-body);
-  line-height:1.6;
-  padding-bottom:80px;
-}
-@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+::selection{background:var(--signal-tint); color:var(--ink);}
+.grid-bg{background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size:28px 28px;}
 
-::-webkit-scrollbar{width:10px;height:10px;}
-::-webkit-scrollbar-track{background:var(--bg-soft);}
-::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px;}
+.topbar{position:sticky; top:0; z-index:100; background:rgba(241,243,246,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+.topbar-inner{max-width:960px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px;}
+.topbar-tag{font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; background:var(--ink); color:var(--paper); padding:4px 8px; border-radius:5px; white-space:nowrap;}
+.topbar-title{font-family:var(--font-display); font-weight:600; font-size:14px; white-space:nowrap;}
+.navlinks{display:flex; gap:4px; overflow-x:auto; flex:1; scrollbar-width:none;}
+.navlinks::-webkit-scrollbar{display:none;}
+.navlinks a{font-size:12.5px; color:var(--ink-soft); text-decoration:none; white-space:nowrap; padding:6px 10px; border-radius:6px; font-weight:500;}
+.navlinks a:hover{background:var(--paper-raised); color:var(--ink);}
 
-a{color:var(--post);}
-code, .mono{font-family:var(--font-mono);}
+.hero{padding:52px 20px 36px; position:relative; overflow:hidden;}
+.hero-inner{max-width:960px; margin:0 auto; position:relative; z-index:2;}
+.eyebrow{font-family:var(--font-mono); font-size:12px; color:var(--signal-deep); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px var(--signal-tint);}
+h1.hero-title{font-family:var(--font-display); font-size:clamp(28px,5vw,44px); font-weight:700; margin:0 0 12px; line-height:1.1; letter-spacing:-0.01em;}
+.hero-title .accent{color:var(--signal-deep);}
+.hero-sub{font-size:15.5px; color:var(--ink-soft); max-width:640px; margin:0 0 28px;}
 
-/* ---------- Layout shell ---------- */
-.shell{
-  max-width:1180px;
-  margin:0 auto;
-  padding:0 20px;
-  display:grid;
-  grid-template-columns:230px 1fr;
-  gap:36px;
-}
-@media (max-width:980px){
-  .shell{grid-template-columns:1fr; padding:0 14px;}
-}
+/* Signature: raw source vs rendered output — the core philosophy of lightweight markup */
+.console{background:var(--ink); border-radius:14px; overflow:hidden; box-shadow:0 20px 50px rgba(16,21,28,0.25); border:1px solid #23303f;}
+.console-bar{display:flex; align-items:center; gap:8px; padding:10px 16px; background:#171F29; border-bottom:1px solid #263241;}
+.console-bar .traffic{display:flex; gap:6px;}
+.console-bar .traffic span{width:9px; height:9px; border-radius:50%; display:inline-block;}
+.console-bar .traffic span:nth-child(1){background:#E5695B;} .console-bar .traffic span:nth-child(2){background:#E8B23D;} .console-bar .traffic span:nth-child(3){background:#5FBA6E;}
+.console-bar .label{font-family:var(--font-mono); font-size:11.5px; color:#8A97A6; margin-left:6px;}
+.console-grid{display:grid; grid-template-columns:1fr 1fr;}
+.console-col{padding:18px 20px; font-family:var(--font-mono); font-size:13px; color:#C6CFDA;}
+.console-col + .console-col{border-left:1px solid #263241; font-family:var(--font-body);}
+.col-label{font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; color:#6E7C8C; margin-bottom:10px;}
+.raw-line{white-space:pre-wrap; line-height:1.9;}
+.raw-line .mk{color:var(--signal); font-weight:700;}
+.rendered h1{font-family:var(--font-display); font-size:19px; margin:0 0 8px; color:#F2F4F7;}
+.rendered p{margin:0 0 6px; font-size:13.5px; color:#C6CFDA;}
+.rendered strong{color:#fff;}
+.rendered ul{margin:0; padding-left:18px; font-size:13.5px; color:#C6CFDA;}
+@media (max-width:640px){.console-grid{grid-template-columns:1fr;} .console-col + .console-col{border-left:none; border-top:1px solid #263241;}}
 
-/* ---------- Top bar ---------- */
-.topbar{
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  margin-bottom:28px;
-}
-.topbar-inner{
-  max-width:1180px;margin:0 auto;padding:14px 20px;
-  display:flex;align-items:center;gap:10px;
-}
-.dot{width:11px;height:11px;border-radius:50%;}
-.dot.r{background:#F85149;} .dot.y{background:#D29922;} .dot.g{background:#3FB950;}
-.addr{
-  flex:1;margin-left:8px;
-  background:var(--bg-soft);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px 12px;
-  font-family:var(--font-mono);
-  font-size:12.5px;
-  color:var(--muted);
-  overflow-x:auto;
-  white-space:nowrap;
-}
-.addr .verb{color:var(--amber);font-weight:700;}
-.addr .path{color:var(--text);}
+.wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+.orient-card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin:8px 0 44px; display:grid; grid-template-columns:1.1fr 1fr; gap:22px;}
+@media (max-width:700px){.orient-card{grid-template-columns:1fr;}}
+.orient-card h4{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin:0 0 8px;}
+.orient-card p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+.chip{font-family:var(--font-mono); font-size:11.5px; padding:4px 10px; border-radius:20px; background:var(--paper); border:1px solid var(--line); color:var(--ink-soft);}
 
-/* ---------- Sidebar nav ---------- */
-.sidenav{position:sticky; top:20px; align-self:start; max-height:calc(100vh - 40px); overflow-y:auto;}
-.sidenav h4{
-  font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;
-  font-size:11px;color:var(--faint);margin-bottom:10px;
-}
-.sidenav ol{list-style:none;counter-reset:mod;}
-.sidenav li{counter-increment:mod;}
-.sidenav a{
-  display:flex;gap:8px;align-items:baseline;
-  font-size:12.5px;color:var(--muted);
-  text-decoration:none;padding:6px 8px;border-radius:6px;
-  border-left:2px solid transparent;
-}
-.sidenav a::before{
-  content:counter(mod,decimal-leading-zero);
-  font-family:var(--font-mono);color:var(--faint);font-size:10.5px;
-}
-.sidenav a:hover{color:var(--text);background:var(--card);border-left-color:var(--amber);}
-@media (max-width:980px){
-  .sidenav{position:static;max-height:none;margin-bottom:8px;}
-  .sidenav ol{display:flex;flex-wrap:wrap;gap:4px;}
-  .sidenav a{border-left:none;border:1px solid var(--border);background:var(--card);}
-}
+section.concept{padding:44px 0; border-top:1px solid var(--line);}
+.concept-head{margin-bottom:22px;}
+.concept-kicker{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;}
+h2.concept-title{font-family:var(--font-display); font-size:clamp(21px,3vw,27px); font-weight:700; margin:0 0 8px;}
+.concept-desc{color:var(--ink-soft); font-size:15px; max-width:660px; margin:0;}
 
-/* ---------- Header / hero ---------- */
-.hero{margin-bottom:34px;}
-.eyebrow{
-  font-family:var(--font-mono);font-size:12px;color:var(--amber);
-  text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;
-}
-.hero h1{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(28px,4.2vw,44px);
-  line-height:1.1;letter-spacing:-.01em;
-  margin-bottom:12px;
-}
-.hero h1 .accent{color:var(--amber);}
-.hero p.lede{color:var(--muted);font-size:16px;max-width:64ch;}
+.card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin-bottom:16px;}
+.card h3{font-family:var(--font-display); font-size:16.5px; margin:0 0 10px; font-weight:600;}
+.card p{margin:0 0 10px; font-size:14.5px; color:var(--ink-soft);}
+.card p:last-child{margin-bottom:0;}
+.card-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.card-grid.tri{grid-template-columns:1fr 1fr 1fr;}
+@media (max-width:700px){.card-grid{grid-template-columns:1fr;} .card-grid.tri{grid-template-columns:1fr;}}
+.card-tinted{border-left:4px solid var(--signal);}
+.card-tinted.html{border-left-color:var(--html);} .card-tinted.json{border-left-color:var(--json);}
 
-/* ---------- Module wrapper ---------- */
-.module{
-  scroll-margin-top:20px;
-  margin-bottom:26px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  overflow:hidden;
-}
-.module-head{
-  display:flex;align-items:center;gap:12px;
-  padding:16px 22px;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
-}
-.module-num{
-  font-family:var(--font-mono);font-size:12px;color:var(--bg);
-  background:var(--amber);
-  width:26px;height:26px;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;
-}
-.module-head h2{
-  font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.01em;
-}
-.module-head .tag{
-  margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);
-  border:1px solid var(--border-hi);padding:3px 8px;border-radius:20px;white-space:nowrap;
-}
-.module-body{padding:22px;}
-@media (max-width:600px){ .module-body{padding:16px;} .module-head{padding:13px 16px;} }
+.lang-badge{font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:2px 8px; border-radius:4px; letter-spacing:0.03em; color:#fff; display:inline-block;}
+.lang-badge.html{background:var(--html);} .lang-badge.md{background:var(--md);} .lang-badge.json{background:var(--json); color:#3A2C05;}
+.lang-badge.rst{background:var(--rst);} .lang-badge.lit{background:var(--lit);}
 
-/* ---------- Topic card ---------- */
-.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
-.topic-cell{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
-.topic-cell .k{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.topic-cell .v{font-size:14.5px;font-weight:600;}
-.stars{color:var(--amber);letter-spacing:1px;}
+.callout{border-radius:var(--radius); padding:14px 17px; margin:14px 0; display:flex; gap:12px; border:1px solid var(--line);}
+.callout .icon{font-family:var(--font-mono); font-weight:700; font-size:13px; flex-shrink:0; width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center;}
+.callout .content strong{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;}
+.callout .content p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.callout.analogy{background:var(--lit-tint);} .callout.analogy .icon{background:var(--lit); color:#fff;} .callout.analogy strong{color:#5C3FA0;}
+.callout.warning{background:var(--bad-tint);} .callout.warning .icon{background:var(--bad); color:#fff;} .callout.warning strong{color:#9C3623;}
+.callout.tip{background:var(--signal-tint);} .callout.tip .icon{background:var(--signal); color:#fff;} .callout.tip strong{color:var(--signal-deep);}
+.callout.judgment{background:var(--rst-tint);} .callout.judgment .icon{background:var(--rst); color:#fff;} .callout.judgment strong{color:#245A85;}
+.callout.trap{background:var(--json-tint);} .callout.trap .icon{background:#8A6A10; color:#fff;} .callout.trap strong{color:#8A6A10;}
 
-/* ---------- Analogy ---------- */
-.analogy{
-  display:flex;gap:14px;background:linear-gradient(135deg, rgba(227,160,8,.09), rgba(88,166,255,.05));
-  border:1px solid var(--border-hi);border-radius:12px;padding:16px 18px;
-}
-.analogy .ic{font-size:24px;line-height:1;flex-shrink:0;}
-.analogy p{font-size:15px;color:var(--text);}
-.analogy .label{font-family:var(--font-mono);font-size:11px;color:var(--amber);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.table-wrap{overflow-x:auto; margin:14px 0;}
+table{width:100%; border-collapse:collapse; font-size:13.5px; background:var(--paper-raised);}
+table th{text-align:left; font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); padding:9px 13px; border-bottom:2px solid var(--line);}
+table td{padding:10px 13px; border-bottom:1px solid var(--line); color:var(--ink-soft); vertical-align:top;}
+table tr:last-child td{border-bottom:none;}
+table td .mono{font-family:var(--font-mono); font-size:12.5px; color:var(--ink);}
+table td code{font-family:var(--font-mono); font-size:12.5px; background:var(--paper); padding:1px 5px; border-radius:4px; color:var(--ink);}
 
-.analogy-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
-@media(max-width:640px){.analogy-pair{grid-template-columns:1fr;}}
-.mini-analogy{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px;}
-.mini-analogy .label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-.mini-analogy.a1 .label{color:var(--post);}
-.mini-analogy.a2 .label{color:var(--amber);}
-.mini-analogy p{font-size:13.5px;color:var(--muted);}
+.code-block{background:#0F151D; color:#D6DEE8; border-radius:9px; padding:15px 17px; font-family:var(--font-mono); font-size:12.5px; overflow-x:auto; line-height:1.65;}
+.code-block .c-key{color:#7FB5E8;} .code-block .c-str{color:#E3B75E;} .code-block .c-com{color:#5F6E80; font-style:italic;} .code-block .c-fn{color:#8FD3B8;} .code-block .c-mk{color:#5FD6B8; font-weight:700;}
+.code-caption{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin:0 0 6px; text-transform:uppercase; letter-spacing:0.05em;}
 
-/* ---------- Diagrams ---------- */
-.diagram{
-  background:var(--bg-soft);border:1px dashed var(--border-hi);border-radius:12px;
-  padding:24px 18px; display:flex; flex-direction:column; align-items:center; gap:6px;
-}
-.flow-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
-.flow-node{
-  font-family:var(--font-mono);font-size:12.5px;font-weight:600;
-  padding:9px 14px;border-radius:8px;border:1px solid var(--border-hi);
-  background:var(--card-hi); white-space:nowrap;
-}
-.flow-node.a{border-color:var(--get);color:var(--get);}
-.flow-node.b{border-color:var(--post);color:var(--post);}
-.flow-node.c{border-color:var(--put);color:var(--put);}
-.flow-node.d{border-color:var(--amber);color:var(--amber);}
-.flow-node.e{border-color:var(--delete);color:var(--delete);}
-.flow-node.f{border-color:var(--pink);color:var(--pink);}
-.flow-arrow{color:var(--faint);font-size:16px;}
-.flow-caption{font-family:var(--font-mono);font-size:11px;color:var(--faint);margin-top:8px;text-align:center;}
+.diagram{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px 20px; margin:14px 0;}
+.node-row{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0;}
+.node{background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:8px 13px; font-family:var(--font-mono); font-size:11.5px; font-weight:600; text-align:center; white-space:nowrap;}
+.node.accent{background:var(--signal-tint); border-color:var(--signal-deep); color:var(--signal-deep);}
+.arrow{color:var(--ink-faint); font-size:15px; padding:0 9px; flex-shrink:0;}
+@media (max-width:700px){.node-row{flex-direction:column;} .arrow{transform:rotate(90deg); padding:5px 0;}}
 
-/* spectrum diagram (signature element) */
-.spectrum{width:100%;max-width:640px;}
-.spectrum-bar{
-  position:relative;height:10px;border-radius:6px;
-  background:linear-gradient(90deg, var(--post) 0%, var(--put) 35%, var(--amber) 70%, var(--get) 100%);
-  margin:34px 0 10px 0;
-}
-.spectrum-labels{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);}
-.spectrum-points{position:relative;height:0;}
-.sp-point{
-  position:absolute;top:-56px;transform:translateX(-50%);
-  display:flex;flex-direction:column;align-items:center;gap:6px;
-}
-.sp-point .marker{width:10px;height:10px;border-radius:50%;background:var(--card-hi);border:2px solid var(--text);}
-.sp-point .lbl{font-family:var(--font-mono);font-size:11px;background:var(--card-hi);border:1px solid var(--border-hi);padding:4px 9px;border-radius:6px;white-space:nowrap;}
-@media(max-width:640px){.spectrum{padding-top:10px;} .sp-point{top:-70px;} .sp-point .lbl{font-size:9.5px;padding:3px 6px;}}
+/* Hub diagram for Pandoc */
+.hub{display:flex; flex-direction:column; align-items:center; gap:0;}
+.hub-ring{display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin-top:14px;}
+.hub-spoke{display:flex; flex-direction:column; align-items:center; gap:6px;}
+.hub-spoke .stub{width:2px; height:16px; background:var(--line);}
 
-/* ---------- Pattern recognition ---------- */
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-.chip{
-  font-family:var(--font-mono);font-size:12px;background:var(--bg-soft);
-  border:1px solid var(--border-hi);border-radius:20px;padding:5px 12px;color:var(--muted);
-}
-.shortcut-table{width:100%;border-collapse:collapse;font-size:13.5px;}
-.shortcut-table th, .shortcut-table td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;}
-.shortcut-table th{color:var(--faint);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
-.shortcut-table td.arrow{color:var(--amber);font-family:var(--font-mono);}
+.fanout{display:flex; justify-content:center; align-items:flex-start; gap:0; flex-wrap:wrap; margin-top:16px;}
+.fanout-branch{display:flex; flex-direction:column; align-items:center; margin:0 10px;}
+.fanout-line{width:2px; height:20px; background:var(--line);}
+@media (max-width:700px){.fanout{flex-direction:column; align-items:center;}}
 
-/* ---------- Q&A ---------- */
-.qa{border-left:2px solid var(--border-hi);padding-left:16px;margin-bottom:16px;}
-.qa:last-child{margin-bottom:0;}
-.qa .q{font-weight:600;font-size:14.5px;margin-bottom:4px;color:var(--text);}
-.qa .q::before{content:"Q — ";color:var(--amber);font-family:var(--font-mono);}
-.qa .a{color:var(--muted);font-size:14px;}
+.decision-tree{font-family:var(--font-mono); font-size:13px;}
+.dt-q{background:var(--ink); color:var(--paper); padding:9px 13px; border-radius:8px; font-weight:600; display:inline-block; margin-bottom:10px;}
+.dt-branch{display:flex; gap:14px; flex-wrap:wrap; margin-left:12px; padding-left:12px; border-left:2px dashed var(--line);}
+.dt-branch-item{flex:1; min-width:190px;}
+.dt-branch-item .dt-label{font-size:10.5px; color:var(--ink-faint); margin-bottom:5px; text-transform:uppercase;}
+.dt-outcome{background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:9px 11px; font-size:12px; color:var(--ink-soft);}
 
-/* ---------- Syntax anatomy ---------- */
-.anatomy-block{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;overflow-x:auto;}
-.anatomy-line{font-family:var(--font-mono);font-size:13.5px;white-space:pre;}
-.anno-list{margin-top:14px;display:grid;gap:8px;}
-.anno-item{display:flex;gap:10px;font-size:13.5px;align-items:flex-start;}
-.anno-item .tok{
-  font-family:var(--font-mono);background:var(--card-hi);border:1px solid var(--border-hi);
-  border-radius:6px;padding:2px 8px;color:var(--amber);flex-shrink:0;
-}
-.anno-item .desc{color:var(--muted);}
+details.qa{background:var(--paper-raised); border:1px solid var(--line); border-radius:9px; padding:13px 17px; margin-bottom:9px;}
+details.qa summary{cursor:pointer; font-weight:600; font-size:13.5px; list-style:none; display:flex; align-items:center; gap:10px;}
+details.qa summary::-webkit-details-marker{display:none;}
+details.qa summary::before{content:'+'; font-family:var(--font-mono); color:var(--signal-deep); font-weight:700; font-size:16px; flex-shrink:0;}
+details.qa[open] summary::before{content:'−';}
+details.qa .qa-answer{margin-top:9px; padding-top:9px; border-top:1px dashed var(--line); font-size:13px; color:var(--ink-soft);}
 
-/* ---------- Code block ---------- */
-.codeblock{
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;
-  overflow:hidden;margin-bottom:16px;
-}
-.codeblock .cb-head{
-  display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);
-  font-family:var(--font-mono);font-size:11px;color:var(--faint);
-}
-.codeblock pre{padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
-.codeblock .c-key{color:var(--put);}
-.codeblock .c-str{color:var(--get);}
-.codeblock .c-com{color:var(--faint);font-style:italic;}
-.codeblock .c-fn{color:var(--post);}
-.codeblock .c-prop{color:#79C0FF;}
-.codeblock .c-tag{color:var(--amber);}
+.brain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+@media (max-width:800px){.brain-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.brain-grid{grid-template-columns:1fr;}}
+.brain-cell{background:var(--ink); color:#D6DEE8; border-radius:10px; padding:15px;}
+.brain-cell h5{margin:0 0 7px; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--signal);}
+.brain-cell p, .brain-cell li{font-size:12px; color:#B7C2CE; margin:0 0 4px;}
+.brain-cell ul{margin:0; padding-left:15px;}
 
-/* step flow */
-.step-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;}
-.step{font-family:var(--font-mono);font-size:12px;background:var(--card-hi);border:1px solid var(--border-hi);padding:6px 10px;border-radius:7px;}
-.step-arrow{color:var(--faint);}
-
-/* ---------- Real project usage ---------- */
-.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
-.proj-card{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.proj-card .name{font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.proj-card .swatch{width:9px;height:9px;border-radius:50%;background:var(--amber);}
-.proj-card p{font-size:13.5px;color:var(--muted);}
-
-/* ---------- Mistakes ---------- */
-.mistake-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-@media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
-.mrow{border-radius:10px;padding:12px 14px;font-size:13.5px;border:1px solid var(--border);}
-.mrow.wrong{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.35);}
-.mrow.right{background:rgba(63,185,80,.08);border-color:rgba(63,185,80,.35);}
-.mrow .lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;display:block;}
-.mrow.wrong .lbl{color:var(--delete);}
-.mrow.right .lbl{color:var(--get);}
-
-/* ---------- Debug flow ---------- */
-.debug-case{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
-.debug-case .title{font-weight:600;font-size:14px;margin-bottom:8px;}
-.debug-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--font-mono);font-size:11.5px;}
-.debug-steps span.s{background:var(--card-hi);border:1px solid var(--border-hi);padding:4px 9px;border-radius:6px;}
-.debug-steps span.s.fix{border-color:var(--get);color:var(--get);}
-.debug-steps .a{color:var(--faint);}
-
-/* ---------- Callout boxes ---------- */
-.callout{border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid; font-size:14px;}
-.callout .c-lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
-.callout.warn{background:var(--amber-bg);border-color:rgba(227,160,8,.4);}
-.callout.warn .c-lbl{color:var(--amber);}
-.callout.trap{background:rgba(248,81,73,.07);border-color:rgba(248,81,73,.3);}
-.callout.trap .c-lbl{color:var(--delete);}
-.callout.tip{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.3);}
-.callout.tip .c-lbl{color:var(--post);}
-
-/* ---------- Exam pattern grid ---------- */
-.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:640px){.exam-grid{grid-template-columns:1fr;}}
-.exam-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.exam-box h4{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;}
-.exam-box ul{list-style:none;display:grid;gap:7px;}
-.exam-box li{font-size:13.5px;color:var(--text);padding-left:14px;position:relative;}
-.exam-box li::before{content:"›";position:absolute;left:0;color:var(--amber);}
-
-/* ---------- Interview tiers ---------- */
-.tier{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
-.tier-head{padding:9px 16px;font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-.tier.easy .tier-head{background:rgba(63,185,80,.12);color:var(--get);}
-.tier.med .tier-head{background:rgba(210,153,34,.12);color:var(--amber);}
-.tier.hard .tier-head{background:rgba(248,81,73,.12);color:var(--delete);}
-.tier-body{padding:12px 16px;background:var(--bg-soft);}
-.tier-body .item{margin-bottom:10px;font-size:13.5px;}
-.tier-body .item:last-child{margin-bottom:0;}
-.tier-body .item .q{font-weight:600;color:var(--text);}
-.tier-body .item .a{color:var(--muted);margin-top:2px;}
-
-/* ---------- One-page brain ---------- */
-.remember-chain{display:grid;gap:8px;margin-top:14px;}
-.rc-row{
-  display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:9px 14px;
-}
-.rc-row .key{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--amber);}
-.rc-row .val{font-size:13px;color:var(--muted);}
-@media(max-width:560px){.rc-row{grid-template-columns:1fr;gap:2px;}}
-
-/* ---------- Revision table ---------- */
-.rev-table-wrap{overflow-x:auto;}
-table.rev{width:100%;border-collapse:collapse;font-size:13.5px;min-width:620px;}
-table.rev th{
-  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hi);
-}
-table.rev td{padding:10px 12px;border-bottom:1px solid var(--border);}
-table.rev tr:last-child td{border-bottom:none;}
-.verb-pill{font-family:var(--font-mono);font-weight:700;padding:2px 9px;border-radius:5px;font-size:12px;display:inline-block;}
-.verb-pill.html{background:rgba(248,81,73,.15);color:var(--delete);}
-.verb-pill.jx{background:rgba(88,166,255,.15);color:var(--post);}
-.verb-pill.md{background:rgba(227,160,8,.15);color:var(--amber);}
-.verb-pill.rst{background:rgba(210,168,255,.15);color:var(--put);}
-.verb-pill.adoc{background:rgba(63,185,80,.15);color:var(--get);}
-.yn{font-weight:700;}
-.yn.y{color:var(--get);} .yn.n{color:var(--delete);} .yn.p{color:var(--amber);}
-
-/* ---------- Practice ladder ---------- */
-.ladder{display:flex;flex-direction:column;gap:8px;}
-.rung{
-  display:grid;grid-template-columns:auto 110px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:11px 14px;
-  position:relative;
-}
-.rung .lvl{
-  font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--bg);
-  background:var(--get);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-}
-.rung:nth-child(2) .lvl{background:#57C15F;}
-.rung:nth-child(3) .lvl{background:var(--post);}
-.rung:nth-child(4) .lvl{background:var(--put);}
-.rung:nth-child(5) .lvl{background:var(--amber);}
-.rung:nth-child(6) .lvl{background:#FF9F5A;}
-.rung:nth-child(7) .lvl{background:var(--delete);}
-.rung .tag2{font-family:var(--font-mono);font-size:11px;color:var(--faint);}
-.rung .desc{font-size:13.5px;color:var(--text);}
-@media(max-width:560px){.rung{grid-template-columns:auto 1fr;} .rung .tag2{grid-column:2;font-size:10px;}}
-
-/* ---------- Memory palace ---------- */
-.palace-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-@media(max-width:760px){.palace-grid{grid-template-columns:1fr;}}
-.palace-card{background:var(--bg-soft);border:1px solid var(--border-hi);border-radius:10px;padding:16px;text-align:center;}
-.palace-card .ic{font-size:26px;margin-bottom:8px;}
-.palace-card h5{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;}
-.palace-card p{font-size:13.5px;color:var(--text);}
-.ascii{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:pre;text-align:left;margin-top:8px;background:var(--card-hi);border-radius:6px;padding:8px;overflow-x:auto;}
-
-/* ---------- Footer ---------- */
-.footer-note{text-align:center;color:var(--faint);font-size:12px;font-family:var(--font-mono);margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+footer{text-align:center; padding:36px 20px 56px; color:var(--ink-faint); font-size:12px; font-family:var(--font-mono);}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-    <div class="addr"><span class="verb">READ</span> <span class="path">notes.md → pandoc → notes.html</span> · rendered</div>
+    <span class="topbar-tag">LEC 8.4</span>
+    <span class="topbar-title">Markup Alternatives</span>
+    <div class="navlinks">
+      <a href="#html-dominance">Why HTML Wins</a>
+      <a href="#limits">Limits of HTML</a>
+      <a href="#lightweight">Lightweight Markup</a>
+      <a href="#tooling">Tooling</a>
+      <a href="#literate">Literate Programming</a>
+      <a href="#bigpicture">Big Picture</a>
+      <a href="#brain">Recap</a>
+    </div>
   </div>
 </div>
 
-<div class="shell">
+<header class="hero grid-bg">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span> MAD2 · Modern Application Development 2 — Lecture 8.4</div>
+    <h1 class="hero-title">Markup <span class="accent">Alternatives</span></h1>
+    <p class="hero-sub">HTML wins the web. But for long-form human writing, its tags get in the way — which is exactly the gap Markdown, RST, and AsciiDoc were built to fill.</p>
 
-  <nav class="sidenav">
-    <h4>18 Modules</h4>
-    <ol>
-      <li><a href="#m1">Topic Card</a></li>
-      <li><a href="#m2">Core Intuition</a></li>
-      <li><a href="#m3">Visual Model</a></li>
-      <li><a href="#m4">Pattern Recognition</a></li>
-      <li><a href="#m5">Deep Fundamentals</a></li>
-      <li><a href="#m6">Execution Flow</a></li>
-      <li><a href="#m7">Syntax Anatomy</a></li>
-      <li><a href="#m8">Code Walkthrough</a></li>
-      <li><a href="#m9">Behind the Scenes</a></li>
-      <li><a href="#m10">Real Project Usage</a></li>
-      <li><a href="#m11">Common Mistakes</a></li>
-      <li><a href="#m12">Debugging Mindset</a></li>
-      <li><a href="#m13">IITM Exam Pattern</a></li>
-      <li><a href="#m14">Interview Questions</a></li>
-      <li><a href="#m15">One-Page Brain</a></li>
-      <li><a href="#m16">Revision Table</a></li>
-      <li><a href="#m17">Practice Ladder</a></li>
-      <li><a href="#m18">Memory Palace</a></li>
-    </ol>
-  </nav>
+    <div class="console">
+      <div class="console-bar">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <span class="label">source.md — same document, two views</span>
+      </div>
+      <div class="console-grid">
+        <div class="console-col">
+          <div class="col-label">Raw source (human-writable)</div>
+          <div class="raw-line"><span class="mk"># </span>Course Notes
+<span class="mk">**</span>MAD2<span class="mk">**</span> covers modern app dev.
 
-  <main>
-    <header class="hero">
-      <div class="eyebrow">W8 · Lecture 4 · MAD2 Learning OS</div>
-      <h1>Markup Alternatives &amp; <span class="accent">Literate Programming</span></h1>
-      <p class="lede">Why HTML isn't always the right tool, how plain-text markup languages trade strictness for readability, and how documentation and code learned to live in the same file.</p>
-    </header>
-
-    <!-- MODULE 1 -->
-    <section class="module" id="m1">
-      <div class="module-head"><div class="module-num">1</div><h2>Topic Card</h2><span class="tag">30 seconds</span></div>
-      <div class="module-body">
-        <div class="topic-grid">
-          <div class="topic-cell"><div class="k">Topic</div><div class="v">Markup Alternatives &amp; Literate Programming</div></div>
-          <div class="topic-cell"><div class="k">Category</div><div class="v">Web Fundamentals · Documentation</div></div>
-          <div class="topic-cell"><div class="k">Difficulty</div><div class="v stars">★★☆☆☆</div></div>
-          <div class="topic-cell"><div class="k">Prerequisites</div><div class="v">HTML basics, CSS separation of concerns</div></div>
-          <div class="topic-cell"><div class="k">Importance</div><div class="v stars">★★★☆☆</div></div>
+<span class="mk">- </span>APIs
+<span class="mk">- </span>GraphQL
+<span class="mk">- </span>Markup</div>
+        </div>
+        <div class="console-col rendered">
+          <div class="col-label">Rendered output</div>
+          <h1>Course Notes</h1>
+          <p><strong>MAD2</strong> covers modern app dev.</p>
+          <ul><li>APIs</li><li>GraphQL</li><li>Markup</li></ul>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</header>
 
-    <!-- MODULE 2 -->
-    <section class="module" id="m2">
-      <div class="module-head"><div class="module-num">2</div><h2>Core Intuition (WHY)</h2></div>
-      <div class="module-body">
-        <div class="analogy">
-          <div class="ic">🧥</div>
-          <div>
-            <div class="label">Analogy — the formal suit vs. the T-shirt</div>
-            <p>HTML is a full formal suit: it works for almost any occasion, is precise and structured, but is slow to put on and overkill for a quick trip to the corner store. Markdown and its cousins are a T-shirt: fast to write, comfortable to read, perfect for everyday writing — but you wouldn't wear one to a job requiring exact, machine-checkable structure. Neither is "better"; each is dressed for a different occasion.</p>
-          </div>
-        </div>
-        <div class="analogy-pair">
-          <div class="mini-analogy a1"><div class="label">When machines are the reader</div><p>Server-to-client data exchange needs precision, not readability — that's JSON/XML territory, not HTML.</p></div>
-          <div class="mini-analogy a2"><div class="label">When humans are the writer</div><p>Docs and blog posts are written and re-read by people constantly — that's where lightweight text markup wins.</p></div>
+<div class="wrap">
+
+  <div class="orient-card">
+    <div>
+      <h4>What kind of topic this is</h4>
+      <p>A comparative landscape, not a single spec to master. The useful skill is knowing which format a task calls for — human long-form writing, machine-to-machine data, or code plus documentation together — not memorizing every syntax rule.</p>
+    </div>
+    <div>
+      <h4>Walk in knowing</h4>
+      <div class="chip-row">
+        <span class="chip">HTML basics</span>
+        <span class="chip">JSON basics</span>
+        <span class="chip">What a compiler does</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY HTML WINS -->
+  <section class="concept" id="html-dominance">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 1</div>
+      <h2 class="concept-title">Why HTML Still Dominates</h2>
+      <p class="concept-desc">Not because it's the cleanest format — because it keeps evolving and rarely breaks.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><h3>Living Standard</h3><p>Continuously updated to meet modern needs, rather than frozen at a fixed spec version.</p></div>
+      <div class="card"><h3>Extensibility</h3><p>Web Components and JS APIs let developers define new tags and behavior without leaving HTML.</p></div>
+      <div class="card"><h3>Semantic Focus</h3><p>Separates content (HTML) from presentation (CSS) — simpler in practice than legacy SGML/XML.</p></div>
+      <div class="card"><h3>Forgiveness</h3><p>Browsers render imperfectly structured HTML rather than rejecting it outright.</p></div>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">✓</div>
+      <div class="content"><strong>Why "forgiveness" matters</strong><p>A strict format like XML fails an entire document over one mismatched tag. HTML's browsers render around the error instead — a deliberate trade-off favoring resilience over correctness.</p></div>
+    </div>
+  </section>
+
+  <!-- LIMITS -->
+  <section class="concept" id="limits">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 2</div>
+      <h2 class="concept-title">Where HTML Falls Short</h2>
+      <p class="concept-desc">Dominance in one job doesn't mean fitness for every job.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Limitation</th><th>Why it's a problem</th><th>What's used instead</th></tr></thead>
+        <tbody>
+          <tr><td>Machine-to-machine data</td><td>Tags add parsing overhead a program doesn't need</td><td><span class="lang-badge json">JSON</span></td></tr>
+          <tr><td>Verbosity</td><td>Tags overwhelm long-form human writing</td><td><span class="lang-badge md">Markdown / RST / AsciiDoc</span></td></tr>
+          <tr><td>3D / VR space</td><td>Not designed to describe spatial geometry</td><td><span class="lang-badge lit">VRML → X3D</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout judgment">
+      <div class="icon">⚖</div>
+      <div class="content"><strong>The underlying rule</strong><p>Use HTML when humans and browsers render the content. Use JSON when machines exchange it. Neither format is "better" in general — they're optimized for different readers.</p></div>
+    </div>
+  </section>
+
+  <!-- LIGHTWEIGHT MARKUP -->
+  <section class="concept" id="lightweight">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 3</div>
+      <h2 class="concept-title">Text-Based Markup Languages</h2>
+      <p class="concept-desc">Markdown, RST, and AsciiDoc trade strict nesting rules for characters a human can type without thinking.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Want</th><th>HTML</th><th>Markdown</th></tr></thead>
+        <tbody>
+          <tr><td>Bold text</td><td><code>&lt;strong&gt;text&lt;/strong&gt;</code></td><td><code>**text**</code></td></tr>
+          <tr><td>Heading</td><td><code>&lt;h1&gt;Title&lt;/h1&gt;</code></td><td><code># Title</code></td></tr>
+          <tr><td>List item</td><td><code>&lt;li&gt;item&lt;/li&gt;</code></td><td><code>- item</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><h3>Advantages</h3><p><strong>Human-readable</strong> even unrendered · <strong>Long-lived</strong>, since plain ASCII/Unicode doesn't rot like proprietary word-processor formats · <strong>Compact</strong> to store and send.</p></div>
+      <div class="card"><h3>Disadvantages</h3><p><strong>Ambiguous</strong> compared to XML/HTML's strict nesting — mismatched delimiters can render unpredictably · <strong>Inconsistent</strong> handling of tables and non-Western scripts across implementations.</p></div>
+    </div>
+
+    <div class="callout analogy">
+      <div class="icon">A</div>
+      <div class="content"><strong>Analogy</strong><p>HTML is a legal contract — every clause explicit, unambiguous, verbose. Markdown is a handwritten note — quick to write, easy to read, but two people might format a nested list slightly differently.</p></div>
+    </div>
+  </section>
+
+  <!-- TOOLING -->
+  <section class="concept" id="tooling">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 4</div>
+      <h2 class="concept-title">Transformation and Tooling</h2>
+      <p class="concept-desc">With this many formats in play, conversion between them became its own workflow step.</p>
+    </div>
+
+    <div class="card">
+      <h3>Pandoc — the format hub</h3>
+      <p>Converts between formats directly, so no team has to standardize on one for every purpose.</p>
+      <div class="diagram">
+        <div class="node-row"><div class="node">Markdown</div><div class="arrow">↔</div><div class="node accent">Pandoc</div><div class="arrow">↔</div><div class="node">PDF</div></div>
+        <div class="hub-ring">
+          <div class="hub-spoke"><div class="stub"></div><div class="node">HTML</div></div>
+          <div class="hub-spoke"><div class="stub"></div><div class="node">RST</div></div>
+          <div class="hub-spoke"><div class="stub"></div><div class="node">AsciiDoc</div></div>
+          <div class="hub-spoke"><div class="stub"></div><div class="node">DOCX</div></div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- MODULE 3 -->
-    <section class="module" id="m3">
-      <div class="module-head"><div class="module-num">3</div><h2>Visual Mental Model</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="spectrum">
-            <div class="spectrum-points">
-              <div class="sp-point" style="left:2%;"><div class="lbl">JSON / XML</div><div class="marker"></div></div>
-              <div class="sp-point" style="left:35%;"><div class="lbl">HTML</div><div class="marker"></div></div>
-              <div class="sp-point" style="left:70%;"><div class="lbl">RST / AsciiDoc</div><div class="marker"></div></div>
-              <div class="sp-point" style="left:98%;"><div class="lbl">Markdown</div><div class="marker"></div></div>
-            </div>
-            <div class="spectrum-bar"></div>
-            <div class="spectrum-labels"><span>Machine-optimized</span><span>Human-optimized</span></div>
-          </div>
-          <div class="flow-caption">Pandoc sits above the whole spectrum, converting between any two points on it</div>
+  <!-- LITERATE PROGRAMMING -->
+  <section class="concept" id="literate">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 5</div>
+      <h2 class="concept-title">Literate Programming</h2>
+      <p class="concept-desc">Pioneered by Knuth's WEB system: write the explanation and the code in the same document, then extract both.</p>
+    </div>
+
+    <div class="card">
+      <h3>The core idea</h3>
+      <div class="diagram">
+        <div class="node-row"><div class="node accent">Source file (prose + code, intermixed)</div></div>
+        <div style="height:16px; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-family:var(--font-mono); font-size:12px;">↓ extracted by a compiler</div>
+        <div class="fanout">
+          <div class="fanout-branch"><div class="fanout-line"></div><div class="node">Human documentation</div></div>
+          <div class="fanout-branch"><div class="fanout-line"></div><div class="node">Executable code</div></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- MODULE 4 -->
-    <section class="module" id="m4">
-      <div class="module-head"><div class="module-num">4</div><h2>Pattern Recognition</h2></div>
-      <div class="module-body">
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:10px;">Trigger words — spot these and you know which format is being tested:</p>
-        <div class="chip-row">
-          <span class="chip">living standard</span><span class="chip">semantic</span><span class="chip">machine parsing</span>
-          <span class="chip">verbosity</span><span class="chip">human-readable</span><span class="chip">portability</span>
-          <span class="chip">obsolescence</span><span class="chip">Pandoc</span><span class="chip">literate programming</span>
-          <span class="chip">JSX</span><span class="chip">Doxygen</span>
-        </div>
-        <table class="shortcut-table">
-          <tr><th>Trigger</th><th></th><th>Recognition shortcut</th></tr>
-          <tr><td>"data exchanged between server and client"</td><td class="arrow">→</td><td>JSON/XML, not HTML</td></tr>
-          <tr><td>"quick to write, no special editor needed"</td><td class="arrow">→</td><td>Markdown / text-based markup</td></tr>
-          <tr><td>"Swiss Army knife for conversion"</td><td class="arrow">→</td><td>Pandoc</td></tr>
-          <tr><td>"docs and code in one file"</td><td class="arrow">→</td><td>Literate programming / JSX / Doxygen</td></tr>
-          <tr><td>"file still opens in 20 years"</td><td class="arrow">→</td><td>Plain-text portability, avoids obsolescence</td></tr>
-        </table>
-      </div>
-    </section>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Classic literate programming</th><th>Modern echo</th></tr></thead>
+        <tbody>
+          <tr><td>Prose explains logic inline with code</td><td><span class="lang-badge md">Doxygen</span> extracts docs from code comments</td></tr>
+          <tr><td>One file, two extracted outputs</td><td><span class="lang-badge html">JSX</span> / Vue templates intermix markup and logic in one file</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-    <!-- MODULE 5 -->
-    <section class="module" id="m5">
-      <div class="module-head"><div class="module-num">5</div><h2>Deep Fundamentals</h2></div>
-      <div class="module-body">
-        <div class="qa">
-          <div class="q">Why was text-based markup created?</div>
-          <div class="a">HTML is precise but verbose — writing a blog post or technical doc in raw tags is slow and clutters the actual content, so lighter conventions (asterisks, hashes) were invented to let humans write and read faster.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What problem does it solve?</div>
-          <div class="a">It separates the ease of authoring from the complexity of rendering — you write in nearly plain English, and a converter handles turning that into HTML, PDF, or any other target.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What happens internally when Markdown is converted?</div>
-          <div class="a">A parser scans the plain text, recognizes markers (#, *, -, etc.), and builds an internal tree structure representing headings, emphasis, and lists — independent of what the final output format will be.</div>
-        </div>
-        <div class="qa">
-          <div class="q">How does this get executed in practice?</div>
-          <div class="a">A tool like Pandoc reads the source format, builds that intermediate structure, then walks it again to emit the target format — much like a compiler translating source code into machine code.</div>
-        </div>
-      </div>
-    </section>
+    <div class="callout trap">
+      <div class="icon">✕</div>
+      <div class="content"><strong>Exam trap</strong><p>"Literate programming failed and is irrelevant today" — overstated. The classic WEB-style workflow didn't take off broadly, but its core idea — markup and code intertwined in one file — is exactly what JSX and Vue templates do daily.</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 6 -->
-    <section class="module" id="m6">
-      <div class="module-head"><div class="module-num">6</div><h2>Execution Flow</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row"><div class="flow-node d">Author writes plain text (Markdown / RST / AsciiDoc)</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node b">Parser reads syntax markers</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node c">Internal structure (AST) built</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node a">Converter (e.g. Pandoc) maps AST to target format</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node e">Target file generated — HTML / PDF / DOCX</div></div>
-        </div>
-      </div>
-    </section>
+  <!-- BIG PICTURE -->
+  <section class="concept" id="bigpicture">
+    <div class="concept-head">
+      <div class="concept-kicker">Connections & recall</div>
+      <h2 class="concept-title">Where this fits, and where it's misread</h2>
+    </div>
 
-    <!-- MODULE 7 -->
-    <section class="module" id="m7">
-      <div class="module-head"><div class="module-num">7</div><h2>Syntax Anatomy</h2></div>
-      <div class="module-body">
-        <div class="anatomy-block">
-          <div class="anatomy-line"># Heading
+    <div class="card">
+      <p><strong>Connects to:</strong> the "structured data" theme from earlier lectures — JSON was preferred for machine-to-machine exchange in both the REST and GraphQL discussions, for the same reason lightweight markup is preferred for human writing: match the format to who's actually reading it.</p>
+    </div>
 
-**bold** and _italic_ text.
+    <div class="callout warning">
+      <div class="icon">!</div>
+      <div class="content"><strong>Exam trap</strong><p>"Markdown will eventually replace HTML" — false. They solve different problems: Markdown is for human authoring, HTML is the rendered, interactive, browser-executed target. Markdown documents are routinely compiled <em>to</em> HTML, not instead of it.</p></div>
+    </div>
 
-- item one
-- item two</div>
-        </div>
-        <div class="anno-list">
-          <div class="anno-item"><span class="tok">#</span><span class="desc">a leading hash marks a heading — more hashes mean a deeper level, e.g. ## for heading 2</span></div>
-          <div class="anno-item"><span class="tok">**bold**</span><span class="desc">double asterisks wrap text to render it bold</span></div>
-          <div class="anno-item"><span class="tok">_italic_</span><span class="desc">underscores (or single asterisks) wrap text to render it italic</span></div>
-          <div class="anno-item"><span class="tok">- item</span><span class="desc">a leading hyphen and space starts an unordered list item</span></div>
-        </div>
-        <div class="callout tip"><div class="c-lbl">💡 Tip</div>None of these symbols need a closing tag the way HTML does — the renderer infers structure from the pattern, which is exactly what makes the syntax faster to write but occasionally ambiguous.</div>
-      </div>
-    </section>
+    <h3 style="font-family:var(--font-display); font-size:16px; margin:22px 0 4px;">Active recall</h3>
+    <details class="qa"><summary>Why does HTML's "forgiveness" matter architecturally?</summary><div class="qa-answer">It trades strict correctness for resilience — a browser renders around a malformed tag instead of failing the whole page, unlike strict formats such as XML.</div></details>
+    <details class="qa"><summary>Name one advantage and one disadvantage of lightweight markup versus HTML.</summary><div class="qa-answer">Advantage: human-readable even unrendered, and long-lived since it's plain text. Disadvantage: more ambiguous than HTML/XML's strict nesting — things like mismatched delimiters or complex tables can render inconsistently.</div></details>
+    <details class="qa"><summary>What's the actual connection between classic literate programming and JSX?</summary><div class="qa-answer">Both intermix human-facing content (prose or markup) with executable logic in a single file, extracted or compiled into separate outputs — the same underlying idea, decades apart.</div></details>
+  </section>
 
-    <!-- MODULE 8 -->
-    <section class="module" id="m8">
-      <div class="module-head"><div class="module-num">8</div><h2>Code Walkthrough</h2></div>
-      <div class="module-body">
-        <div class="codeblock">
-          <div class="cb-head">terminal — converting with Pandoc</div>
-          <pre>pandoc notes.md -o notes.pdf   <span class="c-com"># .md source → PDF target, one command</span>
-pandoc notes.md -o notes.html  <span class="c-com"># same source, different target format</span></pre>
-        </div>
-        <div class="codeblock">
-          <div class="cb-head">Welcome.jsx — markup mixed with code (React)</div>
-          <pre><span class="c-key">function</span> <span class="c-fn">Welcome</span>(props) {
-  <span class="c-key">return</span> (
-    <span class="c-tag">&lt;h1&gt;</span>Hello, {props.name}<span class="c-tag">&lt;/h1&gt;</span>  <span class="c-com">// markup and JS variable in one line</span>
-  );
-}</pre>
-        </div>
-        <p style="font-size:13.5px;color:var(--muted);">Conversion call sequence for a Markdown → PDF build:</p>
-        <div class="step-flow">
-          <span class="step">readSource('notes.md')</span><span class="step-arrow">→</span>
-          <span class="step">parseToAST()</span><span class="step-arrow">→</span>
-          <span class="step">applyLayoutRules()</span><span class="step-arrow">→</span>
-          <span class="step">emitTarget('pdf')</span>
-        </div>
-      </div>
-    </section>
+  <!-- RECAP -->
+  <section class="concept" id="brain">
+    <div class="concept-head">
+      <div class="concept-kicker">Recap</div>
+      <h2 class="concept-title">The whole lecture, compressed</h2>
+    </div>
 
-    <!-- MODULE 9 -->
-    <section class="module" id="m9">
-      <div class="module-head"><div class="module-num">9</div><h2>Behind the Scenes</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row">
-            <div class="flow-node d">Raw text scanned</div><div class="flow-arrow">→</div>
-            <div class="flow-node b">Lexer tokenizes symbols (#, *, -)</div><div class="flow-arrow">→</div>
-            <div class="flow-node c">Parser builds an AST of blocks/inlines</div>
-          </div>
-          <div class="flow-arrow" style="margin:6px 0;">↓</div>
-          <div class="flow-row">
-            <div class="flow-node a">Renderer walks the AST</div><div class="flow-arrow">→</div>
-            <div class="flow-node e">Emits target markup (HTML tags / PDF layout)</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div class="brain-grid">
+      <div class="brain-cell"><h5>Core Intuition</h5><p>Match the format to who's reading: browsers, humans typing, or machines parsing.</p></div>
+      <div class="brain-cell"><h5>HTML Wins Because</h5><p>Living standard, extensible, semantic, forgiving.</p></div>
+      <div class="brain-cell"><h5>HTML's Limits</h5><p>Too verbose for long writing, wrong tool for machine data or 3D space.</p></div>
+      <div class="brain-cell"><h5>Lightweight Markup</h5><p>Markdown / RST / AsciiDoc — readable raw, long-lived, compact, but ambiguous.</p></div>
+      <div class="brain-cell"><h5>Tooling</h5><p>Pandoc converts across formats so teams don't standardize on just one.</p></div>
+      <div class="brain-cell"><h5>Literate Programming</h5><p>Docs + code, one file → compiler extracts both.</p></div>
+      <div class="brain-cell"><h5>Modern Echoes</h5><p>Doxygen (docs from comments), JSX/Vue (markup + logic intermixed).</p></div>
+      <div class="brain-cell"><h5>Never True</h5><p>"Markdown replaces HTML" — it compiles to it.</p></div>
+      <div class="brain-cell"><h5>Decision Rule</h5><p>Human long-form → Markdown/RST/AsciiDoc. Machine data → JSON. Rendered/interactive → HTML.</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 10 -->
-    <section class="module" id="m10">
-      <div class="module-head"><div class="module-num">10</div><h2>Real Project Usage</h2></div>
-      <div class="module-body">
-        <div class="proj-grid">
-          <div class="proj-card"><div class="name"><span class="swatch"></span>GitHub</div><p>Renders every README.md automatically on repo pages, using GitHub-Flavored Markdown as the de facto standard for open-source documentation.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--post)"></span>Python Docs (Sphinx)</div><p>Uses reStructuredText (RST) as its source format, compiled by Sphinx into the official searchable HTML documentation for the language and its libraries.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--put)"></span>C++/Java (Doxygen)</div><p>Extracts specially formatted comments directly above functions and classes and compiles them into full reference documentation — literate programming's direct descendant.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--get)"></span>React (JSX)</div><p>Lets components intermix HTML-like markup with JavaScript logic in the same file, so the UI structure and its behavior stay physically next to each other.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 11 -->
-    <section class="module" id="m11">
-      <div class="module-head"><div class="module-num">11</div><h2>Common Mistakes</h2></div>
-      <div class="module-body">
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Assuming Markdown syntax renders identically everywhere</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Different flavors (GitHub, CommonMark) handle edge cases like tables differently</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Using HTML for machine-to-machine data exchange</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Use JSON or XML — they're optimized for parsing, not human display</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Forcing complex nested tables into plain Markdown</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Reach for RST/AsciiDoc, or embed raw HTML where the format allows it</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Thinking literate programming replaced normal code comments everywhere</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>It didn't take over as originally envisioned — its ideas live on in tools like Doxygen</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 12 -->
-    <section class="module" id="m12">
-      <div class="module-head"><div class="module-num">12</div><h2>Debugging Mindset</h2></div>
-      <div class="module-body">
-        <div class="debug-case">
-          <div class="title">"My Markdown table looks fine locally but breaks on GitHub"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: table renders as plain text on GitHub</span><span class="a">→</span>
-            <span class="s">Observe: local renderer uses a different flavor</span><span class="a">→</span>
-            <span class="s">Find stage: parsing/interpretation differs by implementation</span><span class="a">→</span>
-            <span class="s fix">Fix: use GitHub-Flavored Markdown table syntax specifically</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"Pandoc conversion drops my formatting"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: bold/tables missing in output</span><span class="a">→</span>
-            <span class="s">Observe: default format flags used</span><span class="a">→</span>
-            <span class="s">Find stage: the from/to format-mapping stage</span><span class="a">→</span>
-            <span class="s fix">Fix: pass explicit --from/--to flags or extensions</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"My JSX build fails with 'unexpected token'"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: compile-time syntax error</span><span class="a">→</span>
-            <span class="s">Observe: error points at a tag or brace</span><span class="a">→</span>
-            <span class="s">Find stage: JSX-to-JS transpilation</span><span class="a">→</span>
-            <span class="s fix">Fix: check for an unclosed tag or mismatched curly brace</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 13 -->
-    <section class="module" id="m13">
-      <div class="module-head"><div class="module-num">13</div><h2>IITM Exam Pattern</h2></div>
-      <div class="module-body">
-        <div class="exam-grid">
-          <div class="exam-box"><h4>Trigger Words</h4><ul>
-            <li>"structure vs. presentation separation" → HTML + CSS</li>
-            <li>"human-readable without a renderer" → text-based markup</li>
-            <li>"convert between formats" → Pandoc</li>
-            <li>"docs next to code" → literate programming / JSX</li>
-          </ul></div>
-          <div class="exam-box"><h4>Trap Words</h4><ul>
-            <li>"HTML is best for server-client data" — false, use JSON/XML</li>
-            <li>"Markdown is a strict, standardized spec" — flavors vary</li>
-            <li>"literate programming is widely adopted as-is" — it wasn't</li>
-          </ul></div>
-          <div class="exam-box"><h4>MCQ Tricks</h4><ul>
-            <li>Option claiming text markup has zero ambiguity → almost always false</li>
-            <li>Option claiming HTML is forgiving of ALL malformed syntax → overstated</li>
-          </ul></div>
-          <div class="exam-box"><h4>PYQ Pattern &amp; Elimination</h4><ul>
-            <li>Identify if the scenario needs human authoring or machine parsing first</li>
-            <li>Eliminate options proposing HTML for structured server data</li>
-            <li>Prefer options acknowledging trade-offs over absolute claims</li>
-          </ul></div>
-        </div>
-        <div class="callout trap" style="margin-top:14px;"><div class="c-lbl">🪤 Classic trap</div>A question may claim text-based markup is "universally portable across all languages and scripts." Many conventions (like periods or specific symbols) are rooted in the English/Roman alphabet and don't translate naturally everywhere — don't mark that claim as unconditionally true.</div>
-      </div>
-    </section>
-
-    <!-- MODULE 14 -->
-    <section class="module" id="m14">
-      <div class="module-head"><div class="module-num">14</div><h2>Interview Questions</h2></div>
-      <div class="module-body">
-        <div class="tier easy">
-          <div class="tier-head">Easy</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">Why isn't HTML ideal for server-to-client data exchange?</div><div class="a">HTML is built for human-readable presentation; JSON and XML are optimized for machines to parse quickly and unambiguously.</div></div>
-            <div class="item"><div class="q">Name two text-based markup languages besides Markdown.</div><div class="a">RST (reStructuredText), common in Python docs, and AsciiDoc, another plain-text format focused on structured simplicity.</div></div>
-          </div>
-        </div>
-        <div class="tier med">
-          <div class="tier-head">Medium</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">Why are plain-text markup files considered more future-proof than proprietary word-processor formats?</div><div class="a">They rely on standard character encodings (ASCII/Unicode) that any text editor can open, avoiding the "obsolescence" problem where old proprietary formats need legacy software to read.</div></div>
-            <div class="item"><div class="q">What role does Pandoc play in a documentation workflow?</div><div class="a">It acts as a universal converter — a "Swiss Army knife" — transforming a single source document between many markup and output formats as needed.</div></div>
-          </div>
-        </div>
-        <div class="tier hard">
-          <div class="tier-head">Advanced</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">Literate programming didn't achieve its originally envisioned adoption — what did it influence instead?</div><div class="a">Its core idea, weaving documentation and code together, lives on in modern tools like Doxygen (extracting docs from code comments) and in frameworks like React/Vue, where markup and logic are intermixed directly in components.</div></div>
-            <div class="item"><div class="q">Why can implementing complex tables be cumbersome in lightweight text markup?</div><div class="a">Because the minimal syntax that makes headings and bold text simple doesn't scale cleanly to two-dimensional structures — table conventions end up varying by implementation and are harder to keep both readable and unambiguous.</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 15 -->
-    <section class="module" id="m15">
-      <div class="module-head"><div class="module-num">15</div><h2>One-Page Brain</h2></div>
-      <div class="module-body">
-        <div class="diagram" style="padding:16px;">
-          <div class="flow-caption" style="margin:0;font-size:12px;">Plain text → Parser/Lexer → AST → Converter (Pandoc) → Target format (HTML/PDF/DOCX)</div>
-        </div>
-        <div class="remember-chain">
-          <div class="rc-row"><span class="key">HTML</span><span class="val">structure + presentation split, forgiving, not for machine data</span></div>
-          <div class="rc-row"><span class="key">JSON/XML</span><span class="val">machine-optimized, use for server ↔ client data</span></div>
-          <div class="rc-row"><span class="key">Markdown</span><span class="val">fastest to write, least strict</span></div>
-          <div class="rc-row"><span class="key">RST/AsciiDoc</span><span class="val">more structure, still plain text</span></div>
-          <div class="rc-row"><span class="key">Pandoc</span><span class="val">converts between any of the above</span></div>
-          <div class="rc-row"><span class="key">Literate prog.</span><span class="val">lives on via Doxygen, JSX, Vue templates</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 16 -->
-    <section class="module" id="m16">
-      <div class="module-head"><div class="module-num">16</div><h2>Quick Revision Table</h2></div>
-      <div class="module-body">
-        <div class="rev-table-wrap">
-        <table class="rev">
-          <tr><th>Format</th><th>Best For</th><th>Human Readable</th><th>Machine Parseable</th></tr>
-          <tr><td><span class="verb-pill html">HTML</span></td><td>Web page structure + content</td><td class="yn p">Partial</td><td class="yn p">Partial</td></tr>
-          <tr><td><span class="verb-pill jx">JSON/XML</span></td><td>Server ↔ client data exchange</td><td class="yn n">❌</td><td class="yn y">✅</td></tr>
-          <tr><td><span class="verb-pill md">Markdown</span></td><td>Docs, READMEs, blog posts</td><td class="yn y">✅</td><td class="yn p">Partial</td></tr>
-          <tr><td><span class="verb-pill rst">RST</span></td><td>Python-ecosystem documentation</td><td class="yn y">✅</td><td class="yn p">Partial</td></tr>
-          <tr><td><span class="verb-pill adoc">AsciiDoc</span></td><td>Structured technical writing</td><td class="yn y">✅</td><td class="yn p">Partial</td></tr>
-        </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 17 -->
-    <section class="module" id="m17">
-      <div class="module-head"><div class="module-num">17</div><h2>Practice Ladder</h2></div>
-      <div class="module-body">
-        <div class="ladder">
-          <div class="rung"><div class="lvl">1</div><div class="tag2">Concept</div><div class="desc">Explain why JSON is preferred over HTML for API responses.</div></div>
-          <div class="rung"><div class="lvl">2</div><div class="tag2">Predict Output</div><div class="desc">Given a Markdown snippet with headings and bold text, predict the equivalent HTML.</div></div>
-          <div class="rung"><div class="lvl">3</div><div class="tag2">Find Bug</div><div class="desc">Spot the flaw: a document assumes every Markdown renderer handles tables identically.</div></div>
-          <div class="rung"><div class="lvl">4</div><div class="tag2">MCQ</div><div class="desc">Which claim about text-based markup is false — "portable" or "unambiguous"? Eliminate carefully.</div></div>
-          <div class="rung"><div class="lvl">5</div><div class="tag2">Coding</div><div class="desc">Write a Pandoc command converting a .md file to both .html and .pdf.</div></div>
-          <div class="rung"><div class="lvl">6</div><div class="tag2">Mini Project</div><div class="desc">Write a short README in Markdown, then convert it to PDF and inspect the layout differences.</div></div>
-          <div class="rung"><div class="lvl">7</div><div class="tag2">Interview</div><div class="desc">Defend, out loud, why literate programming "failed" yet still shaped modern tools.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 18 -->
-    <section class="module" id="m18">
-      <div class="module-head"><div class="module-num">18</div><h2>Memory Palace</h2></div>
-      <div class="module-body">
-        <div class="palace-grid">
-          <div class="palace-card">
-            <div class="ic">📏</div>
-            <h5>Rule</h5>
-            <p>Pick the format for who's reading it — a machine wants JSON, a human wants Markdown.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🧥</div>
-            <h5>Mnemonic</h5>
-            <p>"Suit for machines, T-shirt for humans" — HTML/XML formal, Markdown casual.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🧭</div>
-            <h5>Visual</h5>
-            <p class="ascii">Plain text (.md)
-     │
-     ▼
-  Parser → AST
-     │
-     ▼
-Pandoc converts
-     │
-     ▼
-HTML / PDF / DOCX</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer-note">MAD2 Learning OS · Markup Alternatives &amp; Literate Programming · 18/18 modules complete</div>
-  </main>
 </div>
+
+<footer>MAD2 · Lecture 8.4 — Markup Alternatives · Learning OS artifact (adaptive structure)</footer>
 
 </body>
 </html>

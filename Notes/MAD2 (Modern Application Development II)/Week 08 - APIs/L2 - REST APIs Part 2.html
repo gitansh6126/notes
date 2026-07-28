@@ -396,7 +396,7 @@ table.rev tr:last-child td{border-bottom:none;}
 <div class="shell">
 
   <nav class="sidenav">
-    <h4>18 Modules</h4>
+    <h4>19 Modules</h4>
     <ol>
       <li><a href="#m1">Topic Card</a></li>
       <li><a href="#m2">Core Intuition</a></li>
@@ -407,15 +407,16 @@ table.rev tr:last-child td{border-bottom:none;}
       <li><a href="#m7">Syntax Anatomy</a></li>
       <li><a href="#m8">Code Walkthrough</a></li>
       <li><a href="#m9">Behind the Scenes</a></li>
-      <li><a href="#m10">Real Project Usage</a></li>
-      <li><a href="#m11">Common Mistakes</a></li>
-      <li><a href="#m12">Debugging Mindset</a></li>
-      <li><a href="#m13">IITM Exam Pattern</a></li>
-      <li><a href="#m14">Interview Questions</a></li>
-      <li><a href="#m15">One-Page Brain</a></li>
-      <li><a href="#m16">Revision Table</a></li>
-      <li><a href="#m17">Practice Ladder</a></li>
-      <li><a href="#m18">Memory Palace</a></li>
+      <li><a href="#m10">Lecture Notes</a></li>
+      <li><a href="#m11">Real Project Usage</a></li>
+      <li><a href="#m12">Common Mistakes</a></li>
+      <li><a href="#m13">Debugging Mindset</a></li>
+      <li><a href="#m14">IITM Exam Pattern</a></li>
+      <li><a href="#m15">Interview Questions</a></li>
+      <li><a href="#m16">One-Page Brain</a></li>
+      <li><a href="#m17">Revision Table</a></li>
+      <li><a href="#m18">Practice Ladder</a></li>
+      <li><a href="#m19">Memory Palace</a></li>
     </ol>
   </nav>
 
@@ -596,7 +597,55 @@ Accept: application/json</div>
 
     <!-- MODULE 10 -->
     <section class="module" id="m10">
-      <div class="module-head"><div class="module-num">10</div><h2>Real Project Usage</h2></div>
+      <div class="module-head"><div class="module-num">10</div><h2>Lecture Notes</h2><span class="tag">Original Topic Content</span></div>
+      <div class="module-body">
+        <p style="color:var(--muted);font-size:15px;margin-bottom:16px;">This section contains the full original lecture content — the concepts, details, and explanations as taught in the lecture, outside the framework structure.</p>
+
+        <div class="qa">
+          <div class="q">Output Formats — JSON vs XML vs YAML</div>
+          <div class="a"><strong>JSON</strong> (JavaScript Object Notation) is the dominant format for web APIs — lightweight, human-readable, and natively understood by JavaScript. <strong>XML</strong> (eXtensible Markup Language) is more verbose but supports attributes, namespaces, and schema validation (XSD) — still used in SOAP APIs and enterprise systems. <strong>YAML</strong> (YAML Ain't Markup Language) is a superset of JSON optimized for human readability — used in config files (Docker, Kubernetes) but less common in API responses. The choice depends on the ecosystem: mobile and web apps prefer JSON; enterprise and document-centric systems may prefer XML.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">Content Negotiation</div>
+          <div class="a">HTTP content negotiation lets the client and server agree on the format of the response. The client sends an <code>Accept</code> header (e.g. <code>Accept: application/json</code>) to declare what it can handle. The server responds with a <code>Content-Type</code> header (e.g. <code>Content-Type: application/json</code>) to declare what it actually returned. If the server can't satisfy the request, it returns <strong>406 Not Acceptable</strong>. This mechanism allows a single endpoint to serve JSON to a mobile app, XML to a legacy system, and HTML to a browser — all from the same URL.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">HTTP Status Codes</div>
+          <div class="a"><strong>2xx Success:</strong> 200 OK (general success), 201 Created (resource created, usually after POST), 204 No Content (success but nothing to return, e.g. after DELETE). <strong>3xx Redirection:</strong> 301 Moved Permanently, 302 Found, 304 Not Modified (cached version is still valid). <strong>4xx Client Error:</strong> 400 Bad Request (malformed syntax), 401 Unauthorized (not authenticated), 403 Forbidden (authenticated but not authorized), 404 Not Found, 405 Method Not Allowed, 409 Conflict (e.g. duplicate creation), 422 Unprocessable Entity (valid syntax but semantic errors), 429 Too Many Requests (rate limited). <strong>5xx Server Error:</strong> 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout. Choosing the right status code is critical — it tells the client exactly what happened and what to do next.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">HATEOAS — Hypermedia as the Engine of Application State</div>
+          <div class="a">HATEOAS is the highest maturity level of REST. Every response includes links that tell the client what actions are available next. For example, a user response might include <code>"links": {"self": "/users/42", "orders": "/users/42/orders", "deactivate": {"method": "DELETE", "href": "/users/42"}}</code>. This means the client doesn't need to hardcode URLs or know the API structure in advance — it discovers capabilities by following links, the same way a human follows hyperlinks on a webpage. This makes the API self-documenting and allows the server to change URLs without breaking clients.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">API Versioning</div>
+          <div class="a">APIs evolve over time, and breaking changes must not break existing clients. Common versioning strategies: <strong>URL path versioning</strong> (<code>/api/v1/users</code>, <code>/api/v2/users</code>) — simplest and most visible. <strong>Header versioning</strong> (<code>Accept: application/vnd.myapp.v2+json</code>) — keeps URLs clean but harder to test in a browser. <strong>Query parameter versioning</strong> (<code>/users?version=2</code>) — easy to implement but less conventional. The choice is a trade-off between simplicity and purity. URL path versioning is the most common in practice despite being "impure" from a REST theory standpoint.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">Rate Limiting & Pagination</div>
+          <div class="a"><strong>Rate limiting</strong> protects the server from abuse by capping how many requests a client can make in a time window (e.g. 100 requests per minute). The server responds with <strong>429 Too Many Requests</strong> and includes headers like <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>Retry-After</code>. <strong>Pagination</strong> breaks large result sets into pages. Common patterns: <strong>offset-based</strong> (<code>?page=2&amp;per_page=20</code>) — simple but breaks when data changes between pages. <strong>Cursor-based</strong> (<code>?cursor=abc123&amp;limit=20</code>) — more stable for real-time data. Both are essential for production APIs.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">Error Response Conventions</div>
+          <div class="a">A well-structured error response helps the client understand what went wrong and how to fix it. Standard practice: return a JSON body with at minimum <code>{"error": {"code": 422, "message": "Invalid email format", "details": {"field": "email", "reason": "must contain @"}}}</code>. The <code>message</code> is for developers; the <code>details</code> object provides structured, machine-readable information. Never return raw stack traces or database errors in production — they leak implementation details and create security risks.</div>
+        </div>
+
+        <div class="qa">
+          <div class="q">REST Maturity Model (Richardson Model)</div>
+          <div class="a"><strong>Level 0 — Swamp of POX:</strong> Single endpoint, one HTTP method (usually POST), raw XML/JSON in the body. Essentially a remote procedure call over HTTP. <strong>Level 1 — Resources:</strong> Multiple endpoints, each representing a resource (<code>/users</code>, <code>/orders</code>), but still possibly using a single HTTP method. <strong>Level 2 — HTTP Verbs:</strong> Proper use of GET, POST, PUT, PATCH, DELETE with appropriate status codes. This is where most "RESTful" APIs sit. <strong>Level 3 — Hypermedia Controls (HATEOAS):</strong> Responses include links that guide the client through available actions. This is "true REST" but rarely fully implemented in practice. Most production APIs target Level 2.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 11 -->
+    <section class="module" id="m11">
+      <div class="module-head"><div class="module-num">11</div><h2>Real Project Usage</h2></div>
       <div class="module-body">
         <div class="proj-grid">
           <div class="proj-card"><div class="name"><span class="swatch"></span>GitHub API</div><p>The textbook example of hypermedia — every response ships <code>self</code> and relationship links, so a client can "crawl" from a repo to its issues to a specific comment without hardcoding URLs.</p></div>
@@ -609,7 +658,7 @@ Accept: application/json</div>
 
     <!-- MODULE 11 -->
     <section class="module" id="m11">
-      <div class="module-head"><div class="module-num">11</div><h2>Common Mistakes</h2></div>
+      <div class="module-head"><div class="module-num">12</div><h2>Common Mistakes</h2></div>
       <div class="module-body">
         <div class="mistake-pair">
           <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Using GET to delete or modify a resource</div>
@@ -636,7 +685,7 @@ Accept: application/json</div>
 
     <!-- MODULE 12 -->
     <section class="module" id="m12">
-      <div class="module-head"><div class="module-num">12</div><h2>Debugging Mindset</h2></div>
+      <div class="module-head"><div class="module-num">13</div><h2>Debugging Mindset</h2></div>
       <div class="module-body">
         <div class="debug-case">
           <div class="title">"A GET-like endpoint is returning stale data"</div>
@@ -671,7 +720,7 @@ Accept: application/json</div>
 
     <!-- MODULE 13 -->
     <section class="module" id="m13">
-      <div class="module-head"><div class="module-num">13</div><h2>IITM Exam Pattern</h2></div>
+      <div class="module-head"><div class="module-num">14</div><h2>IITM Exam Pattern</h2></div>
       <div class="module-body">
         <div class="exam-grid">
           <div class="exam-box"><h4>Trigger Words</h4><ul>
@@ -701,7 +750,7 @@ Accept: application/json</div>
 
     <!-- MODULE 14 -->
     <section class="module" id="m14">
-      <div class="module-head"><div class="module-num">14</div><h2>Interview Questions</h2></div>
+      <div class="module-head"><div class="module-num">15</div><h2>Interview Questions</h2></div>
       <div class="module-body">
         <div class="tier easy">
           <div class="tier-head">Easy</div>
@@ -729,7 +778,7 @@ Accept: application/json</div>
 
     <!-- MODULE 15 -->
     <section class="module" id="m15">
-      <div class="module-head"><div class="module-num">15</div><h2>One-Page Brain</h2></div>
+      <div class="module-head"><div class="module-num">16</div><h2>One-Page Brain</h2></div>
       <div class="module-body">
         <div class="diagram" style="padding:16px;">
           <div class="flow-caption" style="margin:0;font-size:12px;">Request → Verb + Format → Auth → Handler → JSON + Links → Response</div>
@@ -747,7 +796,7 @@ Accept: application/json</div>
 
     <!-- MODULE 16 -->
     <section class="module" id="m16">
-      <div class="module-head"><div class="module-num">16</div><h2>Quick Revision Table</h2></div>
+      <div class="module-head"><div class="module-num">17</div><h2>Quick Revision Table</h2></div>
       <div class="module-body">
         <div class="rev-table-wrap">
         <table class="rev">
@@ -764,7 +813,7 @@ Accept: application/json</div>
 
     <!-- MODULE 17 -->
     <section class="module" id="m17">
-      <div class="module-head"><div class="module-num">17</div><h2>Practice Ladder</h2></div>
+      <div class="module-head"><div class="module-num">18</div><h2>Practice Ladder</h2></div>
       <div class="module-body">
         <div class="ladder">
           <div class="rung"><div class="lvl">1</div><div class="tag2">Concept</div><div class="desc">Explain why GET must never modify server state.</div></div>
@@ -780,7 +829,7 @@ Accept: application/json</div>
 
     <!-- MODULE 18 -->
     <section class="module" id="m18">
-      <div class="module-head"><div class="module-num">18</div><h2>Memory Palace</h2></div>
+      <div class="module-head"><div class="module-num">19</div><h2>Memory Palace</h2></div>
       <div class="module-body">
         <div class="palace-grid">
           <div class="palace-card">
@@ -811,7 +860,7 @@ Handler → JSON+links
       </div>
     </section>
 
-    <div class="footer-note">MAD2 Learning OS · Designing APIs (Part 2) · 18/18 modules complete</div>
+    <div class="footer-note">MAD2 Learning OS · Designing APIs (Part 2) · 19/19 modules complete</div>
   </main>
 </div>
 

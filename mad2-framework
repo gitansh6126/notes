@@ -1,0 +1,457 @@
+A comprehensive execution-first framework for teaching any MAD2 topic—including JavaScript, Vue.js, Vue Router, Vuex/Pinia, Flask, REST APIs, browser internals, asynchronous programming, frontend architecture, backend concepts, and full-stack application development.
+
+The goal is not memorizing syntax.
+
+The goal is to understand:
+
+why the feature exists, how it executes internally, how data flows, how state changes, how to predict output, how to debug, how IITM frames questions, and how the concept is used in real applications.
+
+Execution reasoning should always be prioritized over rote definitions.
+
+Not every module requires equal depth. Small topics may compress modules into short explanations, while foundational topics should receive complete treatment. Never skip a module silently—if it genuinely does not apply, explicitly state that it is not applicable.
+
+Module 1 — Topic Card
+
+Provide:
+
+Topic Category Difficulty Importance Prerequisites Learning Outcome Module 2 — Problem & Core Intuition
+
+Explain:
+
+What problem does this solve? Why was it introduced? What would happen without it?
+
+Explain using simple language before technical terminology.
+
+Module 3 — Execution Timeline ⭐
+
+Always show the complete execution order.
+
+Examples:
+
+Vue Component
+
+Component Created ↓ data() ↓ computed ↓ created() ↓ Template Compile ↓ Virtual DOM ↓ mounted() ↓ User Interaction ↓ Reactive Update ↓ updated() ↓ beforeUnmount() ↓ unmounted()
+
+JavaScript
+
+Source Code ↓ Hoisting ↓ Execution Context ↓ Call Stack ↓ Microtask Queue ↓ Macrotask Queue ↓ Rendering
+
+Execution order should always be explicit because most IITM reasoning questions depend on it.
+
+Module 4 — Visual Mental Model
+
+Include diagrams, timelines, architecture diagrams, flowcharts, dependency graphs, or analogies.
+
+Every topic should have at least one visual explanation.
+
+Module 5 — Pattern & Reverse Recognition ⭐
+
+Teach students to instantly recognize the topic.
+
+Include:
+
+Trigger Words
+
+Reverse Recognition
+
+Examples
+
+$route.params ↓ Vue Router
+
+computed ↓ Reactive Cache
+
+watch ↓ Side Effects
+
+Promise.then() ↓ Microtask Queue
+
+v-if ↓ DOM
+
+v-show ↓ CSS Module 6 — Deep Fundamentals
+
+Explain
+
+why it exists what problem it solves internal design engineering decisions trade-offs
+
+Avoid memorization.
+
+Module 7 — JavaScript Engine & Framework Internals ⭐
+
+Separate the execution layers.
+
+Example
+
+JavaScript Engine
+
+↓
+
+Browser APIs
+
+↓
+
+Event Loop
+
+↓
+
+Vue Reactivity
+
+↓
+
+Virtual DOM
+
+↓
+
+Diff Algorithm
+
+↓
+
+Patch
+
+↓
+
+Real DOM
+
+Explain what each layer is responsible for.
+
+Module 8 — Syntax Anatomy
+
+Break every syntax element apart.
+
+Explain
+
+keywords symbols operators modifiers arguments callbacks async/await arrow functions this binding Module 9 — Code Walkthrough
+
+Use progressively larger examples.
+
+For every example explain
+
+execution order variable changes lifecycle internal behavior
+
+Never only present code.
+
+Module 10 — Output Prediction ⭐⭐⭐⭐⭐
+
+Every JavaScript-related topic should include prediction exercises.
+
+Structure
+
+Code
+
+↓
+
+Predict Output
+
+↓
+
+Why
+
+↓
+
+Internal Execution
+
+↓
+
+Memory
+
+↓
+
+Stack
+
+↓
+
+Final Output
+
+Focus on
+
+hoisting closures async promises event loop scope lifecycle order Module 11 — State Change Tracker ⭐
+
+Show how application state evolves.
+
+Format
+
+Before
+
+↓
+
+Action
+
+↓
+
+After
+
+Examples
+
+Vuex
+
+Component State
+
+Reactive Variables
+
+Authentication State
+
+Store Updates
+
+Module 12 — Data Flow Architecture ⭐
+
+Always explain where data travels.
+
+Example
+
+Browser
+
+↓
+
+User Event
+
+↓
+
+Vue Component
+
+↓
+
+Store
+
+↓
+
+API
+
+↓
+
+Backend
+
+↓
+
+Database
+
+↓
+
+Response
+
+↓
+
+Reactive Update
+
+↓
+
+DOM Module 13 — Component Communication
+
+Visualize communication.
+
+Examples
+
+Parent
+
+↓
+
+Props
+
+↓
+
+Child
+
+↓
+
+Emit
+
+↓
+
+Parent
+
+Also explain
+
+provide/inject global stores router communication
+
+where applicable.
+
+Module 14 — Reactive Dependency Graph
+
+Show dependencies.
+
+Example
+
+data
+
+↓
+
+computed
+
+↓
+
+watch
+
+↓
+
+template
+
+↓
+
+Virtual DOM
+
+↓
+
+Real DOM
+
+Students should understand how updates propagate.
+
+Module 15 — Behind the Scenes
+
+Explain internal implementation.
+
+Examples
+
+Virtual DOM Dependency Tracking Diff Algorithm Event Loop Closures Promise Resolution Fetch Pipeline Module 16 — Real Project Usage
+
+Show how production applications use the concept.
+
+Examples
+
+Gmail Netflix Amazon Instagram Swiggy
+
+Explain actual usage rather than only naming products.
+
+Module 17 — Common Mistakes
+
+Every topic should include
+
+❌ Wrong
+
+↓
+
+Why
+
+↓
+
+✅ Correct
+
+Include common beginner and IITM mistakes.
+
+Module 18 — Debug Timeline ⭐
+
+Teach systematic debugging.
+
+Browser
+
+↓
+
+Console
+
+↓
+
+Network
+
+↓
+
+API
+
+↓
+
+Backend
+
+↓
+
+Database
+
+↓
+
+Response
+
+↓
+
+Vue
+
+↓
+
+DOM
+
+Include
+
+runtime errors console warnings Vue warnings network failures async issues Module 19 — Security Thinking ⭐
+
+Whenever relevant include
+
+Authentication Authorization JWT Sessions Cookies CSRF XSS SQL Injection Password Hashing Input Validation
+
+Security should become part of conceptual understanding rather than an isolated topic.
+
+Module 20 — Storage & Persistence
+
+Compare when applicable
+
+localStorage sessionStorage cookies IndexedDB server-side storage
+
+Explain differences, trade-offs, and exam traps.
+
+Module 21 — Routing Decision Tree
+
+Explain routing decisions visually.
+
+Include concepts like
+
+router.push() replace() params query nested routes navigation guards route updates Module 22 — IITM Question Archetypes ⭐⭐⭐⭐⭐
+
+Instead of isolated examples, classify questions.
+
+Examples
+
+Output Prediction Lifecycle Routing Vuex Reactivity Event Loop Closures Scope Storage Security REST APIs Flask HTTP DOM
+
+For each archetype explain
+
+common wording hidden trap elimination strategy Module 23 — Interview Questions
+
+Include
+
+Easy Medium Advanced
+
+Focus on reasoning rather than definitions.
+
+Module 24 — Quick Revision Table
+
+Create one concise summary table for the topic.
+
+Module 25 — Practice Ladder
+
+Progressive learning
+
+Level 1 — Concept
+
+↓
+
+Level 2 — Trace Execution
+
+↓
+
+Level 3 — Predict Output
+
+↓
+
+Level 4 — Find Bug
+
+↓
+
+Level 5 — MCQ
+
+↓
+
+Level 6 — Coding
+
+↓
+
+Level 7 — Mini Project
+
+↓
+
+Level 8 — Interview
+
+Module 26 — One-Page Brain
+
+Compress the topic into one page containing
+
+Core intuition Execution timeline Data flow State flow Key syntax Common mistakes Debug checklist IITM triggers Interview tips Cheat sheet Module 27 — Memory Palace
+
+Finish every topic with
+
+One governing rule Mnemonic Visual timeline Execution chain Retrieval practice questions
+
+Prioritize active recall over passive memorization.
+
+Core Principles Teach execution before syntax. Explain why before how. Always show execution order. Separate JavaScript, browser, framework, and DOM responsibilities. Track every state change explicitly. Explain complete data flow through the application. Include output prediction for executable code whenever applicable. Teach debugging as a systematic process. Build engineering reasoning instead of memorization. Connect every topic to IITM exam patterns, interview questions, and real-world projects. End every major topic with a concise One-Page Brain and retrieval practice for long-term retention.

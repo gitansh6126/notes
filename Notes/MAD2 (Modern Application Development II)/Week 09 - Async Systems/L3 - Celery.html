@@ -295,15 +295,16 @@
       <li><a href="#syntax"><span class="num">07</span>Syntax Anatomy</a></li>
       <li><a href="#walkthrough"><span class="num">08</span>Code Walkthrough</a></li>
       <li><a href="#behindscenes"><span class="num">09</span>Behind the Scenes</a></li>
-      <li><a href="#realworld"><span class="num">10</span>Real Project Usage</a></li>
-      <li><a href="#mistakes"><span class="num">11</span>Common Mistakes</a></li>
-      <li><a href="#debugging"><span class="num">12</span>Debugging Mindset</a></li>
-      <li><a href="#exampattern"><span class="num">13</span>IITM Exam Pattern</a></li>
-      <li><a href="#interview"><span class="num">14</span>Interview Questions</a></li>
-      <li><a href="#onepage"><span class="num">15</span>One-Page Brain</a></li>
-      <li><a href="#revtable"><span class="num">16</span>Revision Table</a></li>
-      <li><a href="#ladder"><span class="num">17</span>Practice Ladder</a></li>
-      <li><a href="#palace"><span class="num">18</span>Memory Palace</a></li>
+      <li><a href="#lecturenotes"><span class="num">10</span>Lecture Notes</a></li>
+      <li><a href="#realworld"><span class="num">11</span>Real Project Usage</a></li>
+      <li><a href="#mistakes"><span class="num">12</span>Common Mistakes</a></li>
+      <li><a href="#debugging"><span class="num">13</span>Debugging Mindset</a></li>
+      <li><a href="#exampattern"><span class="num">14</span>IITM Exam Pattern</a></li>
+      <li><a href="#interview"><span class="num">15</span>Interview Questions</a></li>
+      <li><a href="#onepage"><span class="num">16</span>One-Page Brain</a></li>
+      <li><a href="#revtable"><span class="num">17</span>Revision Table</a></li>
+      <li><a href="#ladder"><span class="num">18</span>Practice Ladder</a></li>
+      <li><a href="#palace"><span class="num">19</span>Memory Palace</a></li>
     </ul>
   </nav>
 
@@ -524,8 +525,80 @@
     </section>
 
     <!-- MODULE 10 -->
+    <section class="module" id="lecturenotes">
+      <div class="module-head"><span class="mnum">10</span><h2>Lecture Notes</h2><span class="msub">Original Topic Content</span></div>
+      <div class="card">
+        <h3 class="subhead">Overview</h3>
+        <p class="p-muted">Modern applications often require handling long-running tasks without blocking the main web server's responsiveness. Asynchronous task execution allows these operations to be offloaded, ensuring the user interface remains snappy while background processes complete reliably.</p>
+      </div>
+      <div class="card">
+        <h3 class="subhead">Key Concepts</h3>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">Task Queue</span><span>A system that manages long-running tasks by separating the request handler (the web server) from the task executor (the worker).</span></div>
+          <div class="rc-row"><span class="rc-key">Asynchronous Execution</span><span>A mechanism where a task is triggered, and the main thread proceeds without waiting for the task to complete.</span></div>
+          <div class="rc-row"><span class="rc-key">Message Broker</span><span>A middleware (like RabbitMQ or Redis) that facilitates the communication and queuing of messages between the client/producer and the worker.</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">Task Queue Principles</h3>
+        <div class="grid-2">
+          <div class="card" style="border-color:#2b5e56;">
+            <h3 class="subhead" style="color:var(--teal);">Efficiency</h3>
+            <p class="p-muted">Pushing a task to a queue must be significantly faster and simpler than performing the task itself.</p>
+          </div>
+          <div class="card" style="border-color:#3a3466;">
+            <h3 class="subhead" style="color:var(--violet);">Separation of Concerns</h3>
+            <p class="p-muted">Keep core CRUD operations online, while offloading side effects (like sending emails or updating large analytics) to workers.</p>
+          </div>
+          <div class="card" style="border-color:#5a4620;">
+            <h3 class="subhead" style="color:var(--amber);">Reliability</h3>
+            <p class="p-muted">The system must include mechanisms for retries, monitoring, and ensuring the queue eventually drains.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">Queue Architectures</h3>
+        <div class="grid-2">
+          <div class="card" style="border-color:#2b5e56;">
+            <h3 class="subhead" style="color:var(--teal);">Push Queues</h3>
+            <p class="p-muted">The client pushes a task onto the queue, and the server is expected to process it immediately upon availability. Ideal for tasks like updating social media feeds or sending transaction notifications.</p>
+          </div>
+          <div class="card" style="border-color:#5a4620;">
+            <h3 class="subhead" style="color:var(--amber);">Pull Queues</h3>
+            <p class="p-muted">The server polls the queue periodically to process tasks. Highly effective for <strong>batch mode operations</strong> (e.g., updating a global leaderboard every 30 seconds rather than every time a score is submitted).</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">Challenges in Distributed Systems</h3>
+        <div class="grid-3">
+          <div class="card" style="border-color:#5c2a28;">
+            <h3 class="subhead" style="color:var(--coral);">Deadlock</h3>
+            <p class="p-muted">A situation where two servers are waiting on each other, preventing task completion.</p>
+          </div>
+          <div class="card" style="border-color:#5a4620;">
+            <h3 class="subhead" style="color:var(--amber);">Buffer Overflows</h3>
+            <p class="p-muted">Queues have physical capacity limits; if tasks are generated faster than they are consumed, information loss can occur.</p>
+          </div>
+          <div class="card" style="border-color:#3a3466;">
+            <h3 class="subhead" style="color:var(--violet);">System Complexity</h3>
+            <p class="p-muted">Implementing a task queue requires managing additional infrastructure (the broker, the result collector, and the worker processes), which increases operational overhead.</p>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 class="subhead">Tools and Technologies</h3>
+        <div class="remember-chain">
+          <div class="rc-row"><span class="rc-key">Celery</span><span>A powerful Python-based framework for distributed task management. It abstracts the underlying message broker and provides features like auto-discovery of workers.</span></div>
+          <div class="rc-row"><span class="rc-key">Brokers</span><span>RabbitMQ and Redis serve as the backbone for message routing. They are language-independent and highly scalable.</span></div>
+          <div class="rc-row"><span class="rc-key">Platform Considerations</span><span>Deploying these systems (e.g., on Replit) requires extra configuration because it necessitates running independent background processes alongside the main application code.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODULE 11 -->
     <section class="module" id="realworld">
-      <div class="module-head"><span class="mnum">10</span><h2>Real Project Usage</h2><span class="msub">Where this actually runs</span></div>
+      <div class="module-head"><span class="mnum">11</span><h2>Real Project Usage</h2><span class="msub">Where this actually runs</span></div>
       <div class="card">
         <div class="usecase">
           <div class="logo">📸</div>
@@ -548,7 +621,7 @@
 
     <!-- MODULE 11 -->
     <section class="module" id="mistakes">
-      <div class="module-head"><span class="mnum">11</span><h2>Common Mistakes</h2><span class="msub">❌ / ✅</span></div>
+      <div class="module-head"><span class="mnum">12</span><h2>Common Mistakes</h2><span class="msub">❌ / ✅</span></div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div class="mistake-pair">
           <div class="mrow wrong"><span class="tag">Wrong</span>Doing heavy work before enqueueing — e.g. serializing an entire large object into the task call.</div>
@@ -567,7 +640,7 @@
 
     <!-- MODULE 12 -->
     <section class="module" id="debugging">
-      <div class="module-head"><span class="mnum">12</span><h2>Debugging Mindset</h2><span class="msub">Problem → Fix</span></div>
+      <div class="module-head"><span class="mnum">13</span><h2>Debugging Mindset</h2><span class="msub">Problem → Fix</span></div>
       <div class="card">
         <h3 class="subhead">"Two services are stuck, nothing progresses"</h3>
         <div class="debug-chain">
@@ -592,7 +665,7 @@
 
     <!-- MODULE 13 -->
     <section class="module" id="exampattern">
-      <div class="module-head"><span class="mnum">13</span><h2>IITM Exam Pattern</h2><span class="msub">MCQ survival kit</span></div>
+      <div class="module-head"><span class="mnum">14</span><h2>IITM Exam Pattern</h2><span class="msub">MCQ survival kit</span></div>
       <details class="acc" open>
         <summary>Trigger &amp; Trap Words</summary>
         <div class="acc-body">
@@ -616,7 +689,7 @@
 
     <!-- MODULE 14 -->
     <section class="module" id="interview">
-      <div class="module-head"><span class="mnum">14</span><h2>Interview Questions</h2><span class="msub">Three tiers</span></div>
+      <div class="module-head"><span class="mnum">15</span><h2>Interview Questions</h2><span class="msub">Three tiers</span></div>
       <div class="card">
         <div class="tabs">
           <button class="tab-btn active" data-tab="easy">Easy</button>
@@ -637,7 +710,7 @@
 
     <!-- MODULE 15 -->
     <section class="module" id="onepage">
-      <div class="module-head"><span class="mnum">15</span><h2>One-Page Brain</h2><span class="msub">Compressed revision</span></div>
+      <div class="module-head"><span class="mnum">16</span><h2>One-Page Brain</h2><span class="msub">Compressed revision</span></div>
       <div class="card">
         <div class="brain-flow">
           <span class="brain-node">.delay()</span><span class="arrow">→</span>
@@ -662,7 +735,7 @@
 
     <!-- MODULE 16 -->
     <section class="module" id="revtable">
-      <div class="module-head"><span class="mnum">16</span><h2>Quick Revision Table</h2><span class="msub">Scannable</span></div>
+      <div class="module-head"><span class="mnum">17</span><h2>Quick Revision Table</h2><span class="msub">Scannable</span></div>
       <div class="card" style="padding:8px 10px;overflow-x:auto;">
         <table>
           <thead><tr><th>Concept</th><th>Definition</th><th>Analogy</th><th>Example</th></tr></thead>
@@ -681,7 +754,7 @@
 
     <!-- MODULE 17 -->
     <section class="module" id="ladder">
-      <div class="module-head"><span class="mnum">17</span><h2>Practice Ladder</h2><span class="msub">7 levels</span></div>
+      <div class="module-head"><span class="mnum">18</span><h2>Practice Ladder</h2><span class="msub">7 levels</span></div>
       <div class="ladder">
         <div class="rung"><span class="lvl">LV.1 Concept</span><div class="lbody"><div class="ltitle">Why must enqueueing be cheap?</div><div class="ldesc">Explain the efficiency principle in your own words.</div></div></div>
         <div class="rung"><span class="lvl">LV.2 Predict Output</span><div class="lbody"><div class="ltitle">A pull queue polls every 30s</div><div class="ldesc">10 scores arrive in 5 seconds. When and how are they processed?</div></div></div>
@@ -695,7 +768,7 @@
 
     <!-- MODULE 18 -->
     <section class="module" id="palace">
-      <div class="module-head"><span class="mnum">18</span><h2>Memory Palace</h2><span class="msub">Three anchors</span></div>
+      <div class="module-head"><span class="mnum">19</span><h2>Memory Palace</h2><span class="msub">Three anchors</span></div>
       <div class="palace-grid">
         <div class="palace-card rule">
           <div class="picon">📏</div>

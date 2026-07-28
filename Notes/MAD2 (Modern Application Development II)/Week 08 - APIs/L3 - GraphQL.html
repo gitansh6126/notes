@@ -3,843 +3,405 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Introduction to GraphQL — MAD2 Learning OS</title>
+<title>Introduction to GraphQL | Lecture 8.3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0D1117;
-  --bg-soft:#0A0D12;
-  --card:#161B22;
-  --card-hi:#1C232C;
-  --border:#2A313C;
-  --border-hi:#3D4552;
-  --text:#E6EDF3;
-  --muted:#8B949E;
-  --faint:#5B6472;
-  --get:#3FB950;
-  --post:#58A6FF;
-  --put:#D2A8FF;
-  --delete:#F85149;
-  --pink:#E754A8;
-  --amber:#D29922;
-  --amber-bg:rgba(210,153,34,.10);
-  --font-display:'Space Grotesk',system-ui,sans-serif;
-  --font-body:'Inter',system-ui,sans-serif;
-  --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --paper:#F1F3F6; --paper-raised:#FFFFFF; --ink:#10151C; --ink-soft:#4A5568; --ink-faint:#8892A0;
+  --line:#DBE0E6; --signal:#D6488B; --signal-deep:#A8296B; --signal-tint:#FBE3EE;
+  --query:#2C6FA6; --query-tint:#E7F0F8; --mutation:#2F8F5B; --mutation-tint:#E7F5EC;
+  --warn:#C97A1F; --warn-tint:#FBF0E1; --info:#7A5AC4; --info-tint:#F0ECFA;
+  --bad:#C0432E; --bad-tint:#FAEAE7;
+  --radius:10px; --shadow:0 1px 2px rgba(16,21,28,0.04), 0 6px 20px rgba(16,21,28,0.06);
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(231,84,168,.09), transparent 60%),
-    radial-gradient(ellipse 900px 500px at 90% 10%, rgba(88,166,255,.07), transparent 60%),
-    var(--bg);
-  color:var(--text);
-  font-family:var(--font-body);
-  line-height:1.6;
-  padding-bottom:80px;
-}
-@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+::selection{background:var(--signal-tint); color:var(--ink);}
+.grid-bg{background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size:28px 28px;}
 
-::-webkit-scrollbar{width:10px;height:10px;}
-::-webkit-scrollbar-track{background:var(--bg-soft);}
-::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px;}
+.topbar{position:sticky; top:0; z-index:100; background:rgba(241,243,246,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+.topbar-inner{max-width:960px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px;}
+.topbar-tag{font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; background:var(--ink); color:var(--paper); padding:4px 8px; border-radius:5px; white-space:nowrap;}
+.topbar-title{font-family:var(--font-display); font-weight:600; font-size:14px; white-space:nowrap;}
+.navlinks{display:flex; gap:4px; overflow-x:auto; flex:1; scrollbar-width:none;}
+.navlinks::-webkit-scrollbar{display:none;}
+.navlinks a{font-size:12.5px; color:var(--ink-soft); text-decoration:none; white-space:nowrap; padding:6px 10px; border-radius:6px; font-weight:500;}
+.navlinks a:hover{background:var(--paper-raised); color:var(--ink);}
 
-a{color:var(--post);}
-code, .mono{font-family:var(--font-mono);}
+.hero{padding:52px 20px 36px; position:relative; overflow:hidden;}
+.hero-inner{max-width:960px; margin:0 auto; position:relative; z-index:2;}
+.eyebrow{font-family:var(--font-mono); font-size:12px; color:var(--signal-deep); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px var(--signal-tint);}
+h1.hero-title{font-family:var(--font-display); font-size:clamp(28px,5vw,44px); font-weight:700; margin:0 0 12px; line-height:1.1; letter-spacing:-0.01em;}
+.hero-title .accent{color:var(--signal-deep);}
+.hero-sub{font-size:15.5px; color:var(--ink-soft); max-width:640px; margin:0 0 28px;}
 
-/* ---------- Layout shell ---------- */
-.shell{
-  max-width:1180px;
-  margin:0 auto;
-  padding:0 20px;
-  display:grid;
-  grid-template-columns:230px 1fr;
-  gap:36px;
-}
-@media (max-width:980px){
-  .shell{grid-template-columns:1fr; padding:0 14px;}
-}
+/* Signature: query console, one POST vs three REST calls */
+.console{background:var(--ink); border-radius:14px; overflow:hidden; box-shadow:0 20px 50px rgba(16,21,28,0.25); border:1px solid #23303f;}
+.console-bar{display:flex; align-items:center; gap:8px; padding:10px 16px; background:#171F29; border-bottom:1px solid #263241;}
+.console-bar .traffic{display:flex; gap:6px;}
+.console-bar .traffic span{width:9px; height:9px; border-radius:50%; display:inline-block;}
+.console-bar .traffic span:nth-child(1){background:#E5695B;} .console-bar .traffic span:nth-child(2){background:#E8B23D;} .console-bar .traffic span:nth-child(3){background:#5FBA6E;}
+.console-bar .label{font-family:var(--font-mono); font-size:11.5px; color:#8A97A6; margin-left:6px;}
+.console-grid{display:grid; grid-template-columns:1fr 1fr;}
+.console-col{padding:18px 20px; font-family:var(--font-mono); font-size:12.5px; color:#C6CFDA;}
+.console-col + .console-col{border-left:1px solid #263241;}
+.req-line{display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+.op-badge{font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:0.03em; background:var(--query); color:#fff;}
+.url-text{color:#EDEFF2; font-size:12.5px;}
+.body-block{background:#0C1117; border:1px solid #263241; border-radius:7px; padding:10px 12px; margin-top:8px; color:#8FD3B8; font-size:11.5px; line-height:1.55; overflow-x:auto;}
+.body-block .k{color:#78B8E8;} .body-block .s{color:#E8B23D;} .body-block .punct{color:#5A6B7E;} .body-block .field{color:#C6CFDA;}
+@media (max-width:640px){.console-grid{grid-template-columns:1fr;} .console-col + .console-col{border-left:none; border-top:1px solid #263241;}}
 
-/* ---------- Top bar ---------- */
-.topbar{
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  margin-bottom:28px;
-}
-.topbar-inner{
-  max-width:1180px;margin:0 auto;padding:14px 20px;
-  display:flex;align-items:center;gap:10px;
-}
-.dot{width:11px;height:11px;border-radius:50%;}
-.dot.r{background:#F85149;} .dot.y{background:#D29922;} .dot.g{background:#3FB950;}
-.addr{
-  flex:1;margin-left:8px;
-  background:var(--bg-soft);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px 12px;
-  font-family:var(--font-mono);
-  font-size:12.5px;
-  color:var(--muted);
-  overflow-x:auto;
-  white-space:nowrap;
-}
-.addr .verb{color:var(--pink);font-weight:700;}
-.addr .path{color:var(--text);}
+.wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+.orient-card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin:8px 0 44px; display:grid; grid-template-columns:1.1fr 1fr; gap:22px;}
+@media (max-width:700px){.orient-card{grid-template-columns:1fr;}}
+.orient-card h4{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin:0 0 8px;}
+.orient-card p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+.chip{font-family:var(--font-mono); font-size:11.5px; padding:4px 10px; border-radius:20px; background:var(--paper); border:1px solid var(--line); color:var(--ink-soft);}
 
-/* ---------- Sidebar nav ---------- */
-.sidenav{position:sticky; top:20px; align-self:start; max-height:calc(100vh - 40px); overflow-y:auto;}
-.sidenav h4{
-  font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;
-  font-size:11px;color:var(--faint);margin-bottom:10px;
-}
-.sidenav ol{list-style:none;counter-reset:mod;}
-.sidenav li{counter-increment:mod;}
-.sidenav a{
-  display:flex;gap:8px;align-items:baseline;
-  font-size:12.5px;color:var(--muted);
-  text-decoration:none;padding:6px 8px;border-radius:6px;
-  border-left:2px solid transparent;
-}
-.sidenav a::before{
-  content:counter(mod,decimal-leading-zero);
-  font-family:var(--font-mono);color:var(--faint);font-size:10.5px;
-}
-.sidenav a:hover{color:var(--text);background:var(--card);border-left-color:var(--pink);}
-@media (max-width:980px){
-  .sidenav{position:static;max-height:none;margin-bottom:8px;}
-  .sidenav ol{display:flex;flex-wrap:wrap;gap:4px;}
-  .sidenav a{border-left:none;border:1px solid var(--border);background:var(--card);}
-}
+section.concept{padding:44px 0; border-top:1px solid var(--line);}
+.concept-head{margin-bottom:22px;}
+.concept-kicker{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;}
+h2.concept-title{font-family:var(--font-display); font-size:clamp(21px,3vw,27px); font-weight:700; margin:0 0 8px;}
+.concept-desc{color:var(--ink-soft); font-size:15px; max-width:660px; margin:0;}
 
-/* ---------- Header / hero ---------- */
-.hero{margin-bottom:34px;}
-.eyebrow{
-  font-family:var(--font-mono);font-size:12px;color:var(--amber);
-  text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;
-}
-.hero h1{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(28px,4.2vw,44px);
-  line-height:1.1;letter-spacing:-.01em;
-  margin-bottom:12px;
-}
-.hero h1 .accent{color:var(--pink);}
-.hero p.lede{color:var(--muted);font-size:16px;max-width:64ch;}
+.card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin-bottom:16px;}
+.card h3{font-family:var(--font-display); font-size:16.5px; margin:0 0 10px; font-weight:600;}
+.card p{margin:0 0 10px; font-size:14.5px; color:var(--ink-soft);}
+.card p:last-child{margin-bottom:0;}
+.card-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:700px){.card-grid{grid-template-columns:1fr;}}
+.card-tinted{border-left:4px solid var(--signal);}
+.card-tinted.query{border-left-color:var(--query);} .card-tinted.mutation{border-left-color:var(--mutation);}
 
-/* ---------- Module wrapper ---------- */
-.module{
-  scroll-margin-top:20px;
-  margin-bottom:26px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  overflow:hidden;
-}
-.module-head{
-  display:flex;align-items:center;gap:12px;
-  padding:16px 22px;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
-}
-.module-num{
-  font-family:var(--font-mono);font-size:12px;color:var(--bg);
-  background:var(--pink);
-  width:26px;height:26px;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;
-}
-.module-head h2{
-  font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.01em;
-}
-.module-head .tag{
-  margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);
-  border:1px solid var(--border-hi);padding:3px 8px;border-radius:20px;white-space:nowrap;
-}
-.module-body{padding:22px;}
-@media (max-width:600px){ .module-body{padding:16px;} .module-head{padding:13px 16px;} }
+.callout{border-radius:var(--radius); padding:14px 17px; margin:14px 0; display:flex; gap:12px; border:1px solid var(--line);}
+.callout .icon{font-family:var(--font-mono); font-weight:700; font-size:13px; flex-shrink:0; width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center;}
+.callout .content strong{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;}
+.callout .content p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.callout.analogy{background:var(--info-tint);} .callout.analogy .icon{background:var(--info); color:#fff;} .callout.analogy strong{color:#5C3FA0;}
+.callout.warning{background:var(--bad-tint);} .callout.warning .icon{background:var(--bad); color:#fff;} .callout.warning strong{color:#9C3623;}
+.callout.tip{background:var(--mutation-tint);} .callout.tip .icon{background:var(--mutation); color:#fff;} .callout.tip strong{color:#256F45;}
+.callout.judgment{background:var(--query-tint);} .callout.judgment .icon{background:var(--query); color:#fff;} .callout.judgment strong{color:#245A85;}
+.callout.trap{background:var(--signal-tint);} .callout.trap .icon{background:var(--signal-deep); color:#fff;} .callout.trap strong{color:var(--signal-deep);}
 
-/* ---------- Topic card ---------- */
-.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
-.topic-cell{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
-.topic-cell .k{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.topic-cell .v{font-size:14.5px;font-weight:600;}
-.stars{color:var(--amber);letter-spacing:1px;}
+.table-wrap{overflow-x:auto; margin:14px 0;}
+table{width:100%; border-collapse:collapse; font-size:13.5px; background:var(--paper-raised);}
+table th{text-align:left; font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); padding:9px 13px; border-bottom:2px solid var(--line);}
+table td{padding:10px 13px; border-bottom:1px solid var(--line); color:var(--ink-soft); vertical-align:top;}
+table tr:last-child td{border-bottom:none;}
+table td .mono{font-family:var(--font-mono); font-size:12.5px; color:var(--ink);}
 
-/* ---------- Analogy ---------- */
-.analogy{
-  display:flex;gap:14px;background:linear-gradient(135deg, rgba(231,84,168,.09), rgba(88,166,255,.05));
-  border:1px solid var(--border-hi);border-radius:12px;padding:16px 18px;
-}
-.analogy .ic{font-size:24px;line-height:1;flex-shrink:0;}
-.analogy p{font-size:15px;color:var(--text);}
-.analogy .label{font-family:var(--font-mono);font-size:11px;color:var(--pink);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.code-block{background:#0F151D; color:#D6DEE8; border-radius:9px; padding:15px 17px; font-family:var(--font-mono); font-size:12.5px; overflow-x:auto; line-height:1.65;}
+.code-block .c-key{color:#7FB5E8;} .code-block .c-str{color:#E3B75E;} .code-block .c-type{color:#D6488B;} .code-block .c-punc{color:#5F6E80;} .code-block .c-com{color:#5F6E80; font-style:italic;} .code-block .c-fn{color:#8FD3B8;}
+.code-caption{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin:0 0 6px; text-transform:uppercase; letter-spacing:0.05em;}
 
-/* second analogy row for compare */
-.analogy-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;}
-@media(max-width:640px){.analogy-pair{grid-template-columns:1fr;}}
-.mini-analogy{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px;}
-.mini-analogy .label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-.mini-analogy.rest .label{color:var(--post);}
-.mini-analogy.gql .label{color:var(--pink);}
-.mini-analogy p{font-size:13.5px;color:var(--muted);}
+.diagram{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px 20px; margin:14px 0;}
+.node-row{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0;}
+.node{background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:8px 13px; font-family:var(--font-mono); font-size:11.5px; font-weight:600; text-align:center; white-space:nowrap;}
+.node.accent{background:var(--signal-tint); border-color:var(--signal-deep); color:var(--signal-deep);}
+.arrow{color:var(--ink-faint); font-size:15px; padding:0 9px; flex-shrink:0;}
+@media (max-width:700px){.node-row{flex-direction:column;} .arrow{transform:rotate(90deg); padding:5px 0;}}
 
-/* ---------- Diagrams ---------- */
-.diagram{
-  background:var(--bg-soft);border:1px dashed var(--border-hi);border-radius:12px;
-  padding:24px 18px; display:flex; flex-direction:column; align-items:center; gap:6px;
-}
-.flow-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
-.flow-node{
-  font-family:var(--font-mono);font-size:12.5px;font-weight:600;
-  padding:9px 14px;border-radius:8px;border:1px solid var(--border-hi);
-  background:var(--card-hi); white-space:nowrap;
-}
-.flow-node.a{border-color:var(--get);color:var(--get);}
-.flow-node.b{border-color:var(--post);color:var(--post);}
-.flow-node.c{border-color:var(--put);color:var(--put);}
-.flow-node.d{border-color:var(--amber);color:var(--amber);}
-.flow-node.e{border-color:var(--delete);color:var(--delete);}
-.flow-node.f{border-color:var(--pink);color:var(--pink);}
-.flow-arrow{color:var(--faint);font-size:16px;}
-.flow-caption{font-family:var(--font-mono);font-size:11px;color:var(--faint);margin-top:8px;text-align:center;}
+.fanout{display:flex; justify-content:center; align-items:flex-start; gap:0; flex-wrap:wrap; margin-top:16px;}
+.fanout-branch{display:flex; flex-direction:column; align-items:center; margin:0 14px;}
+.fanout-line{width:2px; height:22px; background:var(--line);}
+@media (max-width:700px){.fanout{flex-direction:column; align-items:center;} .fanout-line{width:2px; height:16px;}}
 
-/* fan-out diagram (signature element) */
-.fanout{width:100%;max-width:620px;}
-.fanout-row{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;}
-.fanout-client{
-  font-family:var(--font-mono);font-size:12.5px;background:var(--card-hi);border:1px solid var(--pink);
-  color:var(--pink);border-radius:8px;padding:9px 16px;margin-bottom:18px;
-}
-.fanout-engine{
-  font-family:var(--font-mono);font-size:12.5px;background:var(--card-hi);border:1px solid var(--border-hi);
-  border-radius:8px;padding:9px 16px;margin:14px 0;
-}
-.fanout-sources{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
-.src{
-  font-family:var(--font-mono);font-size:11.5px;padding:7px 11px;border-radius:7px;
-  border:1px solid var(--border-hi);background:var(--bg-soft);color:var(--muted);
-}
-.src.s1{border-color:var(--get);color:var(--get);}
-.src.s2{border-color:var(--post);color:var(--post);}
-.src.s3{border-color:var(--amber);color:var(--amber);}
-.fan-lines{position:relative;height:22px;width:100%;}
-.vline{width:1px;height:16px;background:var(--border-hi);margin:0 auto;}
+details.qa{background:var(--paper-raised); border:1px solid var(--line); border-radius:9px; padding:13px 17px; margin-bottom:9px;}
+details.qa summary{cursor:pointer; font-weight:600; font-size:13.5px; list-style:none; display:flex; align-items:center; gap:10px;}
+details.qa summary::-webkit-details-marker{display:none;}
+details.qa summary::before{content:'+'; font-family:var(--font-mono); color:var(--signal-deep); font-weight:700; font-size:16px; flex-shrink:0;}
+details.qa[open] summary::before{content:'−';}
+details.qa .qa-answer{margin-top:9px; padding-top:9px; border-top:1px dashed var(--line); font-size:13px; color:var(--ink-soft);}
 
-/* ---------- Pattern recognition ---------- */
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-.chip{
-  font-family:var(--font-mono);font-size:12px;background:var(--bg-soft);
-  border:1px solid var(--border-hi);border-radius:20px;padding:5px 12px;color:var(--muted);
-}
-.shortcut-table{width:100%;border-collapse:collapse;font-size:13.5px;}
-.shortcut-table th, .shortcut-table td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;}
-.shortcut-table th{color:var(--faint);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
-.shortcut-table td.arrow{color:var(--amber);font-family:var(--font-mono);}
+.brain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+@media (max-width:800px){.brain-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.brain-grid{grid-template-columns:1fr;}}
+.brain-cell{background:var(--ink); color:#D6DEE8; border-radius:10px; padding:15px;}
+.brain-cell h5{margin:0 0 7px; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--signal);}
+.brain-cell p, .brain-cell li{font-size:12px; color:#B7C2CE; margin:0 0 4px;}
+.brain-cell ul{margin:0; padding-left:15px;}
 
-/* ---------- Q&A ---------- */
-.qa{border-left:2px solid var(--border-hi);padding-left:16px;margin-bottom:16px;}
-.qa:last-child{margin-bottom:0;}
-.qa .q{font-weight:600;font-size:14.5px;margin-bottom:4px;color:var(--text);}
-.qa .q::before{content:"Q — ";color:var(--pink);font-family:var(--font-mono);}
-.qa .a{color:var(--muted);font-size:14px;}
-
-/* ---------- Syntax anatomy ---------- */
-.anatomy-block{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;overflow-x:auto;}
-.anatomy-line{font-family:var(--font-mono);font-size:13.5px;white-space:pre;}
-.anno-list{margin-top:14px;display:grid;gap:8px;}
-.anno-item{display:flex;gap:10px;font-size:13.5px;align-items:flex-start;}
-.anno-item .tok{
-  font-family:var(--font-mono);background:var(--card-hi);border:1px solid var(--border-hi);
-  border-radius:6px;padding:2px 8px;color:var(--amber);flex-shrink:0;
-}
-.anno-item .desc{color:var(--muted);}
-
-/* ---------- Code block ---------- */
-.codeblock{
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;
-  overflow:hidden;margin-bottom:16px;
-}
-.codeblock .cb-head{
-  display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);
-  font-family:var(--font-mono);font-size:11px;color:var(--faint);
-}
-.codeblock pre{padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
-.codeblock .c-key{color:var(--put);}
-.codeblock .c-str{color:var(--get);}
-.codeblock .c-com{color:var(--faint);font-style:italic;}
-.codeblock .c-fn{color:var(--post);}
-.codeblock .c-prop{color:#79C0FF;}
-.codeblock .c-type{color:var(--pink);}
-
-/* step flow */
-.step-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;}
-.step{font-family:var(--font-mono);font-size:12px;background:var(--card-hi);border:1px solid var(--border-hi);padding:6px 10px;border-radius:7px;}
-.step-arrow{color:var(--faint);}
-
-/* ---------- Real project usage ---------- */
-.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
-.proj-card{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.proj-card .name{font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.proj-card .swatch{width:9px;height:9px;border-radius:50%;background:var(--pink);}
-.proj-card p{font-size:13.5px;color:var(--muted);}
-
-/* ---------- Mistakes ---------- */
-.mistake-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-@media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
-.mrow{border-radius:10px;padding:12px 14px;font-size:13.5px;border:1px solid var(--border);}
-.mrow.wrong{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.35);}
-.mrow.right{background:rgba(63,185,80,.08);border-color:rgba(63,185,80,.35);}
-.mrow .lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;display:block;}
-.mrow.wrong .lbl{color:var(--delete);}
-.mrow.right .lbl{color:var(--get);}
-
-/* ---------- Debug flow ---------- */
-.debug-case{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
-.debug-case .title{font-weight:600;font-size:14px;margin-bottom:8px;}
-.debug-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--font-mono);font-size:11.5px;}
-.debug-steps span.s{background:var(--card-hi);border:1px solid var(--border-hi);padding:4px 9px;border-radius:6px;}
-.debug-steps span.s.fix{border-color:var(--get);color:var(--get);}
-.debug-steps .a{color:var(--faint);}
-
-/* ---------- Callout boxes ---------- */
-.callout{border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid; font-size:14px;}
-.callout .c-lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
-.callout.warn{background:var(--amber-bg);border-color:rgba(210,153,34,.4);}
-.callout.warn .c-lbl{color:var(--amber);}
-.callout.trap{background:rgba(248,81,73,.07);border-color:rgba(248,81,73,.3);}
-.callout.trap .c-lbl{color:var(--delete);}
-.callout.tip{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.3);}
-.callout.tip .c-lbl{color:var(--post);}
-
-/* ---------- Exam pattern grid ---------- */
-.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:640px){.exam-grid{grid-template-columns:1fr;}}
-.exam-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.exam-box h4{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;}
-.exam-box ul{list-style:none;display:grid;gap:7px;}
-.exam-box li{font-size:13.5px;color:var(--text);padding-left:14px;position:relative;}
-.exam-box li::before{content:"›";position:absolute;left:0;color:var(--pink);}
-
-/* ---------- Interview tiers ---------- */
-.tier{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
-.tier-head{padding:9px 16px;font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-.tier.easy .tier-head{background:rgba(63,185,80,.12);color:var(--get);}
-.tier.med .tier-head{background:rgba(210,153,34,.12);color:var(--amber);}
-.tier.hard .tier-head{background:rgba(231,84,168,.14);color:var(--pink);}
-.tier-body{padding:12px 16px;background:var(--bg-soft);}
-.tier-body .item{margin-bottom:10px;font-size:13.5px;}
-.tier-body .item:last-child{margin-bottom:0;}
-.tier-body .item .q{font-weight:600;color:var(--text);}
-.tier-body .item .a{color:var(--muted);margin-top:2px;}
-
-/* ---------- One-page brain ---------- */
-.remember-chain{display:grid;gap:8px;margin-top:14px;}
-.rc-row{
-  display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:9px 14px;
-}
-.rc-row .key{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--pink);}
-.rc-row .val{font-size:13px;color:var(--muted);}
-@media(max-width:560px){.rc-row{grid-template-columns:1fr;gap:2px;}}
-
-/* ---------- Revision table ---------- */
-.rev-table-wrap{overflow-x:auto;}
-table.rev{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
-table.rev th{
-  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hi);
-}
-table.rev td{padding:10px 12px;border-bottom:1px solid var(--border);}
-table.rev tr:last-child td{border-bottom:none;}
-.verb-pill{font-family:var(--font-mono);font-weight:700;padding:2px 9px;border-radius:5px;font-size:12px;display:inline-block;}
-.verb-pill.query{background:rgba(63,185,80,.15);color:var(--get);}
-.verb-pill.mutation{background:rgba(231,84,168,.15);color:var(--pink);}
-.verb-pill.resolver{background:rgba(88,166,255,.15);color:var(--post);}
-.verb-pill.schema{background:rgba(210,168,255,.15);color:var(--put);}
-.verb-pill.engine{background:rgba(210,153,34,.15);color:var(--amber);}
-
-/* ---------- Practice ladder ---------- */
-.ladder{display:flex;flex-direction:column;gap:8px;}
-.rung{
-  display:grid;grid-template-columns:auto 110px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:11px 14px;
-  position:relative;
-}
-.rung .lvl{
-  font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--bg);
-  background:var(--get);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-}
-.rung:nth-child(2) .lvl{background:#57C15F;}
-.rung:nth-child(3) .lvl{background:var(--post);}
-.rung:nth-child(4) .lvl{background:var(--put);}
-.rung:nth-child(5) .lvl{background:var(--amber);}
-.rung:nth-child(6) .lvl{background:#FF9F5A;}
-.rung:nth-child(7) .lvl{background:var(--pink);}
-.rung .tag2{font-family:var(--font-mono);font-size:11px;color:var(--faint);}
-.rung .desc{font-size:13.5px;color:var(--text);}
-@media(max-width:560px){.rung{grid-template-columns:auto 1fr;} .rung .tag2{grid-column:2;font-size:10px;}}
-
-/* ---------- Memory palace ---------- */
-.palace-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-@media(max-width:760px){.palace-grid{grid-template-columns:1fr;}}
-.palace-card{background:var(--bg-soft);border:1px solid var(--border-hi);border-radius:10px;padding:16px;text-align:center;}
-.palace-card .ic{font-size:26px;margin-bottom:8px;}
-.palace-card h5{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--pink);margin-bottom:8px;}
-.palace-card p{font-size:13.5px;color:var(--text);}
-.ascii{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:pre;text-align:left;margin-top:8px;background:var(--card-hi);border-radius:6px;padding:8px;overflow-x:auto;}
-
-/* ---------- Footer ---------- */
-.footer-note{text-align:center;color:var(--faint);font-size:12px;font-family:var(--font-mono);margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+footer{text-align:center; padding:36px 20px 56px; color:var(--ink-faint); font-size:12px; font-family:var(--font-mono);}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-    <div class="addr"><span class="verb">POST</span> <span class="path">/graphql</span> · single endpoint, any query · 200 OK</div>
+    <span class="topbar-tag">LEC 8.3</span>
+    <span class="topbar-title">Introduction to GraphQL</span>
+    <div class="navlinks">
+      <a href="#why">Why GraphQL</a>
+      <a href="#engine">The Engine</a>
+      <a href="#types">Type System</a>
+      <a href="#resolvers">Resolvers</a>
+      <a href="#mutations">Mutations</a>
+      <a href="#tradeoffs">Trade-offs</a>
+      <a href="#bigpicture">Big Picture</a>
+      <a href="#brain">Recap</a>
+    </div>
   </div>
 </div>
 
-<div class="shell">
+<header class="hero grid-bg">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span> MAD2 · Modern Application Development 2 — Lecture 8.3</div>
+    <h1 class="hero-title">Introduction to <span class="accent">GraphQL</span></h1>
+    <p class="hero-sub">Last lecture's "chatty" REST problem — three round-trips for one screen — is exactly what GraphQL was built to close. One request, in the exact shape you asked for.</p>
 
-  <nav class="sidenav">
-    <h4>18 Modules</h4>
-    <ol>
-      <li><a href="#m1">Topic Card</a></li>
-      <li><a href="#m2">Core Intuition</a></li>
-      <li><a href="#m3">Visual Model</a></li>
-      <li><a href="#m4">Pattern Recognition</a></li>
-      <li><a href="#m5">Deep Fundamentals</a></li>
-      <li><a href="#m6">Execution Flow</a></li>
-      <li><a href="#m7">Syntax Anatomy</a></li>
-      <li><a href="#m8">Code Walkthrough</a></li>
-      <li><a href="#m9">Behind the Scenes</a></li>
-      <li><a href="#m10">Real Project Usage</a></li>
-      <li><a href="#m11">Common Mistakes</a></li>
-      <li><a href="#m12">Debugging Mindset</a></li>
-      <li><a href="#m13">IITM Exam Pattern</a></li>
-      <li><a href="#m14">Interview Questions</a></li>
-      <li><a href="#m15">One-Page Brain</a></li>
-      <li><a href="#m16">Revision Table</a></li>
-      <li><a href="#m17">Practice Ladder</a></li>
-      <li><a href="#m18">Memory Palace</a></li>
-    </ol>
-  </nav>
-
-  <main>
-    <header class="hero">
-      <div class="eyebrow">W8 · Lecture 3 · MAD2 Learning OS</div>
-      <h1>Introduction to <span class="accent">GraphQL</span></h1>
-      <p class="lede">A query language that trades REST's many fixed endpoints for one flexible endpoint — the client declares exactly what data it wants, and the server figures out how to assemble it.</p>
-    </header>
-
-    <!-- MODULE 1 -->
-    <section class="module" id="m1">
-      <div class="module-head"><div class="module-num">1</div><h2>Topic Card</h2><span class="tag">30 seconds</span></div>
-      <div class="module-body">
-        <div class="topic-grid">
-          <div class="topic-cell"><div class="k">Topic</div><div class="v">Introduction to GraphQL</div></div>
-          <div class="topic-cell"><div class="k">Category</div><div class="v">Backend Development · API Design</div></div>
-          <div class="topic-cell"><div class="k">Difficulty</div><div class="v stars">★★★★☆</div></div>
-          <div class="topic-cell"><div class="k">Prerequisites</div><div class="v">REST API design (Parts 1 &amp; 2), HTTP basics, JSON</div></div>
-          <div class="topic-cell"><div class="k">Importance</div><div class="v stars">★★★★★</div></div>
+    <div class="console">
+      <div class="console-bar">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <span class="label">network — single call, POST /graphql</span>
+      </div>
+      <div class="console-grid">
+        <div class="console-col">
+          <div class="req-line"><span class="op-badge">QUERY</span><span class="url-text">POST /graphql</span></div>
+          <div>Client asks for exactly what it needs — nothing more.</div>
+          <div class="body-block">{<br>&nbsp;&nbsp;<span class="field">student</span>(id: <span class="s">7</span>) {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">name</span><br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="field">courses</span> { <span class="field">title</span> <span class="field">grade</span> }<br>&nbsp;&nbsp;}<br>}</div>
+        </div>
+        <div class="console-col">
+          <div class="req-line"><span class="url-text" style="color:#6FDB94; font-weight:600;">200 OK</span></div>
+          <div>Server returns that exact shape — one response, no leftovers.</div>
+          <div class="body-block">{ <span class="k">"data"</span><span class="punct">:</span> {<br>&nbsp;&nbsp;<span class="k">"student"</span><span class="punct">:</span> {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"name"</span><span class="punct">:</span> <span class="s">"Asha"</span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="k">"courses"</span><span class="punct">:</span> [{ <span class="k">"title"</span><span class="punct">:</span> <span class="s">"MAD2"</span>, <span class="k">"grade"</span><span class="punct">:</span> <span class="s">"A"</span> }]<br>&nbsp;&nbsp;}<br>}}</div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</header>
 
-    <!-- MODULE 2 -->
-    <section class="module" id="m2">
-      <div class="module-head"><div class="module-num">2</div><h2>Core Intuition (WHY)</h2></div>
-      <div class="module-body">
-        <div class="analogy">
-          <div class="ic">🥪</div>
-          <div>
-            <div class="label">Analogy — the buffet vs. the deli counter</div>
-            <p>A REST endpoint is a buffet tray: <code>/students</code> gives you the whole tray, whether you wanted three items or one. GraphQL is a deli counter — you tell the person behind the counter exactly which ingredients you want, in one order, and they assemble it from whichever stations (databases, other APIs) hold each ingredient. You place one order and walk away with exactly what you asked for, nothing more.</p>
-          </div>
-        </div>
-        <div class="analogy-pair">
-          <div class="mini-analogy rest"><div class="label">REST's pain</div><p>Need age + name + location filtered together? Either the endpoint supports that exact combination, or you download everything and filter client-side.</p></div>
-          <div class="mini-analogy gql"><div class="label">GraphQL's fix</div><p>The client's query names the fields it wants; the server's engine resolves each field from wherever it lives — one request, one shaped response.</p></div>
+<div class="wrap">
+
+  <div class="orient-card">
+    <div>
+      <h4>What kind of topic this is</h4>
+      <p>An architectural response to a named problem, not a standalone spec. It only fully makes sense as "what REST's chatty, over/under-fetching pain led teams to build next" — so read it against Lecture 8.2's REST critique, not in isolation.</p>
+    </div>
+    <div>
+      <h4>Walk in knowing</h4>
+      <div class="chip-row">
+        <span class="chip">REST endpoints & verbs (8.2)</span>
+        <span class="chip">The "chatty" problem (8.2)</span>
+        <span class="chip">JSON basics</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY -->
+  <section class="concept" id="why">
+    <div class="concept-head">
+      <div class="concept-kicker">Motivation</div>
+      <h2 class="concept-title">Why REST wasn't enough</h2>
+      <p class="concept-desc">Three specific pains, not a vague "REST is bad." GraphQL exists to answer each one directly.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>REST pain point</th><th>What actually goes wrong</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Rigidity</strong></td><td>Nested/related data needs multiple endpoint calls</td><td class="mono">GET /students/7 → GET /courses → GET /grades</td></tr>
+          <tr><td><strong>Over-fetching</strong></td><td>Fixed response shape returns fields you didn't ask for</td><td class="mono">Wanted name only, got the entire student object</td></tr>
+          <tr><td><strong>Under-fetching</strong></td><td>Response is missing a field, forcing another round-trip</td><td class="mono">Got student, still need a second call for grades</td></tr>
+          <tr><td><strong>Query construction</strong></td><td>Complex filters don't map cleanly onto URLs</td><td class="mono">?age_gt=21&region=north — gets messy fast</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Three calls → one call</h3>
+      <div class="diagram">
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node">GET /students/7</div></div>
+        <div style="height:6px"></div>
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node">GET /students/7/courses</div></div>
+        <div style="height:6px"></div>
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node">GET /courses/mad2/grades</div></div>
+        <div style="height:18px; display:flex; align-items:center; justify-content:center; color:var(--ink-faint); font-family:var(--font-mono); font-size:12px;">becomes</div>
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node accent">POST /graphql (one nested query)</div></div>
+      </div>
+    </div>
+
+    <div class="callout analogy">
+      <div class="icon">A</div>
+      <div class="content"><strong>Analogy</strong><p>REST is ordering from a fixed menu — you get the combo plate as designed, or you order three separate dishes. GraphQL is telling the kitchen exactly which ingredients you want on one plate, in one order.</p></div>
+    </div>
+  </section>
+
+  <!-- ENGINE -->
+  <section class="concept" id="engine">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 1</div>
+      <h2 class="concept-title">The GraphQL Engine</h2>
+      <p class="concept-desc">A layer that sits between client and data — not a database itself.</p>
+    </div>
+
+    <div class="card">
+      <p>The client sends a single <span class="mono" style="font-family:var(--font-mono);">POST</span> request with a query body. The engine parses it, dispatches to whichever backend services or databases hold each field, fuses the results, and returns one shaped response.</p>
+      <div class="diagram">
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node accent">GraphQL Engine</div></div>
+        <div class="fanout">
+          <div class="fanout-branch"><div class="fanout-line"></div><div class="node">SQL Database</div></div>
+          <div class="fanout-branch"><div class="fanout-line"></div><div class="node">Weather API</div></div>
+          <div class="fanout-branch"><div class="fanout-line"></div><div class="node">Third-party service</div></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- MODULE 3 -->
-    <section class="module" id="m3">
-      <div class="module-head"><div class="module-num">3</div><h2>Visual Mental Model</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="fanout">
-            <div class="fanout-row"><div class="fanout-client">CLIENT — sends one query</div></div>
-            <div class="vline"></div>
-            <div class="fanout-row"><div class="fanout-engine">GRAPHQL ENGINE (server) — parses, validates, resolves</div></div>
-            <div class="vline"></div>
-            <div class="fanout-sources">
-              <div class="src s1">User DB</div>
-              <div class="src s2">Weather API</div>
-              <div class="src s3">News Feed</div>
-            </div>
-          </div>
-          <div class="flow-caption">One request in → engine fans out to N sources → one shaped JSON response out</div>
-        </div>
-      </div>
-    </section>
+    <div class="callout tip">
+      <div class="icon">✓</div>
+      <div class="content"><strong>Data integration strength</strong><p>Because the engine just orchestrates resolvers, one response can fuse a SQL user profile with a weather API's regional forecast — sources that would otherwise need to be stitched together client-side.</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 4 -->
-    <section class="module" id="m4">
-      <div class="module-head"><div class="module-num">4</div><h2>Pattern Recognition</h2></div>
-      <div class="module-body">
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:10px;">Trigger words — spot these and you know GraphQL is being tested:</p>
-        <div class="chip-row">
-          <span class="chip">declarative</span><span class="chip">single endpoint</span><span class="chip">over-fetching</span>
-          <span class="chip">under-fetching</span><span class="chip">schema</span><span class="chip">resolver</span>
-          <span class="chip">query</span><span class="chip">mutation</span><span class="chip">Apollo Server</span>
-          <span class="chip">type system</span><span class="chip">POST-only</span>
-        </div>
-        <table class="shortcut-table">
-          <tr><th>Trigger</th><th></th><th>Recognition shortcut</th></tr>
-          <tr><td>"client asks for exactly what it needs"</td><td class="arrow">→</td><td>Declarative query / avoids over-fetching</td></tr>
-          <tr><td>"one call, many field types"</td><td class="arrow">→</td><td>Single /graphql endpoint</td></tr>
-          <tr><td>"function that fetches one field's data"</td><td class="arrow">→</td><td>Resolver</td></tr>
-          <tr><td>"create/update/delete via GraphQL"</td><td class="arrow">→</td><td>Mutation</td></tr>
-          <tr><td>"API evolves without version numbers"</td><td class="arrow">→</td><td>Type system / schema evolution</td></tr>
+  <!-- TYPE SYSTEM -->
+  <section class="concept" id="types">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 2</div>
+      <h2 class="concept-title">Type System</h2>
+      <p class="concept-desc">Every entity, field, and relationship is defined up front — this is what makes the API self-describing.</p>
+    </div>
+
+    <div class="card">
+      <p class="code-caption">Schema definition</p>
+      <div class="code-block"><span class="c-type">type</span> Student {<br>&nbsp;&nbsp;id: ID!<br>&nbsp;&nbsp;name: String!<br>&nbsp;&nbsp;courses: [Course!]!<br>}<br><br><span class="c-type">type</span> Course {<br>&nbsp;&nbsp;title: String!<br>&nbsp;&nbsp;grade: String<br>}</div>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><h3>Self-documentation</h3><p>The schema itself is the contract — what's available is never a guess.</p></div>
+      <div class="card"><h3>Validation</h3><p>Incoming queries are checked against the schema before any resolver runs.</p></div>
+    </div>
+
+    <div class="callout judgment">
+      <div class="icon">⚖</div>
+      <div class="content"><strong>No versioned endpoints needed</strong><p>Because a query is a JSON-like object naming exactly the fields it wants, new fields can be added — or old ones deprecated — without breaking existing clients. Compare this to REST's usual <span class="mono" style="font-family:var(--font-mono);">/v1</span>, <span class="mono" style="font-family:var(--font-mono);">/v2</span> endpoint versioning.</p></div>
+    </div>
+  </section>
+
+  <!-- RESOLVERS -->
+  <section class="concept" id="resolvers">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 3</div>
+      <h2 class="concept-title">Resolvers</h2>
+      <p class="concept-desc">The functions that actually go get the data — one per field.</p>
+    </div>
+
+    <div class="card">
+      <p class="code-caption">Resolver for Student.courses</p>
+      <div class="code-block"><span class="c-fn">courses</span>(student) {<br>&nbsp;&nbsp;<span class="c-com">// developer-written: told exactly how to fetch this field</span><br>&nbsp;&nbsp;<span class="c-key">return</span> db.query(<span class="c-str">"SELECT * FROM courses WHERE student_id = ?"</span>, student.id);<br>}</div>
+    </div>
+
+    <div class="callout analogy">
+      <div class="icon">A</div>
+      <div class="content"><strong>Analogy</strong><p>If the schema is the menu, resolvers are the individual kitchen stations — one for salads, one for grills. The engine reads the order and routes each part to the station that knows how to make it.</p></div>
+    </div>
+  </section>
+
+  <!-- MUTATIONS -->
+  <section class="concept" id="mutations">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 4</div>
+      <h2 class="concept-title">Mutations</h2>
+      <p class="concept-desc">Queries read. Mutations write — GraphQL's answer to create, update, and delete.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-tinted query"><h3><span class="op-badge" style="background:var(--query);">QUERY</span> Read</h3><p>Fetches data, shaped exactly as requested. No side effects.</p></div>
+      <div class="card card-tinted mutation"><h3><span class="op-badge" style="background:var(--mutation);">MUTATION</span> Write</h3><p>Creates, updates, or deletes — and can still return the resulting shape in one round-trip.</p></div>
+    </div>
+
+    <div class="callout tip">
+      <div class="icon">✓</div>
+      <div class="content"><strong>Full lifecycle in one language</strong><p>Because both queries and mutations speak the same schema, GraphQL handles the entire data lifecycle — not just reads — without switching conventions.</p></div>
+    </div>
+  </section>
+
+  <!-- TRADE-OFFS -->
+  <section class="concept" id="tradeoffs">
+    <div class="concept-head">
+      <div class="concept-kicker">Zooming out</div>
+      <h2 class="concept-title">GraphQL moves complexity — it doesn't remove it</h2>
+      <p class="concept-desc">The client got simpler. Something had to absorb that difference, and it's the server.</p>
+    </div>
+
+    <div class="card">
+      <h3>Where the cost lands</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Area</th><th>What changes vs. REST</th></tr></thead>
+          <tbody>
+            <tr><td>Server logic</td><td>Grows — must parse, validate, and orchestrate multiple data sources per query</td></tr>
+            <tr><td>Caching</td><td>Harder — a single POST endpoint defeats simple URL-based HTTP caching, so caching moves inside the server</td></tr>
+            <tr><td>Resolver design</td><td>Must be deliberate — a careless resolver (e.g. one that triggers N further queries) can overload the server</td></tr>
+          </tbody>
         </table>
       </div>
-    </section>
+    </div>
 
-    <!-- MODULE 5 -->
-    <section class="module" id="m5">
-      <div class="module-head"><div class="module-num">5</div><h2>Deep Fundamentals</h2></div>
-      <div class="module-body">
-        <div class="qa">
-          <div class="q">Why was GraphQL created?</div>
-          <div class="a">REST ties data shape to fixed endpoints. As apps needed to combine filters (age + name + location) or aggregate multiple services (user DB, weather, news) into one screen, REST forced either many round trips or bulky client-side filtering.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What problem does it solve?</div>
-          <div class="a">Over-fetching (getting fields you don't need) and under-fetching (needing several requests to gather everything for one view) — by letting the client specify the exact shape of the response it wants.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What happens internally?</div>
-          <div class="a">A GraphQL engine sits as a proxy layer on the server. It receives the query, validates it against a defined schema of types, then invokes a resolver function per requested field — resolvers may call a database, another REST API, or any data source.</div>
-        </div>
-        <div class="qa">
-          <div class="q">How does this get executed?</div>
-          <div class="a">The client sends the query as a JSON-like structure, typically via HTTP POST to a single <code>/graphql</code> endpoint. The engine parses it, checks it against the schema, resolves each field (possibly in parallel), and merges the results into one response.</div>
-        </div>
-      </div>
-    </section>
+    <div class="callout warning">
+      <div class="icon">!</div>
+      <div class="content"><strong>Trap</strong><p>"GraphQL reduces system complexity" — false. It relocates complexity from the client (multiple calls, manual stitching) to the server (parsing, validation, orchestration). Net simplicity depends on where that complexity is cheaper to manage.</p></div>
+    </div>
 
-    <!-- MODULE 6 -->
-    <section class="module" id="m6">
-      <div class="module-head"><div class="module-num">6</div><h2>Execution Flow</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row"><div class="flow-node f">Client sends query (POST /graphql)</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node d">Engine parses & validates against schema</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node b">Resolver invoked per requested field</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node a">Resolver fetches from DB / API / service</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node c">Engine aggregates all resolved fields</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node f">Single JSON response returned to client</div></div>
-        </div>
-      </div>
-    </section>
+    <div class="callout judgment">
+      <div class="icon">⚖</div>
+      <div class="content"><strong>When to reach for GraphQL</strong><p>Favor it when clients have genuinely different data needs (web vs. mobile), when views are deeply nested/relational, or when you're fusing multiple backend sources into one view. Favor plain REST when endpoints are simple, caching at the HTTP layer matters most, or the team doesn't want resolver-level complexity to maintain.</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 7 -->
-    <section class="module" id="m7">
-      <div class="module-head"><div class="module-num">7</div><h2>Syntax Anatomy</h2></div>
-      <div class="module-body">
-        <div class="anatomy-block">
-          <div class="anatomy-line">query {
-  student(id: 42) {
-    name
-    age
-    school {
-      name
-    }
-  }
-}</div>
-        </div>
-        <div class="anno-list">
-          <div class="anno-item"><span class="tok">query</span><span class="desc">declares this operation as a read — the GraphQL counterpart to GET</span></div>
-          <div class="anno-item"><span class="tok">student(id: 42)</span><span class="desc">a field with an argument — asks for one specific student, like a path parameter</span></div>
-          <div class="anno-item"><span class="tok">name / age</span><span class="desc">a selection set — only these fields come back, nothing extra</span></div>
-          <div class="anno-item"><span class="tok">school { name }</span><span class="desc">a nested field — follows a relationship in one request instead of a second round trip</span></div>
-        </div>
-        <div class="callout tip"><div class="c-lbl">💡 Tip</div>This structure is why queries are described as "JSON-shaped" — the query's shape mirrors the shape of the response you'll get back.</div>
-      </div>
-    </section>
+  <!-- BIG PICTURE -->
+  <section class="concept" id="bigpicture">
+    <div class="concept-head">
+      <div class="concept-kicker">Connections & traps</div>
+      <h2 class="concept-title">Where this fits, and where it's misread</h2>
+    </div>
 
-    <!-- MODULE 8 -->
-    <section class="module" id="m8">
-      <div class="module-head"><div class="module-num">8</div><h2>Code Walkthrough</h2></div>
-      <div class="module-body">
-        <div class="codeblock">
-          <div class="cb-head">resolvers.js — annotated (Apollo Server style)</div>
-          <pre><span class="c-key">const</span> resolvers = {
-  <span class="c-type">Query</span>: {
-    <span class="c-fn">student</span>: (parent, args, context) =&gt; {
-      <span class="c-com">// args.id comes straight from the query</span>
-      <span class="c-key">return</span> db.getStudentById(args.id);
-    }
-  },
-  <span class="c-type">Student</span>: {
-    <span class="c-fn">school</span>: (parent) =&gt; {
-      <span class="c-com">// parent = the student object already resolved above</span>
-      <span class="c-key">return</span> db.getSchoolById(parent.schoolId);
-    }
-  }
-};</pre>
-        </div>
-        <p style="font-size:13.5px;color:var(--muted);">Call sequence for the query in Module 7:</p>
-        <div class="step-flow">
-          <span class="step">parseQuery()</span><span class="step-arrow">→</span>
-          <span class="step">validateAgainstSchema()</span><span class="step-arrow">→</span>
-          <span class="step">resolve('student')</span><span class="step-arrow">→</span>
-          <span class="step">resolve('school')</span><span class="step-arrow">→</span>
-          <span class="step">mergeAndReturn()</span>
-        </div>
-      </div>
-    </section>
+    <div class="card">
+      <p><strong>Looking back:</strong> GraphQL is the direct answer to the chatty problem and over/under-fetching raised in Lecture 8.2's REST critique. <strong>Looking forward:</strong> resolver design, N+1 query problems, and schema stitching are the natural next layer once this foundation is solid. <strong>In industry:</strong> GitHub's v4 API and Shopify's Storefront API are both GraphQL, chosen specifically for their deeply nested, relational data.</p>
+    </div>
 
-    <!-- MODULE 9 -->
-    <section class="module" id="m9">
-      <div class="module-head"><div class="module-num">9</div><h2>Behind the Scenes</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row">
-            <div class="flow-node f">Query received</div><div class="flow-arrow">→</div>
-            <div class="flow-node d">Parsed into an AST</div><div class="flow-arrow">→</div>
-            <div class="flow-node c">Validated against Schema/Types</div>
-          </div>
-          <div class="flow-arrow" style="margin:6px 0;">↓</div>
-          <div class="flow-row">
-            <div class="flow-node b">Resolver tree executed (often in parallel)</div><div class="flow-arrow">→</div>
-            <div class="flow-node a">Results merged into one shape</div><div class="flow-arrow">→</div>
-            <div class="flow-node f">Single JSON response sent</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div class="callout trap">
+      <div class="icon">✕</div>
+      <div class="content"><strong>Exam trap</strong><p>"GraphQL replaces the database" — false. It's a query layer/proxy in front of data sources; the database, third-party APIs, and other services are untouched underneath it.</p></div>
+    </div>
+    <div class="callout trap">
+      <div class="icon">✕</div>
+      <div class="content"><strong>Exam trap</strong><p>"GraphQL is always simpler than REST" — false. It's simpler for the client and more complex for the server; the total system complexity doesn't shrink, it shifts.</p></div>
+    </div>
 
-    <!-- MODULE 10 -->
-    <section class="module" id="m10">
-      <div class="module-head"><div class="module-num">10</div><h2>Real Project Usage</h2></div>
-      <div class="module-body">
-        <div class="proj-grid">
-          <div class="proj-card"><div class="name"><span class="swatch"></span>Facebook</div><p>Created GraphQL internally to power the News Feed, where one screen needs posts, comments, and profile data pulled together from many services.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--post)"></span>GitHub API v4</div><p>Offers a full GraphQL API alongside its REST API, letting clients fetch a repo, its issues, and specific comment fields in a single request.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--amber)"></span>Shopify</div><p>Its Storefront API is GraphQL-based, so storefronts can request exactly the product fields they render, keeping mobile payloads small.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--put)"></span>Netflix</div><p>Uses GraphQL-style federation to aggregate data from many internal microservices behind one query layer for its UI teams.</p></div>
-        </div>
-      </div>
-    </section>
+    <h3 style="font-family:var(--font-display); font-size:16px; margin:22px 0 4px;">Active recall</h3>
+    <details class="qa"><summary>Why doesn't GraphQL need versioned endpoints like /v1, /v2?</summary><div class="qa-answer">Because a query names exactly the fields it wants, new fields can be added or old ones deprecated on the same schema without breaking clients that never asked for them.</div></details>
+    <details class="qa"><summary>What's the actual job of a resolver?</summary><div class="qa-answer">A developer-written function, one per field, that tells the GraphQL engine how to fetch that specific piece of data from whatever source holds it.</div></details>
+    <details class="qa"><summary>Why is caching harder in GraphQL than REST?</summary><div class="qa-answer">REST's many distinct GET URLs are easy to cache at the HTTP layer. GraphQL funnels everything through one POST endpoint, so simple URL-based caching doesn't apply — caching has to move inside the server.</div></details>
+  </section>
 
-    <!-- MODULE 11 -->
-    <section class="module" id="m11">
-      <div class="module-head"><div class="module-num">11</div><h2>Common Mistakes</h2></div>
-      <div class="module-body">
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Assuming GraphQL removes complexity entirely</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>It shifts complexity from client to server-side resolver design</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Relying on standard HTTP caching for GraphQL responses</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Build server-side caching — requests are POST, so HTTP caching barely applies</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Writing resolvers that each hit the DB per item in a list (N+1 calls)</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Batch and cache with a loader pattern to fetch related items together</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Versioning the schema like REST (/v1/graphql, /v2/graphql)</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Evolve the schema by adding fields and deprecating old ones in place</div>
-        </div>
-      </div>
-    </section>
+  <!-- RECAP -->
+  <section class="concept" id="brain">
+    <div class="concept-head">
+      <div class="concept-kicker">Recap</div>
+      <h2 class="concept-title">The whole lecture, compressed</h2>
+    </div>
 
-    <!-- MODULE 12 -->
-    <section class="module" id="m12">
-      <div class="module-head"><div class="module-num">12</div><h2>Debugging Mindset</h2></div>
-      <div class="module-body">
-        <div class="debug-case">
-          <div class="title">"A query with a list field is unexpectedly slow"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: response takes seconds, not ms</span><span class="a">→</span>
-            <span class="s">Observe: resolver logs show repeated identical DB calls</span><span class="a">→</span>
-            <span class="s">Find stage: per-item resolver, no batching</span><span class="a">→</span>
-            <span class="s fix">Fix: introduce a batching/caching loader</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"One field in the response is null with an error"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: field null, errors array populated</span><span class="a">→</span>
-            <span class="s">Observe: resolver threw or data source returned nothing</span><span class="a">→</span>
-            <span class="s">Find stage: that specific field's resolver</span><span class="a">→</span>
-            <span class="s fix">Fix: check the resolver's data-fetch logic and args</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"CDN caching isn't reducing load at all"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: no cache hits at the edge</span><span class="a">→</span>
-            <span class="s">Observe: every request is a POST</span><span class="a">→</span>
-            <span class="s">Find stage: GraphQL requests bypass standard HTTP caching</span><span class="a">→</span>
-            <span class="s fix">Fix: add an application-level cache inside the engine</span>
-          </div>
-        </div>
-        <div class="callout warn"><div class="c-lbl">⚠ Warning</div>A slow GraphQL API is almost always a resolver-design problem, not a query-language problem — trace it to the specific field before blaming GraphQL itself.</div>
-      </div>
-    </section>
+    <div class="brain-grid">
+      <div class="brain-cell"><h5>Core Intuition</h5><p>Ask for exactly the shape you need, in one request — the server figures out how to assemble it.</p></div>
+      <div class="brain-cell"><h5>Why It Exists</h5><p>Fixes REST's rigidity, over/under-fetching, and messy filter URLs.</p></div>
+      <div class="brain-cell"><h5>The Engine</h5><p>A layer between client and data sources — parses, dispatches, fuses.</p></div>
+      <div class="brain-cell"><h5>Type System</h5><p>Strict schema → self-documenting, validated, version-free.</p></div>
+      <div class="brain-cell"><h5>Resolvers</h5><p>One function per field, developer-written, source-agnostic.</p></div>
+      <div class="brain-cell"><h5>Mutations</h5><p>Same schema, handles create/update/delete too.</p></div>
+      <div class="brain-cell"><h5>Real Cost</h5><p>Complexity moves to the server: parsing, validation, orchestration.</p></div>
+      <div class="brain-cell"><h5>Caching</h5><p>Single POST endpoint breaks HTTP caching — must be handled server-side.</p></div>
+      <div class="brain-cell"><h5>Never True</h5><p>"GraphQL reduces total system complexity."</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 13 -->
-    <section class="module" id="m13">
-      <div class="module-head"><div class="module-num">13</div><h2>IITM Exam Pattern</h2></div>
-      <div class="module-body">
-        <div class="exam-grid">
-          <div class="exam-box"><h4>Trigger Words</h4><ul>
-            <li>"ask for exactly what you need" → declarative query</li>
-            <li>"one endpoint for everything" → /graphql</li>
-            <li>"fetches one field's data" → resolver</li>
-            <li>"create/update/delete" → mutation</li>
-          </ul></div>
-          <div class="exam-box"><h4>Trap Words</h4><ul>
-            <li>"GraphQL reduces overall complexity" — it shifts, not reduces</li>
-            <li>"GraphQL always uses GET" — it's POST-based</li>
-            <li>"no schema needed" — the type system is mandatory</li>
-          </ul></div>
-          <div class="exam-box"><h4>MCQ Tricks</h4><ul>
-            <li>Option claiming GraphQL is "cacheable exactly like REST GET" → false</li>
-            <li>Option describing versioned URLs (/v2/graphql) → wrong, schemas evolve in place</li>
-          </ul></div>
-          <div class="exam-box"><h4>PYQ Pattern &amp; Elimination</h4><ul>
-            <li>Identify whether the scenario is a read (query) or a write (mutation) first</li>
-            <li>Eliminate any option that assumes GraphQL avoids server-side work entirely</li>
-            <li>Prefer options mentioning schema validation before resolution</li>
-          </ul></div>
-        </div>
-        <div class="callout trap" style="margin-top:14px;"><div class="c-lbl">🪤 Classic trap</div>A question may ask "does GraphQL reduce network traffic AND server load?" — it reduces network traffic (only requested fields returned) but can increase server load (one request now does the work of several). Don't mark both as unconditionally true.</div>
-      </div>
-    </section>
-
-    <!-- MODULE 14 -->
-    <section class="module" id="m14">
-      <div class="module-head"><div class="module-num">14</div><h2>Interview Questions</h2></div>
-      <div class="module-body">
-        <div class="tier easy">
-          <div class="tier-head">Easy</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">What is a resolver?</div><div class="a">A function, written by the developer, that knows how to fetch the data for one specific field — from a database, another API, or anywhere else.</div></div>
-            <div class="item"><div class="q">What's the GraphQL equivalent of POST for writes?</div><div class="a">A mutation — the GraphQL construct for create, update, and delete operations.</div></div>
-          </div>
-        </div>
-        <div class="tier med">
-          <div class="tier-head">Medium</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">How does GraphQL let an API evolve without version numbers?</div><div class="a">New fields can be added to the schema and old ones marked deprecated, so existing queries keep working while new clients opt into new fields — no /v1, /v2 split needed.</div></div>
-            <div class="item"><div class="q">Why is standard HTTP caching less effective for GraphQL?</div><div class="a">Most GraphQL requests are POST with a query in the body, so URL-based HTTP caches (which key off GET URLs) can't distinguish or cache different queries the way they cache REST GETs.</div></div>
-          </div>
-        </div>
-        <div class="tier hard">
-          <div class="tier-head">Advanced</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">GraphQL is said to "shift complexity to the server" — explain concretely.</div><div class="a">The client's query-writing gets simpler (one flexible request), but the server must now design resolvers carefully to avoid N+1 database calls, manage batching/caching, and validate arbitrary query shapes for cost — work that REST's fixed endpoints didn't require.</div></div>
-            <div class="item"><div class="q">How would you defend against an expensive, deeply nested client query?</div><div class="a">Techniques include query depth/complexity limiting, timeouts, and resolver-level caching — since the schema technically allows clients to request very expensive nested data in one call.</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 15 -->
-    <section class="module" id="m15">
-      <div class="module-head"><div class="module-num">15</div><h2>One-Page Brain</h2></div>
-      <div class="module-body">
-        <div class="diagram" style="padding:16px;">
-          <div class="flow-caption" style="margin:0;font-size:12px;">Query → Engine parses & validates → Resolvers fetch → Merge → Single JSON response</div>
-        </div>
-        <div class="remember-chain">
-          <div class="rc-row"><span class="key">Query</span><span class="val">read, declarative, shapes the response</span></div>
-          <div class="rc-row"><span class="key">Mutation</span><span class="val">create/update/delete</span></div>
-          <div class="rc-row"><span class="key">Resolver</span><span class="val">one function per field, fetches the data</span></div>
-          <div class="rc-row"><span class="key">Schema/Types</span><span class="val">validates queries, enables versionless evolution</span></div>
-          <div class="rc-row"><span class="key">/graphql</span><span class="val">single endpoint, POST-based</span></div>
-          <div class="rc-row"><span class="key">Complexity</span><span class="val">shifted to server, not eliminated</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 16 -->
-    <section class="module" id="m16">
-      <div class="module-head"><div class="module-num">16</div><h2>Quick Revision Table</h2></div>
-      <div class="module-body">
-        <div class="rev-table-wrap">
-        <table class="rev">
-          <tr><th>Component</th><th>Role</th><th>REST analogue</th></tr>
-          <tr><td><span class="verb-pill query">Query</span></td><td>Fetch data with a precise field selection</td><td>GET</td></tr>
-          <tr><td><span class="verb-pill mutation">Mutation</span></td><td>Create, update, or delete data</td><td>POST / PUT / DELETE</td></tr>
-          <tr><td><span class="verb-pill resolver">Resolver</span></td><td>Fetches the data for one field</td><td>Route handler</td></tr>
-          <tr><td><span class="verb-pill schema">Schema / Types</span></td><td>Defines and validates the shape of all data</td><td>API documentation (but enforced)</td></tr>
-          <tr><td><span class="verb-pill engine">GraphQL Engine</span></td><td>Proxy layer that parses, validates, aggregates</td><td>The whole API server/router</td></tr>
-        </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 17 -->
-    <section class="module" id="m17">
-      <div class="module-head"><div class="module-num">17</div><h2>Practice Ladder</h2></div>
-      <div class="module-body">
-        <div class="ladder">
-          <div class="rung"><div class="lvl">1</div><div class="tag2">Concept</div><div class="desc">Explain how GraphQL avoids over-fetching compared to REST.</div></div>
-          <div class="rung"><div class="lvl">2</div><div class="tag2">Predict Output</div><div class="desc">Given a query with a nested <code>school { name }</code> selection, predict the shape of the JSON response.</div></div>
-          <div class="rung"><div class="lvl">3</div><div class="tag2">Find Bug</div><div class="desc">Spot the flaw: a resolver for a list field calls the database once per item.</div></div>
-          <div class="rung"><div class="lvl">4</div><div class="tag2">MCQ</div><div class="desc">Which statement is true — GraphQL reduces network traffic, or GraphQL reduces server load? Eliminate the wrong pairing.</div></div>
-          <div class="rung"><div class="lvl">5</div><div class="tag2">Coding</div><div class="desc">Write a resolver that fetches a student and a nested school field.</div></div>
-          <div class="rung"><div class="lvl">6</div><div class="tag2">Mini Project</div><div class="desc">Design a small schema aggregating a user service and a weather API behind one query.</div></div>
-          <div class="rung"><div class="lvl">7</div><div class="tag2">Interview</div><div class="desc">Defend, out loud, why "GraphQL removes complexity" is a myth.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 18 -->
-    <section class="module" id="m18">
-      <div class="module-head"><div class="module-num">18</div><h2>Memory Palace</h2></div>
-      <div class="module-body">
-        <div class="palace-grid">
-          <div class="palace-card">
-            <div class="ic">📏</div>
-            <h5>Rule</h5>
-            <p>The client shapes the response — the server just fills in the shape it's given.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🥪</div>
-            <h5>Mnemonic</h5>
-            <p>"Order at the counter, not the buffet" — declare exactly what you want, in one order.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🧭</div>
-            <h5>Visual</h5>
-            <p class="ascii">Query
-  │
-  ▼
-Parse+Validate(Schema)
-  │
-  ▼
-Resolvers (fan out)
-  │
-  ▼
-Merge → JSON</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer-note">MAD2 Learning OS · Introduction to GraphQL · 18/18 modules complete</div>
-  </main>
 </div>
+
+<footer>MAD2 · Lecture 8.3 — Introduction to GraphQL · Learning OS artifact (adaptive structure)</footer>
 
 </body>
 </html>

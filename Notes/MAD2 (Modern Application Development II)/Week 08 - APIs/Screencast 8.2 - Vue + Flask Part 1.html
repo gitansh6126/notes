@@ -595,6 +595,59 @@
     </div>
   </div>
 
+  <!-- ============ MODULE 19: LECTURE NOTES ============ -->
+  <div class="module" id="m19">
+    <span class="module-tag">Module 19 · Lecture Notes</span>
+    <h2>Original Topic Content</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px;">This section contains the full original lecture content — the concepts, details, and explanations as taught in the screencast, outside the framework structure.</p>
+
+    <div class="callout analogy">
+      <div class="ctitle">Overview</div>
+      <p>The hybrid app pattern lets you add Vue.js interactivity to an existing Flask/Jinja-rendered application without committing to a full SPA rewrite. Vue takes over a single <code>&lt;div&gt;</code>, while Jinja continues to render the rest of the page.</p>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">The Hybrid Pattern</span>
+      <h3>How It Works</h3>
+      <ul class="annot-list">
+        <li><code class="key">el: '#app'</code> Vue mounts to a specific div — it only controls what's inside that element.</li>
+        <li><code class="key">Jinja renders first</code> Server sends complete HTML. Then Vue's JS loads and attaches to the designated div.</li>
+        <li><code class="key">CDN or static file</code> Vue can be loaded via a script tag (CDN) or placed in Flask's static folder — no build tools needed.</li>
+        <li><code class="key">Cookie auth still works</code> Since the page is server-rendered, traditional cookie-based sessions function normally.</li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Delimiter Clash</span>
+      <h3>Jinja vs Vue — The <code>{{ }}</code> Problem</h3>
+      <p style="color:var(--muted);margin-bottom:12px;">Both Jinja2 and Vue use <code>{{ }}</code> for template expressions. When both try to parse the same template, one of them breaks.</p>
+      <div class="vs-grid">
+        <div class="vs-card" style="background:rgba(255,157,108,0.1);border-color:rgba(255,157,108,0.35);">
+          <h4 style="color:var(--accent-2);">Solution 1: Raw Tags</h4>
+          <ul>
+            <li>Wrap Vue expressions in <code>{% raw %}...{% endraw %}</code></li>
+            <li>Tells Jinja to ignore that block</li>
+            <li>Simple, no config changes needed</li>
+          </ul>
+        </div>
+        <div class="vs-card" style="background:rgba(82,214,138,0.1);border-color:rgba(82,214,138,0.35);">
+          <h4 style="color:var(--good);">Solution 2: Custom Delimiters</h4>
+          <ul>
+            <li>Change Vue's delimiters to <code>['${', '}']</code></li>
+            <li>Vue uses <code>${ expression }</code> instead</li>
+            <li>No conflict with Jinja's <code>{{ }}</code></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Hybrid vs Full SPA</span>
+      <h3>Architecture Comparison</h3>
+      <p style="color:var(--muted);">The hybrid approach is ideal for incremental modernization — you can add Vue widgets one at a time without rewriting the entire frontend. A full SPA requires build tools (Vue CLI, Webpack/Vite), token-based auth, and a separate deployment pipeline, but offers more flexibility for complex UIs.</p>
+    </div>
+  </div>
+
   <div class="footer-note">Integrating Vue.js with Flask · MAD2 Learning OS · Screencast 8.2</div>
 
 </div>

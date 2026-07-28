@@ -560,6 +560,46 @@ CORS(app)  <span class="c1"># dev only: allows all origins</span></code></pre>
     </div>
   </div>
 
+  <!-- ============ MODULE 19: LECTURE NOTES ============ -->
+  <div class="module" id="m19">
+    <span class="module-tag">Module 19 · Lecture Notes</span>
+    <h2>Original Topic Content</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px;">This section contains the full original lecture content — the concepts, details, and explanations as taught in the screencast, outside the framework structure.</p>
+
+    <div class="callout analogy">
+      <div class="ctitle">Overview</div>
+      <p>When Vue and Flask run on different ports or domains, the browser's Same-Origin Policy blocks API calls by default. CORS (Cross-Origin Resource Sharing) is the mechanism that loosens this restriction, and token-based authentication replaces cookies (which don't work across origins).</p>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">CORS</span>
+      <h3>Cross-Origin Resource Sharing</h3>
+      <ul class="annot-list">
+        <li><code class="key">Same-Origin Policy</code> Browsers block requests where protocol + host + port don't all match. This is a security feature, not a bug.</li>
+        <li><code class="key">Preflight (OPTIONS)</code> For non-simple requests, the browser sends an OPTIONS request first to ask "is this allowed?" The server must respond with the right headers.</li>
+        <li><code class="key">flask-cors</code> <code>CORS(app, origins=["http://localhost:5173"])</code> — tells Flask to include the correct CORS headers for your frontend's origin.</li>
+        <li><code class="key">Browser-enforced</code> CORS is enforced by the browser, not the server. Postman and curl ignore CORS entirely — that's why the API works in Postman but fails from the Vue app.</li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Auth Across Origins</span>
+      <h3>Why Cookies Break and Tokens Fix It</h3>
+      <p style="color:var(--muted);margin-bottom:12px;">Cookies are bound to a specific origin (domain). When Vue runs on <code>localhost:5173</code> and Flask on <code>localhost:5000</code>, the browser won't send cookies to the Flask origin. Token-based auth solves this — the token is sent via an HTTP header (<code>Authentication-Token: &lt;token&gt;</code>), which the browser doesn't restrict by origin.</p>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Deployment Patterns</span>
+      <h3>Separate vs Combined Deployment</h3>
+      <ul class="annot-list">
+        <li><code class="key">Separate</code> Vue on a CDN/static host, Flask standalone. Independent scaling, better CDN performance, but two pipelines to manage.</li>
+        <li><code class="key">Combined</code> Vue's <code>dist/</code> folder placed inside Flask's <code>static/</code> folder. Simpler ops, one deployment pipeline, but no CDN benefit.</li>
+        <li><code class="key">publicPath</code> Vue's build config must align with Flask's <code>static_folder</code> path so asset URLs resolve correctly.</li>
+        <li><code class="key">Root redirect</code> Flask's <code>@app.route("/")</code> returns Vue's <code>index.html</code> so the SPA handles all client-side routing.</li>
+      </ul>
+    </div>
+  </div>
+
   <div class="footer-note">Separating Frontend & Backend — Vue + Flask · MAD2 Learning OS · Screencast 8.3</div>
 
 </div>

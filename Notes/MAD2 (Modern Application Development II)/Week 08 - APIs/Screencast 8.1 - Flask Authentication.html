@@ -704,6 +704,70 @@
     </div>
   </div>
 
+  <!-- ============ MODULE 19: LECTURE NOTES ============ -->
+  <div class="module" id="m19">
+    <span class="module-tag">Module 19 · Lecture Notes</span>
+    <h2>Original Topic Content</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px;">This section contains the full original lecture content — the concepts, details, and explanations as taught in the screencast, outside the framework structure.</p>
+
+    <div class="callout analogy">
+      <div class="ctitle">Overview</div>
+      <p>Modern applications often need to verify user identity across stateless API requests. Flask-Security-Too provides a token-based authentication system that works alongside (or instead of) traditional cookie-based sessions, enabling SPAs, mobile apps, and AJAX clients to authenticate reliably.</p>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Cookie vs Token Authentication</span>
+      <h3>Two Authentication Models</h3>
+      <div class="vs-grid">
+        <div class="vs-card cookie">
+          <h4>🍪 Cookie-Based Auth</h4>
+          <ul>
+            <li>Browser stores the session cookie automatically</li>
+            <li>Server maintains session state (or uses signed cookies)</li>
+            <li>Works seamlessly with server-rendered pages</li>
+            <li>On failure: redirects to login page</li>
+            <li>Depends on browser cookie mechanics</li>
+          </ul>
+        </div>
+        <div class="vs-card token">
+          <h4>🔑 Token-Based Auth</h4>
+          <ul>
+            <li>Client stores token (e.g. Local Storage)</li>
+            <li>Server is fully stateless — token is self-verifying</li>
+            <li>Works with SPAs, AJAX, mobile apps</li>
+            <li>On failure: returns 401 JSON (no redirect)</li>
+            <li>Depends on cryptographic signing</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Key Concepts</span>
+      <h3>Flask-Security-Too Token Authentication</h3>
+      <ul class="annot-list">
+        <li><code class="key">fs_uniquifier</code> A required column on the User model. Changing it invalidates all existing tokens — useful for force-logout.</li>
+        <li><code class="key">include_auth_token</code> Query parameter on the login endpoint (e.g. <code>/login?include_auth_token</code>) to receive a token in the response.</li>
+        <li><code class="key">Authentication-Token</code> The default HTTP header name for sending tokens: <code>Authentication-Token: &lt;token&gt;</code></li>
+        <li><code class="key">@auth_required("token")</code> Decorator that protects API endpoints. Replaces <code>@login_required</code> for token-based flows.</li>
+        <li><code class="key">Token structure</code> Cryptographically signed from: user ID + <code>fs_uniquifier</code> + <code>SECRET_KEY</code>. No server-side session store needed.</li>
+        <li><code class="key">401 Response</code> Token failure returns a JSON 401 — never a redirect. This is critical for API clients that can't handle redirects.</li>
+      </ul>
+    </div>
+
+    <div class="module">
+      <span class="module-tag">Use Cases</span>
+      <h3>When to Use Token Auth</h3>
+      <div class="chip-row">
+        <span class="chip trigger">Single Page Applications (SPAs)</span>
+        <span class="chip trigger">AJAX / Fetch API calls</span>
+        <span class="chip trigger">Mobile apps</span>
+        <span class="chip trigger">Postman / API testing</span>
+        <span class="chip trigger">Microservice-to-microservice auth</span>
+      </div>
+    </div>
+  </div>
+
   <div class="footer-note">Flask API Token Authentication · MAD2 Learning OS · Lecture 8.1</div>
 
 </div>
