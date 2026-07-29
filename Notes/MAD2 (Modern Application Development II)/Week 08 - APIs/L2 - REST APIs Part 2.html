@@ -3,866 +3,419 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Designing APIs (Part 2) — MAD2 Learning OS</title>
+<title>Designing APIs — Part 2 | Lecture 8.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#0D1117;
-  --bg-soft:#0A0D12;
-  --card:#161B22;
-  --card-hi:#1C232C;
-  --border:#2A313C;
-  --border-hi:#3D4552;
-  --text:#E6EDF3;
-  --muted:#8B949E;
-  --faint:#5B6472;
-  --get:#3FB950;
-  --post:#58A6FF;
-  --put:#D2A8FF;
-  --delete:#F85149;
-  --amber:#D29922;
-  --amber-bg:rgba(210,153,34,.10);
-  --font-display:'Space Grotesk',system-ui,sans-serif;
-  --font-body:'Inter',system-ui,sans-serif;
-  --font-mono:'JetBrains Mono','SFMono-Regular',Consolas,monospace;
+  --paper:#F1F3F6; --paper-raised:#FFFFFF; --ink:#10151C; --ink-soft:#4A5568; --ink-faint:#8892A0;
+  --line:#DBE0E6; --signal:#E8A33D; --signal-deep:#B97417; --signal-tint:#FBEBD2;
+  --get:#2C6FA6; --get-tint:#E7F0F8; --post:#2F8F5B; --post-tint:#E7F5EC;
+  --put:#C97A1F; --put-tint:#FBF0E1; --patch:#7A5AC4; --patch-tint:#F0ECFA;
+  --delete:#C0432E; --delete-tint:#FAEAE7;
+  --radius:10px; --shadow:0 1px 2px rgba(16,21,28,0.04), 0 6px 20px rgba(16,21,28,0.06);
+  --font-display:'Space Grotesk',sans-serif; --font-body:'Inter',sans-serif; --font-mono:'JetBrains Mono',monospace;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
+*{box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{
-  background:
-    radial-gradient(ellipse 900px 500px at 15% -10%, rgba(63,185,80,.08), transparent 60%),
-    radial-gradient(ellipse 900px 500px at 90% 10%, rgba(88,166,255,.07), transparent 60%),
-    var(--bg);
-  color:var(--text);
-  font-family:var(--font-body);
-  line-height:1.6;
-  padding-bottom:80px;
-}
-@media (prefers-reduced-motion: reduce){ *{animation-duration:.01ms !important; transition-duration:.01ms !important;} }
+body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.6; -webkit-font-smoothing:antialiased;}
+::selection{background:var(--signal-tint); color:var(--ink);}
+.grid-bg{background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size:28px 28px;}
 
-::-webkit-scrollbar{width:10px;height:10px;}
-::-webkit-scrollbar-track{background:var(--bg-soft);}
-::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:6px;}
+.topbar{position:sticky; top:0; z-index:100; background:rgba(241,243,246,0.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--line);}
+.topbar-inner{max-width:960px; margin:0 auto; padding:12px 20px; display:flex; align-items:center; gap:16px;}
+.topbar-tag{font-family:var(--font-mono); font-size:11px; letter-spacing:0.06em; background:var(--ink); color:var(--paper); padding:4px 8px; border-radius:5px; white-space:nowrap;}
+.topbar-title{font-family:var(--font-display); font-weight:600; font-size:14px; white-space:nowrap;}
+.navlinks{display:flex; gap:4px; overflow-x:auto; flex:1; scrollbar-width:none;}
+.navlinks::-webkit-scrollbar{display:none;}
+.navlinks a{font-size:12.5px; color:var(--ink-soft); text-decoration:none; white-space:nowrap; padding:6px 10px; border-radius:6px; font-weight:500;}
+.navlinks a:hover{background:var(--paper-raised); color:var(--ink);}
 
-a{color:var(--post);}
-code, .mono{font-family:var(--font-mono);}
+.hero{padding:52px 20px 36px; position:relative; overflow:hidden;}
+.hero-inner{max-width:960px; margin:0 auto; position:relative; z-index:2;}
+.eyebrow{font-family:var(--font-mono); font-size:12px; color:var(--signal-deep); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+.eyebrow .dot{width:7px; height:7px; border-radius:50%; background:var(--signal); box-shadow:0 0 0 4px var(--signal-tint);}
+h1.hero-title{font-family:var(--font-display); font-size:clamp(28px,5vw,44px); font-weight:700; margin:0 0 12px; line-height:1.1; letter-spacing:-0.01em;}
+.hero-title .accent{color:var(--signal-deep);}
+.hero-sub{font-size:15.5px; color:var(--ink-soft); max-width:620px; margin:0 0 28px;}
 
-/* ---------- Layout shell ---------- */
-.shell{
-  max-width:1180px;
-  margin:0 auto;
-  padding:0 20px;
-  display:grid;
-  grid-template-columns:230px 1fr;
-  gap:36px;
-}
-@media (max-width:980px){
-  .shell{grid-template-columns:1fr; padding:0 14px;}
-}
+.inspector{background:var(--ink); border-radius:14px; overflow:hidden; box-shadow:0 20px 50px rgba(16,21,28,0.25); border:1px solid #23303f;}
+.inspector-bar{display:flex; align-items:center; gap:8px; padding:10px 16px; background:#171F29; border-bottom:1px solid #263241;}
+.inspector-bar .traffic{display:flex; gap:6px;}
+.inspector-bar .traffic span{width:9px; height:9px; border-radius:50%; display:inline-block;}
+.inspector-bar .traffic span:nth-child(1){background:#E5695B;} .inspector-bar .traffic span:nth-child(2){background:#E8B23D;} .inspector-bar .traffic span:nth-child(3){background:#5FBA6E;}
+.inspector-bar .label{font-family:var(--font-mono); font-size:11.5px; color:#8A97A6; margin-left:6px;}
+.inspector-grid{display:grid; grid-template-columns:1fr 1fr;}
+.inspector-col{padding:18px 20px; font-family:var(--font-mono); font-size:12.5px; color:#C6CFDA;}
+.inspector-col + .inspector-col{border-left:1px solid #263241;}
+.req-line{display:flex; align-items:center; gap:8px; margin-bottom:12px; flex-wrap:wrap;}
+.verb-badge{font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:4px; letter-spacing:0.03em;}
+.verb-badge.get{background:var(--get); color:#fff;} .verb-badge.post{background:var(--post); color:#fff;}
+.verb-badge.put{background:var(--put); color:#fff;} .verb-badge.patch{background:var(--patch); color:#fff;} .verb-badge.delete{background:var(--delete); color:#fff;}
+.url-text{color:#EDEFF2; font-size:12.5px;}
+.status-badge{font-family:var(--font-mono); font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:4px; margin-left:auto;}
+.status-2xx{background:#173D2A; color:#6FDB94;} .status-3xx{background:#3B300F; color:#F0C05A;}
+.cache-chip{display:inline-block; margin-top:8px; font-size:10.5px; color:#8A97A6; border:1px dashed #3A4757; padding:2px 8px; border-radius:20px;}
+.body-block{background:#0C1117; border:1px solid #263241; border-radius:7px; padding:10px 12px; margin-top:10px; color:#8FD3B8; font-size:11.5px; line-height:1.5; overflow-x:auto;}
+.body-block .k{color:#78B8E8;} .body-block .s{color:#E8B23D;} .body-block .punct{color:#5A6B7E;}
+@media (max-width:640px){.inspector-grid{grid-template-columns:1fr;} .inspector-col + .inspector-col{border-left:none; border-top:1px solid #263241;}}
 
-/* ---------- Top bar (browser/client chrome motif) ---------- */
-.topbar{
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.02), transparent);
-  margin-bottom:28px;
-}
-.topbar-inner{
-  max-width:1180px;margin:0 auto;padding:14px 20px;
-  display:flex;align-items:center;gap:10px;
-}
-.dot{width:11px;height:11px;border-radius:50%;}
-.dot.r{background:#F85149;} .dot.y{background:#D29922;} .dot.g{background:#3FB950;}
-.addr{
-  flex:1;margin-left:8px;
-  background:var(--bg-soft);
-  border:1px solid var(--border);
-  border-radius:8px;
-  padding:6px 12px;
-  font-family:var(--font-mono);
-  font-size:12.5px;
-  color:var(--muted);
-  overflow-x:auto;
-  white-space:nowrap;
-}
-.addr .verb{color:var(--get);font-weight:700;}
-.addr .path{color:var(--text);}
+.wrap{max-width:960px; margin:0 auto; padding:0 20px;}
+.orient-card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin:8px 0 44px; display:grid; grid-template-columns:1.1fr 1fr; gap:22px;}
+@media (max-width:700px){.orient-card{grid-template-columns:1fr;}}
+.orient-card h4{font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-faint); margin:0 0 8px;}
+.orient-card p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.chip-row{display:flex; flex-wrap:wrap; gap:7px; margin-top:8px;}
+.chip{font-family:var(--font-mono); font-size:11.5px; padding:4px 10px; border-radius:20px; background:var(--paper); border:1px solid var(--line); color:var(--ink-soft);}
 
-/* ---------- Sidebar nav ---------- */
-.sidenav{position:sticky; top:20px; align-self:start; max-height:calc(100vh - 40px); overflow-y:auto;}
-.sidenav h4{
-  font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.12em;
-  font-size:11px;color:var(--faint);margin-bottom:10px;
-}
-.sidenav ol{list-style:none;counter-reset:mod;}
-.sidenav li{counter-increment:mod;}
-.sidenav a{
-  display:flex;gap:8px;align-items:baseline;
-  font-size:12.5px;color:var(--muted);
-  text-decoration:none;padding:6px 8px;border-radius:6px;
-  border-left:2px solid transparent;
-}
-.sidenav a::before{
-  content:counter(mod,decimal-leading-zero);
-  font-family:var(--font-mono);color:var(--faint);font-size:10.5px;
-}
-.sidenav a:hover{color:var(--text);background:var(--card);border-left-color:var(--post);}
-@media (max-width:980px){
-  .sidenav{position:static;max-height:none;margin-bottom:8px;}
-  .sidenav ol{display:flex;flex-wrap:wrap;gap:4px;}
-  .sidenav li{}
-  .sidenav a{border-left:none;border:1px solid var(--border);background:var(--card);}
-}
+section.concept{padding:44px 0; border-top:1px solid var(--line);}
+.concept-head{margin-bottom:22px;}
+.concept-kicker{font-family:var(--font-mono); font-size:11.5px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:6px;}
+h2.concept-title{font-family:var(--font-display); font-size:clamp(21px,3vw,27px); font-weight:700; margin:0 0 8px;}
+.concept-desc{color:var(--ink-soft); font-size:15px; max-width:660px; margin:0;}
 
-/* ---------- Header / hero ---------- */
-.hero{margin-bottom:34px;}
-.eyebrow{
-  font-family:var(--font-mono);font-size:12px;color:var(--amber);
-  text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px;
-}
-.hero h1{
-  font-family:var(--font-display);font-weight:700;
-  font-size:clamp(28px,4.2vw,44px);
-  line-height:1.1;letter-spacing:-.01em;
-  margin-bottom:12px;
-}
-.hero h1 .accent{color:var(--get);}
-.hero p.lede{color:var(--muted);font-size:16px;max-width:64ch;}
+.card{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 22px; margin-bottom:16px;}
+.card h3{font-family:var(--font-display); font-size:16.5px; margin:0 0 10px; font-weight:600;}
+.card p{margin:0 0 10px; font-size:14.5px; color:var(--ink-soft);}
+.card p:last-child{margin-bottom:0;}
+.card-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media (max-width:700px){.card-grid{grid-template-columns:1fr;}}
+.card-tinted{border-left:4px solid var(--signal);}
+.card-tinted.get{border-left-color:var(--get);} .card-tinted.post{border-left-color:var(--post);}
 
-/* ---------- Module wrapper ---------- */
-.module{
-  scroll-margin-top:20px;
-  margin-bottom:26px;
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  overflow:hidden;
-}
-.module-head{
-  display:flex;align-items:center;gap:12px;
-  padding:16px 22px;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg, rgba(255,255,255,.03), transparent);
-}
-.module-num{
-  font-family:var(--font-mono);font-size:12px;color:var(--bg);
-  background:var(--get);
-  width:26px;height:26px;border-radius:7px;
-  display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;
-}
-.module-head h2{
-  font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.01em;
-}
-.module-head .tag{
-  margin-left:auto;font-family:var(--font-mono);font-size:10.5px;color:var(--faint);
-  border:1px solid var(--border-hi);padding:3px 8px;border-radius:20px;white-space:nowrap;
-}
-.module-body{padding:22px;}
-@media (max-width:600px){ .module-body{padding:16px;} .module-head{padding:13px 16px;} }
+.callout{border-radius:var(--radius); padding:14px 17px; margin:14px 0; display:flex; gap:12px; border:1px solid var(--line);}
+.callout .icon{font-family:var(--font-mono); font-weight:700; font-size:13px; flex-shrink:0; width:24px; height:24px; border-radius:6px; display:flex; align-items:center; justify-content:center;}
+.callout .content strong{display:block; font-size:12px; text-transform:uppercase; letter-spacing:0.04em; margin-bottom:3px;}
+.callout .content p{margin:0; font-size:13.5px; color:var(--ink-soft);}
+.callout.analogy{background:var(--patch-tint);} .callout.analogy .icon{background:var(--patch); color:#fff;} .callout.analogy strong{color:#5C3FA0;}
+.callout.warning{background:var(--delete-tint);} .callout.warning .icon{background:var(--delete); color:#fff;} .callout.warning strong{color:#9C3623;}
+.callout.tip{background:var(--post-tint);} .callout.tip .icon{background:var(--post); color:#fff;} .callout.tip strong{color:#256F45;}
+.callout.judgment{background:var(--get-tint);} .callout.judgment .icon{background:var(--get); color:#fff;} .callout.judgment strong{color:#245A85;}
+.callout.trap{background:var(--signal-tint);} .callout.trap .icon{background:var(--signal-deep); color:#fff;} .callout.trap strong{color:var(--signal-deep);}
 
-/* ---------- Topic card (module 1) ---------- */
-.topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;}
-.topic-cell{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
-.topic-cell .k{font-family:var(--font-mono);font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.topic-cell .v{font-size:14.5px;font-weight:600;}
-.stars{color:var(--amber);letter-spacing:1px;}
-.stars.off{color:var(--border-hi);}
+.table-wrap{overflow-x:auto; margin:14px 0;}
+table{width:100%; border-collapse:collapse; font-size:13.5px; background:var(--paper-raised);}
+table th{text-align:left; font-family:var(--font-mono); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-faint); padding:9px 13px; border-bottom:2px solid var(--line);}
+table td{padding:10px 13px; border-bottom:1px solid var(--line); color:var(--ink-soft); vertical-align:top;}
+table tr:last-child td{border-bottom:none;}
+table td .mono{font-family:var(--font-mono); font-size:12.5px; color:var(--ink);}
+.pill{display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-family:var(--font-mono); font-weight:600;}
+.pill.always{background:var(--post-tint); color:#256F45;} .pill.sometimes{background:var(--put-tint); color:#9C6317;} .pill.never{background:var(--delete-tint); color:#9C3623;}
 
-/* ---------- Analogy / intuition callout ---------- */
-.analogy{
-  display:flex;gap:14px;background:linear-gradient(135deg, rgba(63,185,80,.08), rgba(88,166,255,.05));
-  border:1px solid var(--border-hi);border-radius:12px;padding:16px 18px;
-}
-.analogy .ic{font-size:24px;line-height:1;flex-shrink:0;}
-.analogy p{font-size:15px;color:var(--text);}
-.analogy .label{font-family:var(--font-mono);font-size:11px;color:var(--get);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px;}
+.code-block{background:#0F151D; color:#D6DEE8; border-radius:9px; padding:15px 17px; font-family:var(--font-mono); font-size:12.5px; overflow-x:auto; line-height:1.65;}
+.code-block .c-key{color:#7FB5E8;} .code-block .c-str{color:#E3B75E;} .code-block .c-punc{color:#5F6E80;} .code-block .c-com{color:#5F6E80; font-style:italic;} .code-block .c-tag{color:#E5695B;}
+.code-caption{font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin:0 0 6px; text-transform:uppercase; letter-spacing:0.05em;}
 
-/* ---------- Diagrams (pure CSS) ---------- */
-.diagram{
-  background:var(--bg-soft);border:1px dashed var(--border-hi);border-radius:12px;
-  padding:24px 18px; display:flex; flex-direction:column; align-items:center; gap:6px;
-}
-.flow-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
-.flow-node{
-  font-family:var(--font-mono);font-size:12.5px;font-weight:600;
-  padding:9px 14px;border-radius:8px;border:1px solid var(--border-hi);
-  background:var(--card-hi); white-space:nowrap;
-}
-.flow-node.a{border-color:var(--get);color:var(--get);}
-.flow-node.b{border-color:var(--post);color:var(--post);}
-.flow-node.c{border-color:var(--put);color:var(--put);}
-.flow-node.d{border-color:var(--amber);color:var(--amber);}
-.flow-node.e{border-color:var(--delete);color:var(--delete);}
-.flow-arrow{color:var(--faint);font-size:16px;}
-.flow-caption{font-family:var(--font-mono);font-size:11px;color:var(--faint);margin-top:8px;text-align:center;}
+.diagram{background:var(--paper-raised); border:1px solid var(--line); border-radius:var(--radius); padding:22px 20px; margin:14px 0;}
+.node-row{display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:0;}
+.node{background:var(--paper); border:1.5px solid var(--ink); border-radius:8px; padding:8px 13px; font-family:var(--font-mono); font-size:11.5px; font-weight:600; text-align:center; white-space:nowrap;}
+.node.accent{background:var(--signal-tint); border-color:var(--signal-deep); color:var(--signal-deep);}
+.arrow{color:var(--ink-faint); font-size:15px; padding:0 9px; flex-shrink:0;}
+@media (max-width:700px){.node-row{flex-direction:column;} .arrow{transform:rotate(90deg); padding:5px 0;}}
 
-/* request/response ping visual (signature element) */
-.ping{
-  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:14px;
-  width:100%;max-width:640px;
-}
-.ping .side{
-  background:var(--card-hi);border:1px solid var(--border-hi);border-radius:10px;
-  padding:12px 14px;text-align:center;font-family:var(--font-mono);font-size:12.5px;
-}
-.ping .side.client{border-color:var(--post);}
-.ping .side.server{border-color:var(--get);}
-.ping .wire{position:relative;height:46px;width:70px;}
-.ping .wire .pulse{
-  position:absolute;top:50%;left:0;width:10px;height:10px;margin-top:-5px;border-radius:50%;
-  background:var(--get);
-  animation:travel 2.6s ease-in-out infinite;
-}
-.ping .wire .pulse.back{background:var(--post);animation-delay:1.3s;animation-direction:reverse;}
-.ping .wire::before{content:"";position:absolute;top:50%;left:0;right:0;height:1px;background:var(--border-hi);}
-@keyframes travel{0%{left:0;opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{left:calc(100% - 10px);opacity:0;}}
-@media(max-width:600px){.ping{grid-template-columns:1fr;justify-items:center;} .ping .wire{width:2px;height:40px;transform:rotate(90deg);}}
+.failure-strip{display:flex; gap:10px; margin:14px 0; flex-wrap:wrap;}
+.failure-stage{flex:1; min-width:150px; border-radius:9px; padding:13px 15px; border:1px solid var(--line);}
+.failure-stage h5{margin:0 0 5px; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;}
+.failure-stage p{margin:0; font-size:12.5px; color:var(--ink-soft);}
+.failure-stage.works{background:var(--post-tint);} .failure-stage.works h5{color:#256F45;}
+.failure-stage.degrades{background:var(--put-tint);} .failure-stage.degrades h5{color:#9C6317;}
+.failure-stage.fails{background:var(--delete-tint);} .failure-stage.fails h5{color:#9C3623;}
 
-/* ---------- Pattern recognition ---------- */
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
-.chip{
-  font-family:var(--font-mono);font-size:12px;background:var(--bg-soft);
-  border:1px solid var(--border-hi);border-radius:20px;padding:5px 12px;color:var(--muted);
-}
-.shortcut-table{width:100%;border-collapse:collapse;font-size:13.5px;}
-.shortcut-table th, .shortcut-table td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:left;}
-.shortcut-table th{color:var(--faint);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;}
-.shortcut-table td.arrow{color:var(--amber);font-family:var(--font-mono);}
+.spectrum{position:relative; height:8px; border-radius:6px; margin:22px 4px 30px; background:linear-gradient(90deg, var(--get) 0%, var(--signal) 50%, var(--delete) 100%);}
+.spectrum-marker{position:absolute; top:-8px; width:2px; height:24px; background:var(--ink);}
+.spectrum-marker::after{content:attr(data-label); position:absolute; top:26px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:10.5px; white-space:nowrap; color:var(--ink-soft);}
+.spectrum-ends{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:11px; color:var(--ink-faint); margin-top:4px;}
 
-/* ---------- Q&A list (deep fundamentals) ---------- */
-.qa{border-left:2px solid var(--border-hi);padding-left:16px;margin-bottom:16px;}
-.qa:last-child{margin-bottom:0;}
-.qa .q{font-weight:600;font-size:14.5px;margin-bottom:4px;color:var(--text);}
-.qa .q::before{content:"Q — ";color:var(--post);font-family:var(--font-mono);}
-.qa .a{color:var(--muted);font-size:14px;}
+.decision-tree{font-family:var(--font-mono); font-size:13px;}
+.dt-q{background:var(--ink); color:var(--paper); padding:9px 13px; border-radius:8px; font-weight:600; display:inline-block; margin-bottom:10px;}
+.dt-branch{display:flex; gap:18px; flex-wrap:wrap; margin-left:12px; padding-left:12px; border-left:2px dashed var(--line);}
+.dt-branch-item{flex:1; min-width:210px;}
+.dt-branch-item .dt-label{font-size:10.5px; color:var(--ink-faint); margin-bottom:5px; text-transform:uppercase;}
+.dt-outcome{background:var(--paper); border:1px solid var(--line); border-radius:7px; padding:9px 11px; font-size:12px; color:var(--ink-soft);}
 
-/* ---------- Syntax anatomy ---------- */
-.anatomy-block{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;overflow-x:auto;}
-.anatomy-line{font-family:var(--font-mono);font-size:13.5px;white-space:pre;}
-.anno-list{margin-top:14px;display:grid;gap:8px;}
-.anno-item{display:flex;gap:10px;font-size:13.5px;align-items:flex-start;}
-.anno-item .tok{
-  font-family:var(--font-mono);background:var(--card-hi);border:1px solid var(--border-hi);
-  border-radius:6px;padding:2px 8px;color:var(--amber);flex-shrink:0;
-}
-.anno-item .desc{color:var(--muted);}
+details.qa{background:var(--paper-raised); border:1px solid var(--line); border-radius:9px; padding:13px 17px; margin-bottom:9px;}
+details.qa summary{cursor:pointer; font-weight:600; font-size:13.5px; list-style:none; display:flex; align-items:center; gap:10px;}
+details.qa summary::-webkit-details-marker{display:none;}
+details.qa summary::before{content:'+'; font-family:var(--font-mono); color:var(--signal-deep); font-weight:700; font-size:16px; flex-shrink:0;}
+details.qa[open] summary::before{content:'−';}
+details.qa .qa-answer{margin-top:9px; padding-top:9px; border-top:1px dashed var(--line); font-size:13px; color:var(--ink-soft);}
 
-/* ---------- Code block ---------- */
-.codeblock{
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;
-  overflow:hidden;margin-bottom:16px;
-}
-.codeblock .cb-head{
-  display:flex;align-items:center;gap:8px;padding:8px 14px;border-bottom:1px solid var(--border);
-  font-family:var(--font-mono);font-size:11px;color:var(--faint);
-}
-.codeblock pre{padding:16px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7;}
-.codeblock .c-key{color:var(--put);}
-.codeblock .c-str{color:var(--get);}
-.codeblock .c-com{color:var(--faint);font-style:italic;}
-.codeblock .c-fn{color:var(--post);}
-.codeblock .c-prop{color:#79C0FF;}
+.brain-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+@media (max-width:800px){.brain-grid{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:520px){.brain-grid{grid-template-columns:1fr;}}
+.brain-cell{background:var(--ink); color:#D6DEE8; border-radius:10px; padding:15px;}
+.brain-cell h5{margin:0 0 7px; font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--signal);}
+.brain-cell p, .brain-cell li{font-size:12px; color:#B7C2CE; margin:0 0 4px;}
+.brain-cell ul{margin:0; padding-left:15px;}
 
-/* step flow (code walkthrough) */
-.step-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px;}
-.step{font-family:var(--font-mono);font-size:12px;background:var(--card-hi);border:1px solid var(--border-hi);padding:6px 10px;border-radius:7px;}
-.step-arrow{color:var(--faint);}
-
-/* ---------- Real project usage ---------- */
-.proj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
-.proj-card{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.proj-card .name{font-family:var(--font-display);font-weight:600;font-size:15px;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
-.proj-card .swatch{width:9px;height:9px;border-radius:50%;background:var(--get);}
-.proj-card p{font-size:13.5px;color:var(--muted);}
-
-/* ---------- Mistakes ---------- */
-.mistake-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-@media(max-width:640px){.mistake-pair{grid-template-columns:1fr;}}
-.mrow{border-radius:10px;padding:12px 14px;font-size:13.5px;border:1px solid var(--border);}
-.mrow.wrong{background:rgba(248,81,73,.08);border-color:rgba(248,81,73,.35);}
-.mrow.right{background:rgba(63,185,80,.08);border-color:rgba(63,185,80,.35);}
-.mrow .lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;display:block;}
-.mrow.wrong .lbl{color:var(--delete);}
-.mrow.right .lbl{color:var(--get);}
-
-/* ---------- Debug flow ---------- */
-.debug-case{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:12px;}
-.debug-case .title{font-weight:600;font-size:14px;margin-bottom:8px;}
-.debug-steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-family:var(--font-mono);font-size:11.5px;}
-.debug-steps span.s{background:var(--card-hi);border:1px solid var(--border-hi);padding:4px 9px;border-radius:6px;}
-.debug-steps span.s.fix{border-color:var(--get);color:var(--get);}
-.debug-steps .a{color:var(--faint);}
-
-/* ---------- Callout boxes ---------- */
-.callout{border-radius:10px;padding:14px 16px;margin-bottom:14px;border:1px solid; font-size:14px;}
-.callout .c-lbl{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px;display:flex;align-items:center;gap:6px;}
-.callout.warn{background:var(--amber-bg);border-color:rgba(210,153,34,.4);}
-.callout.warn .c-lbl{color:var(--amber);}
-.callout.trap{background:rgba(248,81,73,.07);border-color:rgba(248,81,73,.3);}
-.callout.trap .c-lbl{color:var(--delete);}
-.callout.tip{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.3);}
-.callout.tip .c-lbl{color:var(--post);}
-
-/* ---------- Exam pattern grid ---------- */
-.exam-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-@media(max-width:640px){.exam-grid{grid-template-columns:1fr;}}
-.exam-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
-.exam-box h4{font-family:var(--font-mono);font-size:12px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-bottom:9px;}
-.exam-box ul{list-style:none;display:grid;gap:7px;}
-.exam-box li{font-size:13.5px;color:var(--text);padding-left:14px;position:relative;}
-.exam-box li::before{content:"›";position:absolute;left:0;color:var(--get);}
-
-/* ---------- Interview tiers ---------- */
-.tier{margin-bottom:14px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
-.tier-head{padding:9px 16px;font-family:var(--font-mono);font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-.tier.easy .tier-head{background:rgba(63,185,80,.12);color:var(--get);}
-.tier.med .tier-head{background:rgba(210,153,34,.12);color:var(--amber);}
-.tier.hard .tier-head{background:rgba(248,81,73,.12);color:var(--delete);}
-.tier-body{padding:12px 16px;background:var(--bg-soft);}
-.tier-body .item{margin-bottom:10px;font-size:13.5px;}
-.tier-body .item:last-child{margin-bottom:0;}
-.tier-body .item .q{font-weight:600;color:var(--text);}
-.tier-body .item .a{color:var(--muted);margin-top:2px;}
-
-/* ---------- One-page brain ---------- */
-.remember-chain{display:grid;gap:8px;margin-top:14px;}
-.rc-row{
-  display:grid;grid-template-columns:140px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:9px 14px;
-}
-.rc-row .key{font-family:var(--font-mono);font-size:12.5px;font-weight:700;color:var(--post);}
-.rc-row .val{font-size:13px;color:var(--muted);}
-@media(max-width:560px){.rc-row{grid-template-columns:1fr;gap:2px;}}
-
-/* ---------- Revision table ---------- */
-.rev-table-wrap{overflow-x:auto;}
-table.rev{width:100%;border-collapse:collapse;font-size:13.5px;min-width:560px;}
-table.rev th{
-  font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;
-  color:var(--faint);text-align:left;padding:10px 12px;border-bottom:1px solid var(--border-hi);
-}
-table.rev td{padding:10px 12px;border-bottom:1px solid var(--border);}
-table.rev tr:last-child td{border-bottom:none;}
-.verb-pill{font-family:var(--font-mono);font-weight:700;padding:2px 9px;border-radius:5px;font-size:12px;display:inline-block;}
-.verb-pill.get{background:rgba(63,185,80,.15);color:var(--get);}
-.verb-pill.post{background:rgba(88,166,255,.15);color:var(--post);}
-.verb-pill.put{background:rgba(210,168,255,.15);color:var(--put);}
-.verb-pill.patch{background:rgba(210,153,34,.15);color:var(--amber);}
-.verb-pill.delete{background:rgba(248,81,73,.15);color:var(--delete);}
-.yn{font-weight:700;}
-.yn.y{color:var(--get);} .yn.n{color:var(--delete);}
-
-/* ---------- Practice ladder ---------- */
-.ladder{display:flex;flex-direction:column;gap:8px;}
-.rung{
-  display:grid;grid-template-columns:auto 110px 1fr;gap:12px;align-items:center;
-  background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:11px 14px;
-  position:relative;
-}
-.rung .lvl{
-  font-family:var(--font-mono);font-weight:700;font-size:12px;color:var(--bg);
-  background:var(--get);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-}
-.rung:nth-child(2) .lvl{background:#57C15F;}
-.rung:nth-child(3) .lvl{background:var(--post);}
-.rung:nth-child(4) .lvl{background:var(--put);}
-.rung:nth-child(5) .lvl{background:var(--amber);}
-.rung:nth-child(6) .lvl{background:#FF9F5A;}
-.rung:nth-child(7) .lvl{background:var(--delete);}
-.rung .tag2{font-family:var(--font-mono);font-size:11px;color:var(--faint);}
-.rung .desc{font-size:13.5px;color:var(--text);}
-@media(max-width:560px){.rung{grid-template-columns:auto 1fr;} .rung .tag2{grid-column:2;font-size:10px;}}
-
-/* ---------- Memory palace ---------- */
-.palace-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-@media(max-width:760px){.palace-grid{grid-template-columns:1fr;}}
-.palace-card{background:var(--bg-soft);border:1px solid var(--border-hi);border-radius:10px;padding:16px;text-align:center;}
-.palace-card .ic{font-size:26px;margin-bottom:8px;}
-.palace-card h5{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);margin-bottom:8px;}
-.palace-card p{font-size:13.5px;color:var(--text);}
-.ascii{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:pre;text-align:left;margin-top:8px;background:var(--card-hi);border-radius:6px;padding:8px;overflow-x:auto;}
-
-/* ---------- Summary footer ---------- */
-.footer-note{text-align:center;color:var(--faint);font-size:12px;font-family:var(--font-mono);margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+footer{text-align:center; padding:36px 20px 56px; color:var(--ink-faint); font-size:12px; font-family:var(--font-mono);}
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
-    <div class="addr"><span class="verb">GET</span> <span class="path">/mad2/w8/lecture-2/designing-apis-part-2</span> · 200 OK</div>
+    <span class="topbar-tag">LEC 8.2</span>
+    <span class="topbar-title">Designing APIs</span>
+    <div class="navlinks">
+      <a href="#verbs">Verbs</a>
+      <a href="#data">Data Format</a>
+      <a href="#hypermedia">Hypermedia</a>
+      <a href="#auth">Auth</a>
+      <a href="#rest-reality">REST Reality</a>
+      <a href="#bigpicture">Big Picture</a>
+      <a href="#brain">Recap</a>
+    </div>
   </div>
 </div>
 
-<div class="shell">
+<header class="hero grid-bg">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span> MAD2 · Modern Application Development 2 — Lecture 8.2</div>
+    <h1 class="hero-title">Designing APIs — <span class="accent">Part 2</span></h1>
+    <p class="hero-sub">A good API isn't the one that follows REST to the letter. It's the one a developer can guess correctly, without reading your docs. Four conventions make that possible — and knowing when to bend them is the real skill.</p>
 
-  <nav class="sidenav">
-    <h4>19 Modules</h4>
-    <ol>
-      <li><a href="#m1">Topic Card</a></li>
-      <li><a href="#m2">Core Intuition</a></li>
-      <li><a href="#m3">Visual Model</a></li>
-      <li><a href="#m4">Pattern Recognition</a></li>
-      <li><a href="#m5">Deep Fundamentals</a></li>
-      <li><a href="#m6">Execution Flow</a></li>
-      <li><a href="#m7">Syntax Anatomy</a></li>
-      <li><a href="#m8">Code Walkthrough</a></li>
-      <li><a href="#m9">Behind the Scenes</a></li>
-      <li><a href="#m10">Lecture Notes</a></li>
-      <li><a href="#m11">Real Project Usage</a></li>
-      <li><a href="#m12">Common Mistakes</a></li>
-      <li><a href="#m13">Debugging Mindset</a></li>
-      <li><a href="#m14">IITM Exam Pattern</a></li>
-      <li><a href="#m15">Interview Questions</a></li>
-      <li><a href="#m16">One-Page Brain</a></li>
-      <li><a href="#m17">Revision Table</a></li>
-      <li><a href="#m18">Practice Ladder</a></li>
-      <li><a href="#m19">Memory Palace</a></li>
-    </ol>
-  </nav>
-
-  <main>
-    <header class="hero">
-      <div class="eyebrow">W8 · Lecture 2 · MAD2 Learning OS</div>
-      <h1>Designing APIs <span class="accent">(Part 2)</span></h1>
-      <p class="lede">HTTP conventions, output formats, hypermedia discovery, authentication, and why real-world REST is a set of habits, not a law — walked through all 18 modules, start to mastery.</p>
-    </header>
-
-    <!-- MODULE 1 -->
-    <section class="module" id="m1">
-      <div class="module-head"><div class="module-num">1</div><h2>Topic Card</h2><span class="tag">30 seconds</span></div>
-      <div class="module-body">
-        <div class="topic-grid">
-          <div class="topic-cell"><div class="k">Topic</div><div class="v">Designing APIs — Part 2</div></div>
-          <div class="topic-cell"><div class="k">Category</div><div class="v">Backend Development · API Design</div></div>
-          <div class="topic-cell"><div class="k">Difficulty</div><div class="v stars">★★★☆☆</div></div>
-          <div class="topic-cell"><div class="k">Prerequisites</div><div class="v">HTTP basics, REST fundamentals, API Design Part 1</div></div>
-          <div class="topic-cell"><div class="k">Importance</div><div class="v stars">★★★★★</div></div>
+    <div class="inspector">
+      <div class="inspector-bar">
+        <div class="traffic"><span></span><span></span><span></span></div>
+        <span class="label">network — /api/v1/books/42</span>
+      </div>
+      <div class="inspector-grid">
+        <div class="inspector-col">
+          <div class="req-line"><span class="verb-badge get">GET</span><span class="url-text">/books/42</span><span class="status-badge status-2xx">200 OK</span></div>
+          <div>Read-only. Doesn't touch the database.</div>
+          <span class="cache-chip">✓ cacheable</span>
+          <div class="body-block">{ <span class="k">"id"</span><span class="punct">:</span> <span class="s">42</span>, <span class="k">"title"</span><span class="punct">:</span> <span class="s">"Clean Code"</span> }</div>
+        </div>
+        <div class="inspector-col">
+          <div class="req-line"><span class="verb-badge post">POST</span><span class="url-text">/books</span><span class="status-badge status-3xx">201 Created</span></div>
+          <div>Creates data. Payload rides in the body.</div>
+          <span class="cache-chip">✕ not cached</span>
+          <div class="body-block"><span class="k">"title"</span><span class="punct">:</span> <span class="s">"Refactoring"</span>,<br><span class="k">"author"</span><span class="punct">:</span> <span class="s">"Fowler"</span></div>
         </div>
       </div>
-    </section>
+    </div>
+  </div>
+</header>
 
-    <!-- MODULE 2 -->
-    <section class="module" id="m2">
-      <div class="module-head"><div class="module-num">2</div><h2>Core Intuition (WHY)</h2></div>
-      <div class="module-body">
-        <div class="analogy">
-          <div class="ic">🍽️</div>
-          <div>
-            <div class="label">Analogy — the restaurant menu</div>
-            <p>An API is a restaurant menu with a very disciplined waiter. <strong>GET</strong> is "let me look at the menu again" — nothing in the kitchen changes. <strong>POST</strong> is "cook me something new." Before taking any order, the waiter checks your reservation card — that's <strong>authentication</strong>. Good API design isn't a rulebook enforced by police; it's shared etiquette that lets any client and any server understand each other on the first try.</p>
-          </div>
-        </div>
+<div class="wrap">
+
+  <!-- Compact orientation, not a full layer section -->
+  <div class="orient-card">
+    <div>
+      <h4>What kind of topic this is</h4>
+      <p>Convention + trade-off judgment, not math. There's no formula to derive here — the "correctness" is social: does this API match what developers already expect from HTTP?</p>
+    </div>
+    <div>
+      <h4>Walk in knowing</h4>
+      <div class="chip-row">
+        <span class="chip">HTTP request/response cycle</span>
+        <span class="chip">Client–server model</span>
+        <span class="chip">JSON basics</span>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <!-- MODULE 3 -->
-    <section class="module" id="m3">
-      <div class="module-head"><div class="module-num">3</div><h2>Visual Mental Model</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="ping">
-            <div class="side client">CLIENT<br><span style="color:var(--faint)">app / browser</span></div>
-            <div class="wire"><div class="pulse"></div><div class="pulse back"></div></div>
-            <div class="side server">SERVER<br><span style="color:var(--faint)">auth → logic → JSON</span></div>
-          </div>
-          <div class="flow-caption">Request carries a VERB + FORMAT · Response carries STATUS + JSON + LINKS</div>
-        </div>
+  <!-- VERBS -->
+  <section class="concept" id="verbs">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 1</div>
+      <h2 class="concept-title">HTTP Verb Semantics</h2>
+      <p class="concept-desc">Map verbs (actions) onto nouns (resources) — and never surprise a developer who already knows what these verbs "should" do.</p>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Verb</th><th>Intent</th><th>Cacheable</th><th>Payload</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><span class="verb-badge get">GET</span></td><td>Read-only retrieval, no DB modification</td><td>Usually yes</td><td>URL / query params</td><td class="mono">GET /users/7</td></tr>
+          <tr><td><span class="verb-badge post">POST</span></td><td>Create new data</td><td>No</td><td>Request body</td><td class="mono">POST /users</td></tr>
+          <tr><td><span class="verb-badge put">PUT</span></td><td>Replace a resource fully, by convention</td><td>No</td><td>Request body</td><td class="mono">PUT /users/7</td></tr>
+          <tr><td><span class="verb-badge patch">PATCH</span></td><td>Partially update, by convention</td><td>No</td><td>Request body</td><td class="mono">PATCH /users/7</td></tr>
+          <tr><td><span class="verb-badge delete">DELETE</span></td><td>Remove a resource, by convention</td><td>No</td><td>Usually none</td><td class="mono">DELETE /users/7</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card-grid">
+      <div class="card card-tinted get"><h3>GET — the librarian</h3><p>Fetches a book without rewriting it. Because it never changes state, the same question asked twice can safely reuse a cached answer.</p></div>
+      <div class="card card-tinted post"><h3>POST — the intake clerk</h3><p>Files a new form as a fresh record. Two identical submissions can create two different records — so caching it would be unsafe.</p></div>
+    </div>
+
+    <div class="callout warning">
+      <div class="icon">!</div>
+      <div class="content"><strong>Trap: breaking verb conventions</strong><p>A GET that silently deletes a row isn't a style nitpick — it breaks caching, prefetching, and every developer's mental model of "safe" requests. This is treated as a significant design failure, not a minor one.</p></div>
+    </div>
+
+    <div class="callout trap">
+      <div class="icon">R</div>
+      <div class="content"><strong>Recognize it</strong><p>A URL like <code>/deleteUser?id=7</code> called via GET is the tell — the action leaked into the path instead of living in the verb.</p></div>
+    </div>
+  </section>
+
+  <!-- DATA FORMAT -->
+  <section class="concept" id="data">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 2</div>
+      <h2 class="concept-title">Structured Data Output</h2>
+      <p class="concept-desc">Return data, not markup, so any client can render it its own way.</p>
+    </div>
+
+    <div class="card-grid">
+      <div>
+        <p class="code-caption">JSON — current standard</p>
+        <div class="code-block">{<br>&nbsp;&nbsp;<span class="c-key">"id"</span><span class="c-punc">:</span> <span class="c-str">42</span>,<br>&nbsp;&nbsp;<span class="c-key">"title"</span><span class="c-punc">:</span> <span class="c-str">"Clean Code"</span><br>}<br><span class="c-com">// terse, native to JS, easy to parse</span></div>
       </div>
-    </section>
-
-    <!-- MODULE 4 -->
-    <section class="module" id="m4">
-      <div class="module-head"><div class="module-num">4</div><h2>Pattern Recognition</h2></div>
-      <div class="module-body">
-        <p style="color:var(--muted);font-size:13.5px;margin-bottom:10px;">Trigger words — spot these in a question and you know instantly what's being tested:</p>
-        <div class="chip-row">
-          <span class="chip">GET</span><span class="chip">POST</span><span class="chip">PUT</span><span class="chip">PATCH</span><span class="chip">DELETE</span>
-          <span class="chip">cacheable</span><span class="chip">idempotent</span><span class="chip">JSON</span><span class="chip">XML</span>
-          <span class="chip">self link</span><span class="chip">hypermedia</span><span class="chip">OAuth 2</span><span class="chip">JWT</span>
-          <span class="chip">chatty</span><span class="chip">sparse fieldset</span>
-        </div>
-        <table class="shortcut-table">
-          <tr><th>Trigger</th><th></th><th>Recognition shortcut</th></tr>
-          <tr><td>"reads data, no side effects"</td><td class="arrow">→</td><td>GET, cacheable</td></tr>
-          <tr><td>"creates a new resource"</td><td class="arrow">→</td><td>POST, not cacheable</td></tr>
-          <tr><td>"links to follow / discover more"</td><td class="arrow">→</td><td>Hypermedia (self + relationship links)</td></tr>
-          <tr><td>"don't build your own login system"</td><td class="arrow">→</td><td>OAuth 2 / JWT</td></tr>
-          <tr><td>"too many round trips for one screen"</td><td class="arrow">→</td><td>REST is "chatty"</td></tr>
-        </table>
+      <div>
+        <p class="code-caption">XML — historically important</p>
+        <div class="code-block">&lt;<span class="c-tag">book</span> <span class="c-key">id</span>=<span class="c-str">"42"</span>&gt;<br>&nbsp;&nbsp;&lt;<span class="c-tag">title</span>&gt;Clean Code&lt;/<span class="c-tag">title</span>&gt;<br>&lt;/<span class="c-tag">book</span>&gt;<br><span class="c-com">// verbose, richer typing/hierarchy</span></div>
       </div>
-    </section>
+    </div>
 
-    <!-- MODULE 5 -->
-    <section class="module" id="m5">
-      <div class="module-head"><div class="module-num">5</div><h2>Deep Fundamentals</h2></div>
-      <div class="module-body">
-        <div class="qa">
-          <div class="q">Why were HTTP verb conventions created?</div>
-          <div class="a">So that any client, proxy, browser, or cache — written by anyone, at any time — can predict what an endpoint does just from its verb, without reading custom documentation for every API.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What problem does this solve?</div>
-          <div class="a">Without shared convention, every team invents its own semantics. Caches can't safely cache, retries become dangerous (what if a "read" secretly deletes something?), and tooling built for one API breaks on the next.</div>
-        </div>
-        <div class="qa">
-          <div class="q">What happens internally when a request arrives?</div>
-          <div class="a">The server's router looks at the verb + path together. A GET is routed toward a read path (often hitting a cache or read-replica); a POST is routed toward a write path that touches the primary database and returns the newly created resource.</div>
-        </div>
-        <div class="qa">
-          <div class="q">How does this get executed in practice?</div>
-          <div class="a">The framework matches method + URL pattern to a handler function, the handler authenticates the caller, performs the operation, and serializes the result — typically as JSON, often annotated with hypermedia links.</div>
-        </div>
+    <div class="callout judgment">
+      <div class="icon">⚖</div>
+      <div class="content"><strong>Judgment call</strong><p>Need rich typing, namespaces, or schema validation across systems? XML still earns its keep. Building for a typical web/mobile client? JSON's lighter payload and native JS mapping make it the default.</p></div>
+    </div>
+  </section>
+
+  <!-- HYPERMEDIA -->
+  <section class="concept" id="hypermedia">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 3</div>
+      <h2 class="concept-title">Hypermedia and API Discovery</h2>
+      <p class="concept-desc">Let responses describe their own neighborhood, so developers can explore the API without leaving it.</p>
+    </div>
+
+    <div class="card">
+      <h3>The self-link pattern</h3>
+      <p class="code-caption">Response for GET /books/42</p>
+      <div class="code-block">{<br>&nbsp;&nbsp;<span class="c-key">"id"</span><span class="c-punc">:</span> <span class="c-str">42</span>,<br>&nbsp;&nbsp;<span class="c-key">"links"</span><span class="c-punc">:</span> {<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"self"</span><span class="c-punc">:</span> <span class="c-str">"/books/42"</span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"author"</span><span class="c-punc">:</span> <span class="c-str">"/authors/9"</span>,<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-key">"reviews"</span><span class="c-punc">:</span> <span class="c-str">"/books/42/reviews"</span><br>&nbsp;&nbsp;}<br>}</div>
+    </div>
+
+    <div class="diagram">
+      <div class="node-row"><div class="node accent">Book #42</div><div class="arrow">↔</div><div class="node">Author #9</div></div>
+      <div style="height:12px"></div>
+      <div class="node-row"><div class="node accent">Book #42</div><div class="arrow">↔</div><div class="node">Reviews</div></div>
+    </div>
+
+    <div class="callout analogy">
+      <div class="icon">A</div>
+      <div class="content"><strong>Like the GitHub API</strong><p>Hitting GitHub's API root hands back links to every major resource — repos, gists, issues — the way a museum front desk hands you a map instead of a memorized floor plan.</p></div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section class="concept" id="auth">
+    <div class="concept-head">
+      <div class="concept-kicker">Concept 4</div>
+      <h2 class="concept-title">Authentication Best Practices</h2>
+      <p class="concept-desc">Security is one place where "just build it yourself" is almost always the wrong call.</p>
+    </div>
+
+    <div class="card-grid">
+      <div class="card"><h3>OAuth 2</h3><p>Delegated access standard — a user grants a third-party app limited access without ever handing over their password.</p></div>
+      <div class="card"><h3>JWT</h3><p>A compact, signed JSON object carrying verified identity claims between client and API.</p></div>
+    </div>
+
+    <div class="failure-strip">
+      <div class="failure-stage works"><h5>Works</h5><p>Custom auth passes internal tests, ships on time.</p></div>
+      <div class="failure-stage degrades"><h5>Degrades</h5><p>Edge cases — token replay, weak expiry — patched reactively.</p></div>
+      <div class="failure-stage fails"><h5>Fails</h5><p>An undiscovered flaw gets exploited. No community had a chance to catch it first.</p></div>
+    </div>
+
+    <div class="callout warning">
+      <div class="icon">!</div>
+      <div class="content"><strong>Never true</strong><p>"Home-rolled auth is fine just this once." Standards like OAuth 2 and JWT have been stress-tested industry-wide — a custom scheme hasn't, and that gap is where vulnerabilities hide.</p></div>
+    </div>
+  </section>
+
+  <!-- REST REALITY -->
+  <section class="concept" id="rest-reality">
+    <div class="concept-head">
+      <div class="concept-kicker">Zooming out</div>
+      <h2 class="concept-title">"RESTful" is usually an approximation</h2>
+      <p class="concept-desc">Real REST APIs bend the original architecture constantly — knowing when that's the right call is the actual skill this lecture is teaching.</p>
+    </div>
+
+    <div class="card">
+      <h3>The "chatty" problem</h3>
+      <p>Strict resource-per-endpoint design can force a client into many round-trips to assemble one screen.</p>
+      <div class="diagram">
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node">GET /book/42</div></div>
+        <div style="height:6px"></div>
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node">GET /authors/9</div></div>
+        <div style="height:6px"></div>
+        <div class="node-row"><div class="node">Client</div><div class="arrow">→</div><div class="node accent">GET /books/42/reviews</div></div>
       </div>
-    </section>
+      <p>Three requests, one screen — this is the cost strict purity can impose.</p>
+    </div>
 
-    <!-- MODULE 6 -->
-    <section class="module" id="m6">
-      <div class="module-head"><div class="module-num">6</div><h2>Execution Flow</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row"><div class="flow-node a">Client builds request</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node b">Choose verb + format (JSON)</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node d">Server: auth middleware validates token</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node c">Server: read or write handler runs</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node a">Response serialized: JSON + self/relationship links</div><div class="flow-arrow">↓</div></div>
-          <div class="flow-row"><div class="flow-node b">Client parses JSON, optionally follows a link</div></div>
-        </div>
+    <div class="card">
+      <h3>Flexibility vs. purity</h3>
+      <p>REST's core ideas — statelessness, cacheability, resource identification — are a foundation, not a cage. Letting a client pick which fields to return, for instance, is an acceptable deviation when it clearly improves developer experience.</p>
+      <div class="spectrum">
+        <div class="spectrum-marker" style="left:15%" data-label="Strict REST purism"></div>
+        <div class="spectrum-marker" style="left:85%" data-label="Pragmatic, DX-first design"></div>
       </div>
-    </section>
+      <div class="spectrum-ends"><span>Theory-first</span><span>Developer-first</span></div>
+    </div>
 
-    <!-- MODULE 7 -->
-    <section class="module" id="m7">
-      <div class="module-head"><div class="module-num">7</div><h2>Syntax Anatomy</h2></div>
-      <div class="module-body">
-        <div class="anatomy-block">
-          <div class="anatomy-line">GET /users/42 HTTP/1.1
-Authorization: Bearer &lt;jwt-token&gt;
-Accept: application/json</div>
-        </div>
-        <div class="anno-list">
-          <div class="anno-item"><span class="tok">GET</span><span class="desc">the verb — declares intent to read, must not change server state</span></div>
-          <div class="anno-item"><span class="tok">/users/42</span><span class="desc">the path — identifies exactly which resource is being addressed</span></div>
-          <div class="anno-item"><span class="tok">HTTP/1.1</span><span class="desc">protocol version the client is speaking</span></div>
-          <div class="anno-item"><span class="tok">Authorization: Bearer …</span><span class="desc">carries the token — proves who's asking, per the JWT/OAuth 2 standard</span></div>
-          <div class="anno-item"><span class="tok">Accept: application/json</span><span class="desc">tells the server which format the client wants back</span></div>
-        </div>
-      </div>
-    </section>
+    <div class="callout judgment">
+      <div class="icon">⚖</div>
+      <div class="content"><strong>When to bend the rules</strong><p>Bend REST when a client needs a custom data shape every call (→ field selection), when one screen needs many resources (→ an aggregation endpoint), or when consumers are internal and iteration speed beats theoretical cleanliness. This is also exactly the gap GraphQL and gRPC were built to close.</p></div>
+    </div>
+  </section>
 
-    <!-- MODULE 8 -->
-    <section class="module" id="m8">
-      <div class="module-head"><div class="module-num">8</div><h2>Code Walkthrough</h2></div>
-      <div class="module-body">
-        <div class="codeblock">
-          <div class="cb-head">response.json — annotated</div>
-          <pre>{
-  <span class="c-prop">"id"</span>: <span class="c-str">42</span>,
-  <span class="c-prop">"name"</span>: <span class="c-str">"Priya Sharma"</span>,           <span class="c-com">// the actual data</span>
-  <span class="c-prop">"links"</span>: {
-    <span class="c-prop">"self"</span>: <span class="c-str">"/users/42"</span>,          <span class="c-com">// self-link: "you are here"</span>
-    <span class="c-prop">"followers"</span>: <span class="c-str">"/users/42/followers"</span> <span class="c-com">// relationship link: "go here for more"</span>
-  }
-}</pre>
-        </div>
-        <p style="font-size:13.5px;color:var(--muted);">Call sequence when a client fetches a user, then follows a link:</p>
-        <div class="step-flow">
-          <span class="step">buildRequest()</span><span class="step-arrow">→</span>
-          <span class="step">attachAuthHeader()</span><span class="step-arrow">→</span>
-          <span class="step">fetch()</span><span class="step-arrow">→</span>
-          <span class="step">parseJSON()</span><span class="step-arrow">→</span>
-          <span class="step">followLink('followers')</span>
-        </div>
-      </div>
-    </section>
+  <!-- BIG PICTURE -->
+  <section class="concept" id="bigpicture">
+    <div class="concept-head">
+      <div class="concept-kicker">Connections & traps</div>
+      <h2 class="concept-title">Where this fits, and where it's misread</h2>
+      <p class="concept-desc">A quick look outward before the recap.</p>
+    </div>
 
-    <!-- MODULE 9 -->
-    <section class="module" id="m9">
-      <div class="module-head"><div class="module-num">9</div><h2>Behind the Scenes</h2></div>
-      <div class="module-body">
-        <div class="diagram">
-          <div class="flow-row">
-            <div class="flow-node a">Request received</div><div class="flow-arrow">→</div>
-            <div class="flow-node b">Router matches verb+path</div><div class="flow-arrow">→</div>
-            <div class="flow-node d">Auth middleware checks token</div>
-          </div>
-          <div class="flow-arrow" style="margin:6px 0;">↓</div>
-          <div class="flow-row">
-            <div class="flow-node c">Handler reads/writes DB</div><div class="flow-arrow">→</div>
-            <div class="flow-node a">Serializer builds JSON + links</div><div class="flow-arrow">→</div>
-            <div class="flow-node b">Response sent with status code</div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <div class="card">
+      <p><strong>Looking back:</strong> builds on Lecture 8.1's API fundamentals — resources, endpoints, basic REST. <strong>Looking forward:</strong> the chatty problem raised above is the direct motivation behind GraphQL (client-shaped queries) and gRPC (efficient binary RPC). <strong>In industry:</strong> GitHub's API is a hypermedia-discovery benchmark; Stripe's is praised for predictable verb usage.</p>
+    </div>
 
-    <!-- MODULE 10 -->
-    <section class="module" id="m10">
-      <div class="module-head"><div class="module-num">10</div><h2>Lecture Notes</h2><span class="tag">Original Topic Content</span></div>
-      <div class="module-body">
-        <p style="color:var(--muted);font-size:15px;margin-bottom:16px;">This section contains the full original lecture content — the concepts, details, and explanations as taught in the lecture, outside the framework structure.</p>
+    <div class="callout trap">
+      <div class="icon">✕</div>
+      <div class="content"><strong>Exam trap</strong><p>"REST is a strict standard with a fixed rulebook" — false. REST is an architectural style with guiding constraints; "RESTful" in practice is almost always a pragmatic approximation.</p></div>
+    </div>
+    <div class="callout trap">
+      <div class="icon">✕</div>
+      <div class="content"><strong>Exam trap</strong><p>"GET shouldn't be cached because data can change" — false. GET is cacheable precisely because it's expected not to modify state.</p></div>
+    </div>
 
-        <div class="qa">
-          <div class="q">Output Formats — JSON vs XML vs YAML</div>
-          <div class="a"><strong>JSON</strong> (JavaScript Object Notation) is the dominant format for web APIs — lightweight, human-readable, and natively understood by JavaScript. <strong>XML</strong> (eXtensible Markup Language) is more verbose but supports attributes, namespaces, and schema validation (XSD) — still used in SOAP APIs and enterprise systems. <strong>YAML</strong> (YAML Ain't Markup Language) is a superset of JSON optimized for human readability — used in config files (Docker, Kubernetes) but less common in API responses. The choice depends on the ecosystem: mobile and web apps prefer JSON; enterprise and document-centric systems may prefer XML.</div>
-        </div>
+    <h3 style="font-family:var(--font-display); font-size:16px; margin:22px 0 4px;">Active recall</h3>
+    <details class="qa"><summary>Why is GET cacheable but POST isn't?</summary><div class="qa-answer">GET never modifies the database, so repeating it is safe and returns the same result. POST creates data, so identical requests can produce different outcomes — caching it would be unsafe.</div></details>
+    <details class="qa"><summary>Give an example of "bending" REST that's still good design.</summary><div class="qa-answer">Letting clients select which fields a response returns — a deviation from pure resource modeling that's widely accepted because it improves developer experience.</div></details>
+    <details class="qa"><summary>What problem does the self-link pattern solve?</summary><div class="qa-answer">It cuts reliance on external docs — a developer can discover related resources by following links inside the API's own responses, the way GitHub's API works.</div></details>
+  </section>
 
-        <div class="qa">
-          <div class="q">Content Negotiation</div>
-          <div class="a">HTTP content negotiation lets the client and server agree on the format of the response. The client sends an <code>Accept</code> header (e.g. <code>Accept: application/json</code>) to declare what it can handle. The server responds with a <code>Content-Type</code> header (e.g. <code>Content-Type: application/json</code>) to declare what it actually returned. If the server can't satisfy the request, it returns <strong>406 Not Acceptable</strong>. This mechanism allows a single endpoint to serve JSON to a mobile app, XML to a legacy system, and HTML to a browser — all from the same URL.</div>
-        </div>
+  <!-- RECAP -->
+  <section class="concept" id="brain">
+    <div class="concept-head">
+      <div class="concept-kicker">Recap</div>
+      <h2 class="concept-title">The whole lecture, compressed</h2>
+    </div>
 
-        <div class="qa">
-          <div class="q">HTTP Status Codes</div>
-          <div class="a"><strong>2xx Success:</strong> 200 OK (general success), 201 Created (resource created, usually after POST), 204 No Content (success but nothing to return, e.g. after DELETE). <strong>3xx Redirection:</strong> 301 Moved Permanently, 302 Found, 304 Not Modified (cached version is still valid). <strong>4xx Client Error:</strong> 400 Bad Request (malformed syntax), 401 Unauthorized (not authenticated), 403 Forbidden (authenticated but not authorized), 404 Not Found, 405 Method Not Allowed, 409 Conflict (e.g. duplicate creation), 422 Unprocessable Entity (valid syntax but semantic errors), 429 Too Many Requests (rate limited). <strong>5xx Server Error:</strong> 500 Internal Server Error, 502 Bad Gateway, 503 Service Unavailable, 504 Gateway Timeout. Choosing the right status code is critical — it tells the client exactly what happened and what to do next.</div>
-        </div>
+    <div class="brain-grid">
+      <div class="brain-cell"><h5>Core Intuition</h5><p>Good APIs are predictable to a developer who's never read your docs.</p></div>
+      <div class="brain-cell"><h5>Verb Map</h5><ul><li>GET → read, cacheable</li><li>POST → create, body</li><li>PUT/PATCH/DELETE → follow convention</li></ul></div>
+      <div class="brain-cell"><h5>Data Format</h5><p>JSON default. XML for rich typed hierarchies.</p></div>
+      <div class="brain-cell"><h5>Discovery</h5><p>Self-links let clients crawl the API instead of memorizing docs.</p></div>
+      <div class="brain-cell"><h5>Auth</h5><p>Use OAuth 2 / JWT. Never home-roll.</p></div>
+      <div class="brain-cell"><h5>REST Reality</h5><p>"RESTful" = approximation. Bend rules for DX, not laziness.</p></div>
+      <div class="brain-cell"><h5>Known Failure</h5><p>Chatty APIs → many round-trips → GraphQL/gRPC exist because of this.</p></div>
+      <div class="brain-cell"><h5>Never True</h5><p>Custom auth is fine "just this once."</p></div>
+      <div class="brain-cell"><h5>Research Extensions</h5><p>GraphQL, gRPC, OpenAPI/Swagger, HATEOAS debates.</p></div>
+    </div>
+  </section>
 
-        <div class="qa">
-          <div class="q">HATEOAS — Hypermedia as the Engine of Application State</div>
-          <div class="a">HATEOAS is the highest maturity level of REST. Every response includes links that tell the client what actions are available next. For example, a user response might include <code>"links": {"self": "/users/42", "orders": "/users/42/orders", "deactivate": {"method": "DELETE", "href": "/users/42"}}</code>. This means the client doesn't need to hardcode URLs or know the API structure in advance — it discovers capabilities by following links, the same way a human follows hyperlinks on a webpage. This makes the API self-documenting and allows the server to change URLs without breaking clients.</div>
-        </div>
-
-        <div class="qa">
-          <div class="q">API Versioning</div>
-          <div class="a">APIs evolve over time, and breaking changes must not break existing clients. Common versioning strategies: <strong>URL path versioning</strong> (<code>/api/v1/users</code>, <code>/api/v2/users</code>) — simplest and most visible. <strong>Header versioning</strong> (<code>Accept: application/vnd.myapp.v2+json</code>) — keeps URLs clean but harder to test in a browser. <strong>Query parameter versioning</strong> (<code>/users?version=2</code>) — easy to implement but less conventional. The choice is a trade-off between simplicity and purity. URL path versioning is the most common in practice despite being "impure" from a REST theory standpoint.</div>
-        </div>
-
-        <div class="qa">
-          <div class="q">Rate Limiting & Pagination</div>
-          <div class="a"><strong>Rate limiting</strong> protects the server from abuse by capping how many requests a client can make in a time window (e.g. 100 requests per minute). The server responds with <strong>429 Too Many Requests</strong> and includes headers like <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>Retry-After</code>. <strong>Pagination</strong> breaks large result sets into pages. Common patterns: <strong>offset-based</strong> (<code>?page=2&amp;per_page=20</code>) — simple but breaks when data changes between pages. <strong>Cursor-based</strong> (<code>?cursor=abc123&amp;limit=20</code>) — more stable for real-time data. Both are essential for production APIs.</div>
-        </div>
-
-        <div class="qa">
-          <div class="q">Error Response Conventions</div>
-          <div class="a">A well-structured error response helps the client understand what went wrong and how to fix it. Standard practice: return a JSON body with at minimum <code>{"error": {"code": 422, "message": "Invalid email format", "details": {"field": "email", "reason": "must contain @"}}}</code>. The <code>message</code> is for developers; the <code>details</code> object provides structured, machine-readable information. Never return raw stack traces or database errors in production — they leak implementation details and create security risks.</div>
-        </div>
-
-        <div class="qa">
-          <div class="q">REST Maturity Model (Richardson Model)</div>
-          <div class="a"><strong>Level 0 — Swamp of POX:</strong> Single endpoint, one HTTP method (usually POST), raw XML/JSON in the body. Essentially a remote procedure call over HTTP. <strong>Level 1 — Resources:</strong> Multiple endpoints, each representing a resource (<code>/users</code>, <code>/orders</code>), but still possibly using a single HTTP method. <strong>Level 2 — HTTP Verbs:</strong> Proper use of GET, POST, PUT, PATCH, DELETE with appropriate status codes. This is where most "RESTful" APIs sit. <strong>Level 3 — Hypermedia Controls (HATEOAS):</strong> Responses include links that guide the client through available actions. This is "true REST" but rarely fully implemented in practice. Most production APIs target Level 2.</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 11 -->
-    <section class="module" id="m11">
-      <div class="module-head"><div class="module-num">11</div><h2>Real Project Usage</h2></div>
-      <div class="module-body">
-        <div class="proj-grid">
-          <div class="proj-card"><div class="name"><span class="swatch"></span>GitHub API</div><p>The textbook example of hypermedia — every response ships <code>self</code> and relationship links, so a client can "crawl" from a repo to its issues to a specific comment without hardcoding URLs.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--post)"></span>Stripe</div><p>Uses POST for creating charges but adds idempotency keys, so retrying a payment request after a timeout can't accidentally double-charge — a pragmatic bend of pure REST theory.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--put)"></span>Google APIs</div><p>Standardizes on OAuth 2 across every product (Gmail, Drive, Calendar) so one login flow and one token format work everywhere instead of each team rolling its own auth.</p></div>
-          <div class="proj-card"><div class="name"><span class="swatch" style="background:var(--amber)"></span>Twitter / X API</div><p>Uses JWT-based bearer tokens passed on every request, so the server can validate identity statelessly without a server-side session store.</p></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 11 -->
-    <section class="module" id="m11">
-      <div class="module-head"><div class="module-num">12</div><h2>Common Mistakes</h2></div>
-      <div class="module-body">
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Using GET to delete or modify a resource</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Use DELETE / POST — GET must stay side-effect free</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Rolling your own authentication scheme</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Use OAuth 2 or JWT — battle-tested by the security community</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Returning pre-rendered HTML from an API endpoint</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Return structured JSON and let the front end render it</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Shipping responses with no self/relationship links</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Include hypermedia links so the API is explorable and debuggable</div>
-        </div>
-        <div class="mistake-pair">
-          <div class="mrow wrong"><span class="lbl">❌ Wrong</span>Treating REST as a rigid law to obey at all costs</div>
-          <div class="mrow right"><span class="lbl">✅ Correct</span>Bend it pragmatically when it improves developer experience</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 12 -->
-    <section class="module" id="m12">
-      <div class="module-head"><div class="module-num">13</div><h2>Debugging Mindset</h2></div>
-      <div class="module-body">
-        <div class="debug-case">
-          <div class="title">"A GET-like endpoint is returning stale data"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: same request, old result</span><span class="a">→</span>
-            <span class="s">Observe: CDN/browser is caching</span><span class="a">→</span>
-            <span class="s">Find stage: endpoint secretly mutates state on GET</span><span class="a">→</span>
-            <span class="s fix">Fix: move mutation to POST, keep GET pure</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"Every request returns 401 Unauthorized"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: 401 runtime error</span><span class="a">→</span>
-            <span class="s">Observe: console shows missing/expired token</span><span class="a">→</span>
-            <span class="s">Find stage: auth middleware, before handler runs</span><span class="a">→</span>
-            <span class="s fix">Fix: refresh JWT / re-attach Authorization header</span>
-          </div>
-        </div>
-        <div class="debug-case">
-          <div class="title">"Client needs 6 requests to render one screen"</div>
-          <div class="debug-steps">
-            <span class="s">Problem: slow page, "chatty" warning</span><span class="a">→</span>
-            <span class="s">Observe: waterfall of sequential GETs</span><span class="a">→</span>
-            <span class="s">Find stage: no aggregation endpoint / no field filtering</span><span class="a">→</span>
-            <span class="s fix">Fix: add an aggregate endpoint or a query-param filter</span>
-          </div>
-        </div>
-        <div class="callout warn"><div class="c-lbl">⚠ Warning</div>Breaking verb conventions is treated as a major design flaw in interviews and in exams — flag it every time you see it.</div>
-      </div>
-    </section>
-
-    <!-- MODULE 13 -->
-    <section class="module" id="m13">
-      <div class="module-head"><div class="module-num">14</div><h2>IITM Exam Pattern</h2></div>
-      <div class="module-body">
-        <div class="exam-grid">
-          <div class="exam-box"><h4>Trigger Words</h4><ul>
-            <li>"safe to retry" → GET / idempotent verbs</li>
-            <li>"body carries the payload" → POST/PUT/PATCH</li>
-            <li>"crawl the API" → hypermedia / self links</li>
-            <li>"don't build it yourself" → OAuth2/JWT</li>
-          </ul></div>
-          <div class="exam-box"><h4>Trap Words</h4><ul>
-            <li>"REST requires…" — REST is a style, not a spec</li>
-            <li>"JSON supports types like XML" — it does not, natively</li>
-            <li>"GET can modify if small change" — never true</li>
-          </ul></div>
-          <div class="exam-box"><h4>MCQ Tricks</h4><ul>
-            <li>Option says "always follow REST strictly" → usually the wrong answer</li>
-            <li>Option mixes up cacheable (GET) vs non-cacheable (POST) → check verb first</li>
-          </ul></div>
-          <div class="exam-box"><h4>PYQ Pattern &amp; Elimination</h4><ul>
-            <li>Given a scenario, first identify the verb being described</li>
-            <li>Eliminate any option proposing custom-built auth</li>
-            <li>Prefer the option that favors developer usability over rigid theory</li>
-          </ul></div>
-        </div>
-        <div class="callout trap" style="margin-top:14px;"><div class="c-lbl">🪤 Classic trap</div>Questions may describe a "read-only" action but phrase it as modifying a counter (like a view count). Technically this is a side effect — many real APIs still use GET here pragmatically, but by strict convention it should be POST. Read the question's framing carefully.</div>
-      </div>
-    </section>
-
-    <!-- MODULE 14 -->
-    <section class="module" id="m14">
-      <div class="module-head"><div class="module-num">15</div><h2>Interview Questions</h2></div>
-      <div class="module-body">
-        <div class="tier easy">
-          <div class="tier-head">Easy</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">Why is GET cacheable but POST is not?</div><div class="a">GET should never change server state, so identical requests can safely return a stored response; POST creates data, so caching it would return stale or incorrect results.</div></div>
-            <div class="item"><div class="q">Why is JSON preferred over XML today?</div><div class="a">JSON is more compact and easier for humans and parsers to read, even though it lacks XML's native type system.</div></div>
-          </div>
-        </div>
-        <div class="tier med">
-          <div class="tier-head">Medium</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">What's the benefit of including self and relationship links in a response?</div><div class="a">It lets a developer (or client program) discover and navigate the API dynamically instead of hardcoding every URL — the same way the GitHub API works.</div></div>
-            <div class="item"><div class="q">Why avoid rolling your own authentication?</div><div class="a">Custom auth code is far more likely to contain security bugs than OAuth 2/JWT, which have been extensively reviewed and hardened by the security community.</div></div>
-          </div>
-        </div>
-        <div class="tier hard">
-          <div class="tier-head">Advanced</div>
-          <div class="tier-body">
-            <div class="item"><div class="q">REST doesn't natively support field filtering — how would you let a client request only a user's name instead of the full record, without breaking convention?</div><div class="a">Common pragmatic solutions: query parameters (e.g. <code>?fields=name</code>) or a GraphQL-style layer alongside REST — both bend strict theory in favor of usability.</div></div>
-            <div class="item"><div class="q">When is it acceptable to break REST conventions?</div><div class="a">Whenever rigid adherence would hurt the developer experience more than it helps — good API design is judged by usability, not textbook purity.</div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 15 -->
-    <section class="module" id="m15">
-      <div class="module-head"><div class="module-num">16</div><h2>One-Page Brain</h2></div>
-      <div class="module-body">
-        <div class="diagram" style="padding:16px;">
-          <div class="flow-caption" style="margin:0;font-size:12px;">Request → Verb + Format → Auth → Handler → JSON + Links → Response</div>
-        </div>
-        <div class="remember-chain">
-          <div class="rc-row"><span class="key">GET</span><span class="val">read, cacheable, no side effects</span></div>
-          <div class="rc-row"><span class="key">POST</span><span class="val">create, body payload, not cacheable</span></div>
-          <div class="rc-row"><span class="key">JSON</span><span class="val">the default output format</span></div>
-          <div class="rc-row"><span class="key">Self link</span><span class="val">"you are here"</span></div>
-          <div class="rc-row"><span class="key">OAuth2/JWT</span><span class="val">never build auth yourself</span></div>
-          <div class="rc-row"><span class="key">REST</span><span class="val">a style, bend it for usability</span></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 16 -->
-    <section class="module" id="m16">
-      <div class="module-head"><div class="module-num">17</div><h2>Quick Revision Table</h2></div>
-      <div class="module-body">
-        <div class="rev-table-wrap">
-        <table class="rev">
-          <tr><th>Verb</th><th>Purpose</th><th>Cacheable</th><th>Idempotent</th><th>Body</th></tr>
-          <tr><td><span class="verb-pill get">GET</span></td><td>Read data</td><td class="yn y">✅</td><td class="yn y">✅</td><td class="yn n">❌</td></tr>
-          <tr><td><span class="verb-pill post">POST</span></td><td>Create new data</td><td class="yn n">❌</td><td class="yn n">❌</td><td class="yn y">✅</td></tr>
-          <tr><td><span class="verb-pill put">PUT</span></td><td>Replace a resource</td><td class="yn n">❌</td><td class="yn y">✅</td><td class="yn y">✅</td></tr>
-          <tr><td><span class="verb-pill patch">PATCH</span></td><td>Partially update</td><td class="yn n">❌</td><td class="yn n">❌</td><td class="yn y">✅</td></tr>
-          <tr><td><span class="verb-pill delete">DELETE</span></td><td>Remove a resource</td><td class="yn n">❌</td><td class="yn y">✅</td><td class="yn n">❌</td></tr>
-        </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 17 -->
-    <section class="module" id="m17">
-      <div class="module-head"><div class="module-num">18</div><h2>Practice Ladder</h2></div>
-      <div class="module-body">
-        <div class="ladder">
-          <div class="rung"><div class="lvl">1</div><div class="tag2">Concept</div><div class="desc">Explain why GET must never modify server state.</div></div>
-          <div class="rung"><div class="lvl">2</div><div class="tag2">Predict Output</div><div class="desc">Given a response JSON with a <code>links.self</code> field, predict what URL a client would call next.</div></div>
-          <div class="rung"><div class="lvl">3</div><div class="tag2">Find Bug</div><div class="desc">Spot the flaw: an endpoint uses GET to increment a "like" counter.</div></div>
-          <div class="rung"><div class="lvl">4</div><div class="tag2">MCQ</div><div class="desc">Which verb is both cacheable and idempotent? Eliminate POST and PATCH first.</div></div>
-          <div class="rung"><div class="lvl">5</div><div class="tag2">Coding</div><div class="desc">Write a route handler that authenticates a JWT before serving a GET request.</div></div>
-          <div class="rung"><div class="lvl">6</div><div class="tag2">Mini Project</div><div class="desc">Design a small "posts" API with self/relationship links and OAuth2-based auth.</div></div>
-          <div class="rung"><div class="lvl">7</div><div class="tag2">Interview</div><div class="desc">Defend, out loud, when it's correct to break strict REST conventions.</div></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODULE 18 -->
-    <section class="module" id="m18">
-      <div class="module-head"><div class="module-num">19</div><h2>Memory Palace</h2></div>
-      <div class="module-body">
-        <div class="palace-grid">
-          <div class="palace-card">
-            <div class="ic">📏</div>
-            <h5>Rule</h5>
-            <p>Convention over cleverness — verbs mean what everyone expects them to mean.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🔑</div>
-            <h5>Mnemonic</h5>
-            <p>"GET Peeks, POST Pushes" — GET only looks, POST changes something.</p>
-          </div>
-          <div class="palace-card">
-            <div class="ic">🧭</div>
-            <h5>Visual</h5>
-            <p class="ascii">Request(verb,format)
-      │
-      ▼
- Auth (JWT/OAuth2)
-      │
-      ▼
-Handler → JSON+links
-      │
-      ▼
-   Response</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="footer-note">MAD2 Learning OS · Designing APIs (Part 2) · 19/19 modules complete</div>
-  </main>
 </div>
+
+<footer>MAD2 · Lecture 8.2 — Designing APIs, Part 2 · Learning OS artifact (adaptive structure)</footer>
 
 </body>
 </html>
