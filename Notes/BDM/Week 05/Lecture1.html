@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BDM - Finance & Accounting | Chapter 1</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-size: 9px;
+      color: #94a3b8;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #1e293b;
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .cover {
+    text-align: center;
+    padding-top: 60px;
+    padding-bottom: 30px;
+    border-bottom: 3px solid #2563eb;
+    margin-bottom: 30px;
+  }
+  .cover .tag {
+    display: inline-block;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    text-transform: uppercase;
+  }
+  .cover h1 {
+    font-size: 26px;
+    margin: 8px 0 6px 0;
+    color: #0f172a;
+  }
+  .cover h2 {
+    font-size: 15px;
+    font-weight: 500;
+    color: #475569;
+    margin: 0;
+  }
+  h1.section {
+    font-size: 18px;
+    color: #ffffff;
+    background: #2563eb;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 26px;
+    margin-bottom: 12px;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 14.5px;
+    color: #1d4ed8;
+    border-bottom: 2px solid #bfdbfe;
+    padding-bottom: 4px;
+    margin-top: 20px;
+    margin-bottom: 8px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 12.5px;
+    color: #0f172a;
+    margin-top: 14px;
+    margin-bottom: 6px;
+    page-break-after: avoid;
+  }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  hr {
+    border: none;
+    border-top: 1px solid #e2e8f0;
+    margin: 18px 0;
+  }
+  .def-box {
+    background: #f0f9ff;
+    border-left: 4px solid #2563eb;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .example-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .keyword-box {
+    background: #f0fdf4;
+    border-left: 4px solid #16a34a;
+    padding: 8px 12px;
+    margin: 8px 0;
+    border-radius: 0 6px 6px 0;
+    font-weight: 600;
+    color: #166534;
+  }
+  .memory-trick {
+    background: #fdf4ff;
+    border: 1.5px dashed #a855f7;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin: 10px 0;
+  }
+  .memory-trick h3 { margin-top: 0; color: #7e22ce; }
+  .flow {
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 10px 0;
+    line-height: 2;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0 16px 0;
+  }
+  th {
+    background: #2563eb;
+    color: #fff;
+    text-align: left;
+    padding: 7px 10px;
+    font-size: 11px;
+  }
+  td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 11px;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .tips-box {
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 16px 18px;
+    border-radius: 10px;
+    margin-top: 20px;
+  }
+  .tips-box h1.section { background: transparent; color: #fbbf24; padding: 0; margin-top: 0; }
+  .tips-box ul { padding-left: 18px; }
+  .tips-box li { margin: 5px 0; }
+  .check { color: #16a34a; font-weight: 700; }
+  .cross { color: #dc2626; font-weight: 700; }
+  .keyword-tag {
+    display: inline-block;
+    background: #1e293b;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="tag">BDM &middot; Business Data Management</div>
+  <h1>Finance &amp; Accounting</h1>
+  <h2>Chapter 1: Introduction to Accounting &mdash; Exam-Oriented Notes</h2>
+</div>
+
+<h1 class="section">1. What is Accounting?</h1>
+
+<h3>Definition</h3>
+<div class="def-box">
+Accounting is the process of <strong>identifying, recording, classifying, summarizing, and communicating</strong> financial transactions to help users make informed business decisions.
+</div>
+
+<h3>Simple Meaning</h3>
+<p>Accounting converts daily business activities (sales, purchases, expenses, investments, etc.) into useful financial information.</p>
+
+<h1 class="section">2. Purpose of Accounting</h1>
+<p>Accounting helps a business:</p>
+<ul>
+  <li>Record financial transactions.</li>
+  <li>Measure profit or loss.</li>
+  <li>Understand financial position.</li>
+  <li>Prepare financial statements.</li>
+  <li>Support business decisions.</li>
+  <li>Meet legal and tax requirements.</li>
+  <li>Communicate financial information to stakeholders.</li>
+</ul>
+
+<h3>Exam Definition</h3>
+<div class="keyword-box">
+Accounting is the language of business because it records, measures, and communicates financial information.
+</div>
+
+<h1 class="section">3. Why Do We Need Accounting?</h1>
+
+<h2>A. Language of Business</h2>
+<ul>
+  <li>Every business transaction is recorded in a standard format.</li>
+  <li>Makes financial information understandable worldwide.</li>
+</ul>
+<div class="example-box">
+<strong>Example:</strong><br>
+Instead of saying &mdash; <em>"Business is doing well"</em><br>
+Accounting says &mdash; Revenue = &#8377;50,00,000, Profit = &#8377;8,00,000
+</div>
+
+<h2>B. Performance Tracking</h2>
+<p>Helps answer:</p>
+<ul>
+  <li>Are we making profit?</li>
+  <li>Are expenses increasing?</li>
+  <li>Is revenue growing?</li>
+</ul>
+<p>Without accounting &rarr; Decisions are based on guesses.</p>
+
+<h2>C. Compliance &amp; Trust</h2>
+<p>Accounting ensures businesses:</p>
+<ul>
+  <li>Follow tax laws.</li>
+  <li>Follow government regulations.</li>
+  <li>Maintain transparency.</li>
+  <li>Build investor confidence.</li>
+</ul>
+
+<h3>Main Question Accounting Answers</h3>
+<div class="keyword-box">
+How is the business performing financially, and what is its current financial position?
+</div>
+
+<h1 class="section">4. Functions of Accounting</h1>
+<p>Accounting has four major functions.</p>
+
+<h2>1. Recording (Bookkeeping)</h2>
+<div class="def-box"><strong>Definition:</strong> Recording all financial transactions in chronological order.</div>
+<p><strong>Examples:</strong> Sales, Purchases, Salary, Rent, Electricity bill</p>
+<div class="example-box"><strong>Example:</strong> Sold goods for &#8377;20,000 &rarr; Record immediately.</div>
+
+<h2>2. Classifying</h2>
+<div class="def-box"><strong>Definition:</strong> Grouping similar transactions together.</div>
+<p><strong>Examples:</strong> Sales Account, Salary Account, Rent Account, Travel Expenses, Electricity Expenses</p>
+<p><strong>Purpose:</strong> Makes analysis easier.</p>
+
+<h2>3. Summarizing</h2>
+<div class="def-box"><strong>Definition:</strong> Converting recorded data into meaningful reports.</div>
+<p><strong>Main Reports:</strong> Income Statement, Balance Sheet, Cash Flow Statement</p>
+<p><strong>Purpose:</strong> Provides an overall picture of business performance.</p>
+
+<h2>4. Interpreting</h2>
+<div class="def-box"><strong>Definition:</strong> Analyzing financial reports for decision-making.</div>
+<p><strong>Used to answer:</strong></p>
+<ul>
+  <li>Should we expand?</li>
+  <li>Should we reduce costs?</li>
+  <li>Can we take a loan?</li>
+  <li>Should we invest?</li>
+</ul>
+
+<div class="memory-trick">
+<h3>Memory Trick &mdash; RCSI</h3>
+<p>R &rarr; Record &nbsp;|&nbsp; C &rarr; Classify &nbsp;|&nbsp; S &rarr; Summarize &nbsp;|&nbsp; I &rarr; Interpret</p>
+</div>
+
+<h1 class="section">5. Accounting Process</h1>
+<div class="flow">
+Business Transaction &rarr; Identify &rarr; Record &rarr; Classify &rarr; Summarize &rarr; Interpret &rarr; Communicate
+</div>
+
+<h1 class="section">6. Types of Accounting</h1>
+
+<h2>A. Financial Accounting</h2>
+<p><strong>Purpose:</strong> Prepare financial statements for external users.</p>
+<p><strong>Produces:</strong> Income Statement, Balance Sheet, Cash Flow Statement</p>
+<p><strong>Focus:</strong> Overall financial performance.</p>
+<p><strong>Users:</strong> Investors, Banks, Government, Creditors.</p>
+
+<h2>B. Tax Accounting</h2>
+<p><strong>Purpose:</strong> Calculate taxes according to government laws.</p>
+<p><strong>Examples:</strong> Income Tax, GST, Corporate Tax</p>
+<p><strong>Focus:</strong> Legal compliance.</p>
+
+<h2>C. Cost Accounting</h2>
+<p><strong>Purpose:</strong> Control and reduce production costs.</p>
+<p><strong>Focus:</strong> Fixed Cost, Variable Cost, Direct Cost, Indirect Cost</p>
+<div class="example-box"><strong>Example:</strong> Cost of producing one mobile phone.</div>
+
+<h2>D. Management Accounting</h2>
+<p><strong>Purpose:</strong> Help managers make business decisions.</p>
+<p><strong>Includes:</strong> Budgeting, Forecasting, Capital Budgeting, Financial Analysis, Investment Decisions</p>
+<p><strong>Focus:</strong> Internal decision making.</p>
+
+<div class="memory-trick">
+<h3>Memory Trick &mdash; FTCM</h3>
+<p>F &rarr; Financial &nbsp;|&nbsp; T &rarr; Tax &nbsp;|&nbsp; C &rarr; Cost &nbsp;|&nbsp; M &rarr; Management</p>
+</div>
+
+<h1 class="section">7. Users of Accounting Information</h1>
+<p>Accounting information is used by two groups.</p>
+
+<h2>Internal Users</h2>
+<p>Work inside the company.</p>
+<p><strong>Examples:</strong> Owners, Managers, Employees, Finance Department</p>
+<p><strong>Purpose:</strong> Planning, Budgeting, Performance Review, Forecasting, Pricing Decisions</p>
+
+<h2>External Users</h2>
+<p>People outside the company.</p>
+<p><strong>Examples:</strong> Investors, Banks, Creditors, Government, Tax Authorities, Regulators, Customers</p>
+<p><strong>Purpose:</strong> Investment decisions, Loan approval, Tax collection, Business evaluation</p>
+
+<div class="memory-trick">
+<h3>Memory Trick</h3>
+<p>Internal &rarr; Runs the business &nbsp;|&nbsp; External &rarr; Evaluates the business</p>
+</div>
+
+<h1 class="section">8. GAAP (Generally Accepted Accounting Principles)</h1>
+<h3>Definition</h3>
+<div class="def-box">GAAP is a set of standard accounting rules used while preparing financial statements.</div>
+<p><strong>Purpose:</strong></p>
+<ul>
+  <li>Maintain consistency.</li>
+  <li>Improve accuracy.</li>
+  <li>Increase comparability.</li>
+  <li>Ensure transparency.</li>
+</ul>
+
+<h1 class="section">9. Revenue Recognition Principle</h1>
+<p>Revenue is recognized when:</p>
+<ul>
+  <li><span class="check">&#10003;</span> Goods/services are delivered.</li>
+  <li><span class="check">&#10003;</span> Revenue is earned.</li>
+  <li><span class="cross">&#10007;</span> Not necessarily when cash is received.</li>
+</ul>
+<div class="example-box">
+<strong>Example:</strong><br>
+October: Laptop delivered.<br>
+December: Customer pays.<br>
+Revenue is recorded in <strong>October</strong>.
+</div>
+<div class="keyword-tag">Keyword: Earned &rarr; Record Revenue</div>
+
+<h1 class="section">10. Expense Recognition (Matching Principle)</h1>
+<div class="def-box"><strong>Definition:</strong> Expenses should be recorded in the same accounting period as the revenue they helped generate.</div>
+<div class="example-box">
+<strong>Example:</strong><br>
+January: Sales commission earned.<br>
+February: Commission paid.<br>
+Expense is recorded in <strong>January</strong>.
+</div>
+<div class="keyword-tag">Keyword: Revenue and related expenses should match</div>
+
+<h1 class="section">11. Measurement (Cost) Principle</h1>
+<div class="def-box"><strong>Definition:</strong> Assets should be recorded at their original purchase cost (Historical Cost).</div>
+<div class="example-box">
+<strong>Example:</strong><br>
+Land purchased in 2010 = &#8377;1,00,000<br>
+Current Market Value = &#8377;10,00,000<br>
+Accounting Value = &#8377;1,00,000<br><br>
+<strong>Reason:</strong> Accounting records actual cost, not market value.
+</div>
+<div class="keyword-tag">Keyword: Historical Cost</div>
+
+<h1 class="section">Quick Revision Table</h1>
+<table>
+<tr><th>Topic</th><th>Key Point</th></tr>
+<tr><td>Accounting</td><td>Language of Business</td></tr>
+<tr><td>Purpose</td><td>Record, Measure, Report</td></tr>
+<tr><td>Functions</td><td>Record &rarr; Classify &rarr; Summarize &rarr; Interpret</td></tr>
+<tr><td>Financial Accounting</td><td>External Reporting</td></tr>
+<tr><td>Tax Accounting</td><td>Tax Compliance</td></tr>
+<tr><td>Cost Accounting</td><td>Cost Control</td></tr>
+<tr><td>Management Accounting</td><td>Decision Making</td></tr>
+<tr><td>Internal Users</td><td>Managers, Owners</td></tr>
+<tr><td>External Users</td><td>Investors, Banks, Government</td></tr>
+<tr><td>Revenue Principle</td><td>Record when Earned</td></tr>
+<tr><td>Matching Principle</td><td>Match Expense with Revenue</td></tr>
+<tr><td>Cost Principle</td><td>Historical Cost</td></tr>
+</table>
+
+<div class="tips-box">
+<h1 class="section">&#127919; IITM Exam Tips</h1>
+<p>Remember these one-liners:</p>
+<ul>
+  <li><strong>Accounting = Language of Business.</strong></li>
+  <li><strong>Recording = Bookkeeping.</strong></li>
+  <li><strong>Financial Accounting &rarr; External Users.</strong></li>
+  <li><strong>Management Accounting &rarr; Internal Decisions.</strong></li>
+  <li><strong>Revenue is recorded when earned, not when cash is received.</strong></li>
+  <li><strong>Expenses must match the related revenue period.</strong></li>
+  <li><strong>Assets are recorded at Historical Cost (Original Purchase Price).</strong></li>
+  <li><strong>GAAP ensures consistency, comparability, reliability, and transparency.</strong></li>
+</ul>
+</div>
+
+</body>
+</html>
